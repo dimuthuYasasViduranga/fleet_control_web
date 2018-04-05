@@ -1,39 +1,37 @@
 <template>
-  <div id="layout">
-    <hxHeader />
+  <header role="banner">
+    <div id="header-wrapper">
+      <img id="logo" src="../assets/hps.png">
+      <span id="login">
+        <button id="login-btn">
+          <span class="icon-wrapper">
+            <svg viewBox="0 0 22 22" preserveAspectRatio="xMidYMid meet" focusable="false" class="icon" style="pointer-events: none; display: block; width: 100%; height: 100%;"><g class="style-scope iron-icon"><path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3" class="style-scope iron-icon"></path><rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round" class="style-scope iron-icon"></rect></g></svg>
+          </span>
 
-    <div id="nav-bar">
-      <div v-for="route in routes" :key="route.path">
-        <router-link :to="route.path">{{route.name}}</router-link>
-      </div>
+          {{username || "Sign in"}}
+
+          <span class="icon-wrapper">
+            <svg viewBox="0 0 16 16" preserveAspectRatio="xMidYMid meet" focusable="false" class="style-scope iron-icon" style="pointer-events: none; display: block; width: 100%; height: 100%;"><g class="style-scope iron-icon"><path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5" class="style-scope iron-icon"></path></g></svg>
+          </span>
+        </button>
+      </span>
     </div>
-
-    <router-view class="view"></router-view>
-  </div>
+  </header>
 </template>
 
 <script>
-import hxHeader from './Header.vue'
 
 export default {
-  name: 'Layout',
+  name: 'hxHeader',
   props: {
-    routes: Array
-  },
-  created: function() {
-    console.log(this)
-  },
-  components: {
-    hxHeader
+    username: String,
+    logoutUrl: String,
   }
 }
 
 </script>
 
 <style>
-body {
-  margin: 0;
-}
 header {
   box-sizing: border-box ;
   line-height: 19.9999px ;
@@ -90,13 +88,6 @@ header {
 #logo {
   height: 3.8rem;
   padding-top: 0.2rem;
-}
-
-#layout {
-  font-family: "GE Inspira Sans", sans-serif;
-  font-weight: normal;
-  -webkit-font-smoothing: antialiased;
-  color: #2c3e50;
 }
 
 #header-wrapper {

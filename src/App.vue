@@ -1,7 +1,6 @@
 <template>
   <div>
-    <Layout :routes="routes">
-    </Layout>
+    <Layout :routes="routes"/>
   </div>
 </template>
 
@@ -18,6 +17,3 @@ export default {
   }
 }
 </script>
-
-<style>
-</style>
