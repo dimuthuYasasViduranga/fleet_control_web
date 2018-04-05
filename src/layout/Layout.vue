@@ -8,19 +8,14 @@
       <router-view class="view"></router-view>
     </div>
 
-    <footer role="banner">
-      <div id="footer-wrapper">
-        <span>
-          Powered by
-        </span>
-      </div>
-    </footer>
+    <hxFooter />
   </div>
 </template>
 
 <script>
 import hxHeader from './Header.vue'
 import hxNavbar from './Navbar.vue'
+import hxFooter from './Footer.vue'
 
 export default {
   name: 'Layout',
@@ -32,7 +27,8 @@ export default {
   },
   components: {
     hxHeader,
-    hxNavbar
+    hxNavbar,
+    hxFooter
   }
 }
 
@@ -58,12 +54,6 @@ body {
   min-height: calc(100vh - 8rem);
 }
 
-footer span {
-  display: block;
-  -webkit-margin-after: 12px;
-  -webkit-margin-before: 12px;
-}
-
 #layout {
   font-family: "GE Inspira Sans", sans-serif;
   font-weight: normal;
@@ -74,35 +64,5 @@ footer span {
   display: flex;
   flex-flow: column;
   height: 100%;
-}
-
-#footer-wrapper {
-  margin: 0 15px;
-  align-items: center;
-  -webkit-box-pack: justify;
-  -webkit-box-align: center;
-  -webkit-font-smoothing: antialiased;
-  -ms-flex-pack: justify;
-  -ms-flex-align: center;
-  justify-content: space-between;
-  display: flex;
-  width: auto;
-  max-width: none;
-  padding-left: 2em;
-  padding-right: 2em;
-}
-
-footer {
-  box-sizing: border-box ;
-  line-height: 19.9999px ;
-  width: 100%;
-  display: flex;
-  margin: auto;
-  height: 4rem;
-  color: #b6c3cc;
-  background-color: #0c1419;
-  -webkit-box-align: center;
-  align-items: center;
-  font-size: 12px;
 }
 </style>
