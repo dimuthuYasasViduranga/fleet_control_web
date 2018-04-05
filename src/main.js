@@ -1,8 +1,27 @@
 import Vue from 'vue'
 import App from './App.vue'
+import VueRouter from 'vue-router'
 
-Vue.config.productionTip = false
+import HelloWorld from './components/HelloWorld.vue'
+
+Vue.config.productionTip = false;
+Vue.use(VueRouter);
+
+const routes = [
+      { name: 'Hello World', path: '/hello-world', component: HelloWorld }
+    ]
+
+const router = new VueRouter({
+  routes
+});
+
+const props = { routes };
 
 new Vue({
-  render: h => h(App)
-}).$mount('#app')
+  el: '#app',
+  router,
+  render: function(createElement) {
+    return createElement(App, {props})
+  },
+  data: { routes }
+});
