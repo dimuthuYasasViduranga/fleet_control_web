@@ -4,7 +4,7 @@
     <div id="nav-bar">
       <div v-for="route in routes" :key="route.path">
         <router-link class="nav-item" :to="route.path">
-          <div class="nav-item-wrapper">
+          <div :id="route.path" class="nav-item-wrapper" >
             <span v-html="route.icon"></span>
             {{route.name}}
           </div>
@@ -19,19 +19,29 @@
 export default {
   name: 'hxNavbar',
   props: {
-    routes: Array
+    routes: Array,
+    selected: String
+  },
+  methods: {
+    changeSelected: (event) => {
+      this.selected = event.target.id;
+      console.log(this.selected);
+    }
   }
 }
 
 </script>
 
 <style>
-#nav-itme-selected {
-  background-color: #1b2a33
+.router-link-active .nav-item-wrapper {
+  background-color: #1b2a33;
+  border-left-color: #09819c;
+  border-left-width: 0.15em;
+  border-left-style: solid;
 }
 
 .nav-item-wrapper:hover {
-  background-color: #1b2a33
+  background-color: #23343f
 }
 
 .nav-item-wrapper {
@@ -49,11 +59,13 @@ export default {
 }
 
 #nav-bar:hover {
+  overflow: hidden;
   overflow-y: auto;
   max-width: 21.33333rem;
 }
 
 #nav-bar {
+  overflow: hidden;
   background-color: #1B2A33;
   z-index: 5;
   box-sizing: inherit;
