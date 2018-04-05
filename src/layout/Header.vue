@@ -2,17 +2,28 @@
   <header role="banner">
     <div id="header-wrapper">
       <img id="logo" src="../assets/hps.png">
-      <span id="login">
+      <span id="login" >
         <button id="login-btn">
+
           <span class="icon-wrapper">
-            <svg viewBox="0 0 22 22" preserveAspectRatio="xMidYMid meet" focusable="false" class="icon" style="pointer-events: none; display: block; width: 100%; height: 100%;"><g class="style-scope iron-icon"><path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3" class="style-scope iron-icon"></path><rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round" class="style-scope iron-icon"></rect></g></svg>
+            <svg viewBox="0 0 22 22" class="icon">
+              <g>
+                <path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3"></path>
+                <rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round"></rect>
+              </g>
+            </svg>
           </span>
 
           {{username || "Sign in"}}
 
           <span class="icon-wrapper">
-            <svg viewBox="0 0 16 16" preserveAspectRatio="xMidYMid meet" focusable="false" class="style-scope iron-icon" style="pointer-events: none; display: block; width: 100%; height: 100%;"><g class="style-scope iron-icon"><path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5" class="style-scope iron-icon"></path></g></svg>
+            <svg viewBox="0 0 16 16" class="icon" >
+              <g>
+                <path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5"> </path>
+              </g>
+            </svg>
           </span>
+
         </button>
       </span>
     </div>
@@ -43,6 +54,13 @@ header {
   background-color: #0c1419;
 }
 
+.icon {
+  pointer-events: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .icon-wrapper {
   fill: none;
   height: 2em;
@@ -54,6 +72,11 @@ header {
 #login {
   position: relative;
   display: flex;
+}
+
+#login-btn:hover {
+  color: #87b9d7;
+  stroke: #87b9d7;
 }
 
 #login-btn {
@@ -86,7 +109,7 @@ header {
 }
 
 #logo {
-  height: 3.8rem;
+  height: 3.6rem;
   padding-top: 0.2rem;
 }
 

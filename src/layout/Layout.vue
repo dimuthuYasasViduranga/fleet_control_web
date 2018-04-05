@@ -2,18 +2,25 @@
   <div id="layout">
     <hxHeader />
 
-    <div id="nav-bar">
-      <div v-for="route in routes" :key="route.path">
-        <router-link :to="route.path">{{route.name}}</router-link>
-      </div>
+    <div id="body">
+      <hxNavbar :routes="routes"/>
+      <span id="nav-gap"/>
+      <router-view class="view"></router-view>
     </div>
 
-    <router-view class="view"></router-view>
+    <footer role="banner">
+      <div id="footer-wrapper">
+        <span>
+          Powered by
+        </span>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script>
 import hxHeader from './Header.vue'
+import hxNavbar from './Navbar.vue'
 
 export default {
   name: 'Layout',
@@ -24,7 +31,8 @@ export default {
     console.log(this)
   },
   components: {
-    hxHeader
+    hxHeader,
+    hxNavbar
   }
 }
 
@@ -34,62 +42,26 @@ export default {
 body {
   margin: 0;
 }
-header {
-  box-sizing: border-box ;
-  line-height: 19.9999px ;
-  width: 100%;
+
+#nav-gap {
+  width: 4rem;
+}
+
+#body {
+  width: auto;
+  max-width: none;
+  margin-right: 0;
+  margin-left: 0;
+  position: relative;
+  display: flex;
+  box-sizing: inherit;
+  min-height: calc(100vh - 8rem);
+}
+
+footer span {
   display: block;
-  margin: auto;
-  height: 4rem;
-  color: #b6c3cc;
-  background-color: #0c1419;
-}
-
-.icon-wrapper {
-  fill: none;
-  height: 2em;
-  width: 4em;
-  position: relative;
-  display: flex;
-}
-
-#login {
-  position: relative;
-  display: flex;
-}
-
-#login-btn {
-  color: #b7c3cd;
-  stroke: #b7c3cd;
-  -webkit-appearance: button;
-  max-width: 12rem;
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 2rem;
-  box-shadow: none;
-  background: 0 0;
-  outline: 0;
-  border: 0!important;
-  border-radius: 0!important;
-  padding-left: 0;
-  padding-right: 0;
-  overflow: visible;
-  min-width: 4.66667em;
-  margin: 0;
-  height: 2em;
-  padding: 0 calc(2em/ 2);
-  text-align: center;
-  text-transform: none;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-#logo {
-  height: 3.8rem;
-  padding-top: 0.2rem;
+  -webkit-margin-after: 12px;
+  -webkit-margin-before: 12px;
 }
 
 #layout {
@@ -97,18 +69,40 @@ header {
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   color: #2c3e50;
+  background-color: #748b99;
+
+  display: flex;
+  flex-flow: column;
+  height: 100%;
 }
 
-#header-wrapper {
+#footer-wrapper {
   margin: 0 15px;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   -webkit-box-pack: justify;
+  -webkit-box-align: center;
+  -webkit-font-smoothing: antialiased;
   -ms-flex-pack: justify;
+  -ms-flex-align: center;
   justify-content: space-between;
   display: flex;
   width: auto;
   max-width: none;
+  padding-left: 2em;
+  padding-right: 2em;
+}
+
+footer {
+  box-sizing: border-box ;
+  line-height: 19.9999px ;
+  width: 100%;
+  display: flex;
+  margin: auto;
+  height: 4rem;
+  color: #b6c3cc;
+  background-color: #0c1419;
+  -webkit-box-align: center;
+  align-items: center;
+  font-size: 12px;
 }
 </style>
