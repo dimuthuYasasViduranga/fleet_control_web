@@ -9,9 +9,22 @@ Vue.config.productionTip = false;
 Vue.use(VueRouter);
 
 const routes = [
-      { name: 'Hello World', path: '/hello-world', component: HelloWorld },
-      { name: 'Hello Galaxy', path: '/hello-galaxy', component: HelloGalaxy }
-    ]
+  { name: 'Hello World',
+    path: '/hello-world',
+    component: HelloWorld,
+    icon: 'generic-user',
+    iconSize: 22
+  },
+  {
+    name: 'Hello Galaxy',
+    path: '/hello-galaxy',
+    component: HelloGalaxy,
+    icon: '',
+    iconSize: 22
+  }
+];
+
+console.dir(routes);
 
 const router = new VueRouter({
   routes
