@@ -2,8 +2,8 @@
   <header role="banner">
     <div id="header-wrapper">
       <img id="logo" src="../assets/hps.png">
-      <span id="login" >
-        <button id="login-btn">
+      <div id="login" >
+        <button id="login-btn" v-on:click="showLogout = !showLogout">
 
           <span class="login-icon-wrapper">
             <svg viewBox="0 0 22 22" class="login-icon">
@@ -23,10 +23,16 @@
               </g>
             </svg>
           </span>
-
         </button>
-      </span>
+        <div v-show="showLogout">
+          <i class="triangle-up"></i>
+          <button id="logout-btn" @click="logoutClicked()">
+            Sign Out
+          </button>
+        </div>
+      </div>
     </div>
+
   </header>
 </template>
 
@@ -36,7 +42,16 @@ export default {
   name: 'hxHeader',
   props: {
     username: String,
-    logoutUrl: String,
+    logout: Function
+  },
+  data: () => {
+    return { showLogout: false };
+  },
+  methods: {
+    logoutClicked: function() {
+      this.logout();
+      this.showLogout = false;
+    }
   }
 }
 
@@ -69,14 +84,46 @@ header {
   display: flex;
 }
 
-#login {
-  position: relative;
-  display: flex;
+.triangle-up {
+  position: absolute;
+  z-index: 10;
+  width: 0;
+  height: 0;
+  border-left: 0.8em solid transparent;
+  border-right: 0.8em solid transparent;
+  border-bottom: 1em solid #23343f;
+  margin-left: 3.8rem;
+  margin-top: 0.5em;
 }
 
-#login-btn:hover {
-  color: #87b9d7;
-  stroke: #87b9d7;
+#logout-btn {
+  position: absolute;
+  margin-top: 1em;
+  margin-left: 1.5em;
+  z-index: 9;
+  padding-left: 2em;
+  padding-right: 2em;
+  border: 1px solid #0c1419;
+  background: #23343f;
+  color: #b6c3cc;
+  max-width: 12rem;
+  display: flex;
+  box-shadow: none;
+  overflow: visible;
+  text-transform: none;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  height: 4rem;
+}
+
+#login {
+  position: relative;
+}
+
+#login-btn:hover, #logout-btn:hover {
+  color: #45ace5;
+  stroke: #45ace5;
 }
 
 #login-btn {

@@ -22,16 +22,20 @@ const routes = [
     component: HelloGalaxy,
     icon: getIcon('generic-user'),
     iconSize: 22
-  }
+  },
+  { path: '*', redirect: '/hello-world' }
 ];
-
-console.dir(routes);
 
 const router = new VueRouter({
   routes
 });
 
-const props = { routes };
+let username='Tyson';
+const logout = function() { 
+  console.log('logout');
+};
+
+const props = { routes, username, logout };
 
 new Vue({
   el: '#app',

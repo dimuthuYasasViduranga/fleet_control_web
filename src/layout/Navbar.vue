@@ -3,7 +3,7 @@
     <span id="nav-gap"/>
     <div id="nav-bar">
       <div v-for="route in routes" :key="route.path">
-        <router-link class="nav-item" :to="route.path">
+        <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" class="nav-item-wrapper" >
             <icon :icon="route.icon"/>
             <p class="nav-label">
@@ -22,17 +22,10 @@ import icon from './Icon.vue'
 export default {
   name: 'hxNavbar',
   props: {
-    routes: Array,
-    selected: String
+    routes: Array
   },
   components: {
     icon
-  },
-  methods: {
-    changeSelected: (event) => {
-      this.selected = event.target.id;
-      console.log(this.selected);
-    }
   }
 }
 

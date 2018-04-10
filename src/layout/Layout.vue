@@ -1,6 +1,6 @@
 <template>
   <div id="layout">
-    <hxHeader />
+    <hxHeader :username="username" :logout="logout" />
 
     <div id="body">
       <hxNavbar :routes="routes"/>
@@ -20,10 +20,9 @@ import hxFooter from './Footer.vue'
 export default {
   name: 'Layout',
   props: {
-    routes: Array
-  },
-  created: function() {
-    console.log(this)
+    routes: Array,
+    username: String,
+    logout: Function
   },
   components: {
     hxHeader,
