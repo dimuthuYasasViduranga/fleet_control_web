@@ -29,7 +29,7 @@
           v-bind:font-weight="shape.fontWeight"
           v-bind:letter-spacing="shape.letterSpacing"
           >
-          {shape.text}
+          {{shape.text}}
         </text>
 
         <circle v-else-if="shape.type === 'circle'"

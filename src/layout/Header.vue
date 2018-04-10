@@ -5,8 +5,8 @@
       <span id="login" >
         <button id="login-btn">
 
-          <span class="icon-wrapper">
-            <svg viewBox="0 0 22 22" class="icon">
+          <span class="login-icon-wrapper">
+            <svg viewBox="0 0 22 22" class="login-icon">
               <g>
                 <path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3"></path>
                 <rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round"></rect>
@@ -16,8 +16,8 @@
 
           {{username || "Sign in"}}
 
-          <span class="icon-wrapper">
-            <svg viewBox="0 0 16 16" class="icon" >
+          <span class="login-icon-wrapper">
+            <svg viewBox="0 0 16 16" class="login-icon" >
               <g>
                 <path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5"> </path>
               </g>
@@ -54,17 +54,17 @@ header {
   background-color: #0c1419;
 }
 
-.icon {
+.login-icon {
   pointer-events: none;
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.icon-wrapper {
+.login-icon-wrapper {
   fill: none;
   height: 2em;
-  width: 4em;
+  width: 3em;
   position: relative;
   display: flex;
 }

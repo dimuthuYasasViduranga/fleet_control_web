@@ -6,7 +6,9 @@
         <router-link class="nav-item" :to="route.path">
           <div :id="route.path" class="nav-item-wrapper" >
             <icon :icon="route.icon"/>
-            {{route.icon}}
+            <p class="nav-label">
+              {{route.name}}
+            </p>
           </div>
         </router-link>
       </div>
@@ -48,7 +50,17 @@ export default {
   background-color: #23343f
 }
 
+.nav-label {
+  margin: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  display: block;
+}
+
 .nav-item-wrapper {
+  display: flex;
   overflow: hidden;
   background-color: #0c1419;
   height: 4em;
@@ -90,4 +102,12 @@ export default {
   color: #b6c3cc;
 }
 
+.icon-wrapper {
+  margin: auto;
+  width: 3.8rem;
+  min-width: 3.8rem;
+  height: 4rem;
+  margin-right: .33333rem;
+  margin-right: .33333rem;
+}
 </style>
