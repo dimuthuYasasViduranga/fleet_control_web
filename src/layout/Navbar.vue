@@ -5,10 +5,8 @@
       <div v-for="route in routes" :key="route.path">
         <router-link class="nav-item" :to="route.path">
           <div :id="route.path" class="nav-item-wrapper" >
-            <icon :name="route.icon" :size="route.iconSize"/>
-            {{route.name}}
+            <icon :icon="route.icon"/>
             {{route.icon}}
-            {{route.iconSize}}
           </div>
         </router-link>
       </div>
@@ -17,7 +15,7 @@
 </template>
 
 <script>
-import icon from '../components/Icon.vue'
+import icon from './Icon.vue'
 
 export default {
   name: 'hxNavbar',

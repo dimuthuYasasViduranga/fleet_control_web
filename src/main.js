@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 
 import HelloWorld from './components/HelloWorld.vue'
 import HelloGalaxy from './components/HelloGalaxy.vue'
+import getIcon from './iconDictionary.js'
 
 Vue.config.productionTip = false;
 Vue.use(VueRouter);
@@ -12,14 +13,14 @@ const routes = [
   { name: 'Hello World',
     path: '/hello-world',
     component: HelloWorld,
-    icon: 'generic-user',
+    icon: getIcon('generic-user'),
     iconSize: 22
   },
   {
     name: 'Hello Galaxy',
     path: '/hello-galaxy',
     component: HelloGalaxy,
-    icon: '',
+    icon: getIcon('generic-user'),
     iconSize: 22
   }
 ];
