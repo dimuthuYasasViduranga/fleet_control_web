@@ -1,5 +1,5 @@
 <template>
-  <header role="banner">
+  <header id="header" role="banner">
     <div id="header-wrapper">
       <img id="logo" src="../assets/hps.png">
       <div id="login" >
@@ -58,14 +58,13 @@ export default {
 </script>
 
 <style>
-header {
+#header {
   box-sizing: border-box ;
   line-height: 19.9999px ;
   width: 100%;
   display: block;
   margin: auto;
   height: 4rem;
-  color: #b6c3cc;
   background-color: #0c1419;
 }
 
@@ -97,6 +96,7 @@ header {
 }
 
 #logout-btn {
+  color: #b6c3cc;
   position: absolute;
   margin-top: 1em;
   margin-left: 1.5em;
@@ -105,7 +105,6 @@ header {
   padding-right: 2em;
   border: 1px solid #0c1419;
   background: #23343f;
-  color: #b6c3cc;
   max-width: 12rem;
   display: flex;
   box-shadow: none;

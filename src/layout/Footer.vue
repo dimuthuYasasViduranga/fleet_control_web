@@ -48,7 +48,6 @@ footer {
   display: flex;
   margin: auto;
   height: 4rem;
-  color: #b6c3cc;
   background-color: #0c1419;
   -webkit-box-align: center;
   align-items: center;

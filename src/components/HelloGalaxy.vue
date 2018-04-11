@@ -1,33 +1,29 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    This is much more sparse.
-  </div>
+  <hxCard :title="title" :icon="icon">
+    <div class="hello">
+      <h1>{{ msg }}</h1>
+      This is much more sparse.
+    </div>
+  </hxCard>
 </template>
 
 <script>
+import hxCard from '../layout/Card.vue'
+import getIcon from '../iconDictionary.js'
+
 export default {
   name: 'HelloGalaxy',
   props: {
     msg: String
+  },
+  components: {
+    hxCard
+  },
+  data: () => {
+    return {
+      title: 'Hello Galaxy',
+      icon: getIcon('generic-user')
+    };
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>

@@ -57,7 +57,10 @@ body {
   font-family: "GE Inspira Sans", sans-serif;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
+
+  // two options for color
   color: #2c3e50;
+  color: #b6c3cc;
   background-color: #748b99;
 
   display: flex;

@@ -5,7 +5,9 @@
       <div v-for="route in routes" :key="route.path">
         <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" class="nav-item-wrapper" >
-            <icon :icon="route.icon"/>
+            <div class="nav-icon-wrapper">
+              <icon :icon="route.icon"/>
+          </div>
             <p class="nav-label">
               {{route.name}}
             </p>
@@ -95,12 +97,12 @@ export default {
   color: #b6c3cc;
 }
 
-.icon-wrapper {
-  margin: auto;
+.nav-icon-wrapper {
   width: 3.8rem;
   min-width: 3.8rem;
   height: 4rem;
   margin-right: .33333rem;
-  margin-right: .33333rem;
+  display: flex;
+  align-items: center; 
 }
 </style>
