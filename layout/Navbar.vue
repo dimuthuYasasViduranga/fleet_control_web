@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import icon from './Icon.vue'
+import icon from '../Icon.vue'
 
 export default {
   name: 'hxNavbar',

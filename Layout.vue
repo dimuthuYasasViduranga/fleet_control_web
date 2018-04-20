@@ -13,9 +13,9 @@
 </template>
 
 <script>
-import hxHeader from './Header.vue'
-import hxNavbar from './Navbar.vue'
-import hxFooter from './Footer.vue'
+import hxHeader from './layout/Header.vue'
+import hxNavbar from './layout/Navbar.vue'
+import hxFooter from './layout/Footer.vue'
 
 export default {
   name: 'Layout',
