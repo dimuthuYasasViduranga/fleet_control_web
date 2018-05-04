@@ -2,7 +2,7 @@
   <div class="hxCard">
     <div class="hxCardHeader">
       <div class="hxCardHeaderWrapper">
-        <icon :icon="icon"/>
+        <icon :icon="icon" :icon_size="icon_size"/>
         {{title}}
       </div>
     </div>
@@ -20,7 +20,8 @@ export default {
   },
   props: {
     title: String,
-    icon: Object
+    icon: Object,
+    icon_size: Number
   }
 }
 

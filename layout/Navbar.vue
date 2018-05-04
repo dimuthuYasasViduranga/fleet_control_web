@@ -6,7 +6,7 @@
         <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" class="nav-item-wrapper" >
             <div class="nav-icon-wrapper">
-              <icon :icon="route.icon"/>
+              <icon :icon="route.icon" :icon_size="route.icon_size"/>
           </div>
             <p class="nav-label">
               {{route.name}}
