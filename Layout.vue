@@ -2,10 +2,14 @@
   <div id="layout">
     <hxHeader :username="username" :logout="logout" />
 
-    <div id="body">
+    <div v-if="username" id="body">
       <hxNavbar :routes="routes"/>
       <span id="nav-gap"/>
       <router-view class="view"></router-view>
+    </div>
+
+    <div v-if="!username" id="body" class="wrapper" style="width:100%">
+      <hxLogin :login="login"/>
     </div>
 
     <hxFooter />
@@ -16,18 +20,21 @@
 import hxHeader from './layout/Header.vue'
 import hxNavbar from './layout/Navbar.vue'
 import hxFooter from './layout/Footer.vue'
+import hxLogin from './layout/Login.vue'
 
 export default {
   name: 'Layout',
   props: {
     routes: Array,
     username: String,
-    logout: Function
+    logout: Function,
+    login: Function
   },
   components: {
     hxHeader,
     hxNavbar,
-    hxFooter
+    hxFooter,
+    hxLogin
   }
 }
 
