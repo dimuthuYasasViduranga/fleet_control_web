@@ -2,11 +2,12 @@
   <header id="header" role="banner">
     <div id="header-wrapper">
       <img id="logo" src="../assets/hps.png">
-      <div id="login" >
-        <button id="login-btn" v-on:click="showLogout = !showLogout">
 
-          <span class="login-icon-wrapper">
-            <svg viewBox="0 0 22 22" class="login-icon">
+      <div id="logout" v-show="username">
+        <button id="logout-btn" v-on:click="showLogout = !showLogout">
+
+          <span class="logout-icon-wrapper">
+            <svg viewBox="0 0 22 22" class="logout-icon">
               <g>
                 <path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3"></path>
                 <rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round"></rect>
@@ -16,8 +17,8 @@
 
           {{username || "Sign in"}}
 
-          <span class="login-icon-wrapper">
-            <svg viewBox="0 0 16 16" class="login-icon" >
+          <span class="logout-icon-wrapper">
+            <svg viewBox="0 0 16 16" class="logout-icon" >
               <g>
                 <path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5"> </path>
               </g>
@@ -31,8 +32,8 @@
           </button>
         </div>
       </div>
-    </div>
 
+    </div>
   </header>
 </template>
 
@@ -68,14 +69,14 @@ export default {
   background-color: #0c1419;
 }
 
-.login-icon {
+.logout-icon {
   pointer-events: none;
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.login-icon-wrapper {
+.logout-icon-wrapper {
   fill: none;
   height: 2em;
   width: 3em;
@@ -116,16 +117,16 @@ export default {
   height: 4rem;
 }
 
-#login {
+#logout {
   position: relative;
 }
 
-#login-btn:hover, #logout-btn:hover {
+#logout-btn:hover, #logout-btn:hover {
   color: #45ace5;
   stroke: #45ace5;
 }
 
-#login-btn {
+#logout-btn {
   color: #b7c3cd;
   stroke: #b7c3cd;
   -webkit-appearance: button;
