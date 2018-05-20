@@ -30,7 +30,6 @@ export default {
 <style>
 .hxCard {
   width: 100%;
-  height: 100%;
   background-color: #121f26;
   border-top: 1px solid #364c59;
   padding-left: 2rem;
