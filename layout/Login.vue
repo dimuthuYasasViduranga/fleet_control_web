@@ -57,6 +57,8 @@ export default {
   },
   methods: {
     submit: function() {
+      this.error = "";
+
       this.login(this.username, this.password)
         .catch((error) => {
           console.error(error);

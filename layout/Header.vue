@@ -3,11 +3,11 @@
     <div id="header-wrapper">
       <img id="logo" src="../assets/hps.png">
 
-      <div id="logout" v-show="username">
-        <button id="logout-btn" v-on:click="showLogout = !showLogout">
+      <div id="login" v-show="username">
+        <button id="login-btn" v-on:click="showLogout = !showLogout">
 
-          <span class="logout-icon-wrapper">
-            <svg viewBox="0 0 22 22" class="logout-icon">
+          <span class="login-icon-wrapper">
+            <svg viewBox="0 0 22 22" class="login-icon">
               <g>
                 <path stroke-linejoin="round" d="M16.17 12l4.33 3v6.5h-19V15l4.33-3"></path>
                 <rect x="6.5" y=".5" width="9" height="11" rx="4.5" ry="4.5" stroke-linejoin="round"></rect>
@@ -17,8 +17,8 @@
 
           {{username || "Sign in"}}
 
-          <span class="logout-icon-wrapper">
-            <svg viewBox="0 0 16 16" class="logout-icon" >
+          <span class="login-icon-wrapper">
+            <svg viewBox="0 0 16 16" class="login-icon" >
               <g>
                 <path stroke-linejoin="round" d="M2.4 6.2l5.5 5.5 5.5-5.5"> </path>
               </g>
@@ -69,14 +69,14 @@ export default {
   background-color: #0c1419;
 }
 
-.logout-icon {
+.login-icon {
   pointer-events: none;
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.logout-icon-wrapper {
+.login-icon-wrapper {
   fill: none;
   height: 2em;
   width: 3em;
@@ -100,7 +100,6 @@ export default {
   color: #b6c3cc;
   position: absolute;
   margin-top: 1em;
-  margin-left: 1.5em;
   z-index: 9;
   padding-left: 2em;
   padding-right: 2em;
@@ -117,16 +116,16 @@ export default {
   height: 4rem;
 }
 
-#logout {
+#login {
   position: relative;
 }
 
-#logout-btn:hover, #logout-btn:hover {
+#login-btn:hover, #logout-btn:hover {
   color: #45ace5;
   stroke: #45ace5;
 }
 
-#logout-btn {
+#login-btn {
   color: #b7c3cd;
   stroke: #b7c3cd;
   -webkit-appearance: button;
