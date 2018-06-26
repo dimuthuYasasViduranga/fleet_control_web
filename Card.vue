@@ -48,4 +48,11 @@ export default {
   display: flex;
   align-items: center; 
 }
+
+@media screen and (max-width: 820px) {
+  .hxCard {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+}
 </style>
