@@ -182,6 +182,12 @@ export default {
     height: auto;
     margin-left: 6em;
   }
+
+  #login-btn:hover, #logout-btn:hover {
+    color: #b7c3cd;
+    stroke: #b7c3cd;
+  }
+
 }
 
 @media screen and (max-width: 480px) {
