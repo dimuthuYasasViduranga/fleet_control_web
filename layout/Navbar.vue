@@ -18,7 +18,7 @@
     <div id="nav-bar" :class="smallShowNav">
       <div v-for="route in routes" :key="route.path">
         <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
-          <div :id="route.path" class="nav-item-wrapper" >
+          <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper" >
             <div class="nav-icon-wrapper">
               <icon :icon="route.icon" :icon_size="route.icon_size"/>
             </div>
@@ -49,6 +49,9 @@ export default {
         this.smallShowNav = "showNav";
       else
         this.smallShowNav = "hideNav";
+    },
+    closeNav: function() {
+      this.smallShowNav = "hideNav";
     }
   },
   components: {
