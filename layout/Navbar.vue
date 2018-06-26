@@ -1,13 +1,27 @@
 <template>
   <div>
+    <div id="nav-toggle">
+      <button id="nav-toggle-btn" @click="toggleNav">
+        <span class="nav-toggle-icon-wrapper">
+          <svg viewBox="0 0 22 22" class="nav-toggle-icon" >
+            <g>
+              <path stroke-miterlimit="10" d="M0 4.5h22m-22 6h22m-22 6h22">
+              </path>
+            </g>
+          </svg>
+        </span>
+      </button>
+    </div>
+
     <span id="nav-gap"/>
-    <div id="nav-bar">
+
+    <div id="nav-bar" :class="smallShowNav">
       <div v-for="route in routes" :key="route.path">
         <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" class="nav-item-wrapper" >
             <div class="nav-icon-wrapper">
               <icon :icon="route.icon" :icon_size="route.icon_size"/>
-          </div>
+            </div>
             <p class="nav-label">
               {{route.name}}
             </p>
@@ -25,6 +39,17 @@ export default {
   name: 'hxNavbar',
   props: {
     routes: Array
+  },
+  data: () => {
+    return { smallShowNav: "hideNav" };
+  },
+  methods: {
+    toggleNav: function() {
+      if(this.smallShowNav === "hideNav")
+        this.smallShowNav = "showNav";
+      else
+        this.smallShowNav = "hideNav";
+    }
   },
   components: {
     icon
@@ -91,7 +116,6 @@ export default {
   transition: max-width 250ms ease;
   outline: 0;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
-  display: block;
   width: 100%;
   line-height: 1.33333;
   color: #b6c3cc;
@@ -104,5 +128,78 @@ export default {
   margin-right: .33333rem;
   display: flex;
   align-items: center; 
+}
+
+.nav-toggle-icon {
+  pointer-events: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.nav-toggle-icon-wrapper {
+  fill: none;
+  height: 2em;
+  width: 3em;
+  position: relative;
+  display: flex;
+}
+
+#nav-toggle {
+  display: none;
+  position: absolute;
+  left: 1em;
+  top: -3em;
+}
+
+#nav-toggle-btn {
+  color: #b7c3cd;
+  stroke: #b7c3cd;
+  -webkit-appearance: button;
+  max-width: 12rem;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 2rem;
+  box-shadow: none;
+  background: 0 0;
+  outline: 0;
+  border: 0!important;
+  border-radius: 0!important;
+  padding-left: 0;
+  padding-right: 0;
+  overflow: visible;
+  min-width: 4.66667em;
+  margin: 0;
+  height: 2em;
+  padding: 0 calc(2em/ 2);
+  text-align: center;
+  text-transform: none;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 820px) {
+  #nav-bar {
+    max-width: 100%
+  }
+
+  #nav-bar:hover {
+    max-width: 100%
+  }
+
+  #nav-toggle {
+    display: block;
+  }
+
+  .hideNav {
+    display: none;
+  }
+
+  #nav-gap {
+    display: none;
+  }
 }
 </style>

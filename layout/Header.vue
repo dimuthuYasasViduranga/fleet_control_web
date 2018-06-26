@@ -1,9 +1,11 @@
 <template>
   <header id="header" role="banner">
     <div id="header-wrapper">
-      <img id="logo" src="../assets/hps.png">
+
+      <img id="logo" src="../assets/hps.png" />
 
       <div id="login" v-show="username">
+
         <button id="login-btn" v-on:click="showLogout = !showLogout">
 
           <span class="login-icon-wrapper">
@@ -117,7 +119,9 @@ export default {
 }
 
 #login {
-  position: relative;
+  position: absolute;
+  right: 1em;
+  top: 1em;
 }
 
 #login-btn:hover, #logout-btn:hover {
@@ -170,5 +174,19 @@ export default {
   display: flex;
   width: auto;
   max-width: none;
+}
+
+@media screen and (max-width: 820px) {
+  #logo {
+    width: 40%;
+    height: auto;
+    margin-left: 6em;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  #logo {
+    display: none;
+  }
 }
 </style>
