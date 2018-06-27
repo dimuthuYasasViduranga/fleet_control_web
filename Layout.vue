@@ -3,9 +3,11 @@
     <hxHeader :username="username" :logout="logout" />
 
     <div v-if="username" id="body">
-      <hxNavbar :routes="routes"/>
+      <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
       <span id="nav-gap"/>
-      <router-view class="view"></router-view>
+      <div :class="smallShowPage">
+        <router-view class="view"></router-view>
+      </div>
     </div>
 
     <div v-if="!username" id="body" class="wrapper" style="width:100%">
@@ -35,6 +37,17 @@ export default {
     hxNavbar,
     hxFooter,
     hxLogin
+  },
+  data: () => {
+    return { smallShowPage: "showPage" };
+  },
+  methods: {
+    hidePage() {
+      this.smallShowPage = "hidePage";
+    },
+    showPage() {
+      this.smallShowPage = "showPage";
+    },
   }
 }
 
@@ -73,5 +86,15 @@ body {
   display: flex;
   flex-flow: column;
   height: 100%;
+}
+
+.hidePage, .showPage {
+  display: contents;
+}
+
+@media screen and (max-width: 820px) {
+  .hidePage {
+    display: none;
+  }
 }
 </style>

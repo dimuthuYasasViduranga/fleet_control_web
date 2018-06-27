@@ -44,14 +44,19 @@ export default {
     return { smallShowNav: "hideNav" };
   },
   methods: {
-    toggleNav: function() {
+    toggleNav() {
       if(this.smallShowNav === "hideNav")
-        this.smallShowNav = "showNav";
+        this.openNav();
       else
-        this.smallShowNav = "hideNav";
+        this.closeNav();
     },
-    closeNav: function() {
+    closeNav() {
       this.smallShowNav = "hideNav";
+      this.$emit('showPage');
+    },
+    openNav() {
+      this.smallShowNav = "showNav";
+      this.$emit('hidePage');
     }
   },
   components: {
