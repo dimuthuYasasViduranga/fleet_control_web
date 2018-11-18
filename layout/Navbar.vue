@@ -13,8 +13,6 @@
       </button>
     </div>
 
-    <span id="nav-gap"/>
-
     <div id="nav-bar" :class="smallShowNav">
       <div v-for="route in routes" :key="route.path">
         <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
@@ -67,6 +65,11 @@ export default {
 </script>
 
 <style>
+
+.nav-wrapper {
+  float: left;
+}
+
 .router-link-active .nav-item-wrapper {
   background-color: #1b2a33;
   border-left-color: #09819c;
@@ -109,24 +112,22 @@ export default {
 }
 
 #nav-bar {
+  box-sizing: inherit; 
+  outline: 0; 
   overflow: hidden;
   background-color: #1B2A33;
   z-index: 5;
-  box-sizing: inherit;
-  verflow-x: hidden;
-  overflow-y: hidden;
-  position: absolute;
-  height: 100%;
-  left: 0;
-  top: 0;
+  float: left;
+  transition: max-width 250ms ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
   min-width: 4rem;
   max-width: 4rem;
-  transition: max-width 250ms ease;
-  outline: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,.2);
   width: 100%;
+  height: 100%;
+  position: absolute;
   line-height: 1.33333;
   color: #b6c3cc;
+
 }
 
 .nav-icon-wrapper {
@@ -191,11 +192,21 @@ export default {
 
 @media screen and (max-width: 820px) {
   #nav-bar {
-    max-width: 100%
+    max-width: 100%;
+    position: static;
+    z-index: 3;
+    min-height: calc(100vh - 8rem);
+  }
+
+  .nav-background {
+    position: absolute;
+    background-color: #1B2A33;
+    z-index: 0;
+    height: 100%;
   }
 
   #nav-bar:hover {
-    max-width: 100%
+    max-width: 100%;
   }
 
   #nav-toggle {
@@ -203,10 +214,6 @@ export default {
   }
 
   .hideNav {
-    display: none;
-  }
-
-  #nav-gap {
     display: none;
   }
 }

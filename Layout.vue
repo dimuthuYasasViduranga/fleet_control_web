@@ -4,14 +4,9 @@
 
     <div v-if="username" id="body">
       <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
-      <span id="nav-gap"/>
       <div :class="smallShowPage">
         <router-view class="view"></router-view>
       </div>
-    </div>
-
-    <div v-if="!username" id="body" class="wrapper" style="width:100%">
-      <hxLogin :login="login"/>
     </div>
 
     <hxFooter />
@@ -22,7 +17,6 @@
 import hxHeader from './layout/Header.vue'
 import hxNavbar from './layout/Navbar.vue'
 import hxFooter from './layout/Footer.vue'
-import hxLogin from './layout/Login.vue'
 
 export default {
   name: 'Layout',
@@ -36,7 +30,6 @@ export default {
     hxHeader,
     hxNavbar,
     hxFooter,
-    hxLogin
   },
   data: () => {
     return { smallShowPage: "showPage" };
@@ -58,34 +51,30 @@ body {
   margin: 0;
 }
 
-#nav-gap {
-  width: 4rem;
-}
-
-#body {
-  width: auto;
-  max-width: none;
-  margin-right: 0;
-  margin-left: 0;
-  position: relative;
-  display: flex;
-  box-sizing: inherit;
-  min-height: calc(100vh - 8rem);
-}
-
 #layout {
   font-family: "GE Inspira Sans", sans-serif;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
 
-  // two options for color
-  color: #2c3e50;
   color: #b6c3cc;
   background-color: #748b99;
 
   display: flex;
-  flex-flow: column;
-  height: 100%;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#body {
+  flex: 1;
+  flex-direction: column;
+  position: relative; 
+  display: flex; 
+  box-sizing: inherit; 
+  min-height: calc(100vh - 8rem); 
+}
+
+.view {
+  margin-left: 4rem;
 }
 
 .hidePage, .showPage {
@@ -93,6 +82,9 @@ body {
 }
 
 @media screen and (max-width: 820px) {
+  .view {
+    margin-left: 0rem;
+  }
   .hidePage {
     display: none;
   }
