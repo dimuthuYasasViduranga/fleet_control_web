@@ -51,6 +51,10 @@ body {
   margin: 0;
 }
 
+input {
+    border-radius: 0;
+}
+
 #layout {
   font-family: "GE Inspira Sans", sans-serif;
   font-weight: normal;
