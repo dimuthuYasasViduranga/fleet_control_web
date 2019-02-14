@@ -6,11 +6,6 @@ When writing tests for applications which use one of our internal ```hx-*``` com
 
 ```
 "transformIgnorePatterns": [
-	"node_modules/(?!(hx-))"
-],
-```
-```
-"transformIgnorePatterns": [
 	"node_modules/(?!(vue2-timepicker|hx-))"
 ],
 ```
