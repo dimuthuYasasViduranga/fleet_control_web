@@ -108,7 +108,6 @@ export default {
   border: 1px solid #0c1419;
   background: #23343f;
   max-width: 12rem;
-  display: flex;
   box-shadow: none;
   overflow: visible;
   text-transform: none;
