@@ -1,9 +1,18 @@
 <template>
   <header id="header" role="banner">
     <div id="header-wrapper">
-      <img id="logo" src="../assets/hps.png" />
-
-      <logout-button :username="username" @logout="logoutUser()" />
+      <div class="logo-wrapper">
+        <img id="logo" src="../assets/hps.png" />
+      </div>
+      <div class="header-right">
+        <div class="slot-wrapper">
+          <button class="slot-element">BB</button>
+          <button class="slot-element">AA</button>
+        </div>
+        <div class="logout-wrapper">
+          <logout-button :username="username" @logout="logoutUser()" />
+        </div>
+      </div>
     </div>
   </header>
 </template>
@@ -18,7 +27,7 @@ export default {
   },
   props: {
     username: String,
-    logout: {type: Function, required: true },
+    logout: { type: Function, required: true },
   },
   methods: {
     logoutUser() {
@@ -40,7 +49,27 @@ export default {
 }
 
 #logo {
-  height: 3.6rem;
+  height: 100%;
+  padding: 0.1rem 0;
+}
+
+.logo-wrapper {
+  display: contents;
+  width: auto;
+  height: 100%;
+}
+
+.header-right {
+  display: inline-flex;
+  padding-left: 1rem;
+}
+
+.slot-wrapper {
+  display: inline-flex;
+}
+
+.slot-element {
+  vertical-align: middle;
 }
 
 #header-wrapper {

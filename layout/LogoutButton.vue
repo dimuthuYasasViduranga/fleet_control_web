@@ -103,12 +103,6 @@ export default {
   height: 4rem;
 }
 
-#login {
-  position: absolute;
-  right: 1em;
-  top: 1em;
-}
-
 #login-btn:hover,
 #logout-btn:hover {
   color: #45ace5;
