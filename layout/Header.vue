@@ -41,7 +41,6 @@ export default {
 
 #logo {
   height: 3.6rem;
-  padding-top: 0.2rem;
 }
 
 #header-wrapper {
@@ -54,6 +53,7 @@ export default {
   justify-content: space-between;
   display: flex;
   width: auto;
+  height: 100%;
   max-width: none;
 }
 
