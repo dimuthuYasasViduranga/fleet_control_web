@@ -2,8 +2,10 @@
   <div class="hxCard">
     <div class="hxCardHeader" v-if="!hideTitle">
       <div class="hxCardHeaderWrapper">
+        <slot name="title-pre"></slot>
         <icon v-if="showIcon" :icon="icon" :iconSize="iconSize" />
         {{ title }}
+        <slot name="title-post"></slot>
       </div>
     </div>
     <slot></slot>
