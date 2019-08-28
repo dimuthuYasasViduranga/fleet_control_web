@@ -53,12 +53,16 @@ export default {
 }
 
 .logo-wrapper {
+  position: absolute;
+  left: 0;
   display: contents;
   width: auto;
   height: 100%;
 }
 
 .header-right {
+  position: absolute;
+  right: 0;
   display: inline-flex;
   padding-left: 1rem;
 }
@@ -84,7 +88,6 @@ export default {
   width: auto;
   height: 100%;
   max-width: none;
-  float: none;
 }
 
 @media screen and (max-width: 820px) {
@@ -112,11 +115,6 @@ export default {
 @media screen and (max-width: 580px) {
   #logo {
     display: none;
-  }
-
-  #header-wrapper {
-    padding-left: 5rem;
-    float: right;
   }
 }
 </style>
