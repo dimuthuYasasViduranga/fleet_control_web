@@ -84,31 +84,6 @@ export default {
   display: flex;
 }
 
-#logout-btn {
-  color: #b6c3cc;
-  position: absolute;
-  margin-top: 1em;
-  z-index: 9;
-  padding-left: 2em;
-  padding-right: 2em;
-  border: 1px solid #0c1419;
-  background: #23343f;
-  max-width: 12rem;
-  box-shadow: none;
-  overflow: visible;
-  text-transform: none;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-  height: 4rem;
-}
-
-#login-btn:hover,
-#logout-btn:hover {
-  color: #45ace5;
-  stroke: #45ace5;
-}
-
 #login-btn {
   color: #b7c3cd;
   stroke: #b7c3cd;
@@ -137,4 +112,30 @@ export default {
   text-decoration: none;
   cursor: pointer;
 }
+
+#logout-btn {
+  color: #b6c3cc;
+  position: absolute;
+  margin: 1em 0;
+  z-index: 9;
+  padding-left: 2em;
+  padding-right: 2em;
+  border: 1px solid #0c1419;
+  background: #23343f;
+  max-width: 12rem;
+  box-shadow: none;
+  overflow: visible;
+  text-transform: none;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  height: 4rem;
+}
+
+#login-btn:hover,
+#logout-btn:hover {
+  color: #45ace5;
+  stroke: #45ace5;
+}
+
 </style>

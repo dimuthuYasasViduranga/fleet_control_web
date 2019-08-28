@@ -1,6 +1,8 @@
 <template>
   <div id="layout">
-    <hxHeader :username="username" :logout="logout" />
+    <hxHeader :username="username" :logout="logout" >
+      <slot name="header"></slot>
+    </hxHeader>
 
     <div v-if="username" id="body">
       <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
@@ -9,7 +11,9 @@
       </div>
     </div>
 
-    <hxFooter />
+    <hxFooter>
+      <slot name="footer"></slot>
+    </hxFooter>
   </div>
 </template>
 
