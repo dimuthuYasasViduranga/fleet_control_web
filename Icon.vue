@@ -1,5 +1,5 @@
 <template>
-  <span class="icon-wrapper">
+  <span class="icon-wrapper" @click="onClick()">
     <svg :viewBox="dimensions" class="icon">
       <component v-bind:is="icon" />
     </svg>
@@ -20,6 +20,11 @@ export default {
     },
     dimensions() {
       return `0 0 ${this.size} ${this.size}`;
+    },
+  },
+  methods: {
+    onClick() {
+      this.$emit('click');
     },
   },
 };
