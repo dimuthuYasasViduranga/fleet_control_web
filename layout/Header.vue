@@ -6,8 +6,7 @@
       </div>
       <div class="header-right">
         <div class="slot-wrapper">
-          <button class="slot-element">BB</button>
-          <button class="slot-element">AA</button>
+          <slot></slot>
         </div>
         <div class="logout-wrapper">
           <logout-button :username="username" @logout="logoutUser()" />
@@ -70,6 +69,7 @@ export default {
 
 .slot-element {
   vertical-align: middle;
+  margin: 0 0.25rem;
 }
 
 #header-wrapper {
