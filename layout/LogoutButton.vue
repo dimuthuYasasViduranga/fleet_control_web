@@ -104,7 +104,7 @@ export default {
   overflow: visible;
   min-width: 4.66667em;
   margin: 0;
-  height: 2em;
+  height: auto;
   padding: 0 calc(2em / 2);
   text-align: center;
   text-transform: none;

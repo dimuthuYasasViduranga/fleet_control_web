@@ -84,13 +84,14 @@ export default {
   width: auto;
   height: 100%;
   max-width: none;
+  float: none;
 }
 
 @media screen and (max-width: 820px) {
   #logo {
     width: 40%;
     height: auto;
-    margin-left: 6em;
+    margin-left: 5rem;
   }
 
   #login-btn:hover,
@@ -100,9 +101,22 @@ export default {
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 620px) {
+  #logo {
+    width: 30%;
+    height: auto;
+    margin-left: 5rem;
+  }
+}
+
+@media screen and (max-width: 580px) {
   #logo {
     display: none;
+  }
+
+  #header-wrapper {
+    padding-left: 5rem;
+    float: right;
   }
 }
 </style>
