@@ -1,25 +1,26 @@
 <template>
   <footer role="banner">
     <div id="footer-wrapper">
-      <span>
-        ©2018 Haultrax
-      </span>
+      <span> ©2018 - {{ now }} Haultrax </span>
     </div>
   </footer>
 </template>
 
 <script>
-
 export default {
   name: 'hxFooter',
-}
-
+  computed: {
+    now() {
+      const now = new Date();
+      return now.getFullYear();
+    },
+  },
+};
 </script>
-
 
 <style>
 footer span {
-  align:right;
+  align: right;
   display: block;
   -webkit-margin-after: 12px;
   -webkit-margin-before: 12px;
@@ -42,8 +43,8 @@ footer span {
 }
 
 footer {
-  box-sizing: border-box ;
-  line-height: 19.9999px ;
+  box-sizing: border-box;
+  line-height: 19.9999px;
   width: 100%;
   display: flex;
   margin: auto;
