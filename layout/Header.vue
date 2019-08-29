@@ -48,16 +48,15 @@ export default {
 }
 
 #logo {
-  height: 100%;
+  height: 4rem;
   padding: 0.1rem 0;
 }
 
 .logo-wrapper {
   position: absolute;
   left: 0;
-  display: contents;
+  display: block;
   width: auto;
-  height: 100%;
 }
 
 .header-right {
