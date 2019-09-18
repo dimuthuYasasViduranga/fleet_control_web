@@ -1,6 +1,6 @@
 <template>
-  <span class="icon-wrapper" @click="onClick()">
-    <svg v-if="icon" :viewBox="dimensions" class="icon">
+  <span class="icon-wrapper" v-if="icon" @click="onClick()">
+    <svg class="icon" :viewBox="dimensions">
       <component v-bind:is="icon" />
     </svg>
   </span>
