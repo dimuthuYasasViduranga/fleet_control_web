@@ -3,10 +3,9 @@
     <div id="nav-toggle">
       <button id="nav-toggle-btn" @click="toggleNav">
         <span class="nav-toggle-icon-wrapper">
-          <svg viewBox="0 0 22 22" class="nav-toggle-icon" >
+          <svg viewBox="0 0 22 22" class="nav-toggle-icon">
             <g>
-              <path stroke-miterlimit="10" d="M0 4.5h22m-22 6h22m-22 6h22">
-              </path>
+              <path stroke-miterlimit="10" d="M0 4.5h22m-22 6h22m-22 6h22" />
             </g>
           </svg>
         </span>
@@ -14,14 +13,15 @@
     </div>
 
     <div id="nav-bar" :class="smallShowNav">
-      <div v-for="route in routes" :key="route.path">
-        <router-link v-if="route.path !== '*'" :to="route.path" class="nav-item">
-          <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper" >
+      <div v-for="(route, index) in routes" :key="route.path">
+        <div v-if="route.gap" :id="`nav-gap-${index}`" class="nav-gap"></div>
+        <router-link v-else-if="route.path !== '*'" :to="route.path" class="nav-item">
+          <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper">
             <div class="nav-icon-wrapper">
-              <icon :icon="route.icon" :icon_size="route.icon_size"/>
+              <icon :icon="route.icon" :icon_size="route.icon_size" />
             </div>
             <p class="nav-label">
-              {{route.name}}
+              {{ route.name }}
             </p>
           </div>
         </router-link>
@@ -31,41 +31,37 @@
 </template>
 
 <script>
-import icon from '../Icon.vue'
+import icon from '../Icon.vue';
 
 export default {
   name: 'hxNavbar',
   props: {
-    routes: Array
+    routes: Array,
   },
   data: () => {
-    return { smallShowNav: "hideNav" };
+    return { smallShowNav: 'hideNav' };
   },
   methods: {
     toggleNav() {
-      if(this.smallShowNav === "hideNav")
-        this.openNav();
-      else
-        this.closeNav();
+      if (this.smallShowNav === 'hideNav') this.openNav();
+      else this.closeNav();
     },
     closeNav() {
-      this.smallShowNav = "hideNav";
+      this.smallShowNav = 'hideNav';
       this.$emit('showPage');
     },
     openNav() {
-      this.smallShowNav = "showNav";
+      this.smallShowNav = 'showNav';
       this.$emit('hidePage');
-    }
+    },
   },
   components: {
-    icon
-  }
-}
-
+    icon,
+  },
+};
 </script>
 
 <style>
-
 .nav-wrapper {
   float: left;
 }
@@ -78,7 +74,7 @@ export default {
 }
 
 .nav-item-wrapper:hover {
-  background-color: #23343f
+  background-color: #23343f;
 }
 
 .nav-label {
@@ -105,6 +101,11 @@ export default {
   text-decoration: none;
 }
 
+.nav-gap {
+  height: 1.5em;
+  background-color: #121f26;
+}
+
 #nav-bar:hover {
   overflow: hidden;
   overflow-y: auto;
@@ -112,14 +113,14 @@ export default {
 }
 
 #nav-bar {
-  box-sizing: inherit; 
-  outline: 0; 
+  box-sizing: inherit;
+  outline: 0;
   overflow: hidden;
-  background-color: #1B2A33;
+  background-color: #1b2a33;
   z-index: 5;
   float: left;
   transition: max-width 250ms ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   min-width: 4rem;
   max-width: 4rem;
   width: 100%;
@@ -127,16 +128,15 @@ export default {
   position: absolute;
   line-height: 1.33333;
   color: #b6c3cc;
-
 }
 
 .nav-icon-wrapper {
   width: 3.8rem;
   min-width: 3.8rem;
   height: 4rem;
-  margin-right: .33333rem;
+  margin-right: 0.33333rem;
   display: flex;
-  align-items: center; 
+  align-items: center;
 }
 
 .nav-toggle-icon {
@@ -174,15 +174,15 @@ export default {
   box-shadow: none;
   background: 0 0;
   outline: 0;
-  border: 0!important;
-  border-radius: 0!important;
+  border: 0 !important;
+  border-radius: 0 !important;
   padding-left: 0;
   padding-right: 0;
   overflow: visible;
   min-width: 4.66667em;
   margin: 0;
   height: 2em;
-  padding: 0 calc(2em/ 2);
+  padding: 0 calc(2em / 2);
   text-align: center;
   text-transform: none;
   white-space: nowrap;
@@ -200,7 +200,7 @@ export default {
 
   .nav-background {
     position: absolute;
-    background-color: #1B2A33;
+    background-color: #1b2a33;
     z-index: 0;
     height: 100%;
   }

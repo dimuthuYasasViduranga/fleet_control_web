@@ -1,5 +1,5 @@
 <template>
-  <span class="icon-wrapper" v-if="icon" @click="onClick()">
+  <span class="icon-wrapper" @click="onClick()">
     <svg class="icon" :viewBox="dimensions">
       <component v-bind:is="icon" />
     </svg>
