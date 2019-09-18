@@ -13,8 +13,8 @@
     </div>
 
     <div id="nav-bar" :class="smallShowNav">
-      <div v-for="(route, index) in routes" :key="route.path">
-        <div v-if="route.gap" :id="`nav-gap-${index}`" class="nav-gap"></div>
+      <div v-for="route in routes" :key="route.path">
+        <div v-if="route.gap" :id="route.path" class="nav-gap"></div>
         <router-link v-else-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper">
             <div class="nav-icon-wrapper">
