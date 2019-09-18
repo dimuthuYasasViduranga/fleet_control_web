@@ -1,6 +1,6 @@
 <template>
   <span class="icon-wrapper" @click="onClick()">
-    <svg :viewBox="dimensions" class="icon">
+    <svg class="icon" :viewBox="dimensions">
       <component v-bind:is="icon" />
     </svg>
   </span>
@@ -16,7 +16,10 @@ export default {
   },
   computed: {
     size() {
-      return this.icon.size || this.iconSize || this.icon_size;
+      if (this.icon) {
+        return this.icon.size;
+      }
+      return this.iconSize || this.icon_size || 0;
     },
     dimensions() {
       return `0 0 ${this.size} ${this.size}`;
