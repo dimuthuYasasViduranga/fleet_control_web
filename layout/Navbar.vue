@@ -116,7 +116,7 @@ export default {
   outline: 0; 
   overflow: hidden;
   background-color: #1B2A33;
-  z-index: 5;
+  z-index: 100;
   float: left;
   transition: max-width 250ms ease;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
