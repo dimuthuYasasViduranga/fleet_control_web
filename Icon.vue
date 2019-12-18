@@ -1,9 +1,7 @@
 <template>
-  <span class="icon-wrapper">
-    <svg v-bind:viewBox="'0 0 ' + icon_size + ' ' + icon_size" class="icon">
-      <component
-        v-bind:is="icon"
-        ></component>
+  <span class="icon-wrapper" @click="onClick()">
+    <svg class="icon" :viewBox="dimensions">
+      <component v-bind:is="icon" />
     </svg>
   </span>
 </template>
@@ -13,11 +11,26 @@ export default {
   name: 'icon',
   props: {
     icon: Object,
-    icon_size: Number
+    icon_size: Number,
+    iconSize: Number,
+  },
+  computed: {
+    size() {
+      if (this.icon) {
+        return this.icon.size;
+      }
+      return this.iconSize || this.icon_size || 0;
+    },
+    dimensions() {
+      return `0 0 ${this.size} ${this.size}`;
+    },
   },
   methods: {
-  }
-}
+    onClick() {
+      this.$emit('click');
+    },
+  },
+};
 </script>
 
 <style>

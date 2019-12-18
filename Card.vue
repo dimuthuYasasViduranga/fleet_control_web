@@ -1,9 +1,11 @@
 <template>
   <div class="hxCard">
-    <div class="hxCardHeader">
+    <div class="hxCardHeader" v-if="!hideTitle">
       <div class="hxCardHeaderWrapper">
-        <icon :icon="icon" :icon_size="icon_size"/>
-        {{title}}
+        <slot name="title-pre"></slot>
+        <icon v-if="showIcon" :icon="icon" :iconSize="iconSize" />
+        {{ title }}
+        <slot name="title-post"></slot>
       </div>
     </div>
     <slot></slot>
@@ -11,7 +13,7 @@
 </template>
 
 <script>
-import icon from './Icon.vue'
+import icon from './Icon.vue';
 
 export default {
   name: 'hxCard',
@@ -20,11 +22,20 @@ export default {
   },
   props: {
     title: String,
+    hideTitle: { type: Boolean, deafult: false },
     icon: Object,
-    icon_size: Number
-  }
-}
-
+    icon_size: Number,
+    iconSize: Number,
+  },
+  computed: {
+    size() {
+      return this.iconSize || this.icon_size || this.icon.size;
+    },
+    showIcon() {
+      return !!this.icon;
+    },
+  },
+};
 </script>
 
 <style>
@@ -40,12 +51,11 @@ export default {
   padding-bottom: 1.8rem;
   display: flex;
   text-transform: uppercase;
-  ;
 }
 
 .hxCardHeaderWrapper {
   display: flex;
-  align-items: center; 
+  align-items: center;
 }
 
 @media screen and (max-width: 820px) {

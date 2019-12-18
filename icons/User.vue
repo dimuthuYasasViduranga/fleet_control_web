@@ -6,9 +6,9 @@
 </template>
 
 <script>
-// 
-// size: 22
 export default {
-  name: 'UserIcon'
-}
+  name: 'UserIcon',
+  size: 32,
+  pxIconSet: 'px-nav:generic-user',
+};
 </script>
