@@ -7,7 +7,7 @@
 <script>
 export default {
   name: 'ErrorIcon',
-  size: 16,
+  viewBox: [16, 16],
   pxIconSet: 'px-utl:close',
 };
 </script>

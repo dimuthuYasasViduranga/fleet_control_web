@@ -18,7 +18,7 @@
         <router-link v-else-if="route.path !== '*'" :to="route.path" class="nav-item">
           <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper">
             <div class="nav-icon-wrapper">
-              <icon :icon="route.icon" :icon_size="route.icon_size" />
+              <icon :icon="route.icon" v-bind="route.iconProps || {}" />
             </div>
             <p class="nav-label">
               {{ route.name }}
@@ -35,6 +35,9 @@ import icon from '../Icon.vue';
 
 export default {
   name: 'hxNavbar',
+  components: {
+    icon,
+  },
   props: {
     routes: Array,
   },
@@ -54,9 +57,6 @@ export default {
       this.smallShowNav = 'showNav';
       this.$emit('hidePage');
     },
-  },
-  components: {
-    icon,
   },
 };
 </script>
@@ -137,6 +137,10 @@ export default {
   margin-right: 0.33333rem;
   display: flex;
   align-items: center;
+}
+
+.nav-icon-wrapper .hx-icon {
+  width: 4rem;
 }
 
 .nav-toggle-icon {

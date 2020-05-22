@@ -3,7 +3,7 @@
     <div class="hxCardHeader" v-if="!hideTitle">
       <div class="hxCardHeaderWrapper">
         <slot name="title-pre"></slot>
-        <icon v-if="showIcon" :icon="icon" :iconSize="iconSize" />
+        <icon class="hxCardIcon" v-if="showIcon" :icon="icon" :iconSize="iconSize" />
         {{ title }}
         <slot name="title-post"></slot>
       </div>
@@ -46,16 +46,20 @@ export default {
   padding-right: 2rem;
 }
 
-.hxCardHeader {
+.hxCard .hxCardHeader {
   padding-top: 1.2rem;
   padding-bottom: 1.8rem;
   display: flex;
   text-transform: uppercase;
 }
 
-.hxCardHeaderWrapper {
+.hxCard .hxCardHeaderWrapper {
   display: flex;
   align-items: center;
+}
+
+.hxCard .hxCardIcon {
+  width: 4rem;
 }
 
 @media screen and (max-width: 820px) {
