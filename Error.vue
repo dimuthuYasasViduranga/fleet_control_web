@@ -33,7 +33,7 @@ export default {
   color: red;
 }
 
-.error .icon-wrapper {
+.error .hx-icon {
   stroke: red;
 }
 </style>
