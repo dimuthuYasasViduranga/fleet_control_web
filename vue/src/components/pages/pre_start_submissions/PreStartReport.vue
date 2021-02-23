@@ -1,9 +1,7 @@
 <template>
-  <hxCard class="pre-start-report" :icon="submission.icon">
+  <hxCard class="pre-start-report" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="submission-time">
-        {{ submission.assetName }} ({{ formatTime(submission.timestamp) }})
-      </div>
+      <div class="submission-time">{{ asset.name }} ({{ formatTime(submission.timestamp) }})</div>
       <div class="status gap-left">
         <div v-if="crossCount > 0" class="red-text">Fail</div>
         <div v-else class="green-text">Pass</div>
@@ -27,8 +25,7 @@ import InfoIcon from '@/components/icons/Info.vue';
 import TickIcon from '@/components/icons/Tick.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import { todayRelativeFormat } from '@/code/time';
-
-const MAX_SUBMISSION_TIME = 12 * 3600 * 1000;
+import { attributeFromList } from '@/code/helpers';
 
 export default {
   name: 'PreStartReport',
@@ -38,6 +35,8 @@ export default {
   },
   props: {
     submission: { type: Object, required: true },
+    assets: { type: Array, default: () => [] },
+    icons: { type: Object, default: () => ({}) },
   },
   data: () => {
     return {
@@ -48,14 +47,17 @@ export default {
     };
   },
   computed: {
+    asset() {
+      return attributeFromList(this.assets, 'id', this.submission.assetId) || {};
+    },
+    icon() {
+      return this.icons[this.asset.type];
+    },
     controls() {
       return this.submission.form.sections.map(s => s.controls).flat();
     },
     crossCount() {
       return this.controls.filter(c => c.answer === false).length;
-    },
-    isOldSubmission() {
-      return Date.now() - this.submission.timestamp.getTime() > MAX_SUBMISSION_TIME;
     },
   },
   methods: {

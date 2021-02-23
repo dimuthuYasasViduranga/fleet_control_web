@@ -187,7 +187,7 @@ const state = {
   },
 };
 
-function parsePreStartSubmission(submission) {
+export function parsePreStartSubmission(submission) {
   return {
     id: submission.id,
     formId: submission.form_id,

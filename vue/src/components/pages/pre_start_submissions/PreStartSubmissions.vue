@@ -20,11 +20,16 @@
           {{ mode.name }}
         </button>
       </div>
-      <!-- <PreStartReport
-        v-for="submission in submissions"
-        :key="submission.id"
-        :submission="submission"
-      /> -->
+
+      <div v-if="selectedModeId === 'submissions'" class="pre-start-reports">
+        <PreStartReport
+          v-for="submission in localSubmissions"
+          :key="submission.id"
+          :submission="submission"
+          :assets="assets"
+          :icons="icons"
+        />
+      </div>
     </hxCard>
   </div>
 </template>
@@ -36,37 +41,10 @@ import ShiftSelector from '@/components/ShiftSelector.vue';
 import PreStartReport from './PreStartReport.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
+
 import { attributeFromList } from '@/code/helpers';
-
-function toLocalSubmission(sub, assets, operators, icons) {
-  const [assetName, assetType] = attributeFromList(assets, 'id', sub.assetId, ['name', 'type']);
-  const operator = getOperator(operators, sub.operatorId, sub.employeeId);
-
-  const icon = icons[assetType];
-  return {
-    id: sub.id,
-    formId: sub.formId,
-    assetId: sub.assetId,
-    assetName,
-    assetType,
-    icon,
-    employeeId: sub.employeeId,
-    operatorId: operator.id,
-    operatorName: operator.fullname,
-    form: sub.form,
-    comment: sub.comment,
-    timestamp: sub.timestamp,
-    serverTimestamp: sub.serverTimestamp,
-  };
-}
-
-function getOperator(operators, operatorId, employeeId) {
-  return (
-    attributeFromList(operators, 'id', operatorId) ||
-    attributeFromList(operators, 'employeeId', employeeId) ||
-    {}
-  );
-}
+import { toUtcDate } from '@/code/time';
+import { parsePreStartSubmission } from '@/store/store';
 
 export default {
   name: 'PreStartSubmissions',
@@ -86,6 +64,7 @@ export default {
       selectedModeId: modes[0].id,
       shift: null,
       fetchingData: false,
+      localSubmissions: [],
     };
   },
   computed: {
@@ -96,11 +75,6 @@ export default {
       shiftTypes: state => state.shiftTypes,
       icons: state => state.icons,
     }),
-    submissions() {
-      return this.$store.state.preStartSubmissions.map(s =>
-        toLocalSubmission(s, this.assets, this.operators, this.icons),
-      );
-    },
   },
   methods: {
     setMode(modeId) {
@@ -124,20 +98,27 @@ export default {
 
       const onError = (type, msg) => {
         this.fetchingData = false;
-        // clear data here
+        this.localSubmissions = [];
         this.$toasted.global[type](msg);
       };
 
+      const payload = {
+        ref_id: shift.id,
+        start_time: shift.startTime,
+        end_time: shift.endTime,
+      };
+
       this.$channel
-        .push('pre-start:get submissions', shift.id)
+        .push('pre-start:get submissions', payload)
         .receive('ok', data => {
-          console.dir(data);
           this.fetchingData = false;
 
-          // if (shift.id !== data.shift.id) {
-          //   console.error('[PreStart Submissions] Received wrong shift');
-          //   return;
-          // }
+          if (data.ref_id !== shift.id) {
+            console.error('[PreStart Submissions] Received wrong shift');
+            return;
+          }
+
+          this.localSubmissions = data.submissions.map(parsePreStartSubmission);
         })
         .receive('error', resp => onError('error', resp.error))
         .receive('timeout', () => onError('noComms', 'Unable to fetch submissions'));
