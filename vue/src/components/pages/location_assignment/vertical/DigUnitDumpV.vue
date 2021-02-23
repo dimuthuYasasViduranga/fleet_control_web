@@ -8,19 +8,19 @@
             <Icon
               v-tooltip="'Clear Trucks'"
               class="clear"
-              @click="onClearDump()"
               :icon="trashIcon"
+              @click="onClearDump()"
             />
 
-            <Icon v-tooltip="'Move Trucks'" class="move" @click="onMoveDump()" :icon="editIcon" />
+            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" @click="onMoveDump()" />
           </template>
 
           <Icon
             v-else
             v-tooltip="'Remove Dump'"
             class="remove"
-            @click="onRemoveDump()"
             :icon="crossIcon"
+            @click="onRemoveDump()"
           />
         </template>
       </div>
@@ -65,7 +65,7 @@ export default {
   },
   props: {
     dumpId: { type: [Number, String], default: null },
-    dumpName: {type: String, default: ''},
+    dumpName: { type: String, default: '' },
     haulTrucks: { type: Array, default: () => [] },
     columns: { type: Number, default: null },
   },
@@ -114,7 +114,6 @@ export default {
       this.$emit('remove-dump', this.dumpId);
     },
     onClearDump() {
-      // need a prompt here
       this.$emit('clear-dump', this.dumpId);
     },
     onMoveDump() {

@@ -45,7 +45,6 @@
         :digUnitId="digUnitId"
         :dumpId="dump.id"
         :dumpName="dump.name"
-        :locations="locations"
         :haulTrucks="digUnitHaulTrucks"
         :columns="cols"
         @drag-start="onDragStart"
@@ -169,7 +168,6 @@ export default {
 }
 
 /* --- dig unit ---- */
-
 .dig-unit {
   background-color: #111c22;
 }

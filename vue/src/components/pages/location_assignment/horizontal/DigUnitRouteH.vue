@@ -43,11 +43,12 @@
         :dumpId="dump.id"
         :dumpName="dump.name"
         :haulTrucks="digUnitHaulTrucks"
+        @drag-start="onDragStart"
+        @drag-end="onDragEnd"
         @add="onAddHaulTruck(digUnitId, dump.id, $event)"
         @remove-dump="onRemoveDump(dump.id)"
         @clear-dump="onClearDump(dump.id)"
-        @drag-start="onDragStart"
-        @drag-end="onDragEnd"
+        @move-dump="onMoveDump(dump.id)"
       />
     </div>
   </div>
@@ -136,6 +137,9 @@ export default {
     },
     onClearDump(dumpId) {
       this.$emit('clear-dump', dumpId);
+    },
+    onMoveDump(dumpId) {
+      this.$emit('move-dump', dumpId);
     },
   },
 };

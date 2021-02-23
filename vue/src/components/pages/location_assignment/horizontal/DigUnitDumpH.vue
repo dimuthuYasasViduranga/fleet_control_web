@@ -4,19 +4,23 @@
     <div class="haul-truck">
       <div class="actions">
         <template v-if="hovering">
-          <Icon
-            v-if="filteredHaulTrucks.length"
-            v-tooltip="'Clear Trucks'"
-            class="clear"
-            @click="onClearDump(dumpId)"
-            :icon="trashIcon"
-          />
+          <template v-if="filteredHaulTrucks.length">
+            <Icon
+              v-tooltip="'Clear Trucks'"
+              class="clear"
+              :icon="trashIcon"
+              @click="onClearDump(dumpId)"
+            />
+
+            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" @click="onMoveDump()" />
+          </template>
+
           <Icon
             v-else
             v-tooltip="'Remove Dump'"
             class="remove"
-            @click="onRemoveDump(dumpId)"
             :icon="crossIcon"
+            @click="onRemoveDump(dumpId)"
           />
         </template>
       </div>
@@ -46,6 +50,7 @@ import AssetTile from './../AssetTile.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
+import EditIcon from '@/components/icons/Edit.vue';
 import { attributeFromList } from '@/code/helpers';
 
 export default {
@@ -66,6 +71,7 @@ export default {
       hovering: false,
       crossIcon: CrossIcon,
       trashIcon: TrashIcon,
+      editIcon: EditIcon,
       dropPlaceholderOptions: {
         className: 'tile-drop-preview',
         animationDuration: '150',
@@ -102,8 +108,10 @@ export default {
       this.$emit('remove-dump', this.dumpId);
     },
     onClearDump() {
-      // need a prompt here
       this.$emit('clear-dump', this.dumpId);
+    },
+    onMoveDump() {
+      this.$emit('move-dump', this.dumpId);
     },
   },
 };
@@ -172,7 +180,7 @@ export default {
   overflow: hidden;
 }
 
-.haul-truck .haul-truck-container .asset-tile {
+.haul-truck .asset-tile {
   background-color: #121f26;
 }
 </style>
