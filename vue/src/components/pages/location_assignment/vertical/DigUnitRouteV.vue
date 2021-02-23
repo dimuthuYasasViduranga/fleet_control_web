@@ -40,19 +40,20 @@
 
     <div class="dumps">
       <DigUnitDumpV
-        v-for="dumpId in dumpIds"
-        :key="dumpId"
+        v-for="dump in dumps"
+        :key="dump.id"
         :digUnitId="digUnitId"
-        :dumpId="dumpId"
+        :dumpId="dump.id"
+        :dumpName="dump.name"
         :locations="locations"
         :haulTrucks="digUnitHaulTrucks"
         :columns="cols"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
-        @add="onAddHaulTruck(digUnitId, dumpId, $event)"
-        @remove-dump="onRemoveDump(dumpId)"
-        @clear-dump="onClearDump(dumpId)"
-        @move-dump="onMoveDump(dumpId)"
+        @add="onAddHaulTruck(digUnitId, dump.id, $event)"
+        @remove-dump="onRemoveDump(dump.id)"
+        @clear-dump="onClearDump(dump.id)"
+        @move-dump="onMoveDump(dump.id)"
       />
     </div>
   </div>
@@ -106,6 +107,16 @@ export default {
     locationName() {
       const locationId = (this.digUnit.activity || {}).locationId;
       return attributeFromList(this.locations, 'id', locationId, 'name');
+    },
+    dumps() {
+      const dumps = this.dumpIds.map(id => {
+        return {
+          id,
+          name: attributeFromList(this.locations, 'id', id, 'name') || '',
+        };
+      });
+      dumps.sort((a, b) => a.name.localeCompare(b.name));
+      return dumps;
     },
     cols() {
       const columns = this.columns || 2;

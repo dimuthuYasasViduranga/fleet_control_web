@@ -37,15 +37,15 @@
 
     <div class="dumps">
       <DigUnitDumpH
-        v-for="dumpId in dumpIds"
-        :key="dumpId"
+        v-for="dump in dumps"
+        :key="dump.id"
         :digUnitId="digUnitId"
-        :dumpId="dumpId"
-        :locations="locations"
+        :dumpId="dump.id"
+        :dumpName="dump.name"
         :haulTrucks="digUnitHaulTrucks"
-        @add="onAddHaulTruck(digUnitId, dumpId, $event)"
-        @remove-dump="onRemoveDump(dumpId)"
-        @clear-dump="onClearDump(dumpId)"
+        @add="onAddHaulTruck(digUnitId, dump.id, $event)"
+        @remove-dump="onRemoveDump(dump.id)"
+        @clear-dump="onClearDump(dump.id)"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
       />
@@ -100,6 +100,16 @@ export default {
     locationName() {
       const locationId = (this.digUnit.activity || {}).locationId;
       return attributeFromList(this.locations, 'id', locationId, 'name');
+    },
+    dumps() {
+      const dumps = this.dumpIds.map(id => {
+        return {
+          id,
+          name: attributeFromList(this.locations, 'id', id, 'name') || '',
+        };
+      });
+      dumps.sort((a, b) => a.name.localeCompare(b.name));
+      return dumps;
     },
   },
   methods: {

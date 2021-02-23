@@ -178,11 +178,11 @@ const state = {
   dndSettings: {
     orientation: 'vertical',
     vertical: {
-      groupBy: 'location',
+      orderBy: 'location',
       columns: 2,
     },
     horizontal: {
-      groupBy: 'location',
+      orderBy: 'location',
     },
   },
 };

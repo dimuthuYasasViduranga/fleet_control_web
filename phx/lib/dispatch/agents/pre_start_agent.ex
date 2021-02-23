@@ -4,13 +4,13 @@ defmodule Dispatch.PreStartAgent do
   """
 
   use Agent
-  alias Dispatch.{Helper, AgentHelper}
+  alias Dispatch.AgentHelper
   require Logger
 
   alias HpsData.Schemas.Dispatch.PreStart
   alias HpsData.Repo
 
-  import Ecto.Query, only: [from: 2, subquery: 1]
+  import Ecto.Query, only: [from: 2]
   alias Ecto.Multi
 
   @type control :: %{

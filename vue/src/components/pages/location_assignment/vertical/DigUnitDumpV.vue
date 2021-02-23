@@ -1,6 +1,6 @@
 <template>
   <div class="dig-unit-dump-v" @mouseleave="hovering = false" @mouseenter="hovering = true">
-    <div class="dump-name">{{ dumpName || 'No Dump' }}</div>
+    <div class="dump-name">{{ dumpName || 'Unknown Dump' }}</div>
     <div class="haul-truck">
       <div class="actions">
         <template v-if="hovering">
@@ -65,8 +65,8 @@ export default {
   },
   props: {
     dumpId: { type: [Number, String], default: null },
+    dumpName: {type: String, default: ''},
     haulTrucks: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
     columns: { type: Number, default: null },
   },
   data: () => {
@@ -87,9 +87,6 @@ export default {
       const haulTrucks = this.haulTrucks.filter(h => h.dispatch.dumpId === this.dumpId);
       haulTrucks.sort((a, b) => a.name.localeCompare(b.name));
       return haulTrucks;
-    },
-    dumpName() {
-      return attributeFromList(this.locations, 'id', this.dumpId, 'name');
     },
     conatinerWidth() {
       return `width: ${this.columns * 7 + 1}rem;`;
