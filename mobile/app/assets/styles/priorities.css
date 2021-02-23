@@ -1,0 +1,19 @@
+.priority-anytime {
+  background-color: transparent;
+}
+
+.priority-low {
+  background-color: blue;
+}
+
+.priority-medium {
+  background-color: yellow;
+}
+
+.priority-high {
+  background-color: orange;
+}
+
+.priority-critical {
+  background-color: red;
+}
