@@ -1,31 +1,31 @@
 <template>
-  <hxCard class="pre-start-report" :icon="submission.icon" :class="cardClass">
+  <hxCard class="pre-start-report" :icon="submission.icon">
     <div class="title-post" slot="title-post">
       <div class="submission-time">
-        {{ submission.assetName }} - {{ formatTime(submission.timestamp) }} |
+        {{ submission.assetName }} ({{ formatTime(submission.timestamp) }})
       </div>
-      <div class="value tick" :class="{ dim: tickCount === 0 }">
-        <span style="color: green">✔</span>: {{ tickCount }}
+      <div class="status gap-left">
+        <div v-if="crossCount > 0" class="red-text">Fail</div>
+        <div v-else class="green-text">Pass</div>
       </div>
-      <div class="value cross" :class="{ dim: crossCount === 0 }">❌: {{ crossCount }}</div>
-      <div class="value na" :class="{ dim: naCount === 0 }">N/A: {{ naCount }}</div>
       <Icon
-        class="chevron-icon gap-left"
-        :icon="chevronIcon"
-        :rotation="show ? 270 : 90"
-        @click="toggleShow"
+        v-tooltip="'Open Pre-Start'"
+        class="info-icon gap-left"
+        :icon="infoIcon"
+        @click="onShowViewer()"
       />
     </div>
-    <PreStartSubmissionViewer v-if="show" :submission="submission" />
   </hxCard>
 </template>
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
-import PreStartSubmissionViewer from './PreStartSubmissionViewer.vue';
+import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
 
-import ChevronIcon from '@/components/icons/ChevronRight.vue';
+import InfoIcon from '@/components/icons/Info.vue';
+import TickIcon from '@/components/icons/Tick.vue';
+import CrossIcon from 'hx-layout/icons/Error.vue';
 import { todayRelativeFormat } from '@/code/time';
 
 const MAX_SUBMISSION_TIME = 12 * 3600 * 1000;
@@ -35,14 +35,15 @@ export default {
   components: {
     hxCard,
     Icon,
-    PreStartSubmissionViewer,
   },
   props: {
     submission: { type: Object, required: true },
   },
   data: () => {
     return {
-      chevronIcon: ChevronIcon,
+      infoIcon: InfoIcon,
+      crossIcon: CrossIcon,
+      tickIcon: TickIcon,
       show: false,
     };
   },
@@ -50,39 +51,16 @@ export default {
     controls() {
       return this.submission.form.sections.map(s => s.controls).flat();
     },
-    tickCount() {
-      return this.controls.filter(c => c.answer === true).length;
-    },
     crossCount() {
       return this.controls.filter(c => c.answer === false).length;
-    },
-    naCount() {
-      return this.controls.filter(c => c.answer === null).length;
     },
     isOldSubmission() {
       return Date.now() - this.submission.timestamp.getTime() > MAX_SUBMISSION_TIME;
     },
-    cardClass() {
-      const classes = [];
-
-      if (this.show) {
-        classes.push('open');
-      }
-
-      if (this.crossCount > 0) {
-        classes.push('errors');
-      }
-
-      if (this.isOldSubmission) {
-        classes.push('old');
-      }
-
-      return classes;
-    },
   },
   methods: {
-    toggleShow() {
-      this.show = !this.show;
+    onShowViewer() {
+      this.$modal.create(PreStartSubmissionModal, { submission: this.submission });
     },
     formatTime(date) {
       return todayRelativeFormat(date);
@@ -101,22 +79,9 @@ export default {
   border-left: 2px solid transparent;
 }
 
-.pre-start-report.hxCard.open {
-  border: 2px solid #364c59;
-}
-
 /* icon coloring */
 .pre-start-report .hxCardIcon {
-  stroke: green;
   height: 2.5rem;
-}
-
-.pre-start-report.old .hxCardIcon {
-  stroke: orange;
-}
-
-.pre-start-report.errors .hxCardIcon {
-  stroke: red;
 }
 
 /* title text */
@@ -129,6 +94,8 @@ export default {
   display: flex;
   flex-direction: row;
   margin-left: 1rem;
+  height: 2rem;
+  line-height: 2rem;
 }
 
 .pre-start-report .title-post .value {
@@ -136,31 +103,25 @@ export default {
   margin-left: 1rem;
 }
 
+/* status indicator */
+.pre-start-report .status {
+  width: 3rem;
+  text-align: center;
+}
+
 .pre-start-report .gap-left {
   margin-left: 1rem;
 }
 
-/* criteria effects */
-.pre-start-report .dim {
-  opacity: 0.5;
-}
-
-.pre-start-report.old .submission-time {
-  color: orange;
-}
-
-/* open/close chevron */
-.pre-start-report .chevron-icon,
-.pre-start-report .edit-icon {
+/* info icon */
+.pre-start-report .info-icon {
   margin-right: 0.25rem;
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
   cursor: pointer;
 }
 
-.pre-start-report .pre-start-viewer {
-  margin: auto;
-  max-width: 60rem;
-  margin-bottom: 2rem;
+.pre-start-report .info-icon:hover {
+  opacity: 0.5;
 }
 </style>

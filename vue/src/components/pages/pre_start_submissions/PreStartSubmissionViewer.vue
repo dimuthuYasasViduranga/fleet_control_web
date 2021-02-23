@@ -22,14 +22,14 @@
         class="control"
         v-for="(control, cIndex) in section.controls"
         :key="cIndex"
-        :class="{ error: control.answer === false, na: control.answer === null }"
+        :class="{ fail: control.answer === false, na: control.answer === null }"
       >
         <div class="top">
           <div class="label">{{ control.label }}</div>
           <div class="answer">{{ getAnswerIcon(control.answer) }}</div>
         </div>
 
-        <div v-if="control.comment" class="comment">Comment: {{ control.comment }}</div>
+        <div v-if="control.comment" class="comment">- {{ control.comment }}</div>
       </div>
       <div class="section-comment">{{ section.comment }}</div>
     </div>
@@ -105,14 +105,18 @@ export default {
   border-bottom: 1px solid #677e8c;
 }
 
-.pre-start-viewer .control.error {
-  background-color: rgba(139, 0, 0, 0.281);
-}
-
 .pre-start-viewer .control .top {
   display: grid;
   grid-template-columns: auto 2rem;
   color: #b6c3cc;
+}
+
+.pre-start-viewer .control.fail .top {
+  background-color: rgba(139, 0, 0, 0.281);
+}
+
+.pre-start-viewer .control .comment {
+  margin-left: 2rem;
 }
 
 .pre-start-viewer .control.na .top {

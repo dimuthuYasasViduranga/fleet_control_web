@@ -15,7 +15,15 @@
           <div class="duration">{{ duration }}</div>
         </div>
       </div>
-      <div class="edit"><icon :icon="editIcon" @click="onEdit" /></div>
+      <div class="actions">
+        <icon v-tooltip="'Edit Allocation'" :icon="editIcon" @click="onEdit" />
+        <icon
+          v-if="preStartSubmission"
+          v-tooltip="'View Pre-Start'"
+          :icon="reportIcon"
+          @click="onOpenPreStart"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -24,9 +32,10 @@
 import Icon from 'hx-layout/Icon.vue';
 import FeedHeader from './header/FeedHeader.vue';
 import EntryList from './entries/EntryList.vue';
-import { isInText } from '../../../code/helpers';
+import { attributeFromList, isInText } from '../../../code/helpers';
 import { formatSeconds, divMod } from '../../../code/time';
 import EditIcon from '../../icons/Edit.vue';
+import ReportIcon from '../../icons/Report.vue';
 
 const SECONDS_IN_DAY = 3600 * 24;
 
@@ -50,12 +59,14 @@ export default {
     EntryList,
   },
   props: {
-    events: { type: Array, default: () => [] },
     selectedAsset: { type: Object, default: null },
+    events: { type: Array, default: () => [] },
+    preStartSubmissions: { type: Array, default: () => [] },
   },
   data: () => {
     return {
       editIcon: EditIcon,
+      reportIcon: ReportIcon,
       search: '',
       now: new Date(),
       nowInterval: null,
@@ -101,6 +112,12 @@ export default {
       }
       return `${daysStr}${formatSeconds(remainder)}`;
     },
+    preStartSubmission() {
+      if (!this.selectedAsset) {
+        return null;
+      }
+      return attributeFromList(this.preStartSubmissions, 'assetId', this.selectedAsset.id);
+    },
   },
   methods: {
     onSearchChange(text) {
@@ -108,6 +125,9 @@ export default {
     },
     onEdit() {
       this.$eventBus.$emit('asset-assignment-open', this.selectedAsset.id);
+    },
+    onOpenPreStart() {
+      console.dir('---- open prestart');
     },
   },
 };
@@ -148,11 +168,12 @@ export default {
   height: 2rem;
 }
 
-.feed .info-bar .edit {
-  margin-left: 0.25rem;
+.feed .info-bar .actions {
+  display: flex;
 }
 
-.feed .info-bar .edit .hx-icon {
+.feed .info-bar .actions .hx-icon {
+  margin-left: 0.25rem;
   cursor: pointer;
   width: 1.5rem;
 }
@@ -171,7 +192,6 @@ export default {
 .feed .info-bar .active-time-allocation .time-code {
   margin-left: 1rem;
 }
-
 
 .feed .info-bar .active-time-allocation .duration {
   margin-right: 1rem;

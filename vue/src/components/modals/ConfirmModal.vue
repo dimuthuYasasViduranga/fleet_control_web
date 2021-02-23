@@ -12,14 +12,9 @@
 </template>
 
 <script>
-import Modal from './Modal.vue';
-
 export default {
   name: 'ConfirmModal',
   wrapperClass: 'confirm-modal-wrapper',
-  components: {
-    Modal,
-  },
   props: {
     title: { type: String, default: '' },
     body: { type: String, default: '' },

@@ -27,10 +27,10 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     {:reply, :ok, socket}
   end
 
-  def handle_in("pre-start:get forms", data, socket) do
+  def handle_in("pre-start:get submissions", shift_id, socket) do
     # optional timestamp, if not given, default to now
     IO.inspect("---- get form")
-    IO.inspect(data)
+    IO.inspect(shift_id)
 
     {:reply, :ok, socket}
   end

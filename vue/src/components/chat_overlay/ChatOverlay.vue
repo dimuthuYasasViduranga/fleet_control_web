@@ -3,18 +3,22 @@
     <div class="chat-overlay-layout">
       <div class="left-pane">
         <Pane
-          :assets="fullAssets"
           :selectedAsset="selectedAsset"
+          :assets="fullAssets"
           @contact-select="onContactSelect"
           @all-assets="onAllAssetsSelect"
         />
       </div>
       <div class="right-pane">
         <div class="feed-wrapper">
-          <Feed :selectedAsset="selectedAsset" :events="filteredEvents" />
+          <Feed
+            :selectedAsset="selectedAsset"
+            :events="filteredEvents"
+            :preStartSubmissions="preStartSubmissions"
+          />
         </div>
         <div class="message-wrapper" :class="msgBoxSizeClass">
-          <MessageBox :assets="fullAssets" :selectedAsset="selectedAsset" />
+          <MessageBox :selectedAsset="selectedAsset" :assets="fullAssets" />
         </div>
       </div>
     </div>
@@ -140,6 +144,9 @@ export default {
     },
     msgBoxSizeClass() {
       return this.selectedAsset ? '' : 'reduced';
+    },
+    preStartSubmissions() {
+      return this.$store.state.preStartSubmissions;
     },
   },
   watch: {
