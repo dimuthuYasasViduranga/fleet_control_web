@@ -140,7 +140,7 @@ export default {
       return this.nUnreadMsgs ? 'yellow' : 'grey';
     },
     unreadDispatcherMessageClass() {
-      return this.nUnreadDispatcherMsgs > 0 ? 'yellow-border' : 'eggplant';
+      return this.nUnreadDispatcherMsgs > 0 ? 'yellow-border' : '';
     },
     tileClasses() {
       return [getDesyncedClass(this.asset), getAndResolveExternalUpdateClass(this.asset)];
@@ -210,11 +210,11 @@ export default {
 
 /* --- tile colors ---- */
 .asset-tile.tile-desynced {
-  background-color: #64646480;
+  background-color: #64646480 !important;
 }
 
 .asset-tile.tile-updated {
-  background-color: #184ba280;
+  background-color: #184ba280 !important;
 }
 
 /* --- asset icon --- */
