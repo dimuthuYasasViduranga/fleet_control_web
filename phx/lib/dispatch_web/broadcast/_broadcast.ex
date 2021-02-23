@@ -363,8 +363,6 @@ defmodule DispatchWeb.Broadcast do
       pre_starts: PreStartAgent.all()
     }
 
-    pre_starts = PreStartAgent.all()
-
     Endpoint.broadcast(@dispatch, "set pre-starts", payload)
 
     broadcast_all_operators("set pre-starts", payload)
