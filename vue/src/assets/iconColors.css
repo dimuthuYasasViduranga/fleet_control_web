@@ -1,0 +1,31 @@
+.green-icon .hx-icon {
+  stroke: green;
+}
+
+.orange-icon .hx-icon {
+  stroke: orange;
+}
+
+.yellow-icon .hx-icon {
+  stroke: yellow;
+}
+
+.red-icon .hx-icon {
+  stroke: red;
+}
+
+.grey-icon .hx-icon {
+  stroke: grey;
+}
+
+.exception-icon .hx-icon {
+  stroke: orange;
+}
+
+.offline-icon .hx-icon {
+  stroke: grey;
+}
+
+.ok-icon .hx-icon {
+  stroke: green;
+}

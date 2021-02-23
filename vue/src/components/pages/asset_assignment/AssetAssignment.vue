@@ -1,0 +1,56 @@
+<template>
+  <div class="asset-assignment">
+    <hxCard style="width: auto" title="Haul Trucks" :icon="truckIcon">
+      <loaded>
+        <HaulTruckTable />
+      </loaded>
+    </hxCard>
+
+    <hxCard style="width: auto" title="Dig Units" :icon="excavatorIcon">
+      <loaded> <DigUnitTable /> </loaded>
+    </hxCard>
+
+    <hxCard style="width: auto" title="Other Assets" :icon="tabletIcon">
+      <loaded> <GeneralAssetTable /> </loaded>
+    </hxCard>
+  </div>
+</template>
+
+<script>
+import hxCard from 'hx-layout/Card.vue';
+
+import Loaded from '../../Loaded.vue';
+
+import HaulTruckTable from './HaulTruckTable.vue';
+import DigUnitTable from './DigUnitTable.vue';
+import GeneralAssetTable from './GeneralAssetTable.vue';
+
+import TruckIcon from '../../icons/asset_icons/HaulTruck.vue';
+import ExcavatorIcon from '../../icons/asset_icons/Excavator.vue';
+import TabletIcon from '../../icons/Tablet.vue';
+
+export default {
+  name: 'AssetAssignment',
+  components: {
+    hxCard,
+    Loaded,
+    HaulTruckTable,
+    DigUnitTable,
+    GeneralAssetTable,
+  },
+  data: () => {
+    return {
+      truckIcon: TruckIcon,
+      excavatorIcon: ExcavatorIcon,
+      tabletIcon: TabletIcon,
+    };
+  },
+};
+</script>
+
+<style>
+@import '../../../assets/table.css';
+@import '../../../assets/hxInput.css';
+@import '../../../assets/iconColors.css';
+@import '../../../assets/textColors.css';
+</style>

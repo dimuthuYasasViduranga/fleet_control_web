@@ -1,0 +1,431 @@
+<template>
+  <div class="asset-time-span-info">
+    <div class="info">
+      <div class="asset-icon-wrapper">
+        <Icon class="asset-icon" :icon="assetIcon" :class="iconClass" />
+      </div>
+      <div class="asset-name">{{ asset.name }}</div>
+      <div class="active-time-allocation">
+        <div class="time-code">{{ activeTimeAllocationTimeCode || 'No Active Allocation' }}</div>
+        <div class="duration">{{ formatDuration(activeTimeAllocationTimeDuration) }}</div>
+      </div>
+    </div>
+    <TimeSpanEditor
+      :show="showEditor"
+      :asset="asset"
+      :timeAllocations="filteredTimeAllocations"
+      :deviceAssignments="deviceAssignments"
+      :timeusage="timeusage"
+      :cycles="cycles"
+      :devices="devices"
+      :operators="operators"
+      :timeCodes="timeCodes"
+      :timeCodeGroups="timeCodeGroups"
+      :allowedTimeCodeIds="allowedTimeCodeIds"
+      :locations="locations"
+      :activeEndTime="activeEndTime"
+      :minDatetime="minDatetime"
+      :maxDatetime="maxDatetime"
+      :timezone="timezone"
+      :shiftId="shiftId"
+      @close="onEditClose()"
+      @update="onEditUpdate()"
+      @lock="onLock()"
+      @unlock="onUnlock()"
+    />
+
+    <div class="chart-wrapper" :class="{ open: isOpen }">
+      <TimeSpanChart
+        ref="chart"
+        :name="asset.name"
+        :timeSpans="timeSpans.flat()"
+        :layout="chartLayout"
+        :margins="margins"
+        :colors="timeSpanColors"
+        :styler="timeSpanStyler"
+        :minDatetime="minDatetime"
+        :maxDatetime="maxDatetime"
+        :contextHeight="contextHeight"
+      >
+        <template slot-scope="timeSpan">
+          <div class="__tooltip-boundary">
+            <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
+            <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
+            <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
+            <DefaultTooltip v-else :timeSpan="timeSpan" />
+          </div>
+        </template>
+      </TimeSpanChart>
+    </div>
+    <div class="action-wrapper">
+      <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit" />
+
+      <Icon
+        v-tooltip="isOpen ? 'Less' : 'More'"
+        class="chevron-icon"
+        :icon="chevronRightIcon"
+        :rotation="isOpen ? 270 : 90"
+        @click="toggleOpen"
+      />
+    </div>
+  </div>
+</template>
+
+<script>
+import Icon from 'hx-layout/Icon.vue';
+import TimeSpanChart from './chart/TimeSpanChart.vue';
+
+import DefaultTooltip from './tooltips/DefaultTimeSpanTooltip.vue';
+import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
+import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
+import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
+import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
+
+import TimeSpanEditor from './TimeSpanEditor.vue';
+
+import EditIcon from '../../icons/Edit.vue';
+import ChevronRightIcon from '../../icons/ChevronRight.vue';
+
+import { attributeFromList, uniq } from '../../../code/helpers';
+import { formatSeconds } from '../../../code/time';
+import {
+  toDeviceAssignmentSpans,
+  loginStyle,
+} from './timespan_formatters/deviceAssignmentTimeSpans';
+import {
+  toAllocationTimeSpans,
+  allocationStyle,
+  allocationColors,
+} from './timespan_formatters/timeAllocationTimeSpans';
+import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
+
+import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+
+const SECONDS_IN_HOUR = 3600;
+const SECONDS_IN_DAY = 24 * 60 * 60;
+
+function addActiveEndTime(timeSpan, activeEndTime) {
+  if (!timeSpan.endTime) {
+    timeSpan.activeEndTime = activeEndTime;
+  }
+
+  return timeSpan;
+}
+
+function isInRange(timeSpan, minDatetime) {
+  if (!minDatetime) {
+    return true;
+  }
+
+  return (timeSpan.endTime || timeSpan.activeEndTime).getTime() > minDatetime.getTime();
+}
+
+function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
+  if (asset.type === 'Haul Truck' && isOpen) {
+    return [
+      {
+        group: 'device-assignment',
+        label: 'Op',
+        percent: 0.15,
+        subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'timeusage',
+        label: 'TU',
+        percent: 0.15,
+        subgroups: uniq(TUSpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'cycle',
+        label: 'C',
+        percent: 0.15,
+        subgroups: uniq(CSpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'allocation',
+        label: 'Al',
+        percent: 0.55,
+        subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+      },
+    ];
+  }
+  return [
+    {
+      group: 'device-assignment',
+      label: 'Op',
+      percent: 0.3,
+      subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'allocation',
+      label: 'Al',
+      percent: 0.7,
+      subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+    },
+  ];
+}
+
+export default {
+  name: 'AssetTimeSpanInfo',
+  components: {
+    Icon,
+    TimeSpanChart,
+    DefaultTooltip,
+    AllocationTooltip,
+    LoginTooltip,
+    TimeusageTooltip,
+    CycleTooltip,
+    TimeSpanEditor,
+  },
+  props: {
+    asset: { type: Object, default: () => ({}) },
+    timeAllocations: { type: Array, default: () => [] },
+    deviceAssignments: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    timeusage: { type: Array, default: () => [] },
+    timeCodes: { type: Array, default: () => [] },
+    timeCodeGroups: { type: Array, default: () => [] },
+    fullTimeCodes: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
+    devices: { type: Array, default: () => [] },
+    operators: { type: Array, default: () => [] },
+    activeEndTime: { type: Date, default: new Date() },
+    minDatetime: { type: Date, default: null },
+    maxDatetime: { type: Date, default: null },
+    timezone: { type: String, default: 'local' },
+    shiftId: { type: Number, default: null },
+  },
+  data: () => {
+    return {
+      isOpen: false,
+      showEditor: false,
+      editIcon: EditIcon,
+      chevronRightIcon: ChevronRightIcon,
+      margins: {
+        focus: {
+          top: 15,
+          left: 25,
+          right: 5,
+          bottom: 30,
+        },
+        context: {
+          top: 15,
+          left: 25,
+          right: 5,
+          bottom: 30,
+        },
+      },
+    };
+  },
+  computed: {
+    contextHeight() {
+      return this.isOpen ? 80 : 0;
+    },
+    assetIcon() {
+      return this.$store.state.constants.icons[this.asset.type];
+    },
+    activeTimeAllocation() {
+      return this.timeAllocations.find(ta => !ta.endTime) || {};
+    },
+    timeSpanColors() {
+      return allocationColors();
+    },
+    iconClass() {
+      const timeCodeId = this.activeTimeAllocation.timeCodeId;
+      if (!timeCodeId) {
+        return '';
+      }
+
+      const groupId = attributeFromList(this.timeCodes, 'id', timeCodeId, 'groupId');
+      const groupName = attributeFromList(this.timeCodeGroups, 'id', groupId, 'name');
+
+      if (groupName === 'Ready') {
+        return 'ready';
+      }
+
+      return 'exception';
+    },
+    activeTimeAllocationTimeCode() {
+      const timeCodeId = this.activeTimeAllocation.timeCodeId;
+      return attributeFromList(this.timeCodes, 'id', timeCodeId, 'name');
+    },
+    activeTimeAllocationTimeDuration() {
+      const alloc = this.activeTimeAllocation;
+      const startTime = alloc.startTime;
+      const endTime = alloc.endTime || this.activeEndTime;
+
+      if (!startTime || !endTime) {
+        return null;
+      }
+
+      return Math.trunc((endTime.getTime() - startTime.getTime()) / 1000);
+    },
+    filteredTimeAllocations() {
+      if (!this.minDatetime) {
+        return this.timeAllocations;
+      }
+      return this.timeAllocations.filter(ta => !ta.endTime || isInRange(ta, this.minDatetime));
+    },
+    timeSpans() {
+      const activeEndTime = this.activeEndTime;
+      const TASpans = toAllocationTimeSpans(
+        this.filteredTimeAllocations,
+        this.timeCodes,
+        this.timeCodeGroups,
+        this.locations,
+      ).map(ts => addActiveEndTime(ts, activeEndTime));
+
+      const DASpans = toDeviceAssignmentSpans(this.deviceAssignments, this.devices, this.operators)
+        .map(ts => addActiveEndTime(ts, activeEndTime))
+        .filter(ts => isInRange(ts, this.minDatetime));
+
+      const TUSpans = toTimeusageTimeSpans(this.timeusage)
+        .map(ts => addActiveEndTime(ts, activeEndTime))
+        .filter(ts => isInRange(ts, this.minDatetime))
+        .reverse();
+
+      const CSpans = toCycleTimeSpans(this.cycles)
+        .map(ts => addActiveEndTime(ts, activeEndTime))
+        .filter(ts => isInRange(ts, this.minDatetime));
+
+      return [TASpans, DASpans, TUSpans, CSpans];
+    },
+    chartLayout() {
+      const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
+
+      return {
+        groups,
+        padding: this.isOpen ? 5 : 2,
+        yAxis: {
+          show: this.isOpen,
+          rotation: 0,
+          yOffset: 0,
+          xOffset: 0,
+        },
+      };
+    },
+    allowedTimeCodeIds() {
+      return this.fullTimeCodes
+        .filter(tc => tc.assetTypeIds.includes(this.asset.typeId))
+        .map(tc => tc.id);
+    },
+  },
+  methods: {
+    onEdit() {
+      this.showEditor = true;
+    },
+    onEditClose() {
+      this.showEditor = false;
+    },
+    onEditUpdate() {
+      this.$emit('update');
+    },
+    onLock() {
+      this.$emit('lock');
+    },
+    onUnlock() {
+      this.$emit('unlock');
+    },
+    toggleOpen() {
+      this.isOpen = !this.isOpen;
+    },
+    timeSpanStyler(timeSpan, region) {
+      switch (timeSpan.group) {
+        case 'allocation':
+          return allocationStyle(timeSpan, region);
+
+        case 'device-assignment':
+          return loginStyle(timeSpan, region);
+
+        case 'timeusage':
+          return timeusageStyle(timeSpan, region);
+
+        case 'cycle':
+          return cycleStyle(timeSpan, region);
+      }
+    },
+    formatDuration(totalSeconds) {
+      if (totalSeconds == null) {
+        return '--';
+      }
+
+      if (totalSeconds < 0) {
+        return '0:00';
+      }
+
+      if (totalSeconds > SECONDS_IN_DAY) {
+        const days = Math.trunc(totalSeconds / SECONDS_IN_DAY);
+        return days === 1 ? '> 1 day' : `> ${days} days`;
+      }
+      if (totalSeconds < SECONDS_IN_HOUR) {
+        return formatSeconds(totalSeconds, '%M:%SS');
+      }
+      return formatSeconds(totalSeconds, '%H:%MM:%SS');
+    },
+  },
+};
+</script>
+
+<style>
+.asset-time-span-info {
+  text-align: center;
+  display: flex;
+  width: 100%;
+  border-bottom: 0.05rem solid #677e8c;
+  margin: 2rem 0;
+}
+
+.asset-time-span-info .info {
+  width: 12rem;
+}
+
+.asset-time-span-info .info .asset-name {
+  font-size: 1.25rem;
+  text-decoration: underline;
+  padding-bottom: 0.5rem;
+}
+
+.asset-time-span-info .info .asset-icon {
+  width: 100%;
+  height: 3rem;
+  margin-bottom: 0.25rem;
+}
+
+.asset-time-span-info .info .asset-icon.ready {
+  stroke: green;
+}
+
+.asset-time-span-info .info .asset-icon.exception {
+  stroke: orange;
+}
+
+.asset-time-span-info .chart-wrapper {
+  transition: width 0.2s, height 0.2s;
+  width: 100%;
+  height: 120px;
+  margin: 0 0.5rem;
+}
+
+.asset-time-span-info .chart-wrapper.open {
+  height: 400px;
+}
+
+.asset-time-span-info .action-wrapper {
+  margin: auto;
+  width: 2rem;
+  margin-right: 0.5rem;
+}
+
+.asset-time-span-info .edit-icon,
+.asset-time-span-info .lock-icon,
+.asset-time-span-info .unlock-icon,
+.asset-time-span-info .chevron-icon {
+  width: 1.25rem;
+  cursor: pointer;
+}
+
+.__tooltip-boundary {
+  margin: 10px;
+}
+</style>

@@ -1,0 +1,134 @@
+<template>
+  <table class="error-table-row">
+    <tr>
+      <td class="selector-column" @click="onRowSelect"></td>
+      <td class="time-code-column">
+        <TimeAllocationDropDown
+          :value="timeSpan.data.timeCodeId"
+          :allowedTimeCodeIds="allowedTimeCodeIds"
+          @change="onTimeCodeChange"
+        />
+      </td>
+      <td class="start-time-column">
+        <Dately
+          v-model="startTime"
+          :minDatetime="minDatetime"
+          :maxDatetime="endTime"
+          :timezone="timezone"
+        />
+      </td>
+      <td class="end-time-column">
+        <Dately
+          v-model="endTime"
+          :minDatetime="startTime"
+          :maxDatetime="maxDatetime"
+          :timezone="timezone"
+        />
+      </td>
+      <td class="action-column">
+        <LockableButton v-if="timeSpan.level !== 0" @click="onFix">Fix</LockableButton>
+        <LockableButton v-else @click="onDelete">Delete</LockableButton>
+      </td>
+    </tr>
+  </table>
+</template>
+
+<script>
+import { Datetime } from 'vue-datetime';
+import LockableButton from '@/components/LockableButton.vue';
+import Dately from '@/components/dately/Dately.vue';
+import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
+
+const MISSING_COLOR = 'magenta';
+
+export default {
+  name: 'ErrorTableRow',
+  components: {
+    Datetime,
+    LockableButton,
+    Dately,
+    TimeAllocationDropDown,
+  },
+  props: {
+    timeSpan: { type: Object, required: true },
+    allowedTimeCodeIds: { type: Array, default: () => [] },
+    minDatetime: { type: Date, default: null },
+    maxDatetime: { type: Date, default: null },
+    timezone: { type: String, default: 'local' },
+  },
+  computed: {
+    startTime: {
+      get() {
+        return this.timeSpan.startTime;
+      },
+      set(val) {
+        this.emitChange({ ...this.timeSpan, startTime: new Date(val) });
+      },
+    },
+    endTime: {
+      get() {
+        return this.timeSpan.endTime;
+      },
+      set(val) {
+        this.emitChange({ ...this.timeSpan, endTime: new Date(val) });
+      },
+    },
+  },
+  methods: {
+    emitChange(timeSpan) {
+      this.$emit('change', timeSpan);
+    },
+    onTimeCodeChange(timeCodeId) {
+      this.timeSpan.data.timeCodeId = timeCodeId || null;
+      this.emitChange(this.timeSpan);
+    },
+    onRowSelect() {
+      this.$emit('select');
+    },
+    onFix() {
+      this.$emit('fix');
+    },
+    onDelete() {
+      this.timeSpan.data.deleted = true;
+      this.emitChange(this.timeSpan);
+    },
+  },
+};
+</script>
+
+<style>
+.error-table-row {
+  width: 100%;
+  background-color: rgba(114, 9, 9, 0.158);
+  padding-right: 0.75rem;
+  border-bottom: 0.05em solid #2c404c;
+  border-left: 0;
+}
+
+.error-table-row .selector-column {
+  background-color: #2c404c;
+  cursor: pointer;
+}
+
+.error-table-row.selected {
+  background-color: #00000028;
+}
+
+.error-table-row.selected .selector-column {
+  background-color: #1a262e;
+}
+
+.error-table-row td {
+  text-align: center;
+}
+
+.error-table-row .time-code-column .time-allocation-drop-down .dropdown-wrapper {
+  height: 1.75rem;
+}
+
+.error-table-row .hx-select {
+  width: 100%;
+  height: 1.6rem;
+  padding: 0 1rem;
+}
+</style>

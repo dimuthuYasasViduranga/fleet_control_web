@@ -1,0 +1,16 @@
+<template>
+  <g id="odometer">
+    <path d="M25.71 28.5H6.29a1 1 0 0 1-.73-.31 14.5 14.5 0 1 1 20.88 0 1 1 0 0 1-.73.31z" stroke-miterlimit="10" />
+    <path d="M5.5 18A10.55 10.55 0 0 1 16 7.43a10.4 10.4 0 0 1 6.73 2.46" stroke-miterlimit="10"/>
+    <circle cx="15" cy="18" r="2.5" stroke-miterlimit="10" transform="translate(1 3)"/>
+    <path stroke-miterlimit="10" transform="translate(1 3)" d="M24.5 7.5l-7.86 8.61"/> 
+  </g>
+</template>
+
+<script>
+export default {
+  name: 'OdometerIcon',
+  size: 32,
+  pxIconSet: 'px-fea:dashboard',
+};
+</script>

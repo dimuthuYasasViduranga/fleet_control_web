@@ -1,0 +1,13 @@
+.vue-js-switch .v-switch-core {
+  background-color: #4d4d4d;
+}
+
+.vue-js-switch.toggled .v-switch-core {
+  background-color: #425866;
+}
+
+.vue-js-switch span.v-switch-label {
+  line-height: 23px !important;
+  font-weight: 400 !important;
+  font-family: 'GE Inspira Sans', sans-serif !important;
+}

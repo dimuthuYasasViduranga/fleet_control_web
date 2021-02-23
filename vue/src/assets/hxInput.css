@@ -1,0 +1,126 @@
+.vdatetime-input {
+  color: white;
+  border: 1px solid transparent;
+  height: 2em;
+  background-color: #425866;
+  padding: 0 calc(2em / 2);
+  cursor: pointer;
+}
+
+.vdatetime-popup .vdatetime-popup__header,
+.vdatetime-popup .vdatetime-calendar__month__day--selected > span > span,
+.vdatetime-popup .vdatetime-calendar__month__day--selected:hover > span > span {
+  background-color: #425866;
+}
+
+.vdatetime-popup .vdatetime-year-picker__item--selected,
+.vdatetime-popup .vdatetime-time-picker__item--selected,
+.vdatetime-popup .vdatetime-popup__actions__button {
+  color: #007acc;
+}
+
+.table-cel .hx-select {
+  width: 100%;
+}
+
+.hx-select {
+  color: white;
+  display: inline-block;
+  overflow: visible;
+  height: 2em;
+  width: 13em;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 0 !important;
+  padding: 0 calc(2em / 2);
+  box-shadow: none;
+  font: inherit;
+  line-height: calc(2em - 2px);
+  -webkit-font-smoothing: antialiased;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  background-color: #425866;
+}
+
+.vdatetime-input:hover,
+.hx-select:hover,
+.hx-btn:hover {
+  border-color: transparent;
+  box-shadow: none;
+  background-color: #2c404c;
+}
+
+.hx-option {
+  padding-left: 0.66667rem;
+  padding-right: 0.66667rem;
+  height: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background-color: #23343f;
+}
+
+.hx-option:hover {
+  background-color: #09819c;
+  color: #b6c3cc;
+}
+
+.hx-btn {
+  color: white;
+  display: inline-block;
+  overflow: visible;
+  height: 2em;
+  min-width: 4.66667em;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 0 !important;
+  padding: 0 calc(2em / 2);
+  box-shadow: none;
+  font: inherit;
+  line-height: calc(2em - 2px);
+  -webkit-font-smoothing: antialiased;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  white-space: nowrap;
+  background-color: #425866;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+  user-select: none;
+}
+
+.hx-btn:focus {
+  outline: none;
+}
+
+.typeable {
+  font: inherit;
+  height: 2em;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #677e8c;
+  padding: 0 0.33333rem;
+  color: #b6c3cc;
+  background-color: transparent;
+  outline: none;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+
+.typeable:focus {
+  background-color: white;
+  color: #0c1419;
+  outline: none;
+}
+
+/* remove incrementor in Firefox */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}

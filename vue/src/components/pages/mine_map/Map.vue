@@ -1,0 +1,447 @@
+<template>
+  <div class="mine-map">
+    <div class="map-wrapper">
+      <div class="gmap-map">
+        <!-- buttons to attach -->
+        <div style="display: none">
+          <RecenterIcon class="recenter-control" tooltip="right" @click.native="reCenter" />
+          <ResetZoomIcon class="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
+          <PolygonIcon
+            class="geofence-control"
+            tooltip="right"
+            :highlight="!showAllGeofences"
+            @click.native="toggleAllGeofences"
+          />
+          <GmapAlertIcon
+            class="alert-control"
+            tooltip="right"
+            :highlight="!showAlerts"
+            @click.native="toggleShowAlerts"
+          />
+          <ClusterIcon
+            class="cluster-control"
+            tooltip="right"
+            :highlight="!useMapClusters"
+            @click.native="toggleUseMapClusters"
+          />
+          <div class="g-control asset-selector-control">
+            <GMapDropDown
+              :value="selectedAssetId"
+              :items="assets"
+              label="name"
+              :useScrollLock="true"
+              placeholder="Asset"
+              direction="down"
+              @change="onFindAsset"
+            />
+          </div>
+          <div class="debug-control" :class="{ show: debug }" @click="onDebugControl"></div>
+        </div>
+        <!-- GMap Element -->
+        <GmapMap
+          ref="gmap"
+          :map-type-id="mapType"
+          :center="center"
+          :zoom="zoom"
+          :options="{
+            streetViewControl: false,
+            tilt: 0,
+          }"
+          @zoom_changed="zoomChanged"
+          @dragstart="propogateEvent('dragstart')"
+          @dragend="propogateEvent('dragend')"
+        >
+          <g-map-geofences :geofences="shownGeofences" @click="onGeofenceClick" />
+
+          <g-map-route
+            v-for="(route, index) in routes"
+            :key="index"
+            :clusters="clusters"
+            :clusterIds="route.clusterIds"
+            :options="route.options"
+          />
+
+          <g-map-tracks
+            :assets="assets"
+            :icons="trackIcons"
+            :showAlerts="showAlerts"
+            :clusterSize="useMapClusters ? trackClusterSize : 0"
+            :selectedAssetId="selectedAssetId"
+            :draggable="debug"
+            @click="onAssetClick"
+          />
+
+          <gmap-info-window
+            class="info-window"
+            :options="pUpOptions"
+            :opened="pUpShow"
+            :position="pUpPosition"
+            @closeclick="pUpShow = false"
+          >
+            <div class="no-info" v-if="!selected">No information to show</div>
+
+            <template v-else-if="selected.type === 'asset'">
+              <AssetInfo :asset="selected.data" />
+              <HaulTruckInfo
+                v-if="selected.data.type === 'Haul Truck'"
+                :asset="selected.data"
+                :locations="locations"
+              />
+              <DigUnitInfo
+                v-if="['Excavator', 'Loader'].includes(selected.data.type)"
+                :asset="selected.data"
+                :locations="locations"
+              />
+            </template>
+            <GeofenceInfo v-else-if="selected.type === 'geofence'" :geofence="selected.data" />
+          </gmap-info-window>
+        </GmapMap>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { gmapApi } from 'vue2-google-maps';
+import GmapCluster from 'vue2-google-maps/dist/components/cluster';
+import loading from 'hx-layout/Loading.vue';
+import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
+import GMapTracks from '@/components/gmap/GMapTracks.vue';
+import GMapRoute from '@/components/gmap/GMapRoute.vue';
+import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
+import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
+import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
+import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
+import GmapAlertIcon from '@/components/gmap/GmapAlertIcon.vue';
+import ClusterIcon from '@/components/gmap/ClusterIcon.vue';
+
+import { attachControl } from '@/components/gmap/gmapControls.js';
+import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles.js';
+
+import AssetInfo from './info/AssetInfo.vue';
+import HaulTruckInfo from './info/HaulTruckInfo.vue';
+import DigUnitInfo from './info/DigUnitInfo.vue';
+import GeofenceInfo from './info/GeofenceInfo.vue';
+import { attributeFromList } from '@/code/helpers';
+
+import Icon from 'hx-layout/Icon.vue';
+import ErrorIcon from 'hx-layout/icons/Error.vue';
+
+function fromLatLng(latLng) {
+  return {
+    lat: latLng.lat(),
+    lng: latLng.lng(),
+  };
+}
+
+export default {
+  name: 'Map',
+  components: {
+    loading,
+    gmapApi,
+    Icon,
+    GMapDropDown,
+    GmapCluster,
+    GMapGeofences,
+    GMapTracks,
+    GMapRoute,
+    AssetInfo,
+    HaulTruckInfo,
+    DigUnitInfo,
+    GeofenceInfo,
+    RecenterIcon,
+    ResetZoomIcon,
+    PolygonIcon,
+    GmapAlertIcon,
+    ClusterIcon,
+  },
+  props: {
+    assets: { type: Array, default: () => [] },
+    activeLocations: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
+    clusters: { type: Array, deafult: () => [] },
+  },
+  data: () => {
+    return {
+      // dynamic map properties
+      mapType: 'satellite',
+      showAllGeofences: false,
+      showAlerts: true,
+      useMapClusters: true,
+      defaults: {
+        zoom: 0,
+        center: {
+          lat: 0,
+          lng: 0,
+        },
+      },
+
+      center: {
+        lat: 0,
+        lng: 0,
+      },
+      zoom: 0,
+
+      // popup settings
+      pUpShow: false,
+      pUpOptions: {
+        pixelOffset: {
+          width: 0,
+          height: -25,
+        },
+      },
+      pUpPosition: null,
+      selected: null,
+
+      // track properties
+      trackClusterSize: 35,
+      trackIcons: {
+        default: undefined,
+      },
+
+      debug: false,
+      errorIcon: ErrorIcon,
+    };
+  },
+  computed: {
+    google: gmapApi,
+    isLoading() {
+      return !this.$store.state.connection.isAlive;
+    },
+    mapManifest() {
+      return this.$store.state.constants.mapManifest;
+    },
+    routes() {
+      if (this.selected && this.selected.data.type === 'Haul Truck') {
+        const info = (this.selected.data.track || {}).haulTruckInfo || {};
+        return [
+          {
+            clusterIds: info.loadPath,
+            options: { strokeColor: 'blue' },
+          },
+          {
+            clusterIds: info.dumpPath,
+            options: { strokeColor: 'orange' },
+          },
+        ].filter(r => r.clusterIds.length !== 0);
+      }
+      return [];
+    },
+    shownGeofences() {
+      if (this.showAllGeofences) {
+        return this.locations.filter(l => l.type !== 'closed');
+      }
+      return this.activeLocations;
+    },
+    selectedAssetId() {
+      if (this.selected && this.selected.type === 'asset') {
+        return this.selected.data.id;
+      }
+      return;
+    },
+  },
+  watch: {
+    assets(newAssets) {
+      const selected = this.selected;
+      if (selected && selected.type === 'asset') {
+        const assetId = selected.data.id;
+        // find the asset within the new assets (in case the track has moved)
+        const asset = newAssets.find(a => a.id === assetId);
+
+        if (asset) {
+          this.selected = {
+            type: 'asset',
+            data: asset,
+          };
+          if (this.pUpShow === true) {
+            this.openPopup(asset.track.position);
+          }
+        } else {
+          this.closePopup();
+        }
+      }
+    },
+  },
+  mounted() {
+    const center = this.$store.state.constants.mapCenter;
+    this.defaults.center = {
+      lat: center.latitude,
+      lng: center.longitude,
+    };
+
+    this.defaults.zoom = this.$store.state.constants.mapZoom;
+
+    this.reCenter();
+    this.resetZoom();
+
+    this.gPromise().then(map => {
+      // set greedy mode so that scroll is enabled anywhere on the page
+      map.setOptions({ gestureHandling: 'greedy' });
+
+      attachControl(map, this.google, '.recenter-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.reset-zoom-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
+      attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
+      setMapTypeOverlay(map, this.google, this.mapManifest);
+    });
+  },
+  methods: {
+    gPromise() {
+      return this.$refs.gmap.$mapPromise;
+    },
+    closePopup() {
+      this.pUpShow = false;
+      this.selected = null;
+    },
+    openPopup(position) {
+      if (position) {
+        this.pUpPosition = position;
+      }
+      this.pUpShow = true;
+    },
+    reCenter() {
+      this.moveTo(this.defaults.center);
+    },
+    moveTo(latLng) {
+      this.gPromise().then(map => map.panTo(latLng));
+    },
+    zoomChanged(zoomLevel) {
+      this.zoom = zoomLevel;
+    },
+    propogateEvent(topic) {
+      this.$emit(topic);
+    },
+    resetZoom() {
+      this.zoom = this.defaults.zoom;
+    },
+    toggleAllGeofences() {
+      this.showAllGeofences = !this.showAllGeofences;
+    },
+    toggleShowAlerts() {
+      this.showAlerts = !this.showAlerts;
+    },
+    toggleUseMapClusters() {
+      this.useMapClusters = !this.useMapClusters;
+    },
+    onGeofenceClick({ geofence, click }) {
+      const selected = this.selected;
+      if (selected && selected.type === 'geofence' && selected.data.id === geofence.id) {
+        this.selected = null;
+        this.closePopup();
+      } else {
+        this.selected = {
+          type: 'geofence',
+          data: geofence,
+        };
+
+        this.openPopup(fromLatLng(click.latLng));
+      }
+    },
+    onAssetClick(asset) {
+      const selected = this.selected;
+      if (!asset.track) {
+        this.selected = null;
+        this.closePopup();
+      } else if (selected && selected.type === 'asset' && selected.data.id === asset.id) {
+        this.closePopup();
+      } else {
+        this.selected = {
+          type: 'asset',
+          data: asset,
+        };
+        this.openPopup(asset.track.position);
+      }
+    },
+    onFindAsset(assetId) {
+      const asset = attributeFromList(this.assets, 'id', assetId);
+
+      if (asset) {
+        this.onAssetClick(asset);
+      } else {
+        this.closePopup();
+      }
+    },
+    onDebugControl() {
+      const proposedMode = !this.debug ? 'mock' : 'normal';
+      this.$channel
+        .push('track:set mode', proposedMode)
+        .receive('ok', () => {
+          this.debug = !this.debug;
+          console.log(`[MineMap] Debug set to ${this.debug}`);
+        })
+        .receive('error', error => console.error(error))
+        .receive('timeout', () => console.error('request timed out'));
+    },
+  },
+};
+</script>
+
+<style>
+@import '../../../assets/googleMaps.css';
+
+.mine-map .map-wrapper {
+  position: relative;
+  height: 800px;
+  width: 100%;
+  padding-bottom: 3em;
+}
+
+.mine-map .gmap-map {
+  height: 100%;
+  width: 100%;
+}
+
+.map-wrapper .gmap-map .vue-map-container {
+  height: 100%;
+}
+
+.grey-out {
+  filter: grayscale(75%);
+}
+
+.asset-selector-control {
+  display: flex;
+  background-color: white;
+}
+
+.asset-selector-control:hover {
+  background-color: white;
+}
+
+.asset-selector-control .gmap-dropdown {
+  width: 7rem;
+}
+
+@media screen and (max-width: 560px) {
+  .asset-selector-control {
+    display: none;
+  }
+}
+
+/* special invisible debug control */
+.mine-map .g-control[g-position='LEFT_BOTTOM'] {
+  background-color: transparent;
+  box-shadow: none;
+  --webkit-box-shadow: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+.mine-map .debug-control {
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.mine-map .debug-control.show {
+  background-color: grey;
+}
+
+/* ------ dim all other assets when one is selected ------- */
+.mine-map .not-selected {
+  opacity: 0.3 !important;
+}
+</style>

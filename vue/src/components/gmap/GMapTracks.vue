@@ -1,0 +1,189 @@
+<template>
+  <div class="gmap-tracks">
+    <gmap-cluster :gridSize="clusterSize" :zoomOnClick="zoomOnClick">
+      <template v-if="!draggable">
+        <gmap-custom-marker
+          v-for="asset in assetsWithTracks"
+          :key="asset.id"
+          :class="getMarkerClass(asset)"
+          :marker="asset.track.position"
+          alignment="center"
+        >
+          <div v-if="showAlerts && asset.alert" class="alert">
+            <Icon
+              v-tooltip="{
+                content: asset.alert.text,
+                classes: ['google-tooltip'],
+                delay: { show: 10, hide: 100 },
+              }"
+              :style="`stroke: ${asset.alert.stroke || 'black'}; fill: ${
+                asset.alert.fill || 'orangered'
+              }`"
+              :icon="alertIcon"
+              @click.native="onTrackClick(asset, $event)"
+            />
+          </div>
+          <component
+            :is="getMarker(asset)"
+            :scale="1"
+            :rotation="asset.track.velocity.heading"
+            @click.native="onTrackClick(asset, $event)"
+          />
+        </gmap-custom-marker>
+      </template>
+      <template v-else>
+        <gmap-marker
+          v-for="(asset, index) in assetsWithTracks"
+          :key="`asset-marker-${index}`"
+          :position="asset.track.position"
+          :options="{
+            clickable: true,
+          }"
+          :draggable="true"
+          @click="onMarkerClick(asset)"
+          @dragend="onDragEnd(asset, $event)"
+        />
+      </template>
+    </gmap-cluster>
+  </div>
+</template>
+
+<script>
+import Icon from 'hx-layout/Icon.vue';
+import { gmapApi } from 'vue2-google-maps';
+import GmapCluster from 'vue2-google-maps/dist/components/cluster';
+import GmapCustomMarker from 'vue2-gmap-custom-marker';
+import DefaultMarker from './markers/DefaultMarker.vue';
+import HaulTruckMarker from './markers/HaulTruckTopDownMarker.vue';
+import ExcavatorMarker from './markers/ExcavatorTopDownMarker.vue';
+import WaterCartMarker from './markers/WaterCartTopDownMarker.vue';
+import LoaderMarker from './markers/LoaderTopDownMarker.vue';
+import ScraperMarker from './markers/ScraperTopDownMarker.vue';
+import DrillMarker from './markers/DrillTopDownMarker.vue';
+import DozerMarker from './markers/DozerTopDownMarker.vue';
+import GraderIcon from './markers/GraderTopDownMarker.vue';
+
+import AlertIcon from '@/components/icons/Alert.vue';
+
+const ICONS = {
+  'Haul Truck': HaulTruckMarker,
+  Excavator: ExcavatorMarker,
+  Watercart: WaterCartMarker,
+  Loader: LoaderMarker,
+  Scraper: ScraperMarker,
+  Drill: DrillMarker,
+  Dozer: DozerMarker,
+  Grader: GraderIcon,
+};
+
+function createMockTrack(track, position, timestamp = new Date()) {
+  const lat = position.lat || 0;
+  const lng = position.lng || 0;
+  const alt = position.alt || 0;
+  const invalid = lat && lng && alt;
+
+  return {
+    name: track.name,
+    user_id: track.userId,
+    position: {
+      lat,
+      lng,
+      alt: track.position.alt,
+    },
+    speed_ms: track.velocity.speed,
+    heading: track.velocity.heading,
+    timestamp,
+    valid: !invalid,
+  };
+}
+
+export default {
+  title: 'GMapTracks',
+  components: {
+    Icon,
+    GmapCluster,
+    GmapCustomMarker,
+    DefaultMarker,
+    HaulTruckMarker,
+    ExcavatorMarker,
+    WaterCartMarker,
+    LoaderMarker,
+    ScraperMarker,
+    DrillMarker,
+    DozerMarker,
+    GraderIcon,
+  },
+  props: {
+    assets: { type: Array, default: () => [] },
+    icons: { type: Object, default: () => ({}) },
+    draggable: { type: Boolean, default: false },
+    showAlerts: { type: Boolean, default: false },
+    clusterSize: { type: Number, default: 0 },
+    zoomOnClick: { type: Boolean, default: true },
+    selectedAssetId: { type: Number, default: null },
+  },
+  data: () => {
+    return {
+      alertIcon: AlertIcon,
+    };
+  },
+  computed: {
+    google: gmapApi,
+    assetsWithTracks() {
+      return this.assets.filter(a => a.track);
+    },
+  },
+  methods: {
+    getMarker(asset) {
+      return ICONS[asset.type] || DefaultMarker;
+    },
+    getMarkerClass(asset) {
+      if (!this.selectedAssetId) {
+        return;
+      }
+
+      return this.selectedAssetId === asset.id ? 'selected' : 'not-selected';
+    },
+    onTrackClick(asset, event) {
+      event.stopPropagation();
+      this.$emit('click', asset);
+    },
+    onMarkerClick(asset) {
+      this.$emit('click', asset);
+    },
+    onDragEnd(asset, { latLng }) {
+      const position = { lat: latLng.lat(), lng: latLng.lng() };
+      const mockTrack = createMockTrack(asset.track, position);
+      this.$channel.push('track:set track', mockTrack);
+    },
+  },
+};
+</script>
+
+<style>
+.tooltip.google-tooltip {
+  display: block;
+  z-index: 10000;
+  font-family: Roboto, Arial, sans-serif;
+}
+
+.tooltip.google-tooltip .tooltip-inner {
+  background: white;
+  color: black;
+  padding: 5px 10px 4px;
+}
+</style>
+
+<style scope>
+.alert {
+  z-index: 1000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 7%;
+}
+
+.alert svg {
+  stroke-width: 3;
+}
+</style>

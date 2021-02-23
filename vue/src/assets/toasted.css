@@ -1,0 +1,30 @@
+.toasted-container.top-right {
+  top: 8%;
+  right: 5%;
+}
+
+.toasted-container {
+  font-family: 'GE Inspira Sans', sans-serif;
+}
+
+.toasted-container .toasted.toasted-primary.error {
+  background-color: rgb(94, 0, 0);
+}
+
+.toasted-container .toasted.toasted-primary.info {
+  background-color: #425866;
+}
+
+.toasted-container .hx-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.toasted-container .hx-icon svg {
+  stroke-width: 1.5;
+}
+
+.toasted-container .hx-icon.no-comms svg {
+  stroke: orange;
+}

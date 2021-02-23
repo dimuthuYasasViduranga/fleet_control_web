@@ -1,0 +1,59 @@
+.table-component {
+  padding-bottom: 2rem;
+}
+
+.table {
+  width: 100%;
+  text-align: center;
+  border-spacing: 0;
+  font-size: 15px;
+  border-bottom: 0.1em solid #677e8c; 
+}
+
+.table th {
+  padding: 1em;
+  font-size: 12px;
+  color: #677e8c;
+  font-weight: 400;
+  text-transform: uppercase;
+  border-bottom: 0.1em solid #677e8c;
+  cursor: pointer;
+}
+
+.table td {
+  padding: .8em;
+  position: relative;
+  border-bottom: 0.05em solid #2c404c;
+}
+
+.phase-header__details {
+  background-color: antiquewhite;
+  color: black;
+}
+
+.table-cel {
+  width: 15em;
+}
+
+.table-btn-cel {
+  width: 5em;
+  text-align: left;
+}
+
+.table-component__filter__field {
+  font: inherit;
+  height: 2em;
+  width: 15em;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #677e8c;
+  padding: 0 0.33333rem;
+  color: #b6c3cc;
+  background-color: transparent;
+  transition: background 0.4s, border-color 0.4s, color 0.4s;
+}
+
+.table-component__filter__field:focus {
+  background-color: white;
+  color: #0c1419;
+}

@@ -1,0 +1,397 @@
+<template>
+  <div class="debug-page">
+    <hxCard title="Modals" :icon="bugIcon">
+      <div class="modal-list">
+        <button class="hx-btn" @click="onOpenModal">Open Modal</button>
+        <button class="hx-btn" @click="onChainModals">Chain Modal</button>
+        <button class="hx-btn" @click="onCreateLoadingModal">Loading Modal</button>
+      </div>
+    </hxCard>
+    <hxCard title="Toasted" :icon="bugIcon">
+      <div class="toast toast-info">
+        <div>Info:</div>
+        <input class="typeable" v-model="toasts.info" />
+        <button class="hx-btn" @click="onCreateInfoToast">Create</button>
+      </div>
+      <div class="toast toast-error">
+        <div>Error:</div>
+        <input class="typeable" v-model="toasts.error" />
+        <button class="hx-btn" @click="onCreateErrorToast">Create</button>
+      </div>
+      <div class="toast toast-no-comms">
+        <div>No Comms:</div>
+        <input class="typeable" v-model="toasts.noComms" />
+        <button class="hx-btn" @click="onCreateNoCommsToast">Create</button>
+      </div>
+    </hxCard>
+    <hxCard class="datetime-selector" title="Datetime Input">
+      <hxCard
+        class="datetime-input-example"
+        v-for="(params, index) in datetimeParams"
+        :key="index"
+        :title="params.name"
+      >
+        <table class="value-table">
+          <tr>
+            <th>Min</th>
+            <td>{{ params.min || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Max</th>
+            <td>{{ params.max || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Timezone</th>
+            <td>{{ params.timezone || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Value</th>
+            <td>{{ formatDateString(params.value) }}</td>
+          </tr>
+        </table>
+
+        <Dately
+          v-model="params.value"
+          :minDatetime="params.min"
+          :maxDatetime="params.max"
+          :timezone="params.timezone"
+        />
+      </hxCard>
+
+      <hxCard class="datetime-input-example" title="Shared Dately (both should update)">
+        <table class="value-table">
+          <tr>
+            <th>Min</th>
+            <td>{{ sharedDately.min || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Max</th>
+            <td>{{ sharedDately.max || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Timezone</th>
+            <td>{{ sharedDately.timezone || '--' }}</td>
+          </tr>
+          <tr>
+            <th>Value</th>
+            <td>{{ formatDateString(sharedDately.value) }}</td>
+          </tr>
+        </table>
+
+        <Dately
+          v-model="sharedDately.value"
+          :minDatetime="sharedDately.min"
+          :maxDatetime="sharedDately.max"
+          :timezone="sharedDately.timezone"
+        />
+        <Dately
+          v-model="sharedDately.value"
+          :minDatetime="sharedDately.min"
+          :maxDatetime="sharedDately.max"
+          :timezone="sharedDately.timezone"
+        />
+        <button class="hx-btn" style="margin-left: 1rem" @click="sharedDately.value = null">
+          Clear Value
+        </button>
+      </hxCard>
+    </hxCard>
+    <hxCard style="width: auto" title="Channel Info" :icon="bugIcon">
+      <table>
+        <tr>
+          <td>Updated At</td>
+          <td>{{ formatDate(lastUpdatedAt) }}</td>
+        </tr>
+        <tr>
+          <td>Mode</td>
+          <td>{{ mode }}</td>
+        </tr>
+        <tr>
+          <td>Is Alive?</td>
+          <td>{{ isAlive }}</td>
+        </tr>
+        <tr>
+          <td>Is Connected?</td>
+          <td>{{ isConnected }}</td>
+        </tr>
+        <tr>
+          <td>Last Connected</td>
+          <td>{{ formatDate(lastConnectedAt) }}</td>
+        </tr>
+        <tr>
+          <td>Last Disconnected</td>
+          <td>{{ formatDate(lastDisconnectedAt) }}</td>
+        </tr>
+        <tr>
+          <td>Status</td>
+          <td>{{ status || 'unknown' }}</td>
+        </tr>
+      </table>
+
+      <button class="hx-btn" @click="onDisconnectChannel()">Disconnect</button>
+
+      <div class="message-log">
+        Message Log:
+        <pre>{{ messageLog }}</pre>
+      </div>
+    </hxCard>
+    <hxCard title="Icons" :icon="bugIcon">
+      <div class="small-icons">
+        <icon
+          v-for="(assetIcon, index) in assetIcons"
+          :key="index"
+          :icon="assetIcon"
+          @click="setIcon(assetIcon)"
+        />
+      </div>
+
+      <div class="showcase-icons">
+        <icon :icon="selectedIcon" />
+        <icon :icon="selectedIcon" :rotation="45" />
+        <icon :icon="selectedIcon" :scale="{ x: -1 }" />
+        <icon :icon="selectedIcon" :scale="{ y: -1 }" />
+
+        <icon style="height: 12rem; width: 6rem" :icon="selectedIcon" />
+        <icon style="height: 6rem; width: 12rem" :icon="selectedIcon" />
+      </div>
+    </hxCard>
+  </div>
+</template>
+
+<script>
+import { mapState } from 'vuex';
+import hxCard from 'hx-layout/Card.vue';
+import icon from 'hx-layout/Icon.vue';
+
+import BugIcon from '../../icons/Bug.vue';
+
+import DozerIcon from '../../icons/asset_icons/Dozer.vue';
+import HaulTruckIcon from '../../icons/asset_icons/HaulTruck.vue';
+import WaterTruckIcon from '../../icons/asset_icons/WaterTruck.vue';
+import ExcavatorIcon from '../../icons/asset_icons/Excavator.vue';
+import LoaderIcon from '../../icons/asset_icons/Loader.vue';
+import ScraperIcon from '../../icons/asset_icons/Scraper.vue';
+import GraderIcon from '../../icons/asset_icons/Grader.vue';
+import DrillIcon from '../../icons/asset_icons/Drill.vue';
+import LVIcon from '../../icons/asset_icons/LightVehicle.vue';
+
+import ConfirmModal from '../../../components/modals/ConfirmModal.vue';
+import LoadingModal from '@/components/modals/LoadingModal.vue';
+
+import Dately from '@/components/dately/Dately.vue';
+
+import { formatDateIn, toUtcDate } from '../../../code/time.js';
+
+const ASSET_ICONS = [
+  DozerIcon,
+  HaulTruckIcon,
+  WaterTruckIcon,
+  ExcavatorIcon,
+  LoaderIcon,
+  ScraperIcon,
+  GraderIcon,
+  DrillIcon,
+  LVIcon,
+  undefined,
+];
+
+export default {
+  name: 'DebugPage',
+  components: {
+    hxCard,
+    icon,
+    Dately,
+  },
+  data: () => {
+    return {
+      bugIcon: BugIcon,
+      selectedIcon: ASSET_ICONS[0],
+      assetIcons: ASSET_ICONS,
+      toasts: {
+        info: 'Info',
+        error: 'Error',
+        noComms: 'No Comms',
+      },
+      datetimeParams: [
+        {
+          name: 'No min/max, no initial value. Local timezone',
+          value: null,
+          timezone: 'local',
+        },
+        {
+          name: 'Min, no initial value. Local timezone',
+          value: null,
+          min: '2020-12-16T10:30:00Z',
+          timezone: 'local',
+        },
+        {
+          name: 'Max, no initial value. Local timezone',
+          value: null,
+          max: '2020-12-16T10:30:00Z',
+          timezone: 'local',
+        },
+        {
+          name: 'Min/Max, no initial value. Local timezone',
+          value: null,
+          min: '2020-12-16T10:30:00Z',
+          max: '2020-12-17T10:30:00Z',
+          timezone: 'local',
+        },
+        {
+          name: 'Min/Max, no initial value. Local timezone. Really old',
+          value: null,
+          min: '2019-10-10T10:30:00Z',
+          max: '2019-10-20T10:30:00Z',
+          timezone: 'local',
+        },
+        {
+          name: 'Day light savings (starts at 3 am on the 4th)',
+          value: null,
+          min: '2020-10-04T00:00:00+10:00',
+          max: '2020-10-04T23:59:59+11:00',
+          timezone: 'Australia/Sydney',
+        },
+        {
+          name: 'Day light savings (ends at 3 am on the 4th)',
+          value: null,
+          min: '2021-04-04T00:00:00+11:00',
+          max: '2021-04-04T23:59:59+10:00',
+          timezone: 'Australia/Sydney',
+        },
+      ],
+      sharedDately: {
+        name: 'Min/Max, no initial value. Local timezone. Really old',
+        value: null,
+        min: '2019-10-10T10:30:00Z',
+        max: '2019-10-20T10:30:00Z',
+        timezone: 'local',
+      },
+    };
+  },
+  computed: {
+    ...mapState('connection', {
+      mode: state => state.mode,
+      isAlive: state => state.isAlive,
+      isConnected: state => state.isConnected,
+      lastConnectedAt: state => state.lastConnectedAt,
+      lastDisconnectedAt: state => state.lastDisconnectedAt,
+      lastUpdatedAt: state => state.updatedAt,
+      messageLog: state => state.messageLog,
+      status: state => state.status,
+    }),
+    timezone() {
+      return this.$store.state.constants.timezone;
+    },
+  },
+  methods: {
+    formatDate(date) {
+      return formatDateIn(date, { format: 'yyyy-MM-dd HH:mm:ss' });
+    },
+    setIcon(assetIcon) {
+      this.selectedIcon = assetIcon;
+    },
+    onCreateInfoToast() {
+      this.$toasted.global.info(this.toasts.info);
+    },
+    onCreateErrorToast() {
+      this.$toasted.global.error(this.toasts.error);
+    },
+    onCreateNoCommsToast() {
+      this.$toasted.global.noComms(this.toasts.noComms);
+    },
+    onOpenModal() {
+      this.$modal.create(ConfirmModal, { title: 'Some text', body: 'even more text' });
+    },
+    onChainModals() {
+      this.$modal
+        .create(ConfirmModal, { title: 'Modal 1', body: 'Ok will open another modal' })
+        .onClose(answer => {
+          if (answer === 'ok') {
+            this.$modal.create(ConfirmModal, { title: 'Modal 2', body: 'No more after this' });
+          }
+        });
+    },
+    onCreateLoadingModal() {
+      const modal = this.$modal.create(
+        LoadingModal,
+        { message: 'Closing in 4 seconds' },
+        { clickOutsideClose: false },
+      );
+      setTimeout(() => modal.close(), 4000);
+    },
+    onDisconnectChannel() {
+      this.$channel.destroy();
+    },
+    formatDateString(date) {
+      if (!date) {
+        return '--';
+      }
+      const ISO = date.toISOString();
+
+      return `${ISO.slice(0, 10)}\n${ISO.slice(11, 19)}Z`;
+    },
+  },
+};
+</script>
+
+<style>
+.debug-page .hxCard {
+  padding-bottom: 2rem;
+}
+
+.debug-page .toast {
+  display: flex;
+}
+
+.debug-page .toast div {
+  width: 8rem;
+}
+
+.debug-page .small-icons {
+  display: flex;
+}
+
+.debug-page .small-icons .hx-icon {
+  border: 1px solid green;
+  width: 12rem;
+  height: 12rem;
+}
+
+.debug-page .showcase-icons {
+  display: flex;
+  align-items: center;
+}
+
+.debug-page .showcase-icons .hx-icon {
+  border: 1px solid orange;
+  width: 8rem;
+  height: 8rem;
+}
+
+.debug-page .message-log pre {
+  margin: 0;
+}
+
+.debug-page .modal-list .hx-btn {
+  margin-right: 0.1rem;
+}
+
+.debug-page .datetime-selector .value-table {
+  table-layout: fixed;
+  border: 1px solid gray;
+  border-collapse: collapse;
+}
+
+.debug-page .datetime-selector .value-table tr {
+  border-bottom: 1px solid gray;
+}
+
+.debug-page .datetime-selector .value-table th {
+  width: 6rem;
+  border-right: 1px solid gray;
+}
+
+.debug-page .datetime-selector .value-table td {
+  width: 6rem;
+  text-align: center;
+}
+</style>

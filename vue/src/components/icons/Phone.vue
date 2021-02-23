@@ -1,0 +1,18 @@
+<template>
+  <g id="phone_icon">
+    <path stroke-linejoin="round" d="M1.62 14.44l-.18.09m14.12 13.85l-.09.18" />
+    <path
+      d="M23.48 30.5a21.73 21.73 0 0 1-6.92-1.12A22 22 0 0 1 2.62 15.44a21.94 21.94 0 0 1 0-13.94H8l3.74 9.35L6 13.75A18.34 18.34 0 0 0 18.25 26l2.89-5.78L30.5 24v5.4a21.76 21.76 0 0 1-7.02 1.1z"
+      transform="translate(-1 -1)"
+      stroke-linejoin="round"
+    />
+  </g>
+</template>
+
+<script>
+export default {
+  name: 'PhoneIcon',
+  size: 32,
+  pxIconSet: 'px-com:phone',
+};
+</script>
