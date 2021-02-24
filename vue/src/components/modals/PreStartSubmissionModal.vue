@@ -36,7 +36,7 @@
         </div>
       </div>
     </div>
-    <div class="submission-comment">
+    <div v-if="submission.comment" class="submission-comment">
       <div class="title">Comments</div>
       <div class="comment">{{ submission.comment }}</div>
     </div>
