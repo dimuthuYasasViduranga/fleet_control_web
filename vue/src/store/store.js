@@ -194,6 +194,7 @@ export function parsePreStartSubmission(submission) {
     assetId: submission.asset_id,
     operatorId: submission.operator_id,
     employeeId: submission.employee_id,
+    comment: submission.comment,
     form: parsePreStart(submission.form),
     timestamp: toUtcDate(submission.timestamp),
     serverTimestamp: toUtcDate(submission.server_timestamp),

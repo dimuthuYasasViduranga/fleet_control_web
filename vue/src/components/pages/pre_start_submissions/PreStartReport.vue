@@ -72,6 +72,8 @@ export default {
 </script>
 
 <style>
+@import '../../../assets/textColors.css';
+
 /* hxCard styling */
 .pre-start-report.hxCardIcon {
   height: 2.5rem;
