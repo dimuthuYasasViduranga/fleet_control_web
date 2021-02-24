@@ -19,7 +19,7 @@
         <icon v-tooltip="'Edit Allocation'" :icon="editIcon" @click="onEdit" />
         <icon
           v-if="preStartSubmission"
-          v-tooltip="'View Pre-Start'"
+          v-tooltip="'Pre-Start'"
           :icon="reportIcon"
           @click="onOpenPreStart"
         />
@@ -32,8 +32,12 @@
 import Icon from 'hx-layout/Icon.vue';
 import FeedHeader from './header/FeedHeader.vue';
 import EntryList from './entries/EntryList.vue';
+
+import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
+
 import { attributeFromList, isInText } from '../../../code/helpers';
 import { formatSeconds, divMod } from '../../../code/time';
+
 import EditIcon from '../../icons/Edit.vue';
 import ReportIcon from '../../icons/Report.vue';
 
@@ -127,7 +131,7 @@ export default {
       this.$eventBus.$emit('asset-assignment-open', this.selectedAsset.id);
     },
     onOpenPreStart() {
-      console.dir('---- open prestart');
+      this.$modal.create(PreStartSubmissionModal, { submission: this.preStartSubmission });
     },
   },
 };
@@ -173,7 +177,7 @@ export default {
 }
 
 .feed .info-bar .actions .hx-icon {
-  margin-left: 0.25rem;
+  margin: 0 0.25rem;
   cursor: pointer;
   width: 1.5rem;
 }
