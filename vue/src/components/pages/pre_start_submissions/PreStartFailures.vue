@@ -55,7 +55,7 @@ export default {
       const groupMap = groupBy(failedSubs, 'assetId');
 
       const groups = Object.entries(groupMap).map(([assetIdStr, submissions]) => {
-        const asset = attributeFromList(this.assets, 'id', parseInt(assetIdStr)) || {};
+        const asset = attributeFromList(this.assets, 'id', parseInt(assetIdStr, 10)) || {};
 
         const subs = submissions.map(s => {
           const failedControls = getControls(s.form).filter(c => c.answer === false);
