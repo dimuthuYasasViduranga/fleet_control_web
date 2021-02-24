@@ -203,7 +203,7 @@ export default {
       const historic = this.$store.state.historicTimeAllocations;
       const activeAllocations = this.$store.state.activeTimeAllocations;
 
-      return [].concat(historic).concat(activeAllocations);
+      return historic.concat(activeAllocations);
     },
     liveAssetData() {
       return groupByAsset(

@@ -105,7 +105,7 @@ export default {
       const staticLocations = this.locations.filter(l => STATIC_TYPES.includes(l.type));
       const haulLocations = this.haulTruckLocations;
 
-      return [].concat(staticLocations).concat(haulLocations);
+      return staticLocations.concat(haulLocations);
     },
     tracks() {
       return this.$store.state.trackStore.tracks;

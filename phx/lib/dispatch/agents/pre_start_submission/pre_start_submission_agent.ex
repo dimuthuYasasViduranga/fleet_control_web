@@ -7,6 +7,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
   alias Dispatch.{Helper, AgentHelper}
   require Logger
 
+  alias __MODULE__.{Data, Reshape}
   alias HpsData.Schemas.Dispatch.PreStart
   alias HpsData.Repo
 
@@ -58,164 +59,13 @@ defmodule Dispatch.PreStartSubmissionAgent do
   defp init(), do: %{current: pull_latest_submissions()}
 
   defp pull_latest_submissions() do
-    {:ok, {submissions, forms, sections, controls}} =
-      Repo.transaction(fn ->
-        submissions =
-          from(s in PreStart.Submission,
-            distinct: s.asset_id,
-            order_by: [desc: s.timestamp]
-          )
-          |> Repo.all()
-
-        submission_ids = Enum.map(submissions, & &1.id)
-
-        responses =
-          from(r in PreStart.Response,
-            where: r.submission_id in ^submission_ids
-          )
-          |> Repo.all()
-
-        form_ids = Enum.map(submissions, & &1.form_id)
-
-        forms =
-          from(f in PreStart.Form,
-            where: f.id in ^form_ids
-          )
-          |> Repo.all()
-
-        sections =
-          from(s in PreStart.Section,
-            where: s.form_id in ^form_ids
-          )
-          |> Repo.all()
-
-        section_ids = Enum.map(sections, & &1.id)
-
-        controls =
-          from(c in PreStart.Control,
-            where: c.section_id in ^section_ids
-          )
-          |> Repo.all()
-          |> Enum.map(fn c ->
-            r = Enum.find(responses, %{}, &(&1.control_id == c.id))
-
-            %{
-              id: c.id,
-              order: c.order,
-              response_id: r.id,
-              section_id: c.section_id,
-              label: c.label,
-              answer: r.answer,
-              comment: r.comment
-            }
-          end)
-
-        {submissions, forms, sections, controls}
-      end)
-
-    Enum.map(submissions, &to_submission_tree(&1, forms, sections, controls))
+    {submissions, forms, sections, controls, responses} = Data.get_latest_submissions()
+    Enum.map(submissions, &Reshape.to_submission_tree(&1, forms, sections, controls, responses))
   end
 
   defp pull_submission(submission_id) do
-    {:ok, {submission, forms, sections, controls}} =
-      Repo.transaction(fn ->
-        submission = Repo.get_by!(PreStart.Submission, %{id: submission_id})
-
-        responses =
-          from(r in PreStart.Response,
-            where: r.submission_id == ^submission.id
-          )
-          |> Repo.all()
-
-        forms =
-          from(f in PreStart.Form,
-            where: f.id == ^submission.form_id
-          )
-          |> Repo.all()
-
-        sections =
-          from(s in PreStart.Section,
-            where: s.form_id == ^submission.form_id
-          )
-          |> Repo.all()
-
-        section_ids = Enum.map(sections, & &1.id)
-
-        controls =
-          from(c in PreStart.Control,
-            where: c.section_id in ^section_ids
-          )
-          |> Repo.all()
-          |> Enum.map(fn c ->
-            r = Enum.find(responses, %{}, &(&1.control_id == c.id))
-
-            %{
-              id: c.id,
-              order: c.order,
-              response_id: r.id,
-              section_id: c.section_id,
-              label: c.label,
-              answer: r.answer,
-              comment: r.comment
-            }
-          end)
-
-        {submission, forms, sections, controls}
-      end)
-
-    to_submission_tree(submission, forms, sections, controls)
-  end
-
-  defp to_submission_tree(submission, forms, sections, controls) do
-    form =
-      forms
-      |> Enum.find(&(&1.id == submission.form_id))
-      |> to_form(sections, controls)
-
-    %{
-      id: submission.id,
-      form_id: submission.form_id,
-      asset_id: submission.asset_id,
-      operator_id: submission.operator_id,
-      employee_id: submission.employee_id,
-      comment: submission.comment,
-      form: form,
-      timestamp: submission.timestamp,
-      server_timestamp: submission.server_timestamp
-    }
-  end
-
-  defp to_form(form, sections, controls) do
-    sections =
-      sections
-      |> Enum.filter(&(&1.form_id == form.id))
-      |> Enum.map(&to_section(&1, controls))
-      |> Enum.sort_by(& &1.order)
-
-    %{
-      id: form.id,
-      asset_type_id: form.asset_type_id,
-      dispatcher_id: form.dispatcher_id,
-      sections: sections,
-      timestamp: form.timestamp,
-      server_timestamp: form.server_timestamp
-    }
-  end
-
-  defp to_section(section, controls) do
-    controls =
-      controls
-      |> Enum.filter(&(&1.section_id == section.id))
-      |> Enum.sort_by(& &1.order)
-
-    %{
-      id: section.id,
-      form_id: section.form_id,
-      order: section.order,
-      title: section.title,
-      details: section.details,
-      controls: controls
-    }
+    {submission, forms, sections, controls, responses} = Data.get_submission(submission_id)
+    Reshape.to_submission_tree(submission, forms, sections, controls, responses)
   end
 
   @spec refresh!() :: :ok
@@ -224,7 +74,15 @@ defmodule Dispatch.PreStartSubmissionAgent do
   @spec all() :: list(submission)
   def all(), do: Agent.get(__MODULE__, & &1[:current])
 
-  @spec add(map) :: {:ok, map} | {:error, term}
+  @spec get_between(NaiveDateTime.t(), NaiveDateTime.t()) :: list(submission)
+  def get_between(start_time, end_time) do
+    {submissions, forms, sections, controls, responses} =
+      Data.get_submissions_between(start_time, end_time)
+
+    Enum.map(submissions, &Reshape.to_submission_tree(&1, forms, sections, controls, responses))
+  end
+
+  @spec add(map) :: {:ok, submission} | {:error, term}
   def add(%{"form_id" => _} = submission) do
     %{
       form_id: submission["form_id"],

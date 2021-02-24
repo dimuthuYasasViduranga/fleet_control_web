@@ -200,7 +200,7 @@ export default {
       return this.localHaulTrucks.filter(h => !h.dispatch.digUnitId && !h.dispatch.loadId);
     },
     unassignedAssets() {
-      return [].concat(this.unassignedDigUnits).concat(this.unassignedHaulTrucks);
+      return this.unassignedDigUnits.concat(this.unassignedHaulTrucks);
     },
     showAddNewDigUnit() {
       const draggedAsset = this.draggedAsset;

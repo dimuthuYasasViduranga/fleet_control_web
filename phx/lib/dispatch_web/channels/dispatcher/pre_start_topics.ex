@@ -3,7 +3,7 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
   Holds the pre start specific topics
   """
 
-  alias Dispatch.PreStartAgent
+  alias Dispatch.{Helper, PreStartAgent, PreStartSubmissionAgent}
   alias DispatchWeb.Broadcast
 
   defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
@@ -27,11 +27,27 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     {:reply, :ok, socket}
   end
 
-  def handle_in("pre-start:get forms", data, socket) do
-    # optional timestamp, if not given, default to now
-    IO.inspect("---- get form")
-    IO.inspect(data)
+  def handle_in(
+        "pre-start:get submissions",
+        data,
+        socket
+      ) do
+    start_time = Helper.to_naive(data["start_time"])
+    end_time = Helper.to_naive(data["end_time"])
 
-    {:reply, :ok, socket}
+    cond do
+      is_nil(start_time) || is_nil(end_time) ->
+        {:error, %{error: "Invalid time range"}, socket}
+
+      true ->
+        submissions = PreStartSubmissionAgent.get_between(start_time, end_time)
+
+        payload = %{
+          ref_id: data["ref_id"],
+          submissions: submissions
+        }
+
+        {:reply, {:ok, payload}, socket}
+    end
   end
 end

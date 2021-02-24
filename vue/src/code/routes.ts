@@ -22,7 +22,7 @@ import CycleTally from '../components/pages/cycle_tally/CycleTally.vue';
 import Debug from '../components/pages/debug/Debug.vue';
 import Agents from '../components/pages/agents/Agents.vue';
 import PreStartEditor from '../components/pages/pre_start_editor/PreStartEditor.vue';
-import PreStartSubmissions from '../components/pages/pre_start_submissions/PreStartSubmissions.vue';
+import PreStartSubmissionsPage from '../components/pages/pre_start_submissions/PreStartSubmissionsPage.vue';
 
 import HaulTruckIcon from '../components/icons/asset_icons/HaulTruck.vue';
 import TabletIcon from '../components/icons/Tablet.vue';
@@ -153,7 +153,7 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
     {
       name: 'Pre-Start Submissions',
       path: '/pre_start_submissions',
-      component: PreStartSubmissions,
+      component: PreStartSubmissionsPage,
       icon: ReportIcon,
     },
     {

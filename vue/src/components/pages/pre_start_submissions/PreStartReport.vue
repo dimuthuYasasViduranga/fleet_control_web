@@ -1,97 +1,125 @@
 <template>
-  <hxCard class="pre-start-report" :icon="submission.icon" :class="cardClass">
+  <hxCard class="pre-start-report" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="submission-time">
-        {{ submission.assetName }} - {{ formatTime(submission.timestamp) }} |
+      <div class="submission-time">{{ asset.name }} ({{ formatTime(submission.timestamp) }})</div>
+      <div class="status gap-left">
+        <div v-if="failCount > 0" class="red-text">Fail</div>
+        <div v-else class="green-text">Pass</div>
       </div>
-      <div class="value tick" :class="{ dim: tickCount === 0 }">
-        <span style="color: green">✔</span>: {{ tickCount }}
-      </div>
-      <div class="value cross" :class="{ dim: crossCount === 0 }">❌: {{ crossCount }}</div>
-      <div class="value na" :class="{ dim: naCount === 0 }">N/A: {{ naCount }}</div>
       <Icon
+        v-tooltip="'Open Pre-Start'"
+        class="info-icon gap-left"
+        :icon="infoIcon"
+        @click="onOpenViewer(submission)"
+      />
+      <Icon
+        v-if="allSubmissions.length > 1"
+        v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
         class="chevron-icon gap-left"
         :icon="chevronIcon"
-        :rotation="show ? 270 : 90"
-        @click="toggleShow"
+        :rotation="showSubmissions ? 270 : 90"
+        @click="toggleShowSubmissions"
       />
     </div>
-    <PreStartSubmissionViewer v-if="show" :submission="submission" />
+    <div v-if="showSubmissions" class="all-submissions">
+      <button
+        class="hx-btn"
+        v-for="(item, index) in allSubmissions"
+        :key="index"
+        :class="item.class"
+        @click="onOpenViewer(item.submission)"
+      >
+        {{ item.label }}
+      </button>
+    </div>
   </hxCard>
 </template>
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
-import PreStartSubmissionViewer from './PreStartSubmissionViewer.vue';
+import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
 
+import InfoIcon from '@/components/icons/Info.vue';
+import TickIcon from '@/components/icons/Tick.vue';
+import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
-import { todayRelativeFormat } from '@/code/time';
 
-const MAX_SUBMISSION_TIME = 12 * 3600 * 1000;
+import { formatDateIn } from '@/code/time';
+import { attributeFromList } from '@/code/helpers';
+
+function getFailCount(form) {
+  return form.sections
+    .map(s => s.controls)
+    .flat()
+    .filter(c => c.answer === false).length;
+}
 
 export default {
   name: 'PreStartReport',
   components: {
     hxCard,
     Icon,
-    PreStartSubmissionViewer,
   },
   props: {
     submission: { type: Object, required: true },
+    otherSubmissions: { type: Array, default: () => [] },
+    assets: { type: Array, default: () => [] },
+    icons: { type: Object, default: () => ({}) },
   },
   data: () => {
     return {
+      infoIcon: InfoIcon,
+      crossIcon: CrossIcon,
       chevronIcon: ChevronIcon,
-      show: false,
+      tickIcon: TickIcon,
+      showSubmissions: false,
     };
   },
   computed: {
-    controls() {
-      return this.submission.form.sections.map(s => s.controls).flat();
+    asset() {
+      return attributeFromList(this.assets, 'id', this.submission.assetId) || {};
     },
-    tickCount() {
-      return this.controls.filter(c => c.answer === true).length;
+    icon() {
+      return this.icons[this.asset.type];
     },
-    crossCount() {
-      return this.controls.filter(c => c.answer === false).length;
+    failCount() {
+      return getFailCount(this.submission.form);
     },
-    naCount() {
-      return this.controls.filter(c => c.answer === null).length;
-    },
-    isOldSubmission() {
-      return Date.now() - this.submission.timestamp.getTime() > MAX_SUBMISSION_TIME;
-    },
-    cardClass() {
-      const classes = [];
+    allSubmissions() {
+      const subs = [this.submission].concat(this.otherSubmissions);
 
-      if (this.show) {
-        classes.push('open');
-      }
+      subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
-      if (this.crossCount > 0) {
-        classes.push('errors');
-      }
+      return subs.map(s => {
+        const isFail = getFailCount(s.form);
+        return {
+          class: isFail ? 'fail' : '',
+          label: this.formatTime(s.timestamp),
+          submission: s,
+        };
+      });
 
-      if (this.isOldSubmission) {
-        classes.push('old');
-      }
-
-      return classes;
+      return [];
     },
   },
   methods: {
-    toggleShow() {
-      this.show = !this.show;
+    toggleShowSubmissions() {
+      this.showSubmissions = !this.showSubmissions;
+    },
+    onOpenViewer(submission) {
+      this.$modal.create(PreStartSubmissionModal, { submission });
     },
     formatTime(date) {
-      return todayRelativeFormat(date);
+      return formatDateIn(date, { format: 'HH:mm' });
     },
   },
 };
 </script>
 
 <style>
+@import '../../../assets/textColors.css';
+
 /* hxCard styling */
 .pre-start-report.hxCardIcon {
   height: 2.5rem;
@@ -101,25 +129,10 @@ export default {
   border-left: 2px solid transparent;
 }
 
-.pre-start-report.hxCard.open {
-  border: 2px solid #364c59;
-}
-
-/* icon coloring */
 .pre-start-report .hxCardIcon {
-  stroke: green;
   height: 2.5rem;
 }
 
-.pre-start-report.old .hxCardIcon {
-  stroke: orange;
-}
-
-.pre-start-report.errors .hxCardIcon {
-  stroke: red;
-}
-
-/* title text */
 .pre-start-report .hxCardHeaderWrapper {
   font-size: 1.5rem;
 }
@@ -129,6 +142,8 @@ export default {
   display: flex;
   flex-direction: row;
   margin-left: 1rem;
+  height: 2rem;
+  line-height: 2rem;
 }
 
 .pre-start-report .title-post .value {
@@ -136,31 +151,47 @@ export default {
   margin-left: 1rem;
 }
 
+/* status indicator */
+.pre-start-report .status {
+  width: 3rem;
+  text-align: center;
+}
+
 .pre-start-report .gap-left {
   margin-left: 1rem;
 }
 
-/* criteria effects */
-.pre-start-report .dim {
-  opacity: 0.5;
-}
-
-.pre-start-report.old .submission-time {
-  color: orange;
-}
-
-/* open/close chevron */
-.pre-start-report .chevron-icon,
-.pre-start-report .edit-icon {
+/* info icon */
+.pre-start-report .info-icon {
   margin-right: 0.25rem;
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
   cursor: pointer;
 }
 
-.pre-start-report .pre-start-viewer {
-  margin: auto;
-  max-width: 60rem;
-  margin-bottom: 2rem;
+.pre-start-report .chevron-icon {
+  margin-top: 0.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0.1rem;
+  cursor: pointer;
+}
+
+.pre-start-report .info-icon:hover {
+  opacity: 0.5;
+}
+
+/* other submissions */
+.pre-start-report .all-submissions {
+  margin-bottom: 1rem;
+}
+
+.pre-start-report .all-submissions .hx-btn {
+  width: 6rem;
+  margin: 0 0.1rem;
+}
+
+.pre-start-report .all-submissions .fail {
+  background-color: rgba(139, 0, 0, 0.644);
 }
 </style>

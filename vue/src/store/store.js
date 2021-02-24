@@ -187,13 +187,14 @@ const state = {
   },
 };
 
-function parsePreStartSubmission(submission) {
+export function parsePreStartSubmission(submission) {
   return {
     id: submission.id,
     formId: submission.form_id,
     assetId: submission.asset_id,
     operatorId: submission.operator_id,
     employeeId: submission.employee_id,
+    comment: submission.comment,
     form: parsePreStart(submission.form),
     timestamp: toUtcDate(submission.timestamp),
     serverTimestamp: toUtcDate(submission.server_timestamp),

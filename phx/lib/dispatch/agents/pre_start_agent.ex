@@ -77,6 +77,7 @@ defmodule Dispatch.PreStartAgent do
   defp to_form_tree(form, sections, controls) do
     sections =
       sections
+      |> Enum.filter(&(&1.form_id == form.id))
       |> Enum.map(&to_section(&1, controls))
       |> Enum.sort_by(& &1.order)
 
