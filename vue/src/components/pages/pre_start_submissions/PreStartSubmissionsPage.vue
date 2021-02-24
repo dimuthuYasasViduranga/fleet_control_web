@@ -1,5 +1,5 @@
 <template>
-  <div class="pre-start-submissions">
+  <div class="pre-start-submissions-page">
     <hxCard title="Submissions" :icon="reportIcon">
       <ShiftSelector
         :value="shift"
@@ -21,15 +21,23 @@
         </button>
       </div>
 
-      <div v-if="selectedModeId === 'submissions'" class="pre-start-reports">
+      <div v-if="selectedModeId === 'submissions'">
         <PreStartReport
-          v-for="submission in localSubmissions"
-          :key="submission.id"
-          :submission="submission"
+          v-for="(group, index) in groupedSubmissions"
+          :key="index"
+          :submission="group.first"
+          :otherSubmissions="group.others"
           :assets="assets"
           :icons="icons"
         />
       </div>
+      <PreStartFailures
+        v-else-if="selectedModeId === 'failures'"
+        :submissions="localSubmissions"
+        :assets="assets"
+        :operators="operators"
+        :icons="icons"
+      />
     </hxCard>
   </div>
 </template>
@@ -39,19 +47,21 @@ import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import ShiftSelector from '@/components/ShiftSelector.vue';
 import PreStartReport from './PreStartReport.vue';
+import PreStartFailures from './PreStartFailures.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
 
-import { attributeFromList } from '@/code/helpers';
+import { attributeFromList, groupBy } from '@/code/helpers';
 import { toUtcDate } from '@/code/time';
 import { parsePreStartSubmission } from '@/store/store';
 
 export default {
-  name: 'PreStartSubmissions',
+  name: 'PreStartSubmissionsPage',
   components: {
     hxCard,
-    PreStartReport,
     ShiftSelector,
+    PreStartReport,
+    PreStartFailures,
   },
   data: () => {
     const modes = [
@@ -61,7 +71,7 @@ export default {
     return {
       reportIcon: ReportIcon,
       modes,
-      selectedModeId: modes[0].id,
+      selectedModeId: modes[1].id,
       shift: null,
       fetchingData: false,
       localSubmissions: [],
@@ -75,6 +85,24 @@ export default {
       shiftTypes: state => state.shiftTypes,
       icons: state => state.icons,
     }),
+    groupedSubmissions() {
+      const groupMap = groupBy(this.localSubmissions, 'assetId');
+      const groups = Object.values(groupMap).map(subs => {
+        // descending
+        subs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        const first = subs[0];
+        const assetName = attributeFromList(this.assets, 'id', first.assetId, 'name');
+
+        return {
+          assetName,
+          first,
+          others: subs.slice(1),
+        };
+      });
+
+      groups.sort((a, b) => a.assetName.localeCompare(b.assetName));
+      return groups;
+    },
   },
   methods: {
     setMode(modeId) {

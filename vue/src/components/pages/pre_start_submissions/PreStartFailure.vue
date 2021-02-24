@@ -1,0 +1,163 @@
+<template>
+  <hxCard class="pre-start-failure" :icon="icon">
+    <div class="title-post" slot="title-post">
+      <div class="heading">{{ assetName }} ({{ total }} Issues)</div>
+      <Icon
+        v-tooltip="show ? 'Show Less' : 'Show More'"
+        class="chevron-icon gap-left"
+        :icon="chevronIcon"
+        :rotation="show ? 270 : 90"
+        @click="toggleShow"
+      />
+    </div>
+    <div v-if="show" class="submissions">
+      <div class="submission" v-for="(submission, index) in submissions" :key="index">
+        <div class="identifier">
+          <div class="timestamp">{{ formatTime(submission.timestamp) }}</div>
+          <div class="operator">{{ submission.operator.fullname }}</div>
+          <div v-if="!submission.operator.id" class="employee-id">
+            {{ submission.employeeId }}
+          </div>
+          <Icon
+            class="info-icon"
+            v-tooltip="'View Pre-Start'"
+            :icon="infoIcon"
+            @click="onOpenViewer(submission.submission)"
+          />
+        </div>
+
+        <div class="control" v-for="(control, cIndex) in submission.controls" :key="cIndex">
+          <div class="outline">
+            <div class="label">{{ control.label }}</div>
+            <div class="answer red-text">Fail</div>
+          </div>
+          <div v-if="control.comment" class="comment">• {{ control.comment }}</div>
+        </div>
+      </div>
+    </div>
+  </hxCard>
+</template>
+
+<script>
+import hxCard from 'hx-layout/Card.vue';
+import Icon from 'hx-layout/Icon.vue';
+
+import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
+
+import { formatDateIn } from '@/code/time';
+
+import ChevronIcon from '@/components/icons/ChevronRight.vue';
+import InfoIcon from '@/components/icons/Info.vue';
+
+export default {
+  name: 'PreStartFailure',
+  components: {
+    hxCard,
+    Icon,
+  },
+  props: {
+    assetName: { type: String, required: true },
+    icon: { type: Object, default: null },
+    submissions: { type: Array, default: () => [] },
+  },
+  data: () => {
+    return {
+      chevronIcon: ChevronIcon,
+      infoIcon: InfoIcon,
+      show: false,
+    };
+  },
+  computed: {
+    total() {
+      return this.submissions.reduce((acc, s) => acc + s.controls.length, 0);
+    },
+  },
+  methods: {
+    toggleShow() {
+      this.show = !this.show;
+    },
+    formatTime(date) {
+      return formatDateIn(date, { format: 'HH:mm:ss' });
+    },
+    onOpenViewer(submission) {
+      this.$modal.create(PreStartSubmissionModal, { submission });
+    },
+  },
+};
+</script>
+
+<style>
+/* hxCard styling */
+.pre-start-failure.hxCardIcon {
+  height: 2.5rem;
+}
+
+.pre-start-failure.hxCard {
+  border-left: 2px solid transparent;
+}
+
+.pre-start-failure .hxCardIcon {
+  height: 2.5rem;
+}
+
+.pre-start-failure .hxCardHeaderWrapper {
+  font-size: 1.5rem;
+}
+
+.pre-start-failure .title-post {
+  text-transform: capitalize;
+  display: flex;
+  margin-left: 1rem;
+  height: 2rem;
+  line-height: 2rem;
+}
+
+.pre-start-failure .title-post .chevron-icon {
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0.1rem;
+  cursor: pointer;
+}
+
+/* submissions */
+.pre-start-failure .submission {
+  margin-bottom: 0.75rem;
+}
+
+.pre-start-failure .submission .identifier {
+  display: flex;
+  justify-content: space-around;
+  padding: 0.25rem;
+  font-size: 1.25rem;
+  background-color: #425866;
+}
+
+.pre-start-failure .submission .identifier .info-icon {
+  height: 1.25rem;
+  cursor: pointer;
+}
+
+.pre-start-failure .submission .identifier .info-icon:hover {
+  opacity: 0.5;
+}
+
+/* controls */
+.pre-start-failure .submission .control {
+  padding-left: 0.5rem;
+  background-color: rgba(139, 0, 0, 0.281);
+  min-height: 2.5rem;
+  line-height: 2.5rem;
+  border-bottom: 1px solid #677e8c;
+}
+
+.pre-start-failure .submission .control .outline {
+  display: grid;
+  grid-template-columns: auto 3rem;
+}
+
+.pre-start-failure .submission .control .comment {
+  margin-left: 2rem;
+}
+</style>

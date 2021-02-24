@@ -154,6 +154,7 @@ export function dedupByMany(list, keys) {
  * @param {Array} list - array to group
  * @param {String} key - key to group on
  * @param {String} valKey - key to group. default null (all keys)
+ * @returns {Object}
  */
 export function groupBy(list, key, valKey = null) {
   return list.reduce((group, element) => {
