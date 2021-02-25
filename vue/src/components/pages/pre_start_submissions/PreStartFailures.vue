@@ -15,7 +15,6 @@
 </template>
 
 <script>
-import hxCard from 'hx-layout/Card.vue';
 import { attributeFromList, groupBy } from '@/code/helpers';
 import { formatDateIn } from '@/code/time';
 
@@ -40,7 +39,6 @@ function getOperator(operators, operatorId, employeeId) {
 export default {
   name: 'PreStartFailures',
   components: {
-    hxCard,
     PreStartFailure,
   },
   props: {

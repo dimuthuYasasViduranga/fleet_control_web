@@ -1,19 +1,22 @@
 <template>
   <hxCard class="pre-start-report" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="submission-time">{{ asset.name }} ({{ formatTime(submission.timestamp) }})</div>
+      <div class="submission-time">
+        {{ asset.name }} ({{ formatTime(latestSubmission.timestamp) }})
+      </div>
       <div class="status gap-left">
         <div v-if="failCount > 0" class="red-text">Fail</div>
         <div v-else class="green-text">Pass</div>
       </div>
       <Icon
+        v-if="latestSubmission"
         v-tooltip="'Open Pre-Start'"
         class="info-icon gap-left"
         :icon="infoIcon"
-        @click="onOpenViewer(submission)"
+        @click="onOpenViewer(latestSubmission)"
       />
       <Icon
-        v-if="allSubmissions.length > 1"
+        v-if="submissions.length > 1"
         v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
         class="chevron-icon gap-left"
         :icon="chevronIcon"
@@ -46,7 +49,6 @@ import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 
 import { formatDateIn } from '@/code/time';
-import { attributeFromList } from '@/code/helpers';
 
 function getFailCount(form) {
   return form.sections
@@ -62,9 +64,8 @@ export default {
     Icon,
   },
   props: {
-    submission: { type: Object, required: true },
-    otherSubmissions: { type: Array, default: () => [] },
-    assets: { type: Array, default: () => [] },
+    asset: { type: Object, required: true },
+    submissions: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
   },
   data: () => {
@@ -77,17 +78,14 @@ export default {
     };
   },
   computed: {
-    asset() {
-      return attributeFromList(this.assets, 'id', this.submission.assetId) || {};
-    },
     icon() {
       return this.icons[this.asset.type];
     },
     failCount() {
-      return getFailCount(this.submission.form);
+      return getFailCount(this.latestSubmission.form);
     },
     allSubmissions() {
-      const subs = [this.submission].concat(this.otherSubmissions);
+      const subs = this.submissions.slice();
 
       subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
@@ -99,8 +97,9 @@ export default {
           submission: s,
         };
       });
-
-      return [];
+    },
+    latestSubmission() {
+      return this.allSubmissions[this.allSubmissions.length - 1].submission;
     },
   },
   methods: {

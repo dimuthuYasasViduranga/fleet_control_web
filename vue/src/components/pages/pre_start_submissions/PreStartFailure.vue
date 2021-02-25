@@ -1,7 +1,9 @@
 <template>
   <hxCard class="pre-start-failure" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="heading">{{ assetName }} ({{ total }} Issues)</div>
+      <div class="heading">
+        {{ assetName }} ({{ total === 1 ? '1 Failure' : `${total} Failures` }})
+      </div>
       <Icon
         v-tooltip="show ? 'Show Less' : 'Show More'"
         class="chevron-icon gap-left"

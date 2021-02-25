@@ -21,16 +21,12 @@
         </button>
       </div>
 
-      <div v-if="selectedModeId === 'submissions'">
-        <PreStartReport
-          v-for="(group, index) in groupedSubmissions"
-          :key="index"
-          :submission="group.first"
-          :otherSubmissions="group.others"
-          :assets="assets"
-          :icons="icons"
-        />
-      </div>
+      <PreStartReports
+        v-if="selectedModeId === 'submissions'"
+        :submissions="localSubmissions"
+        :assets="assets"
+        :icons="icons"
+      />
       <PreStartFailures
         v-else-if="selectedModeId === 'failures'"
         :submissions="localSubmissions"
@@ -46,13 +42,11 @@
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import ShiftSelector from '@/components/ShiftSelector.vue';
-import PreStartReport from './PreStartReport.vue';
+import PreStartReports from './PreStartReports.vue';
 import PreStartFailures from './PreStartFailures.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
 
-import { attributeFromList, groupBy } from '@/code/helpers';
-import { toUtcDate } from '@/code/time';
 import { parsePreStartSubmission } from '@/store/store';
 
 export default {
@@ -60,7 +54,7 @@ export default {
   components: {
     hxCard,
     ShiftSelector,
-    PreStartReport,
+    PreStartReports,
     PreStartFailures,
   },
   data: () => {
@@ -71,7 +65,7 @@ export default {
     return {
       reportIcon: ReportIcon,
       modes,
-      selectedModeId: modes[1].id,
+      selectedModeId: modes[0].id,
       shift: null,
       fetchingData: false,
       localSubmissions: [],
@@ -85,24 +79,6 @@ export default {
       shiftTypes: state => state.shiftTypes,
       icons: state => state.icons,
     }),
-    groupedSubmissions() {
-      const groupMap = groupBy(this.localSubmissions, 'assetId');
-      const groups = Object.values(groupMap).map(subs => {
-        // descending
-        subs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-        const first = subs[0];
-        const assetName = attributeFromList(this.assets, 'id', first.assetId, 'name');
-
-        return {
-          assetName,
-          first,
-          others: subs.slice(1),
-        };
-      });
-
-      groups.sort((a, b) => a.assetName.localeCompare(b.assetName));
-      return groups;
-    },
   },
   methods: {
     setMode(modeId) {
