@@ -15,14 +15,16 @@
         :icon="infoIcon"
         @click="onOpenViewer(latestSubmission)"
       />
-      <Icon
-        v-if="submissions.length > 1"
-        v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
-        class="chevron-icon gap-left"
-        :icon="chevronIcon"
-        :rotation="showSubmissions ? 270 : 90"
-        @click="toggleShowSubmissions"
-      />
+      <template v-if="submissions.length > 1">
+        <Icon
+          v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
+          class="chevron-icon gap-left"
+          :icon="chevronIcon"
+          :rotation="showSubmissions ? 270 : 90"
+          @click="toggleShowSubmissions"
+        />
+        <span class="count">({{ submissions.length }})</span>
+      </template>
     </div>
     <div v-if="showSubmissions" class="all-submissions">
       <button
@@ -174,6 +176,11 @@ export default {
   width: 1.5rem;
   padding: 0.1rem;
   cursor: pointer;
+}
+
+.pre-start-report .count {
+  font-size: 1rem;
+  padding-left: 0.2rem;
 }
 
 .pre-start-report .info-icon:hover {

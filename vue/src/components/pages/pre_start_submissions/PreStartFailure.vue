@@ -66,7 +66,7 @@ export default {
     return {
       chevronIcon: ChevronIcon,
       infoIcon: InfoIcon,
-      show: false,
+      show: true,
     };
   },
   computed: {
@@ -134,6 +134,7 @@ export default {
   padding: 0.25rem;
   font-size: 1.25rem;
   background-color: #425866;
+  color: #c4d1da;
 }
 
 .pre-start-failure .submission .identifier .info-icon {
