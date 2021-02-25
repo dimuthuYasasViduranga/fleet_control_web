@@ -3,7 +3,6 @@ defmodule Dispatch.AssetAgent do
   Stores all assets and asset types. Does not update once loaded
   """
   use Agent
-  require Logger
   import Ecto.Query, only: [from: 2]
 
   alias Dispatch.AgentHelper

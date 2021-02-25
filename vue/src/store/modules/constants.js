@@ -173,12 +173,20 @@ function parseAssetType(assetType) {
   };
 }
 
+function parseTimeCategory(category) {
+  return {
+    id: category.id,
+    name: category.name,
+  };
+}
+
 function parseTimeCode(timeCode) {
   return {
     id: timeCode.id,
     code: timeCode.code,
     name: timeCode.name,
     groupId: timeCode.group_id,
+    categoryId: timeCode.category_id,
   };
 }
 
@@ -293,6 +301,7 @@ function setStaticData(dispatch, data) {
     ['setShiftTypes', data.shift_types],
     ['setTimeCodes', data.time_codes],
     ['setTimeCodeGroups', data.time_code_groups],
+    ['setTimeCodeCategories', data.time_code_categories],
     ['setOperatorMessageTypes', data.operator_message_types],
     ['setLoadStyles', data.load_styles],
     ['setMaterialTypes', data.material_types],
@@ -339,6 +348,7 @@ const state = {
   timeCodes: Array(),
   timeCodeGroups: Array(),
   timeCodeTreeElements: Array(),
+  timeCodeCategories: Array(),
   operatorMessageTypeTree: Array(),
   operatorMessageTypes: Array(),
   radioNumbers: Array(),
@@ -484,6 +494,10 @@ const actions = {
     const formattedPreStarts = preStarts.map(parsePreStart);
     commit('setPreStarts', formattedPreStarts);
   },
+  setTimeCodeCategories({ commit }, categories = []) {
+    const formattedCategories = categories.map(parseTimeCategory);
+    commit('setTimeCodeCategories', formattedCategories);
+  },
 };
 
 const mutations = {
@@ -560,6 +574,9 @@ const mutations = {
   },
   setPreStarts(state, preStarts = []) {
     state.preStarts = preStarts;
+  },
+  setTimeCodeCategories(state, categories = []) {
+    state.timeCodeCategories = categories;
   },
 };
 
