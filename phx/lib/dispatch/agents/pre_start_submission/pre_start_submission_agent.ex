@@ -11,7 +11,6 @@ defmodule Dispatch.PreStartSubmissionAgent do
   alias HpsData.Schemas.Dispatch.PreStart
   alias HpsData.Repo
 
-  import Ecto.Query, only: [from: 2]
   alias Ecto.Multi
 
   @type control :: %{

@@ -129,8 +129,10 @@ defmodule Dispatch.PreStartAgent do
   end
 
   @spec add(integer, integer, list(map), NaiveDateTime.t()) ::
-          {:ok, form} | {:error, :invalid_asset_type | :old}
-  def add(nil, _, _, _), do: {:error, :invalid_asset_type}
+          {:ok, form} | {:error, :invalid_asset_type | :missing_sections | term}
+  def add(nil, _dispatcher_id, _secionts, _timestamp), do: {:error, :invalid_asset_type}
+
+  def add(_asset_type_id, _dispatcher_id, [], _timestamp), do: {:error, :missing_sections}
 
   def add(asset_type_id, dispatcher_id, sections, timestamp) do
     case validate_sections(sections) do
@@ -175,7 +177,7 @@ defmodule Dispatch.PreStartAgent do
     |> Enum.reduce(%{sections: [], controls: [], errors: []}, &split_sections/2)
     |> case do
       %{errors: []} = groups -> {:ok, {groups.sections, groups.controls}}
-      %{errors: errors} -> {:error, errors}
+      %{errors: errors} -> {:error, List.first(errors)}
     end
   end
 
@@ -191,9 +193,7 @@ defmodule Dispatch.PreStartAgent do
     end)
   end
 
-  defp split_sections({:error, reason}, acc) do
-    Map.update!(acc, :errors, &[&1 | reason])
-  end
+  defp split_sections({:error, reason}, acc), do: Map.update!(acc, :errors, &[reason | &1])
 
   defp validate_section({section, index}) do
     section_ref = "#{index}"
