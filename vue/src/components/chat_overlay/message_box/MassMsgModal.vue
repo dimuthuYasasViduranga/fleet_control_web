@@ -65,6 +65,13 @@
         @keydown="sendOnEnter"
       />
       <div class="button-wrapper">
+        <Icon
+          v-if="filteredQuickMessages.length"
+          v-tooltip="'Quick Message'"
+          class="quick-message"
+          :icon="tagIcon"
+          @click="onOpenQuickMessages()"
+        />
         <button class="hx-btn button-send" @click="onSendMsg" :disabled="!canSend">Send</button>
         <button class="hx-btn button-clear" @click="onClearMsg">Clear</button>
       </div>
@@ -75,8 +82,10 @@
 <script>
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
+import TagIcon from '@/components/icons/Tag.vue';
 import { attributeFromList, uniq } from '@/code/helpers';
 import { firstBy } from 'thenby';
+import QuickSelectModal from '@/components/modals/QuickSelectModal.vue';
 
 const ENTER = 13;
 
@@ -173,9 +182,11 @@ export default {
     assets: { type: Array, default: () => [] },
     maxLength: { type: Number, default: 40 },
     maxAnswerLength: { type: Number, default: 15 },
+    quickMessages: { type: Array, default: () => [] },
   },
   data: () => {
     return {
+      tagIcon: TagIcon,
       selectedAssetIds: [],
       text: '',
       answers: {
@@ -223,6 +234,12 @@ export default {
           default:
             return { type, groups: [{ assets }] };
         }
+      });
+    },
+    filteredQuickMessages() {
+      return this.quickMessages.filter(m => {
+        const validAnswers = (m.answers || []).filter(a => a.length < this.maxAnswerLength);
+        return m.message.length < this.maxLength && (validAnswers.length === 2 || !m.answers);
       });
     },
   },
@@ -280,6 +297,31 @@ export default {
     },
     onClearMsg() {
       this.text = '';
+    },
+    onOpenQuickMessages() {
+      const items = this.filteredQuickMessages.map(m => {
+        const label =
+          (m.answers || []).length === 2 ? `${m.message} [${m.answers.join('|')}]` : m.message;
+        return {
+          label,
+          message: m.message,
+          answers: m.answers,
+        };
+      });
+
+      const opts = { title: 'Quick Message', items, label: 'label' };
+      this.$modal.create(QuickSelectModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
+        }
+
+        this.text = resp.message;
+
+        if ((resp.answers || []).length == 2) {
+          this.answers.a = resp.answers[0];
+          this.answers.b = resp.answers[1];
+        }
+      });
     },
     onSendMsg() {
       const message = this.text;
@@ -473,6 +515,15 @@ export default {
   background-color: #333b41;
   color: #757575;
   cursor: default;
+}
+
+.text-box-wrapper .button-wrapper {
+  display: flex;
+}
+
+.text-box-wrapper .button-wrapper .quick-message {
+  padding-top: 0.5rem;
+  cursor: pointer;
 }
 
 .text-box-wrapper .button-wrapper .button-send {

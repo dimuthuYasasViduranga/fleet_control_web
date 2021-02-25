@@ -41,7 +41,14 @@ export default {
   },
   methods: {
     onOpenMassMsg() {
-      this.$modal.create(MassMsgModal, { assets: this.assets });
+      const opts = {
+        assets: this.assets,
+        maxLength: this.maxMsgLen,
+        maxAnswerLength: this.maxAnsLen,
+        quickMessages: this.quickMessages,
+      };
+
+      this.$modal.create(MassMsgModal, opts);
     },
   },
 };
