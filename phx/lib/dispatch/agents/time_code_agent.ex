@@ -9,6 +9,7 @@ defmodule Dispatch.TimeCodeAgent do
   require Logger
 
   alias HpsData.Schemas.Dispatch.{TimeCode, TimeCodeGroup, TimeCodeTree}
+  alias HpsData.Dim.TimeUsageCategory
   alias HpsData.Repo
   alias Dispatch.AssetAgent
 
@@ -26,6 +27,7 @@ defmodule Dispatch.TimeCodeAgent do
   @type time_code :: map
   @type time_code_group :: map
   @type time_code_tree_element :: map
+  @type time_code_category :: map
 
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
@@ -37,6 +39,7 @@ defmodule Dispatch.TimeCodeAgent do
       time_codes: time_codes,
       time_code_groups: pull_time_code_groups(),
       time_code_tree_elements: pull_time_code_tree_elements(),
+      time_code_categories: pull_time_code_categories(),
       no_task_id: no_task_id
     }
   end
@@ -81,6 +84,16 @@ defmodule Dispatch.TimeCodeAgent do
     |> Repo.all()
   end
 
+  defp pull_time_code_categories() do
+    from(tc in TimeUsageCategory,
+      select: %{
+        id: tc.id,
+        name: tc.name
+      }
+    )
+    |> Repo.all()
+  end
+
   @spec refresh!() :: :ok
   def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
 
@@ -103,6 +116,9 @@ defmodule Dispatch.TimeCodeAgent do
 
   @spec get_time_code_groups() :: list(time_code_group)
   def get_time_code_groups(), do: get(:time_code_groups)
+
+  @spec get_time_code_categories() :: list(time_code_category)
+  def get_time_code_categories(), do: get(:time_code_categories)
 
   @spec add_or_update_time_code(map) ::
           {:ok, time_code} | {:error, :reserved_name | :invalid_id | :cannot_edit | term}

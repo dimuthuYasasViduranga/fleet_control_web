@@ -45,6 +45,18 @@
           />
         </td>
       </tr>
+      <tr class="row">
+        <td class="key">Category</td>
+        <td class="value">
+          <DropDown
+            v-model="localTimeCode.categoryId"
+            :searchable="false"
+            :items="timeCodeCategories"
+            label="name"
+            :useScrollLock="false"
+          />
+        </td>
+      </tr>
     </table>
 
     <div class="actions">
@@ -70,6 +82,7 @@ function defaultObj() {
     code: '',
     name: '',
     groupId: null,
+    categoryId: null,
   };
 }
 
@@ -84,6 +97,7 @@ export default {
     show: { type: Boolean, default: false },
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
+    timeCodeCategories: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -142,6 +156,7 @@ export default {
         code: timeCode.code,
         name: timeCode.name,
         group_id: timeCode.groupId,
+        category_id: timeCode.categoryId,
       };
 
       const loading = this.$modal.create(
@@ -154,6 +169,7 @@ export default {
         .push('update time code', payload)
         .receive('ok', () => {
           loading.close();
+          this.$toasted.global.info(`Time Code ${timeCode.id ? 'Updated' : 'Created'}`);
           this.close();
         })
         .receive('error', resp => {

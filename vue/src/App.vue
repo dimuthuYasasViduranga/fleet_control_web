@@ -156,7 +156,6 @@ export default {
         ['set asset radios', data => dispatch('constants/setRadioNumbers', data.asset_radios)],
         ['set operators', data => dispatch('constants/setOperators', data.operators)],
         ['set dispatchers', data => dispatch('constants/setDispatchers', data.dispatchers)],
-
         [
           'set time code tree elements',
           data => dispatch('constants/setTimeCodeTreeElements', data.time_code_tree_elements),
@@ -167,6 +166,7 @@ export default {
             dispatch('constants/setTimeCodeTreeElements', data.time_code_tree_elements);
             dispatch('constants/setTimeCodes', data.time_codes);
             dispatch('constants/setTimeCodeGroups', data.time_code_groups);
+            dispatch('constants/setTimeCodeCategories', data.time_code_categories);
           },
         ],
         ['set pre-starts', data => dispatch('constants/setPreStarts', data.pre_starts)],

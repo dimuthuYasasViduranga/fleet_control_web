@@ -21,6 +21,7 @@
         v-if="selectedMode === 'time codes'"
         :timeCodes="timeCodes"
         :timeCodeGroups="timeCodeGroups"
+        :timeCodeCategories="timeCodeCategories"
       />
       <TimeCodeGroupEditor
         v-else-if="selectedMode === 'time code groups'"
@@ -71,6 +72,7 @@ export default {
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
       timeCodeTreeElements: state => state.timeCodeTreeElements,
+      timeCodeCategories: state => state.timeCodeCategories,
       assetTypes: state => state.assetTypes,
     }),
   },

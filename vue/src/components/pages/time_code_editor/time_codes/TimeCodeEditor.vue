@@ -5,6 +5,7 @@
       :timeCode="pendingTimeCode"
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
+      :timeCodeCategories="timeCodeCategories"
       @close="onEditorClose"
     />
     <button class="hx-btn" @click="onSetEdit()">Create New</button>
@@ -22,6 +23,7 @@
       <table-column cell-class="table-cel" label="Code" show="code" />
       <table-column cell-class="table-cel" label="Name" show="name" />
       <table-column cell-class="table-cel" label="Group" show="groupName" />
+      <table-column cell-class="table-cel" label="Category" show="categoryName" />
       <table-column cell-class="table-cel icon-cel">
         <template slot-scope="row">
           <div class="edit-wrapper">
@@ -58,6 +60,7 @@ export default {
   props: {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
+    timeCodeCategories: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -72,14 +75,18 @@ export default {
     },
     formattedTimeCodes() {
       const groups = this.timeCodeGroups;
+      const categories = this.timeCodeCategories;
       return this.timeCodes.map(tc => {
         const groupName = attributeFromList(groups, 'id', tc.groupId, 'name');
+        const categoryName = attributeFromList(categories, 'id', tc.categoryId, 'name');
         return {
           id: tc.id,
           code: tc.code,
           name: tc.name,
           groupId: tc.groupId,
           groupName,
+          categoryId: tc.categoryId,
+          categoryName,
         };
       });
     },
