@@ -8,7 +8,7 @@
         v-tooltip="'No operator found for the given employee ID'"
         class="employee-id-only"
       >
-        {{ submission.employeeId }}
+        Employee ID: {{ submission.employeeId }}
       </div>
       <div class="timestamp">{{ formatTime(submission.timestamp) }}</div>
     </div>
@@ -97,6 +97,11 @@ export default {
   justify-content: space-around;
   background-color: #314452;
   padding: 0.5rem;
+}
+
+.identity .employee-id-only {
+  background-color: darkred;
+  padding: 0 2rem;
 }
 
 /* section */
