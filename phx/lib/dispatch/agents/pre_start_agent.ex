@@ -134,7 +134,7 @@ defmodule Dispatch.PreStartAgent do
 
   def add(_asset_type_id, _dispatcher_id, [], _timestamp), do: {:error, :missing_sections}
 
-  def add(asset_type_id, dispatcher_id, sections, timestamp) do
+  def add(asset_type_id, dispatcher_id, sections, timestamp) when is_list(sections) do
     case validate_sections(sections) do
       {:ok, {sections, controls}} ->
         Agent.get_and_update(__MODULE__, fn state ->

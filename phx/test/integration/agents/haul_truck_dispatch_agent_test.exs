@@ -27,7 +27,7 @@ defmodule Dispatch.HaulTruckDispatchAgentTest do
   end
 
   defp to_dispatch(asset_id, dig_unit, dump, timestamp \\ NaiveDateTime.utc_now()) do
-    # added so that multiple calls dont result in the same timestamp (makes ordering random)
+    # added so that multiple calls dont result in the same timestamp (would make ordering random)
     :timer.sleep(2)
 
     %{

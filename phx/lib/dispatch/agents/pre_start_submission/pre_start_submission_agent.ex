@@ -81,7 +81,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
     Enum.map(submissions, &Reshape.to_submission_tree(&1, forms, sections, controls, responses))
   end
 
-  @spec add(map) :: {:ok, submission} | {:error, term}
+  @spec add(map) :: {:ok, submission} | {:error, :missing_responess | term}
   def add(%{"form_id" => _} = submission) do
     %{
       form_id: submission["form_id"],
@@ -101,6 +101,8 @@ defmodule Dispatch.PreStartSubmissionAgent do
     }
     |> add()
   end
+
+  def add(%{responses: []}), do: {:error, :missing_responses}
 
   def add(raw_submission) do
     Agent.get_and_update(__MODULE__, fn state ->
