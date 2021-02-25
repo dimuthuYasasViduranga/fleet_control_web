@@ -293,6 +293,7 @@ function setStaticData(dispatch, data) {
   [
     ['setLocationData', data.locations],
     ['setClusters', data.clusters],
+    ['setQuickMessages', data.quick_messages],
     ['setMapConfig', data.map_config],
     ['setAssets', data.assets],
     ['setAssetTypes', data.asset_types],
@@ -329,6 +330,20 @@ function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
   };
 }
 
+function parseQuickMessage(message) {
+  if (message.answers) {
+    return {
+      message: message.message,
+      answers: message.answers.slice(0, 2),
+    };
+  }
+
+  return {
+    message: message.message,
+    answers: null,
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
@@ -358,6 +373,7 @@ const state = {
   mapCenter: Object(),
   mapZoom: null,
   mapManifest: Object(),
+  quickMessages: Array(),
   preStarts: Array(),
 };
 
@@ -498,6 +514,10 @@ const actions = {
     const formattedCategories = categories.map(parseTimeCategory);
     commit('setTimeCodeCategories', formattedCategories);
   },
+  setQuickMessages({ commit }, messages = []) {
+    const formattedMessage = messages.map(parseQuickMessage);
+    commit('setQuickMessages', formattedMessage);
+  },
 };
 
 const mutations = {
@@ -577,6 +597,9 @@ const mutations = {
   },
   setTimeCodeCategories(state, categories = []) {
     state.timeCodeCategories = categories;
+  },
+  setQuickMessages(state, messages = []) {
+    state.quickMessages = messages;
   },
 };
 

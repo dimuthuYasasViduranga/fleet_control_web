@@ -1,0 +1,16 @@
+<template>
+  <g id="tag_icon">
+    <path
+      d="M12.78 27.69L.5 15.41 15.38.5h12.31v12.31zM21.99 4a2.19 2.19 0 0 0-2.19 2.19 2.19 2.19 0 0 0 2.19 2.19 2.19 2.19 0 0 0 2.19-2.19A2.19 2.19 0 0 0 21.99 4z"
+      stroke-linejoin="round"
+    />
+  </g>
+</template>
+
+<script>
+export default {
+  name: 'TimeIcTagIconon',
+  size: 32,
+  pxIconSet: 'px-fea:tag',
+};
+</script>

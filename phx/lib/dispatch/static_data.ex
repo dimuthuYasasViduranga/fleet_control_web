@@ -23,6 +23,7 @@ defmodule Dispatch.StaticData do
 
     %{
       timezone: CalendarAgent.timezone(),
+      quick_messages: get_quick_messages(),
       map_config: %{
         key: Application.get_env(:dispatch_web, :g_map_key),
         center: Application.get_env(:dispatch_web, :map_center),
@@ -43,4 +44,31 @@ defmodule Dispatch.StaticData do
       material_types: MaterialTypeAgent.get()
     }
   end
+
+  defp get_quick_messages() do
+    Application.get_env(:dispatch_web, :quick_messages, [])
+    |> Enum.map(&parse_quick_message/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp parse_quick_message(message) when is_list(message) do
+    case message do
+      [message, a, b] ->
+        message =
+          case String.contains?(message, "?") do
+            true -> message
+            _ -> "#{message}?"
+          end
+
+        %{message: message, answers: [a, b]}
+
+      [message] ->
+        %{message: message}
+
+      _ ->
+        nil
+    end
+  end
+
+  defp parse_quick_message(message) when is_binary(message), do: %{message: message}
 end
