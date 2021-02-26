@@ -182,7 +182,7 @@ export default {
 
         this.text = resp.message;
 
-        if ((resp.answers || []).length == 2) {
+        if ((resp.answers || []).length === 2) {
           this.answers.a = resp.answers[0];
           this.answers.b = resp.answers[1];
         }
