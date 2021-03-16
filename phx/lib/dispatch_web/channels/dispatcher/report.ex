@@ -335,7 +335,13 @@ defmodule DispatchWeb.DispatcherChannel.Report do
   defp linear_equation(engine_hour) do
     rise = engine_hour.end_hours - engine_hour.start_hours
     run = NaiveDateTime.diff(engine_hour.end_time, engine_hour.start_time)
-    gradient = rise / run
+
+    gradient =
+      case run == 0 do
+        true -> 0
+        false -> rise / run
+      end
+
     c = engine_hour.start_hours - gradient * Helper.to_unix(engine_hour.start_time, :second)
     fn timestamp -> gradient * Helper.to_unix(timestamp, :second) + c end
   end

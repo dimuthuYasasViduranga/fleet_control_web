@@ -110,6 +110,7 @@ export default {
   flex-direction: row;
   width: 100%;
   min-height: 7rem;
+  /* overflow: hidden canot be used here as it will break the tooltip container */
 }
 
 .smooth-dnd-draggable-wrapper {
