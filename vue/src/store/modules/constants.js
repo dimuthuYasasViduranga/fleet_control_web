@@ -227,17 +227,6 @@ function parseOperatorMessageType(messageType) {
   };
 }
 
-function parseCluster(cluster) {
-  return {
-    id: cluster.id,
-    lat: cluster.lat,
-    lon: cluster.lon,
-    north: cluster.north,
-    east: cluster.east,
-    locationId: cluster.location_id,
-  };
-}
-
 function parseLoadStyle(style) {
   return {
     id: style.id,
@@ -292,7 +281,6 @@ function setStaticData(dispatch, data) {
   // all in constants
   [
     ['setLocationData', data.locations],
-    ['setClusters', data.clusters],
     ['setQuickMessages', data.quick_messages],
     ['setMapConfig', data.map_config],
     ['setAssets', data.assets],
@@ -355,7 +343,6 @@ const state = {
   timezone: 'local',
   shifts: Array(),
   shiftTypes: Array(),
-  clusters: Array(),
   locations: Array(),
   loadLocations: Array(),
   dumpLocations: Array(),
@@ -440,10 +427,6 @@ const actions = {
   setShiftTypes({ commit }, shiftTypes = []) {
     const formattedShiftTypes = shiftTypes.map(parseShiftType);
     commit('setShiftTypes', formattedShiftTypes);
-  },
-  setClusters({ commit }, clusters = []) {
-    const formattedClusters = clusters.map(parseCluster);
-    commit('setClusters', formattedClusters);
   },
   setLocationData({ commit }, locs = []) {
     const locations = locs.map(parseLocation);
@@ -530,9 +513,6 @@ const mutations = {
   },
   setShiftTypes(state, shiftTypes = []) {
     state.shiftTypes = shiftTypes;
-  },
-  setClusters(state, clusters = []) {
-    state.clusters = clusters;
   },
   setLocationData(state, locations = []) {
     const sortedLocations = locations.slice();

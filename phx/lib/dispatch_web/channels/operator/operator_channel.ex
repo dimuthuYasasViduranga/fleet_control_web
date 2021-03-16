@@ -318,29 +318,6 @@ defmodule DispatchWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("cluster:distance to", %{"position" => coord, "location_id" => target_id}, socket) do
-    details =
-      %{lat: coord["lat"], lon: coord["lng"]}
-      |> ClusterGraph.distance_to(target_id)
-      |> case do
-        {distance, path} ->
-          %{
-            distance: distance,
-            cluster_ids: path,
-            location_id: target_id
-          }
-
-        _ ->
-          %{
-            distance: nil,
-            cluster_ids: [],
-            location_id: target_id
-          }
-      end
-
-    {:reply, {:ok, details}, socket}
-  end
-
   def handle_in("haul:" <> _ = topic, payload, socket) do
     HaulTruckTopics.handle_in(topic, payload, socket)
   end
@@ -369,11 +346,6 @@ defmodule DispatchWeb.OperatorChannel do
 
   defp get_device_state(asset_id, operator_id) do
     assignment = DeviceAssignmentAgent.get(%{asset_id: asset_id}) || %{}
-
-    clusters =
-      ClusterGraph.Agent.get()
-      |> elem(0)
-      |> Enum.map(&Map.drop(&1, [:north, :east]))
 
     asset = AssetAgent.get_asset(%{id: asset_id})
     asset_type_id = asset[:type_id]
@@ -418,7 +390,6 @@ defmodule DispatchWeb.OperatorChannel do
       allocation: active_allocation,
       track: latest_track,
       other_tracks: other_tracks,
-      clusters: clusters,
       pre_starts: PreStartAgent.all()
     }
 

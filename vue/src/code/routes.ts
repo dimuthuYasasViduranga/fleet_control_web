@@ -11,7 +11,6 @@ import TimeAllocationReport from '../components/pages/time_allocation_report/Tim
 import TimeCodeEditorPage from '../components/pages/time_code_editor/TimeCodeEditorPage.vue';
 import MessageEditorPage from '../components/pages/message_editor/MessageEditorPage.vue';
 import MineMap from '../components/pages/mine_map/MineMap.vue';
-import AssetProgressLine from '../components/pages/asset_progress_line/AssetProgressLine.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
 import OperatorMessages from '../components/pages/operator_messages/OperatorMessages.vue';
 import DispatcherMessages from '../components/pages/dispatcher_messages/DispatcherMessages.vue';
@@ -96,12 +95,6 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       path: '/mine_map',
       component: MineMap,
       icon: MapIcon,
-    },
-    {
-      name: 'Asset Progress',
-      path: '/asset_progress_line',
-      component: AssetProgressLine,
-      icon: LineIcon,
     },
     {
       name: 'Route Map',

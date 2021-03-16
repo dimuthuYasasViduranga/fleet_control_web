@@ -15,8 +15,6 @@ defmodule Dispatch.StaticData do
 
   @spec fetch() :: map
   def fetch() do
-    clusters = ClusterGraph.Agent.get() |> elem(0)
-
     locations =
       LocationAgent.active_locations()
       |> Enum.map(&Map.drop(&1, [:polygon]))
@@ -33,7 +31,6 @@ defmodule Dispatch.StaticData do
       asset_types: AssetAgent.get_types(),
       operators: OperatorAgent.all(),
       locations: locations,
-      clusters: clusters,
       shifts: CalendarAgent.shifts(),
       shift_types: CalendarAgent.shift_types(),
       time_codes: TimeCodeAgent.get_time_codes(),

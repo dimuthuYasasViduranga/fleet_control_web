@@ -6,8 +6,6 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
   use DispatchWeb.Authorization.Decorator
 
   alias DispatchWeb.Broadcast
-  alias ClusterGraph.{Graph, Locations}
-  alias HpsData.Repo
 
   @decorate authorized(:can_refresh_agents)
   def handle_in("refresh:" <> subtopic, _, socket) do
@@ -72,27 +70,5 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
     :ok
   end
 
-  def refresh("cluster agent") do
-    clusters = get_clusters(Repo)
-    neighbours = Graph.neighbours(Repo)
-    locations = Locations.query(Repo)
-
-    clusters = Locations.clusters_locations(clusters, locations)
-
-    Agent.update(ClusterGraph.Agent, fn _ -> {clusters, neighbours, locations} end)
-    :ok
-  end
-
   def refresh(_), do: {:error, :invalid_refresh}
-
-  defp get_clusters(repo) do
-    query = "select id, lat, lon, north, east from cte_cluster"
-
-    repo
-    |> Ecto.Adapters.SQL.query!(query)
-    |> Map.get(:rows, [])
-    |> Enum.map(fn [id, lat, lon, north, east] ->
-      %{id: id, lat: lat, lon: lon, north: north, east: east}
-    end)
-  end
 end

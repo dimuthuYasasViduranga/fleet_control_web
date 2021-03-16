@@ -60,7 +60,6 @@ defmodule DispatchWeb.MixProject do
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.2"},
       {:poison, "~> 3.0"},
-      {:cluster_graph_ex, git: "https://github.com/Haultrax/cluster_graph_ex.git"},
 
       # this overrides a dependency in cluster graph
       {:hps_data,

@@ -166,23 +166,6 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("set location data", payload)
   end
 
-  def send_clusters_to_all() do
-    clusters =
-      ClusterGraph.Agent.get()
-      |> elem(0)
-
-    payload = %{
-      clusters: clusters
-    }
-
-    operator_payload = %{
-      clusters: Enum.map(clusters, &Map.drop(&1, [:north, :east]))
-    }
-
-    Endpoint.broadcast(@dispatch, "set clusters", payload)
-    broadcast_all_operators("set clusters", operator_payload)
-  end
-
   def send_asset_data_to_all() do
     payload = %{assets: AssetAgent.get_assets()}
     Endpoint.broadcast(@dispatch, "set assets", payload)

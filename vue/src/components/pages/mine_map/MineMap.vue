@@ -4,7 +4,6 @@
       :assets="localAssets"
       :activeLocations="activeLocations"
       :locations="locations"
-      :clusters="clusters"
       @dragstart="onDragStart()"
       @dragend="onDragEnd()"
     />
@@ -85,9 +84,6 @@ export default {
   computed: {
     locations() {
       return this.$store.state.constants.locations;
-    },
-    clusters() {
-      return this.$store.state.constants.clusters;
     },
     haulTruckLocations() {
       // returns all the location ids currently being used

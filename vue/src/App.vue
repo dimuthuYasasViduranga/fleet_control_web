@@ -145,7 +145,6 @@ export default {
             dispatch('constants/setOperatorMessageTypeTree', data.message_type_tree);
           },
         ],
-        ['set clusters', data => dispatch('constants/setClusters', data.clusters)],
         [
           'set calendar data',
           data => {

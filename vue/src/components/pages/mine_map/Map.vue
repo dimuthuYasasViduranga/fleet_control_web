@@ -53,14 +53,6 @@
         >
           <g-map-geofences :geofences="shownGeofences" @click="onGeofenceClick" />
 
-          <g-map-route
-            v-for="(route, index) in routes"
-            :key="index"
-            :clusters="clusters"
-            :clusterIds="route.clusterIds"
-            :options="route.options"
-          />
-
           <g-map-tracks
             :assets="assets"
             :icons="trackIcons"
@@ -82,15 +74,10 @@
 
             <template v-else-if="selected.type === 'asset'">
               <AssetInfo :asset="selected.data" />
-              <HaulTruckInfo
-                v-if="selected.data.type === 'Haul Truck'"
-                :asset="selected.data"
-                :locations="locations"
-              />
+              <HaulTruckInfo v-if="selected.data.type === 'Haul Truck'" :asset="selected.data" />
               <DigUnitInfo
                 v-if="['Excavator', 'Loader'].includes(selected.data.type)"
                 :asset="selected.data"
-                :locations="locations"
               />
             </template>
             <GeofenceInfo v-else-if="selected.type === 'geofence'" :geofence="selected.data" />
@@ -107,7 +94,6 @@ import GmapCluster from 'vue2-google-maps/dist/components/cluster';
 import loading from 'hx-layout/Loading.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import GMapTracks from '@/components/gmap/GMapTracks.vue';
-import GMapRoute from '@/components/gmap/GMapRoute.vue';
 import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
@@ -144,7 +130,6 @@ export default {
     GmapCluster,
     GMapGeofences,
     GMapTracks,
-    GMapRoute,
     AssetInfo,
     HaulTruckInfo,
     DigUnitInfo,
@@ -159,7 +144,6 @@ export default {
     assets: { type: Array, default: () => [] },
     activeLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
-    clusters: { type: Array, deafult: () => [] },
   },
   data: () => {
     return {
@@ -210,22 +194,6 @@ export default {
     },
     mapManifest() {
       return this.$store.state.constants.mapManifest;
-    },
-    routes() {
-      if (this.selected && this.selected.data.type === 'Haul Truck') {
-        const info = (this.selected.data.track || {}).haulTruckInfo || {};
-        return [
-          {
-            clusterIds: info.loadPath,
-            options: { strokeColor: 'blue' },
-          },
-          {
-            clusterIds: info.dumpPath,
-            options: { strokeColor: 'orange' },
-          },
-        ].filter(r => r.clusterIds.length !== 0);
-      }
-      return [];
     },
     shownGeofences() {
       if (this.showAllGeofences) {
