@@ -10,8 +10,8 @@
         </th>
       </tr>
       <tr>
-        <td class="heading">Load</td>
-        <td class="value">{{ loadLocation }}</td>
+        <td class="heading">Dig Unit</td>
+        <td class="value">{{ targetDigUnit }}</td>
       </tr>
       <tr>
         <td class="heading">Dump</td>
@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import { attributeFromList } from '../../../../code/helpers';
 import EditIcon from '../../../icons/Edit.vue';
@@ -33,7 +34,6 @@ export default {
   },
   props: {
     asset: { type: Object, required: true },
-    locations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -41,34 +41,35 @@ export default {
     };
   },
   computed: {
-    loadLocation() {
-      return this.getLocation('load') || '--';
+    ...mapState({
+      assets: state => state.constants.assets,
+      locations: state => state.constants.locations,
+      dispatches: state => state.haulTruck.currentDispatches,
+      activities: state => state.digUnit.currentActivities,
+    }),
+    dispatch() {
+      return attributeFromList(this.dispatches, 'assetId', this.asset.id) || {};
+    },
+    targetDigUnit() {
+      const digUnitName = attributeFromList(this.assets, 'id', this.dispatch.digUnitId, 'name');
+      const digUnitActivity =
+        attributeFromList(this.activities, 'assetId', this.dispatch.digUnitId) || {};
+      const digUnitLocation = attributeFromList(
+        this.locations,
+        'id',
+        digUnitActivity.locationId,
+        'name',
+      );
+
+      return digUnitLocation ? `${digUnitName} (${digUnitLocation})` : digUnitName || '--';
     },
     dumpLocation() {
-      return this.getLocation('dump') || '--';
+      return attributeFromList(this.locations, 'id', this.dispatch.dumpId, 'name');
     },
   },
   methods: {
     onEdit() {
       this.$eventBus.$emit('asset-assignment-open', this.asset.id);
-    },
-    getLocation(name) {
-      const info = this.asset.track.haulTruckInfo;
-      const id = info[`${name}Id`];
-      const distance = info[`${name}Distance`];
-
-      if (!id) {
-        return null;
-      }
-
-      const locationName = attributeFromList(this.locations, 'id', id, 'name');
-
-      if (distance) {
-        const km = (distance / 1000).toFixed(1);
-        return `${locationName} (${km} km)`;
-      }
-
-      return locationName;
     },
   },
 };
