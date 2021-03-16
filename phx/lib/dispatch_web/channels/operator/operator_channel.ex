@@ -90,7 +90,7 @@ defmodule DispatchWeb.OperatorChannel do
 
           Broadcast.send_assignments_to_all()
 
-          get_device_state(asset_id, operator_id)
+          get_device_state(asset_id)
 
         connect_type ->
           Logger.info(
@@ -98,7 +98,7 @@ defmodule DispatchWeb.OperatorChannel do
           )
 
           case assignment[:operator_id] == operator_id do
-            true -> get_device_state(asset_id, operator_id)
+            true -> get_device_state(asset_id)
             _ -> %{logout: "Operator has changed device"}
           end
       end
@@ -344,14 +344,13 @@ defmodule DispatchWeb.OperatorChannel do
     Enum.each(asset_ids, &Broadcast.force_logout(%{asset_id: &1}))
   end
 
-  defp get_device_state(asset_id, operator_id) do
+  defp get_device_state(asset_id) do
     assignment = DeviceAssignmentAgent.get(%{asset_id: asset_id}) || %{}
 
     asset = AssetAgent.get_asset(%{id: asset_id})
     asset_type_id = asset[:type_id]
 
-    operator =
-      OperatorAgent.get(:id, assignment[:operator_id] || operator_id) |> Map.drop([:employee_id])
+    operator_id = assignment[:operator_id]
 
     dispatcher_messages = DispatcherMessageAgent.all(asset_id)
 
@@ -366,9 +365,9 @@ defmodule DispatchWeb.OperatorChannel do
     other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
 
     common_state = %{
-      asset: asset,
-      operator: operator,
       device_id: assignment[:device_id],
+      asset_id: asset_id,
+      operator_id: operator_id,
       assets: AssetAgent.get_assets(),
       asset_types: AssetAgent.get_types(),
       asset_radios: AssetRadioAgent.all(),
@@ -394,7 +393,7 @@ defmodule DispatchWeb.OperatorChannel do
     }
 
     # get asset type is defined through using Topics
-    case get_asset_type_state(asset, operator) do
+    case get_asset_type_state(asset, operator_id) do
       nil ->
         %{common: common_state}
 
@@ -406,7 +405,7 @@ defmodule DispatchWeb.OperatorChannel do
     end
   end
 
-  def get_asset_type_state(asset, operator) do
+  def get_asset_type_state(asset, operator_id) do
     asset_type = asset[:secondary_type] || asset[:type]
 
     case asset_type do
@@ -414,13 +413,13 @@ defmodule DispatchWeb.OperatorChannel do
         nil
 
       "Haul Truck" ->
-        {asset_type, HaulTruckTopics.get_asset_type_state(asset, operator)}
+        {asset_type, HaulTruckTopics.get_asset_type_state(asset, operator_id)}
 
       "Dig Unit" ->
-        {asset_type, DigUnitTopics.get_asset_type_state(asset, operator)}
+        {asset_type, DigUnitTopics.get_asset_type_state(asset, operator_id)}
 
       "Watercart" ->
-        {asset_type, WaterCartTopics.get_asset_type_state(asset, operator)}
+        {asset_type, WaterCartTopics.get_asset_type_state(asset, operator_id)}
 
       _ ->
         Logger.error("No state for asset: '#{asset.name}' of type '#{asset.type}'")

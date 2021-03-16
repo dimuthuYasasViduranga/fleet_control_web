@@ -6,7 +6,7 @@ defmodule DispatchWeb.OperatorChannel.DigUnitTopics do
   alias DispatchWeb.Broadcast
   alias DispatchWeb.DispatcherChannel.HaulTruckTopics
 
-  def get_asset_type_state(asset, _operator) do
+  def get_asset_type_state(asset, _operator_id) do
     activity = DigUnitActivityAgent.get(%{asset_id: asset.id})
 
     %{

@@ -7,13 +7,13 @@ defmodule DispatchWeb.OperatorChannel.HaulTruckTopics do
   alias DispatchWeb.Broadcast
   require Logger
 
-  def get_asset_type_state(%{id: asset_id, type: "Haul Truck"}, operator) do
+  def get_asset_type_state(%{id: asset_id, type: "Haul Truck"}, operator_id) do
     %{
       dispatch: HaulTruckDispatchAgent.get(%{asset_id: asset_id}),
       manual_cycles:
         ManualCycleAgent.get_by(%{
           asset_id: asset_id,
-          operator_id: operator.id,
+          operator_id: operator_id,
           deleted: false
         })
     }
