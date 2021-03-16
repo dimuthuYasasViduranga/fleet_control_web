@@ -1,14 +1,17 @@
 <template>
   <div class="pre-start-failures">
-    <div v-if="failures.length === 0" class="no-failures">No failures to report</div>
+    Show All Failures <input type="checkbox" v-model="showAllFailures" />
+    <div v-if="assetFailures.length === 0" class="no-failures">
+      No {{ showAllFailures ? '' : 'recent ' }}failures to report
+    </div>
 
     <div v-else class="failures">
       <PreStartFailure
-        v-for="(failure, index) in failures"
+        v-for="(asset, index) in assetFailures"
         :key="index"
-        :assetName="failure.assetName"
-        :icon="failure.icon"
-        :submissions="failure.submissions"
+        :assetName="asset.name"
+        :icon="icons[asset.type]"
+        :submissions="asset.failedSubmissions"
       />
     </div>
   </div>
@@ -36,10 +39,53 @@ function getOperator(operators, operatorId, employeeId) {
   );
 }
 
+function getAssetFailures(submissions, assets, operators, assetSubFilter = subs => subs) {
+  const orderedSubmissions = submissions
+    .slice()
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  const groupMap = groupBy(orderedSubmissions, 'assetId');
+
+  return Object.entries(groupMap)
+    .map(([assetIdStr, subs]) => {
+      const assetId = parseInt(assetIdStr, 10);
+      const asset = attributeFromList(assets, 'id', assetId) || {};
+      return createAssetFailure(asset, assetSubFilter(subs), operators);
+    })
+    .filter(a => a.failedSubmissions.length)
+    .sort((a, b) => (a.assetName || '').localeCompare(b.assetName || ''));
+}
+
+function createAssetFailure(asset, subs, operators) {
+  const failedSubmissions = subs
+    .map(s => {
+      const failedControls = getControls(s.form).filter(c => c.answer === false);
+      return {
+        id: s.id,
+        submission: s,
+        timestamp: s.timestamp,
+        controls: failedControls,
+        operator: getOperator(operators, s.operatorId, s.employeeId),
+        employeeId: s.employeeId,
+      };
+    })
+    .filter(s => s.controls.length);
+
+  return {
+    name: asset.name,
+    type: asset.type,
+    failedSubmissions,
+  };
+}
+
 export default {
   name: 'PreStartFailures',
   components: {
     PreStartFailure,
+  },
+  data: () => {
+    return {
+      showAllFailures: false,
+    };
   },
   props: {
     submissions: { type: Array, default: () => [] },
@@ -48,35 +94,9 @@ export default {
     icons: { type: Object, default: () => ({}) },
   },
   computed: {
-    failures() {
-      const failedSubs = this.submissions.filter(s => getFailCount(s.form) > 0);
-      const groupMap = groupBy(failedSubs, 'assetId');
-
-      const groups = Object.entries(groupMap).map(([assetIdStr, submissions]) => {
-        const asset = attributeFromList(this.assets, 'id', parseInt(assetIdStr, 10)) || {};
-
-        const subs = submissions.map(s => {
-          const failedControls = getControls(s.form).filter(c => c.answer === false);
-          return {
-            id: s.id,
-            submission: s,
-            timestamp: s.timestamp,
-            controls: failedControls,
-            operator: getOperator(this.operators, s.operatorId, s.employeeId),
-            employeeId: s.employeeId,
-          };
-        });
-        subs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-        return {
-          assetName: asset.name,
-          icon: this.icons[asset.type],
-          submissions: subs,
-        };
-      });
-
-      groups.sort((a, b) => a.assetName.localeCompare(b.assetName));
-      return groups;
+    assetFailures() {
+      const filter = this.showAllFailures ? s => s : s => [s[0]];
+      return getAssetFailures(this.submissions, this.assets, this.operators, filter);
     },
   },
 };

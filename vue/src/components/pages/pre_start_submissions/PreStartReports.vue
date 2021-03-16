@@ -7,6 +7,7 @@
         :key="index"
         :asset="report.asset"
         :submissions="report.submissions"
+        :icons="icons"
       />
     </div>
   </div>
