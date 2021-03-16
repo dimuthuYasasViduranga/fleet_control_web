@@ -90,7 +90,7 @@ defmodule DispatchWeb.OperatorChannel do
 
           Broadcast.send_assignments_to_all()
 
-          get_device_state(asset_id)
+          get_device_state(asset_id, operator_id)
 
         connect_type ->
           Logger.info(
@@ -98,7 +98,7 @@ defmodule DispatchWeb.OperatorChannel do
           )
 
           case assignment[:operator_id] == operator_id do
-            true -> get_device_state(asset_id)
+            true -> get_device_state(asset_id, operator_id)
             _ -> %{logout: "Operator has changed device"}
           end
       end
@@ -367,78 +367,71 @@ defmodule DispatchWeb.OperatorChannel do
     Enum.each(asset_ids, &Broadcast.force_logout(%{asset_id: &1}))
   end
 
-  defp get_device_state(nil), do: %{}
+  defp get_device_state(asset_id, operator_id) do
+    assignment = DeviceAssignmentAgent.get(%{asset_id: asset_id}) || %{}
 
-  defp get_device_state(asset_id) do
-    case DeviceAssignmentAgent.get(%{asset_id: asset_id}) do
+    clusters =
+      ClusterGraph.Agent.get()
+      |> elem(0)
+      |> Enum.map(&Map.drop(&1, [:north, :east]))
+
+    asset = AssetAgent.get_asset(%{id: asset_id})
+    asset_type_id = asset[:type_id]
+
+    operator =
+      OperatorAgent.get(:id, assignment[:operator_id] || operator_id) |> Map.drop([:employee_id])
+
+    dispatcher_messages = DispatcherMessageAgent.all(asset_id)
+
+    active_allocation = TimeAllocationAgent.get_active(%{asset_id: asset_id})
+
+    locations =
+      LocationAgent.active_locations()
+      |> Enum.map(&Map.drop(&1, [:polygon]))
+
+    latest_track = TrackAgent.get(%{asset_id: asset_id})
+
+    other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
+
+    common_state = %{
+      asset: asset,
+      operator: operator,
+      device_id: assignment[:device_id],
+      assets: AssetAgent.get_assets(),
+      asset_types: AssetAgent.get_types(),
+      asset_radios: AssetRadioAgent.all(),
+      operators: OperatorAgent.all(),
+      locations: locations,
+      material_types: MaterialTypeAgent.get_active(),
+      load_styles: LoadStyleAgent.all(),
+      time_codes: TimeCodeAgent.get_time_codes(),
+      time_code_groups: TimeCodeAgent.get_time_code_groups(),
+      time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(asset_type_id),
+      device_assignments: DeviceAssignmentAgent.current(),
+      dig_unit_activities: DigUnitActivityAgent.current(),
+      assignment: assignment,
+      dispatcher_messages: dispatcher_messages,
+      unread_operator_messages: OperatorMessageAgent.unread(asset_id),
+      operator_message_types: OperatorMessageTypeAgent.types(),
+      operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(asset_type_id),
+      engine_hours: EngineHoursAgent.get_asset(asset_id),
+      allocation: active_allocation,
+      track: latest_track,
+      other_tracks: other_tracks,
+      clusters: clusters,
+      pre_starts: PreStartAgent.all()
+    }
+
+    # get asset type is defined through using Topics
+    case get_asset_type_state(asset, operator) do
       nil ->
-        %{}
+        %{common: common_state}
 
-      %{asset_id: nil} ->
-        %{}
-
-      assignment ->
-        clusters =
-          ClusterGraph.Agent.get()
-          |> elem(0)
-          |> Enum.map(&Map.drop(&1, [:north, :east]))
-
-        asset = AssetAgent.get_asset(%{id: asset_id})
-
-        operator = OperatorAgent.get(:id, assignment.operator_id) |> Map.drop([:employee_id])
-
-        dispatcher_messages = DispatcherMessageAgent.all(asset_id)
-
-        active_allocation = TimeAllocationAgent.get_active(%{asset_id: asset_id})
-
-        locations =
-          LocationAgent.active_locations()
-          |> Enum.map(&Map.drop(&1, [:polygon]))
-
-        latest_track = TrackAgent.get(%{asset_id: asset_id})
-
-        other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
-
-        common_state = %{
-          asset: asset,
-          device_id: assignment.device_id,
-          assets: AssetAgent.get_assets(),
-          asset_types: AssetAgent.get_types(),
-          asset_radios: AssetRadioAgent.all(),
-          operators: OperatorAgent.all(),
-          locations: locations,
-          material_types: MaterialTypeAgent.get_active(),
-          load_styles: LoadStyleAgent.all(),
-          time_codes: TimeCodeAgent.get_time_codes(),
-          time_code_groups: TimeCodeAgent.get_time_code_groups(),
-          time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(asset.type_id),
-          device_assignments: DeviceAssignmentAgent.current(),
-          dig_unit_activities: DigUnitActivityAgent.current(),
-          assignment: assignment,
-          dispatcher_messages: dispatcher_messages,
-          unread_operator_messages: OperatorMessageAgent.unread(asset_id),
-          operator_message_types: OperatorMessageTypeAgent.types(),
-          operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(asset.type_id),
-          engine_hours: EngineHoursAgent.get_asset(asset_id),
-          allocation: active_allocation,
-          operator: operator,
-          track: latest_track,
-          other_tracks: other_tracks,
-          clusters: clusters,
-          pre_starts: PreStartAgent.all()
+      {asset_type, asset_type_state} ->
+        %{
+          :common => common_state,
+          asset_type => asset_type_state
         }
-
-        # get asset type is defined through using Topics
-        case get_asset_type_state(asset, operator) do
-          nil ->
-            %{common: common_state}
-
-          {asset_type, asset_type_state} ->
-            %{
-              :common => common_state,
-              asset_type => asset_type_state
-            }
-        end
     end
   end
 
