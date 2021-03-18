@@ -285,7 +285,6 @@ function setStaticData(dispatch, data) {
     ['setMapConfig', data.map_config],
     ['setAssets', data.assets],
     ['setAssetTypes', data.asset_types],
-    ['setTimezone', data.timezone],
     ['setShifts', data.shifts],
     ['setShiftTypes', data.shift_types],
     ['setTimeCodes', data.time_codes],

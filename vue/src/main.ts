@@ -13,6 +13,7 @@ import App from './App.vue';
 import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
+import { Timely } from './code/timely.js';
 import { registerToasts } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
@@ -56,6 +57,8 @@ Vue.prototype.$eventBus = new Vue();
 Vue.prototype.$channel = new Channel(false ? 'debug' : null);
 
 Vue.prototype.$modal = new Modal(store);
+
+Vue.prototype.$timely = Vue.observable(new Timely());
 
 // setup routes
 declare var document: { location: { href: string } };
