@@ -25,7 +25,7 @@ export class Timely {
    */
   setCurrent(tz) {
     if (tz === 'local') {
-      console.log(`[Timely] Current tz set to local (${LOCAL_ZONE})`);
+      console.log(`[Timely] Current tz set to local ${LOCAL_ZONE} (local)`);
       this.current = {
         timezone: LOCAL_ZONE,
         isSite: LOCAL_ZONE === this.siteZone,
@@ -35,7 +35,7 @@ export class Timely {
     }
 
     if (tz === 'site') {
-      console.log(`[Timely] Current tz set to site (${this.siteZone})`);
+      console.log(`[Timely] Current tz set to ${this.siteZone} (site)`);
       this.current = {
         timezone: this.siteZone,
         isSite: true,
