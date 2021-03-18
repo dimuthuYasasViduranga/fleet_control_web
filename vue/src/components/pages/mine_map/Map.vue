@@ -89,8 +89,8 @@
 </template>
 
 <script>
-import { gmapApi } from 'vue2-google-maps';
-import GmapCluster from 'vue2-google-maps/dist/components/cluster';
+import { gmapApi } from 'gmap-vue';
+import GmapCluster from 'gmap-vue/dist/components/cluster';
 import loading from 'hx-layout/Loading.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import GMapTracks from '@/components/gmap/GMapTracks.vue';

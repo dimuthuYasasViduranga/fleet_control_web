@@ -17,7 +17,7 @@ import { registerToasts } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
-import * as VueGoogleMaps from 'vue2-google-maps';
+import * as VueGoogleMaps from 'gmap-vue';
 
 // config
 const isDev = process.env.NODE_ENV === 'development';

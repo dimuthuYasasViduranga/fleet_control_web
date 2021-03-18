@@ -53,7 +53,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { gmapApi } from 'vue2-google-maps';
+import { gmapApi } from 'gmap-vue';
 import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';

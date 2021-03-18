@@ -50,8 +50,8 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import { gmapApi } from 'vue2-google-maps';
-import GmapCluster from 'vue2-google-maps/dist/components/cluster';
+import { gmapApi } from 'gmap-vue';
+import GmapCluster from 'gmap-vue/dist/components/cluster';
 import GmapCustomMarker from 'vue2-gmap-custom-marker';
 import DefaultMarker from './markers/DefaultMarker.vue';
 import HaulTruckMarker from './markers/HaulTruckTopDownMarker.vue';

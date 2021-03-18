@@ -69,7 +69,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { gmapApi } from 'vue2-google-maps';
+import { gmapApi } from 'gmap-vue';
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { getUniqPaths, getClosestVertex, dijkstra, dijkstraToVertices } from './graph';
