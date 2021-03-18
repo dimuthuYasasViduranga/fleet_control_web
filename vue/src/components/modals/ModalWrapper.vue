@@ -1,18 +1,13 @@
 <template>
-  <transition :name="modalName" @after-leave="onFullClose">
-    <div
-      class="modal-mask"
-      :class="[wrapperClass, component.wrapperClass]"
-      v-show="show"
-      @mousedown="onOuterClick()"
-    >
+  <transition :name="modalName" @after-leave="onFullClose" @after-enter="loaded = true">
+    <div v-show="show" class="modal-mask" :class="[wrapperClass, component.wrapperClass]">
       <div
         ref="modal-container-wrapper"
         class="modal-container-wrapper"
         @keyup.esc="onEsc()"
         tabindex="0"
       >
-        <div class="modal-container" @mousedown.stop @click.stop>
+        <div class="modal-container" v-click-outside="onOuterClick" @mousedown.stop @click.stop>
           <component :is="component" v-bind="componentProps" @close="triggerClose" />
         </div>
       </div>
@@ -21,8 +16,12 @@
 </template>
 
 <script>
+import ClickOutside from 'vue-click-outside';
 export default {
   name: 'Modal',
+  directives: {
+    ClickOutside,
+  },
   props: {
     component: { type: Object, required: true },
     componentProps: { type: Object, required: true },
@@ -34,6 +33,7 @@ export default {
   },
   data: () => {
     return {
+      loaded: false,
       show: false,
       originalPos: { x: 0, y: 0 },
       pendingAnswer: undefined,
@@ -74,7 +74,7 @@ export default {
       }
     },
     onOuterClick() {
-      if (this.clickOutsideClose) {
+      if (this.loaded && this.clickOutsideClose) {
         this.triggerClose();
       }
     },
