@@ -224,7 +224,7 @@ const getters = {
       ),
     );
   },
-  events: state => {
+  events: state => timezone => {
     const {
       operatorMessages,
       dispatcherMessages,
@@ -281,6 +281,7 @@ const getters = {
       historicDeviceAssignments,
       haulTruckDispatches,
       timeAllocations,
+      timezone,
     );
   },
   operatorMessages: ({ operatorMessages, constants }) => {

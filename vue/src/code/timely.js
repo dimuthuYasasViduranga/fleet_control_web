@@ -29,7 +29,7 @@ export class Timely {
       this.current = {
         timezone: LOCAL_ZONE,
         isSite: LOCAL_ZONE === this.siteZone,
-        isLocal: false,
+        isLocal: true,
       };
       return true;
     }
@@ -48,8 +48,8 @@ export class Timely {
       console.log(`[Timely] Current tz set to ${tz}`);
       this.current = {
         timezone: tz,
-        isSite: tz === LOCAL_ZONE,
-        isLocal: tz === this.siteZone,
+        isSite: tz === this.siteZone,
+        isLocal: tz === LOCAL_ZONE,
       };
       return true;
     }
@@ -64,7 +64,7 @@ export class Timely {
    * @param {String} tz - a valid timezone
    * @return {Boolean} - success status on change
    */
-  setsiteZone(tz) {
+  setSiteZone(tz) {
     if (isValidTz(tz)) {
       console.log(`[Timely] Site timezone set to ${tz}`);
       this.siteZone = tz;
@@ -75,8 +75,8 @@ export class Timely {
 
       this.current = {
         timezone: this.current.timezone,
-        isSite: tz === LOCAL_ZONE,
-        isLocal: tz === this.siteZone,
+        isSite: tz === this.siteZone,
+        isLocal: tz === LOCAL_ZONE,
       };
       return true;
     }

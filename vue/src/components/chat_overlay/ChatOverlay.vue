@@ -134,7 +134,8 @@ export default {
         });
     },
     events() {
-      return this.$store.getters.events;
+      const tz = this.$timely.current.timezone;
+      return this.$store.getters.events(tz);
     },
     filteredEvents() {
       let events = this.events;

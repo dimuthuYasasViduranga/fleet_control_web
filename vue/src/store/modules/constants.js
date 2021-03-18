@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { toUtcDate, setSiteTimezone } from '../../code/time.js';
+import { toUtcDate } from '../../code/time.js';
 
 import HaulTruckIcon from '../../components/icons/asset_icons/HaulTruck.vue';
 import WaterTruckIcon from '../../components/icons/asset_icons/WaterTruck.vue';
@@ -277,7 +277,7 @@ function parsePreStartControl(control) {
   };
 }
 
-function setStaticData(dispatch, data) {
+function setStaticData(dispatch, data, timely) {
   // all in constants
   [
     ['setLocationData', data.locations],
@@ -296,6 +296,7 @@ function setStaticData(dispatch, data) {
   ].forEach(([path, value]) => dispatch(path, value));
 
   dispatch('connection/setUserToken', data.user_token, { root: true });
+  timely.setSiteZone(data.timezone);
 }
 
 function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
@@ -339,7 +340,6 @@ const state = {
   assets: Array(),
   assetTypes: Array(),
   operators: Array(),
-  timezone: 'local',
   shifts: Array(),
   shiftTypes: Array(),
   locations: Array(),
@@ -386,7 +386,7 @@ const getters = {
 };
 
 const actions = {
-  getStaticData({ dispatch }, [hostname, callback]) {
+  getStaticData({ dispatch }, [hostname, callback, timely]) {
     if (callback === undefined) {
       callback = () => {
         return;
@@ -396,7 +396,7 @@ const actions = {
     axios
       .get(`${hostname}/api/static_data`)
       .then(({ data }) => {
-        setStaticData(dispatch, data);
+        setStaticData(dispatch, data, timely);
         return data;
       })
       .then(callback)
@@ -415,9 +415,6 @@ const actions = {
       .catch(error => {
         console.error(error);
       });
-  },
-  setTimezone({ commit }, timezone) {
-    commit('setTimezone', timezone);
   },
   setShifts({ commit }, shifts = []) {
     const formattedShifts = shifts.map(parseShift);
@@ -503,10 +500,6 @@ const actions = {
 };
 
 const mutations = {
-  setTimezone(state, timezone) {
-    setSiteTimezone(timezone);
-    state.timezone = timezone;
-  },
   setShifts(state, shifts = []) {
     state.shifts = shifts;
   },

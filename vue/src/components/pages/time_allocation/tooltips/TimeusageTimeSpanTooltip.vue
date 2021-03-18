@@ -69,7 +69,8 @@ export default {
       if (!date) {
         return '--';
       }
-      return formatDateIn(new Date(date), { format: 'HH:mm:ss' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(new Date(date), tz, { format: 'HH:mm:ss' });
     },
     formatDuration(startTime, endTime) {
       if (!startTime || !endTime) {

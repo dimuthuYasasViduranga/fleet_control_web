@@ -284,7 +284,8 @@ export default {
   },
   methods: {
     formatDate(date) {
-      return formatDateIn(date, { format: 'yyyy-MM-dd HH:mm:ss' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(date, tz, { format: 'yyyy-MM-dd HH:mm:ss' });
     },
     setIcon(assetIcon) {
       this.selectedIcon = assetIcon;

@@ -1,23 +1,9 @@
 import { DateTime } from 'luxon';
 
-let SITE_TIMEZONE = 'local';
-
-export function setSiteTimezone(timezone) {
-  if (timezone === 'site' || !timezone) {
-    console.error(`[Time] Cannot set site timezone to '${timezone}'`);
-    return;
-  }
-  SITE_TIMEZONE = timezone;
-  console.log(`[Time] Site timezone updated to '${timezone}'`);
-}
-
-export function getSiteTimezone() {
-  return SITE_TIMEZONE;
-}
-
-export function formatDateIn(date, opts) {
+export function formatDateIn(date, tz, opts) {
   const { timezone, format } = {
-    ...{ timezone: 'site', format: 'yyyy-LL-dd HH:mm:ss' },
+    format: 'yyyy-LL-dd HH:mm:ss',
+    timezone: tz || 'local',
     ...(opts || {}),
   };
 
@@ -37,15 +23,13 @@ export function setTimeZone(datetime, timezone) {
   if (!timezone) {
     return datetime;
   }
-  if (timezone === 'site') {
-    return setTimeZone(datetime, SITE_TIMEZONE);
-  }
   return datetime.setZone(timezone);
 }
 
-export function formatTodayRelative(date, opts) {
+export function formatTodayRelative(date, tz, opts) {
   const { timezone, format } = {
-    ...{ timezone: 'site', format: 'HH:mm:ss' },
+    format: 'HH:mm:ss',
+    timezone: tz || 'local',
     ...(opts || {}),
   };
 
@@ -90,11 +74,7 @@ export function toUtcDate(validDate) {
 }
 
 export function copyDate(date) {
-  if (!date) {
-    return null;
-  }
-
-  return new Date(date);
+  return date ? new Date(date) : null;
 }
 
 export function isDateEqual(a, b) {

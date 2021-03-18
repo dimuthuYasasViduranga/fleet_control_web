@@ -354,7 +354,8 @@ export default {
       this.filters[filter] = !this.filters[filter];
     },
     formatDate(epoch) {
-      return formatDateIn(new Date(epoch));
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(new Date(epoch), tz);
     },
     formatDuration(seconds) {
       const [days, remainder] = divMod(seconds, SECONDS_IN_DAY);

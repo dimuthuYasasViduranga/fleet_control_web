@@ -60,7 +60,8 @@ export default {
   },
   computed: {
     time() {
-      return formatDateIn(this.entry.timestamp, { format: 'HH:mm' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(this.entry.timestamp, tz, { format: 'HH:mm' });
     },
   },
 };

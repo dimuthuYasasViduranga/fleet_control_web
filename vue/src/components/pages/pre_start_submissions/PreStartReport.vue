@@ -112,7 +112,8 @@ export default {
       this.$modal.create(PreStartSubmissionModal, { submission });
     },
     formatTime(date) {
-      return formatDateIn(date, { format: 'HH:mm' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(date, tz, { format: 'HH:mm' });
     },
   },
 };

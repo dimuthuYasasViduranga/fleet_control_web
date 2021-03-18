@@ -19,7 +19,6 @@
 
 <script>
 import { attributeFromList, groupBy } from '@/code/helpers';
-import { formatDateIn } from '@/code/time';
 
 import PreStartFailure from './PreStartFailure.vue';
 

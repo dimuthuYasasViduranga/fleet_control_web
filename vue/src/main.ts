@@ -58,7 +58,8 @@ Vue.prototype.$channel = new Channel(false ? 'debug' : null);
 
 Vue.prototype.$modal = new Modal(store);
 
-Vue.prototype.$timely = Vue.observable(new Timely());
+const timely = Vue.observable(new Timely());
+Vue.prototype.$timely = timely;
 
 // setup routes
 declare var document: { location: { href: string } };
@@ -93,6 +94,6 @@ Promise.all(promises).then(() => {
     }).$mount('#app');
   }
 
-  store.dispatch('constants/getStaticData', [hostname, createApp]);
+  store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
   store.dispatch('trackStore/startPendingInterval');
 });

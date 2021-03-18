@@ -12,15 +12,13 @@ export default {
   computed: {
     isToday() {
       const format = 'yyyy-MM-dd';
-      const nowString = formatDateIn(new Date(), { format });
-      const timestampString = formatDateIn(this.entry.timestamp, { format });
+      const tz = this.$timely.current.timezone;
+      const nowString = formatDateIn(new Date(), tz, { format });
+      const timestampString = formatDateIn(this.entry.timestamp, tz, { format });
       return timestampString === nowString;
     },
     todayIndicator() {
-      if (this.isToday) {
-        return '(Today)';
-      }
-      return;
+      return this.isToday ? '(Today)' : '';
     },
   },
 };

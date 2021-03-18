@@ -14,6 +14,7 @@ export function toEvents(
   deviceAssignments,
   haulTruckDispatches,
   timeAllocations,
+  timezone,
 ) {
   const opMsgs = toOperatorMessageEvents(
     assets,
@@ -50,7 +51,7 @@ export function toEvents(
     .concat(timeAllocEvents);
 
   const assetIds = assets.map(a => a.id);
-  const dateSeparators = getDateSeparators(events, assetIds);
+  const dateSeparators = getDateSeparators(events, assetIds, timezone);
   events = events.concat(dateSeparators);
 
   // order by timestamp
@@ -341,7 +342,7 @@ function toTimeAllocEvent([assetId, allocs], assets) {
     .filter(alloc => alloc.timestamp);
 }
 
-function getDateSeparators(events, assetIds) {
+function getDateSeparators(events, assetIds, timezone) {
   // asset ids are added so that all filters work with them
   if (!events) {
     return [];
@@ -350,13 +351,13 @@ function getDateSeparators(events, assetIds) {
   const timestamps = events.map(e => e.timestamp);
   timestamps.unshift(new Date());
 
-  const separators = timestamps.map(ts => toDateSeparator(ts, assetIds));
+  const separators = timestamps.map(ts => toDateSeparator(ts, assetIds, timezone));
 
   return dedupBy(separators, 'date');
 }
 
-function toDateSeparator(date, assetIds) {
-  const site = setTimeZone(date, 'site').startOf('day');
+function toDateSeparator(date, assetIds, timezone) {
+  const site = setTimeZone(date, timezone).startOf('day');
   const dateString = site.toFormat('yyyy-MM-dd');
   const timestamp = site.toJSDate();
   return {
