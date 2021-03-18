@@ -1,6 +1,6 @@
 <template>
   <div class="select-modal">
-    <SearchBar v-if="useSearch" v-model="searchText" />
+    <SearchBar ref="searchbar" v-if="useSearch" v-model="searchText" />
     <div class="items">
       <div
         class="item"
@@ -41,11 +41,15 @@ export default {
     label: { type: String, default: 'name' },
     keyName: { type: String, default: 'id' },
     useSearch: { type: Boolean, default: true },
+    autoFocus: { type: Boolean, default: true },
   },
   data: () => {
     return {
       searchText: '',
     };
+  },
+  mounted() {
+    this.focusSearch(250);
   },
   computed: {
     items() {
@@ -59,6 +63,14 @@ export default {
     },
   },
   methods: {
+    focusSearch(after) {
+      setTimeout(() => {
+        const search = this.$refs.searchbar;
+        if (search) {
+          search.focus();
+        }
+      }, after);
+    },
     onItemClick(item) {
       this.$emit('close', item);
     },

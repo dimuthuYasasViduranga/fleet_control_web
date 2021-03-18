@@ -1,6 +1,12 @@
 <template>
   <div class="search-bar">
-    <input class="search typeable" type="text" :placeholder="placeholder" v-model="localText" />
+    <input
+      ref="input"
+      class="search typeable"
+      type="text"
+      :placeholder="placeholder"
+      v-model="localText"
+    />
     <div v-if="showClear" class="close-x-wrapper" @click="clear">
       <div class="close-x">x</div>
     </div>
@@ -49,6 +55,9 @@ export default {
     },
     emitText(value) {
       this.$emit('change', value);
+    },
+    focus() {
+      const input = this.$refs.input.focus();
     },
   },
 };
