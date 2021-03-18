@@ -11,6 +11,7 @@
     <template v-else>
       <Layout :routes="routes" :username="username" :logout="logout" :login="login">
         <template slot="header">
+          <TimezoneSelector />
           <ChatButton />
           <!-- <HelpButton /> -->
         </template>
@@ -30,6 +31,7 @@ import Layout from 'hx-layout/Layout.vue';
 
 import axios from 'axios';
 
+import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
 import ChatButton from './components/header_buttons/ChatButton.vue';
 import ChatButtonFloating from './components/header_buttons/ChatButtonFloating.vue';
 import HelpButton from './components/header_buttons/HelpButton.vue';
@@ -57,6 +59,7 @@ export default {
   },
   components: {
     Layout,
+    TimezoneSelector,
     ChatButton,
     HelpButton,
     ChatOverlay,
