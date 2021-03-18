@@ -186,7 +186,6 @@ export default {
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
       locations: state => state.locations,
-      timezone: state => state.timezone,
     }),
     ...mapState('deviceStore', {
       devices: state => state.devices,
@@ -196,6 +195,9 @@ export default {
       fleetOpsCycles: state => state.fleetOps.cycles,
       fleetOpsTimeusage: state => state.fleetOps.timeusage,
     }),
+    timezone() {
+      return this.$timely.current.timezone;
+    },
     fullTimeCodes() {
       return this.$store.getters['constants/fullTimeCodes'];
     },

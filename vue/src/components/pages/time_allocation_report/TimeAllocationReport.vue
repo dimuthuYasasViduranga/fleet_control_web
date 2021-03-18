@@ -171,8 +171,10 @@ export default {
       operators: state => state.operators,
       devices: state => state.devices,
       locations: state => state.locations,
-      timezone: state => state.timezone,
     }),
+    timezone() {
+      return this.$timely.current.timezone;
+    },
     filteredReports() {
       const selectedAssetTypes = this.selectedAssetTypes.filter(t => t.selected).map(t => t.type);
       return this.reports.filter(

@@ -197,8 +197,10 @@ export default {
       operators: state => state.operators,
       locations: state => state.locations,
       materialTypes: state => state.materialTypes,
-      timezone: state => state.timezone,
     }),
+    timezone() {
+      return this.$timely.current.timezone;
+    },
     haulTrucks() {
       return this.assets.filter(a => a.type === 'Haul Truck');
     },
