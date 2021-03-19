@@ -135,7 +135,7 @@ function toDispatcherMessageEvents(assets, dispatchers, messages) {
       text: m.message,
       acknowledged: m.acknowledged,
       groupId: m.groupId,
-      searchable: ['assetName', 'text', 'eventType', 'answer'],
+      searchable: ['assetName', 'text', 'eventType', 'answer', 'dispatcher'],
     };
   });
 
