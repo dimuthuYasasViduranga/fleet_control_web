@@ -28,7 +28,8 @@ defmodule DispatchWeb.OperatorChannel do
     AssetRadioAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
-    DigUnitActivityAgent
+    DigUnitActivityAgent,
+    MapTileAgent
   }
 
   alias Phoenix.Socket
@@ -389,7 +390,8 @@ defmodule DispatchWeb.OperatorChannel do
       allocation: active_allocation,
       track: latest_track,
       other_tracks: other_tracks,
-      pre_starts: PreStartAgent.all()
+      pre_starts: PreStartAgent.all(),
+      map_manifest: MapTileAgent.get()
     }
 
     # get asset type is defined through using Topics
