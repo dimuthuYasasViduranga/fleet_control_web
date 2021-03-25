@@ -170,7 +170,7 @@ export default {
       const ok = 'Yes';
       const opts = {
         title: 'Invalid Tree',
-        body: 'There are invalid elements, would you like them to be removed?',
+        body: 'There are invalid elements, would you like them to be removed before submitting?',
         ok,
         cancel: 'No',
       };
