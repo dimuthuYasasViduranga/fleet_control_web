@@ -102,7 +102,7 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       component: RouteMapPage,
       icon: LineIcon,
     },
-    { path: 'gap_1', gap: true },
+    { path: '/gap_1', gap: true },
     {
       name: 'Operators',
       path: '/operators',
@@ -133,7 +133,7 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       component: PreStartEditor,
       icon: ReportIcon,
     },
-    { path: 'gap_2', gap: true },
+    { path: '/gap_2', gap: true },
     {
       name: 'Asset Status',
       path: '/asset_status',
@@ -167,14 +167,14 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       component: TimeAllocationReport,
       icon: ReportIcon,
     },
-    { path: 'gap_3', gap: true },
+    { path: '/gap_3', gap: true },
     {
       name: 'Cycle Tally',
       path: '/cycle_tally',
       component: CycleTally,
       icon: ListIcon,
     },
-    { path: 'gap_4', gap: true },
+    { path: '/gap_4', gap: true },
     {
       name: 'Activity Log',
       path: '/activity_log',
