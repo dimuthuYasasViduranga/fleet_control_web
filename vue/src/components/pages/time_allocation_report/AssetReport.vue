@@ -333,7 +333,7 @@ export default {
     assignmentSummary() {
       const groups = this.assignments.reduce((acc, assignment) => {
         const name = assignment.operator || 'No Operator';
-        acc[name] = acc[name] || 0 + assignment.duration;
+        acc[name] = (acc[name] || 0) + assignment.duration;
         return acc;
       }, {});
       return Object.entries(groups).map(([name, duration]) => {
