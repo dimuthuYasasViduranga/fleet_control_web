@@ -42,7 +42,12 @@
 </template>
 
 <script>
-import { formatSeconds, formatDateIn } from '../../../../code/time.js';
+import {
+  formatSeconds,
+  formatDateIn,
+  hasSameUnit,
+  formatDateRelativeToIn,
+} from '../../../../code/time.js';
 import { attributeFromList } from '../../../../code/helpers';
 
 import Icon from 'hx-layout/Icon.vue';
@@ -92,12 +97,11 @@ export default {
     },
   },
   methods: {
-    formatTimestamp(date) {
-      if (!date) {
+    formatTimestamp(timestamp) {
+      if (!timestamp) {
         return '--';
       }
-      const tz = this.$timely.current.timezone;
-      return formatDateIn(new Date(date), tz, { format: 'HH:mm:ss' });
+      return formatDateRelativeToIn(new Date(timestamp), this.$timely.current.timezone);
     },
     formatDuration(startTime, endTime) {
       if (!startTime || !endTime) {

@@ -26,6 +26,26 @@ export function setTimeZone(datetime, timezone) {
   return datetime.setZone(timezone);
 }
 
+export function formatDateRelativeToIn(date, tz, now = new Date()) {
+  if (!date) {
+    return null;
+  }
+
+  if (hasSameUnit(date, now, tz, 'day')) {
+    return formatDateIn(date, tz, { format: 'HH:mm:ss' });
+  }
+  return formatDateIn(date, tz, { format: '(LLL-dd) HH:mm:ss' });
+}
+
+export function hasSameUnit(date1, date2, timezone, unit) {
+  if (!date1 || !date2) {
+    return false;
+  }
+  const lux1 = setTimeZone(date1, timezone);
+  const lux2 = setTimeZone(date2, timezone);
+  return lux1.hasSame(lux2, unit);
+}
+
 export function formatTodayRelative(date, tz, opts) {
   const { timezone, format } = {
     format: 'HH:mm:ss',
