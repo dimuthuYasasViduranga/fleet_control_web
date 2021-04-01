@@ -24,7 +24,11 @@
         <template slot-scope="row">
           <span v-tooltip="{ content: presenceTooltip(row) }">
             <div :class="presenceIconColor(row)">
-              <NIcon :icon="getIcon(row)" :secondaryIcon="getSecondaryIcon(row)" />
+              <NIcon
+                class="asset-icon"
+                :icon="getIcon(row)"
+                :secondaryIcon="getSecondaryIcon(row)"
+              />
             </div>
           </span>
         </template>
@@ -164,7 +168,7 @@ export default {
       return this.icons[row.assetType];
     },
     getSecondaryIcon(row) {
-      return row.hasDevice ? TabletIcon : undefined;
+      return row.hasDevice ? undefined : TabletIcon;
     },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
@@ -173,6 +177,9 @@ export default {
     },
     presenceTooltip(row) {
       const alloc = row.activeTimeAllocation;
+      if (!row.hasDevice) {
+        return 'No tablet assigned!';
+      }
       if (alloc.id) {
         return `${alloc.groupName} - ${alloc.name}`;
       }
@@ -249,5 +256,14 @@ export default {
 
 .dig-unit-table .table-edit-cel .hx-icon:hover {
   stroke: orange;
+}
+
+.dig-unit-table .asset-icon {
+  width: 2.5rem;
+}
+
+.dig-unit-table .asset-icon .secondary-icon {
+  stroke: orange;
+  stroke-dasharray: 1;
 }
 </style>
