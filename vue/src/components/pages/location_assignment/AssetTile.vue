@@ -28,11 +28,7 @@
     </Bubble>
 
     <div class="asset-icon-wrapper" :class="assetIconClass">
-      <Icon class="asset-icon" :icon="icon" />
-      <div class="alert-wrapper">
-        <Icon v-if="!hasDevice" class="missing-device-icon" :icon="tabletIcon" />
-        <Icon v-else-if="showAlert" class="alert-icon" :icon="alertIcon" />
-      </div>
+      <NIcon class="asset-icon" :icon="icon" :secondaryIcon="secondaryIcon" />
     </div>
 
     <!-- location if available -->
@@ -61,6 +57,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
+import NIcon from '@/components/NIcon.vue';
 import Bubble from '@/components/Bubble.vue';
 import AssetTilePopover from './AssetTilePopover.vue';
 import { attributeFromList } from '@/code/helpers';
@@ -89,6 +86,7 @@ export default {
   name: 'AssetTile',
   components: {
     Icon,
+    NIcon,
     Bubble,
     AssetTilePopover,
   },
@@ -99,8 +97,6 @@ export default {
   data: () => {
     return {
       listIcon: ListIcon,
-      alertIcon: AlertIcon,
-      tabletIcon: TabletIcon,
       showPopover: false,
       hovering: false,
     };
@@ -108,6 +104,15 @@ export default {
   computed: {
     hasDevice() {
       return !!this.asset.deviceId;
+    },
+    secondaryIcon() {
+      if (!this.hasDevice) {
+        return TabletIcon;
+      }
+
+      if (this.showAlert) {
+        return AlertIcon;
+      }
     },
     icon() {
       return this.$store.state.constants.icons[this.asset.type];
@@ -228,6 +233,17 @@ export default {
   stroke-width: 1;
 }
 
+.asset-tile .asset-icon .secondary-icon #alert_icon {
+  stroke-width: 2;
+  stroke: orange;
+}
+
+.asset-tile .asset-icon .secondary-icon #tablet_icon {
+  stroke-width: 0.5;
+  stroke: orange;
+  stroke-dasharray: 1;
+}
+
 /* -- operator/asset names */
 .asset-tile .icon-bar {
   text-align: center;
@@ -244,31 +260,6 @@ export default {
 .asset-tile .location-name {
   font-size: 0.75rem;
   overflow: hidden;
-}
-
-/* alert indicators */
-.asset-tile .alert-wrapper {
-  position: absolute;
-  top: 45px;
-  right: 20px;
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.asset-tile .alert-wrapper .hx-icon {
-  width: 100%;
-  height: 100%;
-}
-
-.asset-tile .alert-wrapper .alert-icon svg {
-  stroke-width: 2;
-  stroke: orange;
-}
-
-.asset-tile .alert-wrapper .missing-device-icon svg {
-  stroke-width: 2;
-  stroke: orange;
-  stroke-dasharray: 1;
 }
 
 /* ---- assignment bubble ----- */
