@@ -23,9 +23,13 @@
       <table-column label cell-class="table-icon-cel">
         <template slot-scope="row">
           <span v-tooltip="{ content: presenceTooltip(row) }">
-            <span :class="presenceIconColor(row)">
-              <Icon :icon="getIcon(row)" />
-            </span>
+            <div :class="presenceIconColor(row)">
+              <NIcon
+                class="asset-icon"
+                :icon="getIcon(row)"
+                :secondaryIcon="getSecondaryIcon(row)"
+              />
+            </div>
           </span>
         </template>
       </table-column>
@@ -87,6 +91,7 @@
 <script>
 import { mapState } from 'vuex';
 
+import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
 import DropDown from '../../dropdown/DropDown.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
@@ -94,13 +99,13 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 
 import { attributeFromList } from '@/code/helpers';
 
-import EditIcon from '../../icons/Edit.vue';
-
-const DIG_UNIT_TYPES = ['Excavator', 'Loader'];
+import EditIcon from '@/components/icons/Edit.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
 
 export default {
   name: 'DigUnitTable',
   components: {
+    NIcon,
     Icon,
     DropDown,
     TimeAllocationDropDown,
@@ -110,6 +115,7 @@ export default {
   data: () => {
     return {
       editIcon: EditIcon,
+      tabletIcon: TabletIcon,
     };
   },
   computed: {
@@ -131,7 +137,7 @@ export default {
     digUnits() {
       const activities = this.$store.state.digUnit.currentActivities;
       return this.$store.getters.fullAssets
-        .filter(fa => DIG_UNIT_TYPES.includes(fa.type) && fa.hasDevice)
+        .filter(fa => fa.secondaryType === 'Dig Unit')
         .map(asset => {
           const activity = attributeFromList(activities, 'assetId', asset.id) || {};
 
@@ -146,6 +152,7 @@ export default {
             loadStyleId: activity.loadStyleId,
             activeTimeAllocation: asset.activeTimeAllocation,
             present: asset.present,
+            hasDevice: asset.hasDevice,
           };
         });
     },
@@ -160,6 +167,9 @@ export default {
     getIcon(row) {
       return this.icons[row.assetType];
     },
+    getSecondaryIcon(row) {
+      return row.hasDevice ? undefined : TabletIcon;
+    },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
         .filter(tc => tc.assetTypeIds.includes(assetTypeId))
@@ -167,6 +177,9 @@ export default {
     },
     presenceTooltip(row) {
       const alloc = row.activeTimeAllocation;
+      if (!row.hasDevice) {
+        return 'No tablet assigned!';
+      }
       if (alloc.id) {
         return `${alloc.groupName} - ${alloc.name}`;
       }
@@ -243,5 +256,14 @@ export default {
 
 .dig-unit-table .table-edit-cel .hx-icon:hover {
   stroke: orange;
+}
+
+.dig-unit-table .asset-icon {
+  width: 2.5rem;
+}
+
+.dig-unit-table .asset-icon .secondary-icon {
+  stroke: orange;
+  stroke-dasharray: 1;
 }
 </style>

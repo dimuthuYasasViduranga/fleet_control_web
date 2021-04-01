@@ -154,6 +154,13 @@
         <icon style="height: 6rem; width: 12rem" :icon="selectedIcon" />
       </div>
     </hxCard>
+    <hxCard class="nested-icons" title="Nested Icons" :icon="bugIcon">
+      <NIcon :icon="bugIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 2rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 4rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 8rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 8rem" :icon="excavatorIcon" />
+    </hxCard>
   </div>
 </template>
 
@@ -163,6 +170,7 @@ import hxCard from 'hx-layout/Card.vue';
 import icon from 'hx-layout/Icon.vue';
 
 import BugIcon from '../../icons/Bug.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
 
 import DozerIcon from '../../icons/asset_icons/Dozer.vue';
 import HaulTruckIcon from '../../icons/asset_icons/HaulTruck.vue';
@@ -174,6 +182,7 @@ import GraderIcon from '../../icons/asset_icons/Grader.vue';
 import DrillIcon from '../../icons/asset_icons/Drill.vue';
 import LVIcon from '../../icons/asset_icons/LightVehicle.vue';
 
+import NIcon from '@/components/NIcon.vue';
 import ConfirmModal from '../../../components/modals/ConfirmModal.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
 
@@ -199,11 +208,14 @@ export default {
   components: {
     hxCard,
     icon,
+    NIcon,
     Dately,
   },
   data: () => {
     return {
       bugIcon: BugIcon,
+      excavatorIcon: ExcavatorIcon,
+      tabletIcon: TabletIcon,
       selectedIcon: ASSET_ICONS[0],
       assetIcons: ASSET_ICONS,
       toasts: {
@@ -394,5 +406,9 @@ export default {
 .debug-page .datetime-selector .value-table td {
   width: 6rem;
   text-align: center;
+}
+
+.debug-page .nested-icons .secondary-icon {
+  stroke: orange;
 }
 </style>
