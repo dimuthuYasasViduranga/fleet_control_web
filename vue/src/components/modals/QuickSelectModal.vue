@@ -51,7 +51,7 @@ export default {
   padding: 0.2rem;
   padding-left: 1rem;
   font-size: 1.25rem;
-  background-color: #2a3b46;
+  background-color: #41525e;
 }
 
 .item:hover {
