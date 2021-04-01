@@ -52,12 +52,12 @@
         </template>
       </table-column>
 
-      <table-column label="Load Location" cell-class="table-cel">
+      <table-column label="Dig Unit (location)" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
-            v-model="row.loadId"
-            :items="loadLocations"
-            label="name"
+            v-model="row.digUnitId"
+            :items="digUnitsWithLocations"
+            label="label"
             @change="setHaulTruckDispatch(row)"
           />
         </template>
@@ -118,8 +118,21 @@ export default {
     };
   },
   computed: {
+    assets() {
+      return this.$store.state.constants.assets;
+    },
     haulTruckDispatches() {
       return this.$store.state.haulTruck.currentDispatches;
+    },
+    digUnits() {
+      const activities = this.$store.state.digUnit.currentActivities;
+
+      return this.assets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(a => {
+          const activity = attributeFromList(activities, 'assetId', a.id) || {};
+          return { ...a, activity: { ...activity } };
+        });
     },
     haulTrucks() {
       const dispatches = this.haulTruckDispatches;
@@ -131,6 +144,7 @@ export default {
             assetId: asset.id,
             assetName: asset.name,
             operator: asset.operator.fullname || '',
+            digUnitId: dispatch.digUnitId,
             loadId: dispatch.loadId,
             dumpId: dispatch.dumpId,
             nextId: dispatch.nextId,
@@ -140,8 +154,24 @@ export default {
           };
         });
     },
-    loadLocations() {
-      return [noneLocation()].concat(this.$store.state.constants.loadLocations);
+    digUnitsWithLocations() {
+      const locations = this.$store.state.constants.locations;
+
+      const options = this.digUnits
+        .map(d => {
+          const locationId = (d.activity || {}).locationId;
+          const locName = attributeFromList(locations, 'id', locationId, 'name');
+
+          const label = locName ? `${d.name} (${locName})` : d.name;
+          return {
+            id: d.id,
+            name: d.name,
+            label,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return [{ id: null, label: 'None' }].concat(options);
     },
     dumpLocations() {
       return [noneLocation()].concat(this.$store.state.constants.dumpLocations);
@@ -218,7 +248,8 @@ export default {
     setHaulTruckDispatch(asset) {
       const dispatch = {
         asset_id: asset.assetId,
-        load_location_id: asset.loadId,
+        dig_unit_id: asset.digUnitId,
+        load_location_id: null,
         dump_location_id: asset.dumpId,
         timestamp: Date.now(),
       };
