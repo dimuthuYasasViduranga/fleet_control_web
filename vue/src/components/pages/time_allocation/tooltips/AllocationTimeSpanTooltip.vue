@@ -45,7 +45,6 @@
 import {
   formatSeconds,
   formatDateIn,
-  hasSameUnit,
   formatDateRelativeToIn,
 } from '../../../../code/time.js';
 import { attributeFromList } from '../../../../code/helpers';

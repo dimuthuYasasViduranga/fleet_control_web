@@ -56,7 +56,7 @@ import Loaded from '../../Loaded.vue';
 
 import BellIcon from '../../icons/Bell.vue';
 
-import { formatTodayRelative, toUtcDate } from '../../../code/time';
+import { formatDateRelativeToIn, toUtcDate } from '../../../code/time';
 import { attributeFromList, formatDeviceUUID } from '../../../code/helpers';
 
 export default {
@@ -111,7 +111,8 @@ export default {
       if (!date) {
         return '--';
       }
-      return formatTodayRelative(date);
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(date, tz);
     },
     formatDeviceUUID(uuid) {
       return formatDeviceUUID(uuid);

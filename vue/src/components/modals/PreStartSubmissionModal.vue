@@ -47,7 +47,7 @@
 import { mapState } from 'vuex';
 
 import { attributeFromList } from '@/code/helpers';
-import { formatTodayRelative } from '@/code/time';
+import { formatDateIn } from '@/code/time';
 
 function getOperator(operators, operatorId, employeeId) {
   return (
@@ -77,7 +77,8 @@ export default {
   },
   methods: {
     formatTime(date) {
-      return formatTodayRelative(date, 'yyyy-mm-dd HH:MM:SS');
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(date, tz, { format: '(yyyy-MM-dd) HH:mm:ss' });
     },
   },
 };

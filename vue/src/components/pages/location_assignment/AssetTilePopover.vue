@@ -64,7 +64,7 @@
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import { attributeFromList } from '@/code/helpers';
-import { formatSeconds, formatTodayRelative, toUtcDate } from '@/code/time';
+import { formatSeconds, formatDateRelativeToIn, toUtcDate } from '@/code/time';
 
 import AlertIcon from '@/components/icons/Alert.vue';
 
@@ -153,7 +153,8 @@ export default {
       return color ? `color: ${color}` : '';
     },
     formatDate(date) {
-      return formatTodayRelative(date);
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(date, tz);
     },
   },
 };
