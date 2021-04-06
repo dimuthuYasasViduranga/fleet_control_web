@@ -2,6 +2,7 @@
   <div class="dnd-route-main">
     <button class="hx-btn" @click="onAddRoute()">Add Route</button>
     <div class="layout">
+      <UnassignedAssets :assets="unassignedAssets" />
       <SimpleLayout :structure="structure" @remove="onRemoveRoute" />
     </div>
 
@@ -15,42 +16,45 @@ import AddRouteModal from './AddRouteModal.vue';
 
 import { RouteStructure } from './routeStructure.js';
 import SimpleLayout from './SimpleLayout.vue';
+import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 
-function toDigUnit(digUnit, activities) {
-  const activity = attributeFromList(activities, 'assetId', digUnit.id) || {};
-
+function toLocalFullAsset(asset) {
   return {
-    id: digUnit.id,
-    name: digUnit.name,
-    typeId: digUnit.typeId,
-    type: digUnit.type,
-    secondaryType: digUnit.secondaryType,
-    locationId: activity.locationId,
+    id: asset.id,
+    name: asset.name,
+    type: asset.type,
+    typeId: asset.typeId,
+    secondaryType: asset.secondaryType,
+    operator: asset.operator,
+    activeTimeAllocation: asset.activeTimeAllocation,
+    radioNumber: asset.radioNumber,
+    hasDevice: asset.hasDevice,
+    present: asset.present,
   };
 }
 
-function toHaulTruck(haulTruck, dispatches) {
-  const dispatch = attributeFromList(dispatches, 'assetId', haulTruck.id) || {};
+function addDigUnitInfo(digUnit, activities) {
+  const activity = attributeFromList(activities, 'assetId', digUnit.id) || {};
+  digUnit.locationId = activity.locationId;
+  return digUnit;
+}
 
-  return {
-    id: haulTruck.id,
-    name: haulTruck.name,
-    typeId: haulTruck.typeId,
-    type: haulTruck.type,
-    secondaryType: haulTruck.secondaryType,
-    digUnitId: dispatch.digUnitId,
-    loadId: dispatch.loadId,
-    dumpId: dispatch.dumpId,
-  };
+function addHaulTruckInfo(haulTruck, dispatches) {
+  const dispatch = attributeFromList(dispatches, 'assetId', haulTruck.id) || {};
+  haulTruck.digUnitId = dispatch.digUnitId;
+  haulTruck.loadId = dispatch.loadId;
+  haulTruck.dumpId = dispatch.dumpId;
+  return haulTruck;
 }
 
 export default {
   name: 'DndRouteMain',
   components: {
     SimpleLayout,
+    UnassignedAssets,
   },
   props: {
-    assets: { type: Array, default: () => [] },
+    fullAssets: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },
@@ -63,15 +67,27 @@ export default {
     };
   },
   computed: {
+    assets() {
+      return this.fullAssets.map(toLocalFullAsset);
+    },
     digUnits() {
-      return this.assets
+      return this.fullAssets
         .filter(a => a.secondaryType === 'Dig Unit')
-        .map(a => toDigUnit(a, this.digUnitActivities));
+        .map(a => addDigUnitInfo(a, this.digUnitActivities));
     },
     haulTrucks() {
-      return this.assets
+      return this.fullAssets
         .filter(a => a.type === 'Haul Truck')
-        .map(a => toHaulTruck(a, this.haulTruckDispatches));
+        .map(a => addHaulTruckInfo(a, this.haulTruckDispatches));
+    },
+    unassignedAssets() {
+      // check if the dig unit is in any of the routes
+      const routes = this.structure.routes;
+
+      const uDigUnits = this.digUnits.filter(d => routes.every(r => r.digUnitId !== d.id));
+      const uHaulTrucks = this.haulTrucks.filter(h => !h.digUnitId && !h.loadId && !h.dumpId);
+
+      return uDigUnits.concat(uHaulTrucks);
     },
   },
   methods: {

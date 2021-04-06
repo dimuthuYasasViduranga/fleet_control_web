@@ -3,7 +3,7 @@
     <loaded>
       <div class="settings"></div>
       <DndRouteMain
-        :assets="assets"
+        :fullAssets="fullAssets"
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
@@ -30,7 +30,6 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      assets: state => state.assets,
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
@@ -39,6 +38,9 @@ export default {
       haulTruckDispatches: state => state.haulTruck.currentDispatches,
       digUnitActivities: state => state.digUnit.currentActivities,
     }),
+    fullAssets() {
+      return this.$store.getters.fullAssets;
+    },
   },
 };
 </script>
