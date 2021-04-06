@@ -3,7 +3,7 @@ import VueRouter from 'vue-router';
 import AssetAssignment from '../components/pages/asset_assignment/AssetAssignment.vue';
 import AssetStatus from '../components/pages/asset_status/AssetStatus.vue';
 import DeviceAssignment from '../components/pages/device_assignment/DeviceAssignment.vue';
-import LocationAssignment from '../components/pages/location_assignment/LocationAssignment.vue';
+import LocationAssignment from '../components/pages/location_assignment_2/LocationAssignment.vue';
 import Operators from '../components/pages/operators/Operators.vue';
 import ActivityLog from '../components/pages/activity_log/ActivityLog.vue';
 import TimeAllocationPage from '../components/pages/time_allocation/TimeAllocationPage.vue';
