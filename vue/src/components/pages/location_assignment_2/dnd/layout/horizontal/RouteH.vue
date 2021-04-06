@@ -7,9 +7,9 @@
         <!-- may want to simply make the heading itself be a clickable button -->
         <Icon class="edit-icon" :icon="editIcon" />
       </div>
-      <div class="dig-unit-region">
+      <div class="dig-unit-region" @mouseenter="hovering = true" @mouseleave="hovering = false">
         <div class="actions">
-          <template v-if="hovering" @mouseenter="hovering = true" @mouseleave="hovering = false">
+          <template v-if="hovering">
             <Icon
               v-if="assignedHaulTrucks.length === 0"
               v-tooltip="'Clear All'"

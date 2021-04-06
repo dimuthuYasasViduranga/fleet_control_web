@@ -5,6 +5,18 @@
     <AssignTimeAllocation :asset="asset" :crossScale="crossScale" />
     <Separator />
     <table class="dispatch">
+      <tr class="row dig-unit">
+        <td class="key">Dig Unit</td>
+        <td class="value">
+          <DropDown
+            v-model="localDispatch.digUnitId"
+            :items="digUnitOptions"
+            label="name"
+            :useScrollLock="false"
+          />
+          <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearDigUnit" />
+        </td>
+      </tr>
       <tr class="row load">
         <td class="key">Load</td>
         <td class="value">
@@ -49,7 +61,7 @@ import AssignTimeAllocation from './AssignTimeAllocation.vue';
 import ActionButtons from './ActionButtons.vue';
 import Separator from './Separator.vue';
 import DropDown from '../dropdown/DropDown.vue';
-import { filterLocations } from '@/code/helpers';
+import { attributeFromList, filterLocations } from '@/code/helpers';
 
 function getEmptyLocation() {
   return {
@@ -60,6 +72,7 @@ function getEmptyLocation() {
 
 function toLocalDispatch(dispatch) {
   return {
+    digUnitId: dispatch.digUnitId,
     loadId: dispatch.loadId,
     dumpId: dispatch.dumpId,
     nextId: dispatch.nextId,
@@ -89,13 +102,15 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      assets: state => state.assets,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
       allLocations: state => state.locations,
     }),
-    dispatches() {
-      return this.$store.state.haulTruck.currentDispatches;
-    },
+    ...mapState({
+      haulTruckDispatches: state => state.haulTruck.currentDispatches,
+      digUnitActivities: state => state.digUnit.currentActivities,
+    }),
     loads() {
       const loads = filterLocations(
         this.loadLocations,
@@ -114,6 +129,25 @@ export default {
       );
       return [getEmptyLocation()].concat(dumps);
     },
+    digUnitOptions() {
+      const activities = this.digUnitActivities;
+      const options = this.assets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(d => {
+          const activity = attributeFromList(activities, 'assetId', d.id) || {};
+
+          const locName = attributeFromList(this.allLocations, 'id', activity.locationId, 'name');
+
+          const name = locName ? `${d.name} (${locName})` : d.name;
+
+          return {
+            id: d.id,
+            name,
+          };
+        });
+
+      return [{ name: 'None' }].concat(options);
+    },
   },
   watch: {
     asset: {
@@ -125,7 +159,7 @@ export default {
   },
   methods: {
     setLocalDispatch(asset) {
-      const dispatch = this.dispatches.find(d => d.assetId === asset.id);
+      const dispatch = this.haulTruckDispatches.find(d => d.assetId === asset.id);
       this.localDispatch = toLocalDispatch(dispatch || {});
     },
     onReset() {
@@ -142,6 +176,7 @@ export default {
 
       const dispatch = {
         asset_id: this.asset.id,
+        dig_unit_id: this.localDispatch.digUnitId,
         load_location_id: this.localDispatch.loadId,
         dump_location_id: this.localDispatch.dumpId,
         timestamp: Date.now(),
@@ -150,6 +185,9 @@ export default {
       this.$channel.push('haul:set dispatch', dispatch);
 
       this.$emit('submit');
+    },
+    onClearDigUnit() {
+      this.localDispatch.digUnitId = null;
     },
     onClearLoad() {
       this.localDispatch.loadId = null;
