@@ -2,9 +2,17 @@
   <div class="dnd-route-main">
     <button class="hx-btn" @click="onAddRoute()">Add Route</button>
     <div class="layout">
-      <OtherAssets :assets="otherAssets" />
-      <UnassignedAssets :assets="unassignedAssets" />
-      <SimpleLayout :structure="structure" @remove="onRemoveRoute" />
+      <!-- <OtherAssets :assets="otherAssets" /> -->
+      <!-- <UnassignedAssets :assets="unassignedAssets" /> -->
+      <!-- <SimpleLayout :structure="structure" @remove="onRemoveRoute" /> -->
+      <AssignedLayout
+        :structure="structure"
+        :haulTrucks="haulTrucks"
+        :digUnits="digUnits"
+        :locations="locations"
+        :loadLocations="loadLocations"
+        :dumpLocations="dumpLocations"
+      />
     </div>
 
     <pre>{{ structure }}</pre>
@@ -17,8 +25,9 @@ import AddRouteModal from './AddRouteModal.vue';
 
 import { RouteStructure } from './routeStructure.js';
 import SimpleLayout from './SimpleLayout.vue';
-import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import OtherAssets from './other_assets/OtherAssets.vue';
+import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
+import AssignedLayout from './layout/AssignedLayout.vue';
 
 function toLocalFullAsset(asset) {
   return {
@@ -55,6 +64,7 @@ export default {
     SimpleLayout,
     UnassignedAssets,
     OtherAssets,
+    AssignedLayout,
   },
   props: {
     fullAssets: { type: Array, default: () => [] },

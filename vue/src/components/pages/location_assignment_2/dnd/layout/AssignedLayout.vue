@@ -1,0 +1,72 @@
+<template>
+  <div class="assigned-layout">
+    <!-- quick add dig unit dropzone -->
+
+    <!-- vertical template -->
+
+    <!-- horizontal template -->
+    <div class="horizontal-layout">
+      <RouteH
+        v-for="(route, index) in groupedRoutes"
+        :key="index"
+        :digUnitId="route.digUnitId"
+        :loadId="route.loadId"
+        :dumpIds="route.dumpIds"
+        :digUnits="digUnits"
+        :haulTrucks="haulTrucks"
+        :locations="locations"
+      />
+    </div>
+  </div>
+</template>
+
+<script>
+import { Container, Draggable } from 'vue-smooth-dnd';
+import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
+
+import RouteH from './horizontal/RouteH.vue';
+
+import AddRouteModal from '../AddRouteModal.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
+import { attributeFromList, Dictionary } from '@/code/helpers';
+
+function groupRoutes(routes) {
+  const dict = new Dictionary();
+
+  routes.forEach(r => {
+    dict.append([r.digUnitId, r.loadId], r.dumpId);
+  });
+
+  return dict.map(([digUnitId, loadId], dumpIds) => {
+    return {
+      digUnitId,
+      loadId,
+      dumpIds,
+    };
+  });
+}
+
+export default {
+  name: 'AssignedLayout',
+  components: {
+    Container,
+    Draggable,
+    PerfectScrollbar,
+    RouteH,
+  },
+  props: {
+    structure: { type: Object, required: true },
+    haulTrucks: { type: Array, default: () => [] },
+    digUnits: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
+    loadLocations: { type: Array, default: () => [] },
+    dumpLocations: { type: Array, default: () => [] },
+  },
+  computed: {
+    groupedRoutes() {
+      return groupRoutes(this.structure.routes);
+    },
+  },
+  methods: {},
+};
+</script>
