@@ -2,6 +2,7 @@
   <div class="dnd-route-main">
     <button class="hx-btn" @click="onAddRoute()">Add Route</button>
     <div class="layout">
+      <OtherAssets :assets="otherAssets" />
       <UnassignedAssets :assets="unassignedAssets" />
       <SimpleLayout :structure="structure" @remove="onRemoveRoute" />
     </div>
@@ -17,6 +18,7 @@ import AddRouteModal from './AddRouteModal.vue';
 import { RouteStructure } from './routeStructure.js';
 import SimpleLayout from './SimpleLayout.vue';
 import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
+import OtherAssets from './other_assets/OtherAssets.vue';
 
 function toLocalFullAsset(asset) {
   return {
@@ -52,6 +54,7 @@ export default {
   components: {
     SimpleLayout,
     UnassignedAssets,
+    OtherAssets,
   },
   props: {
     fullAssets: { type: Array, default: () => [] },
@@ -71,14 +74,17 @@ export default {
       return this.fullAssets.map(toLocalFullAsset);
     },
     digUnits() {
-      return this.fullAssets
+      return this.assets
         .filter(a => a.secondaryType === 'Dig Unit')
         .map(a => addDigUnitInfo(a, this.digUnitActivities));
     },
     haulTrucks() {
-      return this.fullAssets
+      return this.assets
         .filter(a => a.type === 'Haul Truck')
         .map(a => addHaulTruckInfo(a, this.haulTruckDispatches));
+    },
+    otherAssets() {
+      return this.assets.filter(a => a.type !== 'Haul Truck' && a.secondaryType !== 'Dig Unit');
     },
     unassignedAssets() {
       // check if the dig unit is in any of the routes
