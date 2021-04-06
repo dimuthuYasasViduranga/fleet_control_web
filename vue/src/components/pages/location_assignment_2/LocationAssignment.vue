@@ -7,6 +7,8 @@
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
+        :digUnitActivities="digUnitActivities"
+        :haulTruckDispatches="haulTruckDispatches"
       />
     </loaded>
   </hxCard>
@@ -32,6 +34,10 @@ export default {
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
+    }),
+    ...mapState({
+      haulTruckDispatches: state => state.haulTruck.currentDispatches,
+      digUnitActivities: state => state.digUnit.currentActivities,
     }),
   },
 };

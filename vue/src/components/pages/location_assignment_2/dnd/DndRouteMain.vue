@@ -10,10 +10,39 @@
 </template>
 
 <script>
+import { attributeFromList } from '@/code/helpers';
 import AddRouteModal from './AddRouteModal.vue';
 
 import { RouteStructure } from './routeStructure.js';
 import SimpleLayout from './SimpleLayout.vue';
+
+function toDigUnit(digUnit, activities) {
+  const activity = attributeFromList(activities, 'assetId', digUnit.id) || {};
+
+  return {
+    id: digUnit.id,
+    name: digUnit.name,
+    typeId: digUnit.typeId,
+    type: digUnit.type,
+    secondaryType: digUnit.secondaryType,
+    locationId: activity.locationId,
+  };
+}
+
+function toHaulTruck(haulTruck, dispatches) {
+  const dispatch = attributeFromList(dispatches, 'assetId', haulTruck.id) || {};
+
+  return {
+    id: haulTruck.id,
+    name: haulTruck.name,
+    typeId: haulTruck.typeId,
+    type: haulTruck.type,
+    secondaryType: haulTruck.secondaryType,
+    digUnitId: dispatch.digUnitId,
+    loadId: dispatch.loadId,
+    dumpId: dispatch.dumpId,
+  };
+}
 
 export default {
   name: 'DndRouteMain',
@@ -25,6 +54,8 @@ export default {
     locations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },
+    digUnitActivities: { type: Array, default: () => [] },
+    haulTruckDispatches: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -33,7 +64,14 @@ export default {
   },
   computed: {
     digUnits() {
-      return this.assets.filter(a => a.secondaryType === 'Dig Unit');
+      return this.assets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(a => toDigUnit(a, this.digUnitActivities));
+    },
+    haulTrucks() {
+      return this.assets
+        .filter(a => a.type === 'Haul Truck')
+        .map(a => toHaulTruck(a, this.haulTruckDispatches));
     },
   },
   methods: {
@@ -51,7 +89,6 @@ export default {
       });
     },
     onRemoveRoute(route) {
-      console.dir('--- on remove route');
       this.structure.remove(route.digUnitId, route.loadId, route.dumpId);
     },
   },
