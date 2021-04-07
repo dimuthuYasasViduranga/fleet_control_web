@@ -1,6 +1,8 @@
 <template>
   <div class="route-v">
-    <div class="heading">{{ heading }}</div>
+    <div v-tooltip="'Change Source'" class="heading" @click="onMoveDumps">
+      {{ heading }}
+    </div>
 
     <div
       class="target-load"
@@ -174,12 +176,17 @@ export default {
       const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId, assetIds };
       this.$emit('move-trucks', payload);
     },
+    onMoveDumps() {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpIds: this.dumpIds };
+      this.$emit('move-dumps', payload);
+    },
   },
 };
 </script>
 
 <style scoped>
 .heading {
+  cursor: pointer;
   height: 2.25rem;
   line-height: 2.25rem;
   font-size: 1.5rem;

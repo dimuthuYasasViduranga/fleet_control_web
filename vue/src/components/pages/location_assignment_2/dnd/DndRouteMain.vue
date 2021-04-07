@@ -187,7 +187,7 @@ export default {
   methods: {
     updateLocalHaulTrucks(fullAssets) {
       // if dragging, all updates are suspended to prevent freezing issues
-      if (this.draggedAsset) {
+      if (this.draggedAsset || this.pendingUpdate) {
         this.pendingUpdate = true;
         return;
       }
@@ -285,6 +285,7 @@ export default {
     onDragEnd() {
       this.draggedAsset = null;
       if (this.pendingUpdate) {
+        this.pendingUpdate = false;
         this.updateLocalHaulTrucks(this.fullAssets);
       }
     },
@@ -326,6 +327,7 @@ export default {
     },
     onRequestAddDump({ digUnitId, loadId }) {
       const opts = {
+        title: 'Add Dump',
         digUnitId,
         loadId,
         digUnits: this.digUnitOptions,
@@ -441,12 +443,22 @@ export default {
           return d.digUnitId === digUnitId && d.loadId === loadId;
         });
 
+        if (affectedHaulTrucks.length === 0) {
+          return;
+        }
+
+        this.pendingUpdate = true;
+
         affectedRoutes.forEach(r => {
           const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
-          this.massSetHaulTrucks(movedAssets, resp.digUnitId, resp.loadId, r.dumpId);
-          this.structure.add(resp.digUnitId, resp.loadId, r.dumpId);
+          if (movedAssets.length) {
+            this.massSetHaulTrucks(movedAssets, resp.digUnitId, resp.loadId, r.dumpId);
+            this.structure.add(resp.digUnitId, resp.loadId, r.dumpId);
+          }
           this.structure.remove(digUnitId, loadId, r.dumpId);
         });
+
+        setTimeout(() => this.onDragEnd(), 200);
       });
     },
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
