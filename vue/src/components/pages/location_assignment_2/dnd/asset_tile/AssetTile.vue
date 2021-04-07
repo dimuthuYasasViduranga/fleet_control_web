@@ -70,9 +70,9 @@ import TabletIcon from '@/components/icons/Tablet.vue';
 const FLASH_DURATION = 10;
 
 function getAndResolveExternalUpdateClass(asset) {
-  if (asset.updatedExtenally === true) {
+  if (asset.updatedExternally === true) {
     // this is to make the element flash a colour
-    setTimeout(() => (asset.updatedExtenally = false), FLASH_DURATION);
+    setTimeout(() => (asset.updatedExternally = false), FLASH_DURATION);
     return 'tile-updated';
   }
   return '';

@@ -129,7 +129,7 @@ function toLocalAsset(asset) {
     activeTimeAllocation: asset.activeTimeAllocation,
     present: asset.present,
     synced: true,
-    updatedExtenally: false,
+    updatedExternally: false,
   };
 }
 
@@ -244,7 +244,7 @@ export default {
         const asset = toLocalAsset(ht);
         asset.dispatch = { ...ht.dispatch };
         if (hasLocalHaulTrucks && !dispatchEqual(asset.dispatch, oldAssetDispatch)) {
-          asset.updatedExtenally = true;
+          asset.updatedExternally = true;
         }
         return asset;
       });

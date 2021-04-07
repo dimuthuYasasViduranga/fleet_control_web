@@ -7,8 +7,8 @@
       <!-- <SimpleLayout :structure="structure" @remove="onRemoveRoute" /> -->
       <AssignedLayout
         :structure="structure"
-        :haulTrucks="haulTrucks"
-        :digUnits="digUnits"
+        :haulTrucks="localHaulTrucks"
+        :digUnits="localDigUnits"
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
@@ -99,49 +99,62 @@ export default {
     };
   },
   computed: {
-    assets() {
-      return this.fullAssets.map(toLocalFullAsset);
-    },
-    digUnits() {
-      return this.assets
-        .filter(a => a.secondaryType === 'Dig Unit')
-        .map(a => addDigUnitInfo(a, this.digUnitActivities));
-    },
-    haulTrucks() {
-      return this.assets
-        .filter(a => a.type === 'Haul Truck')
-        .map(a => addHaulTruckInfo(a, this.haulTruckDispatches));
-    },
+    // assets() {
+    //   return this.fullAssets.map(toLocalFullAsset);
+    // },
+    // digUnits() {
+    //   return this.assets
+    //     .filter(a => a.secondaryType === 'Dig Unit')
+    //     .map(a => addDigUnitInfo(a, this.digUnitActivities));
+    // },
+    // haulTrucks() {
+    //   return this.assets
+    //     .filter(a => a.type === 'Haul Truck')
+    //     .map(a => addHaulTruckInfo(a, this.haulTruckDispatches));
+    // },
     otherAssets() {
-      return this.assets.filter(a => a.type !== 'Haul Truck' && a.secondaryType !== 'Dig Unit');
+      return this.fullAssets
+        .filter(a => a.type !== 'Haul Truck' && a.secondaryType !== 'Dig Unit')
+        .map(toLocalFullAsset);
     },
     unassignedAssets() {
       // check if the dig unit is in any of the routes
-      const routes = this.structure.routes;
+      // const routes = this.structure.routes;
 
-      const uDigUnits = this.digUnits.filter(d => routes.every(r => r.digUnitId !== d.id));
-      const uHaulTrucks = this.haulTrucks.filter(h => !h.digUnitId && !h.loadId && !h.dumpId);
+      // const uDigUnits = this.digUnits.filter(d => routes.every(r => r.digUnitId !== d.id));
+      // const uHaulTrucks = this.haulTrucks.filter(h => !h.digUnitId && !h.loadId && !h.dumpId);
 
-      return uDigUnits.concat(uHaulTrucks);
+      // return uDigUnits.concat(uHaulTrucks);
+
+      return [];
     },
   },
   watch: {
-    haulTrucks: {
+    fullAssets: {
       immediate: true,
-      handler(assets) {
-        this.updateLocalHaulTrucks(assets);
+      handler(fullAssets) {
+        this.updateLocalHaulTrucks(fullAssets.filter(a => a.type === 'Haul Truck'));
+        this.updateLocalDigUnits(fullAssets.filter(a => a.secondaryType === 'Dig Unit'));
         this.updateStructure();
       },
     },
-    digUnits: {
+    haulTruckDispatches: {
       immediate: true,
-      handler(assets) {
-        this.updateLocalDigUnits(assets);
+      handler() {
+        this.updateLocalHaulTrucks(this.fullAssets.filter(a => a.type === 'Haul Truck'));
+        this.updateStructure();
+      },
+    },
+    digUnitActivities: {
+      immediate: true,
+      handler() {
+        this.updateLocalDigUnits(this.fullAssets.filter(a => a.secondaryType === 'Dig Unit'));
+        this.updateStructure();
       },
     },
   },
   methods: {
-    updateLocalHaulTrucks(assets) {
+    updateLocalHaulTrucks(fullAssets) {
       // if dragging, all updates are suspended to prevent freezing issues
       if (this.draggedAsset) {
         this.pendingUpdate = true;
@@ -150,12 +163,16 @@ export default {
 
       this.pendingUpdate = false;
       const currentlyHasAssets = this.localHaulTrucks.length !== 0;
-      const newHTs = this.haulTrucks.map(ht => {
+      const newHTs = fullAssets.map(fa => {
+        const ht = addHaulTruckInfo(toLocalFullAsset(fa), this.haulTruckDispatches);
+
         const oldAsset = attributeFromList(this.localHaulTrucks, 'id', ht.id) || {};
 
-        if (currentlyHasAssets && !haulTruckDispatchEqual(ht, oldAsset)) {
+        if (!haulTruckDispatchEqual(ht, oldAsset)) {
           ht.updatedExternally = true;
         }
+
+        ht.synced = true;
 
         return ht;
       });
@@ -163,7 +180,9 @@ export default {
       this.localHaulTrucks = newHTs;
     },
     updateLocalDigUnits(assets) {
-      this.localDigUnits = assets.slice();
+      this.localDigUnits = assets.map(a => {
+        return addDigUnitInfo(toLocalFullAsset(a), this.digUnitActivities);
+      });
     },
     updateStructure() {
       this.localHaulTrucks.forEach(ht => {
