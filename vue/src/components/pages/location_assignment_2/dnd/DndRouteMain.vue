@@ -23,6 +23,8 @@
         Click to Add Route
       </div>
       <AssignedLayout
+        :orientation="orientation"
+        :layoutSettings="layoutSettings"
         :structure="structure"
         :haulTrucks="localHaulTrucks"
         :digUnits="localDigUnits"
@@ -103,6 +105,8 @@ export default {
     AssignedLayout,
   },
   props: {
+    orientation: { type: String, default: 'horizontal' },
+    layoutSettings: { type: Object, default: () => ({ vertical: {}, horizontal: {} }) },
     fullAssets: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },

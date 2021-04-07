@@ -214,20 +214,4 @@ export default {
   border-right: 1px solid #23343f;
   margin: 0 0.25rem;
 }
-
-.add-dump-icon {
-  font-size: 1.5rem;
-  line-height: 2.2rem;
-  height: 2rem;
-  width: 2rem;
-  margin-top: 0.25rem;
-  margin-right: 0.25rem;
-  min-width: 0;
-  padding: 0;
-}
-
-.add-dump-icon.wide {
-  width: 100%;
-  margin-left: 0.25rem;
-}
 </style>

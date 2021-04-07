@@ -1,10 +1,10 @@
 <template>
-  <div class="dig-unit-dump-v" @mouseleave="hovering = false" @mouseenter="hovering = true">
-    <div class="dump-name">{{ dumpName || 'Unknown Dump' }}</div>
-    <div class="haul-truck">
+  <div class="dump-v" @mouseleave="hovering = false" @mouseenter="hovering = true">
+    <div class="heading">{{ dumpName || 'No Dump' }}</div>
+    <div class="haul-trucks">
       <div class="actions">
         <template v-if="hovering">
-          <template v-if="filteredHaulTrucks.length">
+          <template v-if="assignedHaulTrucks.length">
             <Icon
               v-tooltip="'Clear Trucks'"
               class="clear"
@@ -12,7 +12,7 @@
               @click="onClearDump()"
             />
 
-            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" @click="onMoveDump()" />
+            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" @click="onMoveTrucks()" />
           </template>
 
           <Icon
@@ -27,7 +27,7 @@
 
       <Container
         class="haul-truck-container"
-        :style="conatinerWidth"
+        :style="containerWidth"
         orientation="horizontal"
         group-name="draggable"
         :should-accept-drop="(_src, asset) => shouldAcceptIntoHaulTruck(asset)"
@@ -36,7 +36,7 @@
         @drop="onDropIntoHaulTruck"
         @drag-end="onDragEnd()"
       >
-        <Draggable v-for="haulTruck in filteredHaulTrucks" :key="haulTruck.id">
+        <Draggable v-for="haulTruck in assignedHaulTrucks" :key="haulTruck.id">
           <AssetTile :asset="haulTruck" />
         </Draggable>
       </Container>
@@ -47,16 +47,16 @@
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import { Container, Draggable } from 'vue-smooth-dnd';
-import AssetTile from './../AssetTile.vue';
-
-import { attributeFromList } from '@/code/helpers';
+import AssetTile from '../../asset_tile/AssetTile.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 
+import { attributeFromList } from '@/code/helpers';
+
 export default {
-  name: 'DigUnitDumpV',
+  name: 'DumpV',
   components: {
     Icon,
     Container,
@@ -64,17 +64,17 @@ export default {
     AssetTile,
   },
   props: {
-    dumpId: { type: [Number, String], default: null },
-    dumpName: { type: String, default: '' },
+    dumpId: { type: [String, Number] },
     haulTrucks: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
     columns: { type: Number, default: 2 },
   },
   data: () => {
     return {
-      hovering: false,
       crossIcon: CrossIcon,
       trashIcon: TrashIcon,
       editIcon: EditIcon,
+      hovering: false,
       dropPlaceholderOptions: {
         className: 'tile-drop-preview',
         animationDuration: '150',
@@ -83,32 +83,33 @@ export default {
     };
   },
   computed: {
-    filteredHaulTrucks() {
-      const haulTrucks = this.haulTrucks.filter(h => h.dispatch.dumpId === this.dumpId);
-      haulTrucks.sort((a, b) => a.name.localeCompare(b.name));
-      return haulTrucks;
+    dumpName() {
+      return attributeFromList(this.locations, 'id', this.dumpId, 'name');
     },
-    conatinerWidth() {
+    assignedHaulTrucks() {
+      return this.haulTrucks.filter(h => h.dispatch.dumpId === this.dumpId);
+    },
+    containerWidth() {
       return `width: ${this.columns * 7 + 1}rem;`;
     },
   },
   methods: {
     getChildPayload(index) {
-      const asset = this.filteredHaulTrucks[index];
-      this.$emit('drag-start', asset);
-      return asset;
+      const ht = this.assignedHaulTrucks[index];
+      this.$emit('drag-start', ht);
+      return ht;
     },
     onDragEnd() {
       this.$emit('drag-end');
     },
+    shouldAcceptIntoHaulTruck(asset) {
+      return asset && asset.type === 'Haul Truck';
+    },
     onDropIntoHaulTruck({ addedIndex, removedIndex, payload }) {
       // is added
       if (addedIndex !== null && removedIndex === null) {
-        this.$emit('add', payload);
+        this.$emit('set-haul-truck', payload);
       }
-    },
-    shouldAcceptIntoHaulTruck(asset) {
-      return asset && asset.type === 'Haul Truck';
     },
     onRemoveDump() {
       this.$emit('remove-dump', this.dumpId);
@@ -116,22 +117,23 @@ export default {
     onClearDump() {
       this.$emit('clear-dump', this.dumpId);
     },
-    onMoveDump() {
-      this.$emit('move-dump', this.dumpId);
+    onMoveTrucks() {
+      const assetIds = this.assignedHaulTrucks.map(a => a.id);
+      this.$emit('move-trucks', { dumpId: this.dumpId, assetIds });
     },
   },
 };
 </script>
 
 <style>
-.dig-unit-dump-v .smooth-dnd-container .tile-drop-preview {
+.dump-v .smooth-dnd-container .tile-drop-preview {
   border: 1px dashed grey;
   height: 7rem;
   width: 7rem;
   background-color: rgba(150, 150, 200, 0.1);
 }
 
-.dig-unit-dump-v .smooth-dnd-container .smooth-dnd-drop-preview-constant-class {
+.dump-v .smooth-dnd-container .smooth-dnd-drop-preview-constant-class {
   top: 0;
   width: 7rem;
 }
@@ -142,7 +144,7 @@ export default {
   cursor: move;
 }
 
-.dump-name {
+.heading {
   height: 2.25rem;
   line-height: 2rem;
   font-size: 1.25rem;
@@ -151,42 +153,38 @@ export default {
   padding: 0.25rem;
 }
 
-/* --- haul truck ---- */
-.haul-truck {
-  background-color: #111c22;
-}
-
-.haul-truck .actions {
+/* --- assets ---- */
+.haul-trucks .actions {
   height: 2rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
-.haul-truck .actions .hx-icon {
+.haul-trucks .actions .hx-icon {
   cursor: pointer;
   padding: 0.4rem 0;
 }
 
-.haul-truck .actions .remove:hover {
+.haul-trucks .actions .remove:hover {
   stroke: red;
 }
 
-.haul-truck .actions .clear:hover {
+.haul-trucks .actions .clear:hover {
   stroke: red;
 }
 
-.haul-truck .actions .move:hover {
-  stroke: orange;
-}
-
-.haul-truck .haul-truck-container {
+.haul-trucks .haul-truck-container {
+  width: 100%;
   min-height: 7rem;
   padding: 0.25rem;
   padding-left: 0.5rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  background-color: #111c22;
   overflow: hidden;
+}
+
+.haul-trucks .asset-tile {
+  background-color: #121f26;
 }
 </style>

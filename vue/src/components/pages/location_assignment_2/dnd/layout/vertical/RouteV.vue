@@ -1,49 +1,53 @@
 <template>
-  <div class="route-h">
-    <div class="target-load">
-      <!-- adding a location edit to here could be good, but also quite complicated -->
-      <div class="heading">{{ heading }}</div>
-      <div class="dig-unit-region" @mouseenter="hovering = true" @mouseleave="hovering = false">
-        <div class="actions">
-          <template v-if="hovering">
-            <Icon
-              v-if="assignedHaulTrucks.length"
-              v-tooltip="'Clear All'"
-              class="clear"
-              :icon="trashIcon"
-              @click="onClearRoute()"
-            />
-            <Icon
-              v-else
-              v-tooltip="'Remove'"
-              class="remove"
-              :icon="crossIcon"
-              @click="onRemoveRoute()"
-            />
+  <div class="route-v">
+    <div class="heading">{{ heading }}</div>
 
-            <Icon v-tooltip="'Add Dump'" class="add" :icon="addIcon" @click="onRequestAddDump()" />
-          </template>
-        </div>
-        <div class="dig-unit-tile-wrapper">
-          <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
-          <div v-else class="no-dig-unit"></div>
-        </div>
+    <div
+      class="target-load"
+      :style="minWidthStyle"
+      @mouseenter="hovering = true"
+      @mouseleave="hovering = false"
+    >
+      <div class="dig-unit-tile-wrapper">
+        <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
+        <div v-else class="no-dig-unit"></div>
+      </div>
+      <div class="actions">
+        <template v-if="hovering">
+          <Icon
+            v-if="assignedHaulTrucks.length"
+            v-tooltip="'Clear All'"
+            class="clear"
+            :icon="trashIcon"
+            @click="onClearRoute()"
+          />
+          <Icon
+            v-else
+            v-tooltip="'Remove'"
+            class="remove"
+            :icon="crossIcon"
+            @click="onRemoveRoute()"
+          />
+
+          <Icon v-tooltip="'Add Dump'" class="add" :icon="addIcon" @click="onRequestAddDump()" />
+        </template>
       </div>
     </div>
 
     <div class="dumps">
-      <DumpH
+      <DumpV
         v-for="dumpId in dumpIds"
         :key="dumpId"
         :dumpId="dumpId"
         :haulTrucks="assignedHaulTrucks"
         :locations="locations"
+        :columns="cols"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
         @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dumpId, $event)"
         @remove-dump="onRemoveDump(dumpId)"
         @clear-dump="onClearDump(dumpId)"
-        @move-trucks="onMoveTrucks"
+        @move-dump="onMoveTrucks"
       />
     </div>
   </div>
@@ -51,9 +55,9 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-
 import AssetTile from '../../asset_tile/AssetTile.vue';
-import DumpH from './DumpH.vue';
+import DumpV from './DumpV.vue';
+import DropDown from '@/components/dropdown/DropDown.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
@@ -64,32 +68,34 @@ import { attributeFromList } from '@/code/helpers';
 const NO_LOC = 'No Location';
 
 export default {
-  name: 'RouteH',
+  name: 'RouteB',
   components: {
     Icon,
     AssetTile,
-    DumpH,
-  },
-  data: () => {
-    return {
-      editIcon: EditIcon,
-      trashIcon: TrashIcon,
-      crossIcon: CrossIcon,
-      addIcon: AddIcon,
-      hovering: false,
-    };
+    DumpV,
+    DropDown,
   },
   props: {
-    digUnitId: { type: [String, Number] },
-    loadId: { type: [String, Number] },
+    digUnitId: { type: [Number, String] },
+    loadId: { type: [Number, String] },
     dumpIds: { type: Array, default: () => [] },
     digUnits: { type: Array, default: () => [] },
     haulTrucks: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
+    columns: { type: Number, default: 2 },
+  },
+  data: () => {
+    return {
+      editIcon: EditIcon,
+      addIcon: AddIcon,
+      trashIcon: TrashIcon,
+      crossIcon: CrossIcon,
+      hovering: false,
+    };
   },
   computed: {
     digUnit() {
-      return this.digUnits.find(d => d.id === this.digUnitId);
+      return this.digUnits.find(a => a.id === this.digUnitId);
     },
     loadLocation() {
       return this.locations.find(l => l.id === this.loadId);
@@ -97,7 +103,12 @@ export default {
     heading() {
       const digUnit = this.digUnit;
       if (digUnit) {
-        const digUnitLocName = attributeFromList(this.locations, 'id', digUnit.locationId, 'name');
+        const digUnitLocName = attributeFromList(
+          this.locations,
+          'id',
+          digUnit.activity.locationId,
+          'name',
+        );
         return digUnitLocName ? `${digUnit.name} (${digUnitLocName || NO_LOC})` : digUnit.name;
       }
 
@@ -112,6 +123,13 @@ export default {
           this.dumpIds.includes(dispatch.dumpId)
         );
       });
+    },
+    cols() {
+      const columns = this.columns || 2;
+      return columns < 1 ? 1 : columns;
+    },
+    minWidthStyle() {
+      return `min-width: ${this.cols * 7 + 1}rem;`;
     },
   },
   methods: {
@@ -153,88 +171,66 @@ export default {
 </script>
 
 <style scoped>
-.route-h {
-  display: flex;
-}
-
-/* --- dig unit ---- */
-.target-load {
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #121f26;
-  min-width: 15rem;
-}
-
-.target-load .heading {
+.heading {
   height: 2.25rem;
-  font-size: 1.1rem;
-  padding: 0.5rem 1rem;
+  line-height: 2.25rem;
+  font-size: 1.5rem;
+  padding: 0.25rem 1rem;
   text-align: center;
   background-color: #23343f;
 }
 
-.dig-unit-region {
-  height: calc(100% - 2rem);
+.target-load {
   background-color: #111c22;
 }
 
-.dig-unit-region .dig-unit-tile-wrapper {
+.target-load .dig-unit-tile-wrapper {
   display: flex;
-  height: calc(100% - 4rem);
+  justify-content: center;
 }
 
-.dig-unit-region .dig-unit-tile-wrapper .dig-unit-tile {
-  margin: auto;
-}
-
-.dig-unit-region .dig-unit-tile-wrapper .no-dig-unit {
+.target-load .dig-unit-tile-wrapper .no-dig-unit {
   width: 6rem;
   height: 6rem;
-  margin: auto;
+  margin: 1rem auto;
   border: 1px dashed rgb(66, 66, 66);
 }
 
 /* actions */
-.dig-unit-region .actions {
+.target-load .actions {
   height: 2rem;
-  min-width: 15rem;
+  width: 100%;
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
-.dig-unit-region .actions .hx-icon {
+.target-load .actions .hx-icon {
   cursor: pointer;
   padding: 0.4rem 0;
 }
 
-.dig-unit-region .actions .add:hover {
+.target-load .actions .add:hover {
   stroke: green;
 }
 
-.dig-unit-region .actions .remove:hover {
+.target-load .actions .remove:hover {
   stroke: red;
 }
 
-.dig-unit-region .actions .clear:hover {
+.target-load .actions .clear:hover {
   stroke: red;
 }
 
 /* --- dumps ---- */
-
-.add-dump-icon {
-  font-size: 1.5rem;
-  line-height: 2.2rem;
-  height: 2rem;
-  width: 2rem;
-  margin-top: 0.25rem;
-  margin-right: 0.25rem;
-  min-width: 0;
-  padding: 0;
+.dumps {
+  display: flex;
+  justify-content: center;
 }
 
-.add-dump-icon.wide {
-  width: 100%;
-  margin-left: 0.25rem;
+.dumps .dump-v {
+  border-left: 1px solid #23343f;
+  border-right: 1px solid #23343f;
+  margin: 0 0.25rem;
 }
 </style>

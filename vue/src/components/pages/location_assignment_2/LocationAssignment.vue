@@ -1,8 +1,16 @@
 <template>
   <hxCard class="location-assignment-2" :hideTitle="true">
     <loaded>
-      <div class="settings"></div>
+      <div class="settings">
+        <Icon
+          v-tooltip="{ content: 'Layout Settings', placement: 'left' }"
+          :icon="cogIcon"
+          @click="onOpenSettings()"
+        />
+      </div>
       <DndRouteMain
+        :orientation="dndSettings.orientation"
+        :layoutSettings="dndSettings"
         :fullAssets="fullAssets"
         :locations="locations"
         :loadLocations="loadLocations"
@@ -19,16 +27,25 @@
 <script>
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
+import Icon from 'hx-layout/Icon.vue';
 import Loaded from '@/components/Loaded.vue';
 
 import DndRouteMain from './dnd/DndRouteMain.vue';
+import CogIcon from '@/components/icons/Cog.vue';
+import DndSettingsModal from '../location_assignment/DndSettingsModal.vue';
 
 export default {
   name: 'LocationAssignment',
   components: {
     hxCard,
+    Icon,
     Loaded,
     DndRouteMain,
+  },
+  data: () => {
+    return {
+      cogIcon: CogIcon,
+    };
   },
   computed: {
     ...mapState('constants', {
@@ -43,8 +60,18 @@ export default {
     fullAssets() {
       return this.$store.getters.fullAssets;
     },
+    dndSettings() {
+      return this.$store.state.dndSettings;
+    },
   },
   methods: {
+    onOpenSettings() {
+      this.$modal.create(DndSettingsModal, { settings: this.dndSettings }).onClose(resp => {
+        if (resp) {
+          this.$store.commit('setDndSettings', resp);
+        }
+      });
+    },
     onUpdateHaulTruck({ assetId, digUnitId, loadId, dumpId }) {
       const payload = {
         asset_id: assetId,
@@ -77,3 +104,21 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.settings {
+  height: 0rem;
+}
+
+.settings .hx-icon {
+  cursor: pointer;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.settings .hx-icon:hover {
+  opacity: 0.5;
+}
+</style>
+
