@@ -6,27 +6,33 @@
     <Separator />
     <table class="dispatch">
       <tr class="row dig-unit">
-        <td class="key">Dig Unit</td>
-        <td class="value">
-          <DropDown
-            v-model="localDispatch.digUnitId"
-            :items="digUnitOptions"
-            label="name"
-            :useScrollLock="false"
-          />
-          <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearDigUnit" />
+        <td class="key">
+          <DropDown v-model="source" :items="sourceOptions" label="id" :useScrollLock="false" />
         </td>
-      </tr>
-      <tr class="row load">
-        <td class="key">Load</td>
         <td class="value">
-          <DropDown
-            v-model="localDispatch.loadId"
-            :items="loads"
-            label="name"
-            :useScrollLock="false"
-          />
-          <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearLoad" />
+          <template v-if="source === 'Dig Unit'">
+            <DropDown
+              v-model="localDispatch.digUnitId"
+              :items="digUnitOptions"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon
+              v-tooltip="'Clear'"
+              :icon="crossIcon"
+              :scale="crossScale"
+              @click="onClearDigUnit"
+            />
+          </template>
+          <template v-else>
+            <DropDown
+              v-model="localDispatch.loadId"
+              :items="loads"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearLoad" />
+          </template>
         </td>
       </tr>
       <tr class="row dump">
@@ -98,6 +104,8 @@ export default {
       localDispatch: {},
       showAllLocations: false,
       crossIcon: ErrorIcon,
+      source: 'Dig Unit',
+      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Location' }],
     };
   },
   computed: {
@@ -161,6 +169,12 @@ export default {
     setLocalDispatch(asset) {
       const dispatch = this.haulTruckDispatches.find(d => d.assetId === asset.id);
       this.localDispatch = toLocalDispatch(dispatch || {});
+
+      if (!this.localDispatch.digUnitId && this.localDispatch.loadId) {
+        this.source = 'Location';
+      } else {
+        this.source = 'Dig Unit';
+      }
     },
     onReset() {
       this.$emit('reset');
@@ -174,10 +188,13 @@ export default {
         return;
       }
 
+      const digUnitId = this.source === 'Dig Unit' ? this.localDispatch.digUnitId : null;
+      const loadId = this.source === 'Location' ? this.localDispatch.loadId : null;
+
       const dispatch = {
         asset_id: this.asset.id,
-        dig_unit_id: this.localDispatch.digUnitId,
-        load_location_id: this.localDispatch.loadId,
+        dig_unit_id: digUnitId,
+        load_location_id: loadId,
         dump_location_id: this.localDispatch.dumpId,
         timestamp: Date.now(),
       };
@@ -218,13 +235,20 @@ export default {
   font-size: 2rem;
 }
 
+.assign-haul-truck .dispatch .row .key .dropdown-wrapper {
+  width: 95%;
+  height: 2.5rem;
+  font-size: 1.75rem;
+}
+
 .assign-haul-truck .dispatch .row .value {
   display: flex;
   font-size: 1.5rem;
   text-align: center;
+  padding: 4px;
 }
 
-.assign-haul-truck .dispatch .row .dropdown-wrapper {
+.assign-haul-truck .dispatch .row .value .dropdown-wrapper {
   width: 100%;
   height: 2.5rem;
 }
