@@ -2,27 +2,28 @@
   <div class="add-route-modal">
     <table>
       <tr>
-        <td class="key">Dig Unit</td>
-        <td class="value">
-          <DropDown
-            v-model="localDigUnitId"
-            :items="digUnitOptions"
-            label="name"
-            :useScrollLock="false"
-          />
-          <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
+        <td class="key">
+          <DropDown v-model="source" :items="sourceOptions" label="id" :useScrollLock="false" />
         </td>
-      </tr>
-      <tr>
-        <td class="key">Load</td>
         <td class="value">
-          <DropDown
-            v-model="localLoadId"
-            :items="availableLoads"
-            label="name"
-            :useScrollLock="false"
-          />
-          <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
+          <template v-if="source === 'Dig Unit'">
+            <DropDown
+              v-model="localDigUnitId"
+              :items="digUnitOptions"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
+          </template>
+          <template v-else>
+            <DropDown
+              v-model="localLoadId"
+              :items="availableLoads"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
+          </template>
         </td>
       </tr>
       <tr>
@@ -80,6 +81,8 @@ export default {
       localDumpId: null,
       localLoadId: null,
       showAllLocations: false,
+      source: 'Dig Unit',
+      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Load' }],
     };
   },
   computed: {
@@ -114,15 +117,21 @@ export default {
     this.localDigUnitId = this.digUnitId;
     this.localLoadId = this.loadId;
     this.localDumpId = this.dumpId;
+
+    if (!this.digUnitId && this.loadId) {
+      this.source = 'Load';
+    }
   },
   methods: {
     onClose(resp) {
       this.$emit('close', resp);
     },
     onSubmit() {
+      const digUnitId = this.source === 'Dig Unit' ? this.localDigUnitId : null;
+      const loadId = this.source === 'Load' ? this.localLoadId : null;
       const payload = {
-        digUnitId: this.localDigUnitId,
-        loadId: this.localLoadId,
+        digUnitId,
+        loadId,
         dumpId: this.localDumpId,
       };
 
@@ -153,14 +162,21 @@ export default {
 }
 
 .add-route-modal tr .key {
-  width: 11rem;
+  width: 12rem;
   font-size: 2rem;
+}
+
+.add-route-modal tr .key .dropdown-wrapper {
+  width: 100%;
+  height: 2.5rem;
+  font-size: 1.5rem;
 }
 
 .add-route-modal tr .value {
   display: flex;
   font-size: 1.5rem;
   text-align: center;
+  padding: 4px;
 }
 
 .add-route-modal tr .value .dropdown-wrapper {
