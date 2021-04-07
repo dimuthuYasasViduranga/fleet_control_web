@@ -103,6 +103,10 @@ export default {
   },
   computed: {
     hasDevice() {
+      if (this.asset.hasDevice !== undefined) {
+        return this.asset.hasDevice;
+      }
+
       return !!this.asset.deviceId;
     },
     secondaryIcon() {
