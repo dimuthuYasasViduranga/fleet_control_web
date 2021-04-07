@@ -124,7 +124,7 @@ defmodule Dispatch.HaulTruckDispatchAgentTest do
       assert_db_contains(HaulDispatch, [first, second])
     end
 
-    test "valid (ignore load and next locations)", %{asset: asset, locations: locations} do
+    test "valid (ignore next location)", %{asset: asset, locations: locations} do
       dispatch =
         to_dispatch(asset.id, nil, nil)
         |> Map.put(:load_location_id, locations["Crusher"])
@@ -133,7 +133,7 @@ defmodule Dispatch.HaulTruckDispatchAgentTest do
       {:ok, actual} = HaulTruckDispatchAgent.set(dispatch)
 
       # return
-      assert actual.load_location_id == nil
+      assert actual.load_location_id != nil
       assert actual.next_location_id == nil
 
       # store

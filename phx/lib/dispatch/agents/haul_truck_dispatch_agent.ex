@@ -42,6 +42,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
         group_id: d.group_id,
         asset_id: d.asset_id,
         dig_unit_id: d.dig_unit_id,
+        load_location_id: d.load_location_id,
         dump_location_id: d.dump_location_id,
         server_timestamp: d.server_timestamp,
         timestamp: d.timestamp,
@@ -140,6 +141,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
 
     base_dispatch = %{
       dig_unit_id: dispatch.dig_unit_id,
+      load_location_id: dispatch.load_location_id,
       dump_location_id: dispatch.dump_location_id,
       timestamp: timestamp,
       server_timestamp: server_timestamp
@@ -205,6 +207,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
 
       base_dispatch = %{
         dig_unit_id: nil,
+        load_location_id: nil,
         dump_location_id: nil,
         timestamp: now,
         server_timestamp: now
@@ -301,6 +304,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
     is_nil(current) ||
       NaiveDateTime.compare(new[:timestamp], current[:timestamp]) != :gt ||
       new[:dig_unit_id] !== current[:dig_unit_id] ||
+      new[:load_location_id] !== current[:load_location_id] ||
       new[:dump_location_id] !== current[:dump_location_id]
   end
 
