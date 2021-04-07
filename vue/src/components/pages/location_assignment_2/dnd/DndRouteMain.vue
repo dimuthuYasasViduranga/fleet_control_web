@@ -1,6 +1,5 @@
 <template>
   <div class="dnd-route-main">
-    <button class="hx-btn" @click="onAddRoute()">Add Route</button>
     <div class="layout">
       <OtherAssets :assets="otherAssets" />
       <UnassignedAssets
@@ -9,6 +8,20 @@
         @drag-end="onDragEnd()"
         @add="onSetUnassigned"
       />
+      <!-- quick drop for dig units -->
+      <Container
+        v-if="draggedAsset && draggedAsset.secondaryType === 'Dig Unit'"
+        class="new-dig-unit-container"
+        behaviour="drop-zone"
+        group-name="draggable"
+        @drop="onDropNewDigUnit"
+      >
+        Drop to Add Route
+      </Container>
+      <!-- standard click to add -->
+      <div v-else class="add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
+        Click to Add Route
+      </div>
       <AssignedLayout
         :structure="structure"
         :haulTrucks="localHaulTrucks"
@@ -27,13 +40,11 @@
         @move-trucks="onMoveTrucks"
       />
     </div>
-
-    <pre>{{ structure }}</pre>
   </div>
 </template>
 
 <script>
-import { attributeFromList } from '@/code/helpers';
+import { Container, Draggable } from 'vue-smooth-dnd';
 import AddRouteModal from './AddRouteModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
@@ -41,6 +52,8 @@ import { RouteStructure } from './routeStructure.js';
 import OtherAssets from './other_assets/OtherAssets.vue';
 import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import AssignedLayout from './layout/AssignedLayout.vue';
+
+import { attributeFromList } from '@/code/helpers';
 
 function toLocalFullAsset(asset) {
   return {
@@ -83,6 +96,8 @@ function haulTruckDispatchEqual(a, b) {
 export default {
   name: 'DndRouteMain',
   components: {
+    Container,
+    Draggable,
     UnassignedAssets,
     OtherAssets,
     AssignedLayout,
@@ -378,13 +393,35 @@ export default {
         this.structure.remove(digUnitId, loadId, dumpId);
       });
     },
+    onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
+      // is added
+      if (addedIndex !== null && removedIndex === null) {
+        this.structure.add(payload.id, null, null);
+      }
+    },
   },
 };
 </script>
 
 <style>
-.dnd-route-main .layout {
-  margin: 1rem;
-  border: 1px solid orange;
+.dnd-route-main .add-route,
+.dnd-route-main .new-dig-unit-container {
+  user-select: none;
+  height: 3rem;
+  line-height: 3rem;
+  width: 100%;
+  color: #fff;
+  opacity: 0.5;
+  text-align: center;
+  cursor: pointer;
+  border: 1px dashed #364c59;
+  background-color: #20323b;
+  margin: 0.75rem 0;
+}
+
+.dnd-route-main .add-route:not(.no-hover):hover,
+.dnd-route-main .new-dig-unit-container:hover {
+  background-color: #20323b;
+  opacity: 1;
 }
 </style>
