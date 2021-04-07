@@ -32,7 +32,7 @@ import Loaded from '@/components/Loaded.vue';
 
 import DndRouteMain from './dnd/DndRouteMain.vue';
 import CogIcon from '@/components/icons/Cog.vue';
-import DndSettingsModal from '../location_assignment/DndSettingsModal.vue';
+import DndSettingsModal from './dnd/DndSettingsModal.vue';
 
 export default {
   name: 'LocationAssignment',

@@ -22,6 +22,7 @@
           @remove-dump="propagate('remove-dump', $event)"
           @clear-dump="propagate('clear-dump', $event)"
           @move-trucks="propagate('move-trucks', $event)"
+          @move-dumps="propagate('move-dumps', $event)"
         />
       </div>
     </PerfectScrollbar>
@@ -46,6 +47,7 @@
         @remove-dump="propagate('remove-dump', $event)"
         @clear-dump="propagate('clear-dump', $event)"
         @move-trucks="propagate('move-trucks', $event)"
+        @move-dumps="propagate('move-dumps', $event)"
       />
     </div>
   </div>

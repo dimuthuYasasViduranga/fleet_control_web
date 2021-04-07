@@ -1,5 +1,5 @@
 <template>
-  <div class="add-route-modal">
+  <div class="move-dumps-modal">
     <table>
       <tr>
         <td class="key">Dig Unit</td>
@@ -46,7 +46,7 @@ import ErrorIcon from 'hx-layout/icons/Error.vue';
 
 export default {
   name: 'AddRouteModal',
-  wrapperClass: 'add-route-modal-wrapper',
+  wrapperClass: 'move-dumps-modal-wrapper',
   components: {
     Icon,
     DropDown,
@@ -108,42 +108,42 @@ export default {
 </script>
 
 <style>
-.add-route-modal-wrapper .modal-container {
+.move-dumps-modal-wrapper .modal-container {
   max-width: 32rem;
 }
 
-.add-route-modal .separator {
+.move-dumps-modal .separator {
   height: 1rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid #677e8c;
 }
 
 /* ----- dropdowns ------ */
-.add-route-modal table {
+.move-dumps-modal table {
   width: 100%;
 }
 
-.add-route-modal tr {
+.move-dumps-modal tr {
   height: 3rem;
 }
 
-.add-route-modal tr .key {
+.move-dumps-modal tr .key {
   width: 11rem;
   font-size: 2rem;
 }
 
-.add-route-modal tr .value {
+.move-dumps-modal tr .value {
   display: flex;
   font-size: 1.5rem;
   text-align: center;
 }
 
-.add-route-modal tr .value .dropdown-wrapper {
+.move-dumps-modal tr .value .dropdown-wrapper {
   width: 100%;
   height: 2.5rem;
 }
 
-.add-route-modal tr .value .hx-icon {
+.move-dumps-modal tr .value .hx-icon {
   height: 2.5rem;
   width: 2.5rem;
   cursor: pointer;
@@ -151,19 +151,19 @@ export default {
 }
 
 /* ----- action buttons ----- */
-.add-route-modal .action-buttons {
+.move-dumps-modal .action-buttons {
   display: flex;
   width: 100%;
 }
 
-.add-route-modal .action-buttons button {
+.move-dumps-modal .action-buttons button {
   width: 100%;
   font-size: 1rem;
   margin: 0.1rem;
 }
 
 /* ---- confirm modal class ----- */
-.add-route-confirm .modal-container {
+.move-dumps-confirm .modal-container {
   max-width: 40rem;
 }
 </style>

@@ -2,7 +2,9 @@
   <div class="route-h">
     <div class="target-load">
       <!-- adding a location edit to here could be good, but also quite complicated -->
-      <div class="heading">{{ heading }}</div>
+      <div v-tooltip="'Change Source'" class="heading" @click="onMoveDumps">
+        {{ heading }}
+      </div>
       <div class="dig-unit-region" @mouseenter="hovering = true" @mouseleave="hovering = false">
         <div class="actions">
           <template v-if="hovering">
@@ -161,6 +163,10 @@ export default {
       const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId, assetIds };
       this.$emit('move-trucks', payload);
     },
+    onMoveDumps() {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpIds: this.dumpIds };
+      this.$emit('move-dumps', payload);
+    },
   },
 };
 </script>
@@ -179,11 +185,16 @@ export default {
 }
 
 .target-load .heading {
+  cursor: pointer;
   height: 2.25rem;
   font-size: 1.1rem;
   padding: 0.5rem 1rem;
   text-align: center;
   background-color: #23343f;
+}
+
+.target-load .heading:hover {
+  opacity: 0.75;
 }
 
 .dig-unit-region {

@@ -40,6 +40,7 @@
         @remove-dump="onRemoveDump"
         @clear-dump="onConfirmClearDump"
         @move-trucks="onMoveTrucks"
+        @move-dumps="onMoveDumps"
       />
     </div>
   </div>
@@ -56,6 +57,7 @@ import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import AssignedLayout from './layout/AssignedLayout.vue';
 
 import { attributeFromList } from '@/code/helpers';
+import MoveDumpsModal from './MoveDumpsModal.vue';
 
 function toLocalFullAsset(asset) {
   return {
@@ -396,6 +398,18 @@ export default {
         this.massSetHaulTrucks(assets, resp.digUnitId, resp.loadId, resp.dumpId);
         this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
         this.structure.remove(digUnitId, loadId, dumpId);
+      });
+    },
+    onMoveDumps({ digUnitId, loadId, dumpIds }) {
+      if (dumpIds.length === 0) {
+        console.error('[Dnd] Cannot move 0 dumps');
+        return;
+      }
+
+      const opts = {};
+
+      this.$modal.create(MoveDumpsModal, opts).onClose(resp => {
+        console.dir(resp);
       });
     },
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
