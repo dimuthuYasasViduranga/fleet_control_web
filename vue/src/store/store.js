@@ -176,7 +176,7 @@ const state = {
   },
   preStartSubmissions: Array(),
   dndSettings: {
-    orientation: 'vertical',
+    orientation: 'horizontal',
     vertical: {
       orderBy: 'location',
       columns: 2,

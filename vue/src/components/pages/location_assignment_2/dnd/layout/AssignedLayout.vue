@@ -1,7 +1,5 @@
 <template>
   <div class="assigned-layout">
-    <!-- quick add dig unit dropzone -->
-
     <!-- vertical template -->
     <PerfectScrollbar v-if="orientation === 'vertical'">
       <div class="vertical-layout">
