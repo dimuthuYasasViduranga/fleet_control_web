@@ -11,7 +11,7 @@
         <div class="actions">
           <template v-if="hovering">
             <Icon
-              v-if="assignedHaulTrucks.length === 0"
+              v-if="assignedHaulTrucks.length !== 0"
               v-tooltip="'Clear All'"
               class="clear"
               :icon="trashIcon"

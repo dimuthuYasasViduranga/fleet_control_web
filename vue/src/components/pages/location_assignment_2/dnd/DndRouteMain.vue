@@ -221,7 +221,7 @@ export default {
     },
     onAddRoute() {
       const opts = {
-        digUnits: this.digUnits,
+        digUnits: this.digUnitOptions,
         locations: this.locations,
         loadLocations: this.loadLocations,
         dumpLocations: this.dumpLocations,
