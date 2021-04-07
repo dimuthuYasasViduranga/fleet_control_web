@@ -259,8 +259,9 @@ export default {
         console.error('[Dnd] Set unassigned for dig unit is not implemented');
       }
     },
-    onAddRoute() {
+    onAddRoute(initials = {}) {
       const opts = {
+        ...initials,
         digUnits: this.digUnitOptions,
         locations: this.locations,
         loadLocations: this.loadLocations,
@@ -396,7 +397,7 @@ export default {
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
       // is added
       if (addedIndex !== null && removedIndex === null) {
-        this.structure.add(payload.id, null, null);
+        this.onAddRoute({ digUnitId: payload.id });
       }
     },
   },

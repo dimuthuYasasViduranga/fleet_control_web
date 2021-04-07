@@ -143,7 +143,7 @@ export default {
 
 <style>
 .add-route-modal-wrapper .modal-container {
-  max-width: 32rem;
+  max-width: 38rem;
 }
 
 .add-route-modal .separator {
@@ -162,7 +162,7 @@ export default {
 }
 
 .add-route-modal tr .key {
-  width: 12rem;
+  width: 13rem;
   font-size: 2rem;
 }
 
