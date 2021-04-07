@@ -36,17 +36,17 @@
 
     <div class="dumps">
       <DumpV
-        v-for="dumpId in dumpIds"
-        :key="dumpId"
-        :dumpId="dumpId"
+        v-for="dump in dumps"
+        :key="dump.id"
+        :dumpId="dump.id"
+        :dumpName="dump.name"
         :haulTrucks="assignedHaulTrucks"
-        :locations="locations"
         :columns="cols"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
-        @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dumpId, $event)"
-        @remove-dump="onRemoveDump(dumpId)"
-        @clear-dump="onClearDump(dumpId)"
+        @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dump.id, $event)"
+        @remove-dump="onRemoveDump(dump.id)"
+        @clear-dump="onClearDump(dump.id)"
         @move-dump="onMoveTrucks"
       />
     </div>
@@ -94,6 +94,14 @@ export default {
     };
   },
   computed: {
+    dumps() {
+      return this.dumpIds
+        .map(id => {
+          const name = attributeFromList(this.locations, 'id', id, 'name') || '';
+          return { id, name };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
     digUnit() {
       return this.digUnits.find(a => a.id === this.digUnitId);
     },
@@ -187,12 +195,13 @@ export default {
 .target-load .dig-unit-tile-wrapper {
   display: flex;
   justify-content: center;
+  height: 8rem;
 }
 
 .target-load .dig-unit-tile-wrapper .no-dig-unit {
   width: 6rem;
   height: 6rem;
-  margin: 1rem auto;
+  margin: auto;
   border: 1px dashed rgb(66, 66, 66);
 }
 

@@ -64,8 +64,8 @@ export default {
   },
   props: {
     dumpId: { type: [String, Number] },
+    dumpName: { type: String, default: '' },
     haulTrucks: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -81,9 +81,6 @@ export default {
     };
   },
   computed: {
-    dumpName() {
-      return attributeFromList(this.locations, 'id', this.dumpId, 'name');
-    },
     assignedHaulTrucks() {
       return this.haulTrucks.filter(h => h.dispatch.dumpId === this.dumpId);
     },

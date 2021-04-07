@@ -25,7 +25,6 @@ import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import TimeAllocationDropDown from '../TimeAllocationDropDown.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
-import { firstBy } from 'thenby';
 
 export default {
   name: 'AssignTimeAllocation',

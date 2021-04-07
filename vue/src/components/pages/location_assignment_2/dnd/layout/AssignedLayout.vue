@@ -63,8 +63,9 @@ import RouteH from './horizontal/RouteH.vue';
 import AddRouteModal from '../AddRouteModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import { attributeFromList, Dictionary } from '@/code/helpers';
+import { firstBy } from 'thenby';
 
-function groupRoutes(routes) {
+function groupRoutes(routes, digUnits, locations) {
   const dict = new Dictionary();
 
   routes.forEach(r => {
@@ -72,9 +73,14 @@ function groupRoutes(routes) {
   });
 
   return dict.map(([digUnitId, loadId], dumpIds) => {
+    const digUnit = attributeFromList(digUnits, 'id', digUnitId) || {};
+    const locationId = (digUnit.activity || {}).locationId || loadId;
+    const loadName = attributeFromList(locations, 'id', locationId, 'name') || '';
     return {
       digUnitId,
+      digUnitName: digUnit.name,
       loadId,
+      loadName,
       dumpIds,
     };
   });
@@ -101,7 +107,23 @@ export default {
   },
   computed: {
     groupedRoutes() {
-      return groupRoutes(this.structure.routes);
+      const routes = groupRoutes(this.structure.routes, this.digUnits, this.locations);
+
+      const orderBy = this.layoutSettings[this.orientation].orderBy;
+      // The first sorts are to move initial nulls to the end
+      if (orderBy === 'dig-unit') {
+        return routes.sort(
+          firstBy(r => !r.digUnitName)
+            .thenBy('digUnitName')
+            .thenBy('loadName'),
+        );
+      } else {
+        return routes.sort(
+          firstBy(r => !r.loadName)
+            .thenBy('loadName')
+            .thenBy('digUnitName'),
+        );
+      }
     },
   },
   methods: {
