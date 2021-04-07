@@ -31,7 +31,7 @@ export default {
   data: () => {
     return {
       locationIcon: LocationIcon,
-      show: true,
+      show: false,
     };
   },
   computed: {

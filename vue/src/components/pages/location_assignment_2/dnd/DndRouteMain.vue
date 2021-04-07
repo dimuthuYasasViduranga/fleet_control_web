@@ -144,22 +144,22 @@ export default {
     fullAssets: {
       immediate: true,
       handler(fullAssets) {
-        this.updateLocalHaulTrucks(fullAssets.filter(a => a.type === 'Haul Truck'));
-        this.updateLocalDigUnits(fullAssets.filter(a => a.secondaryType === 'Dig Unit'));
+        this.updateLocalHaulTrucks(fullAssets);
+        this.updateLocalDigUnits(fullAssets);
         this.updateStructure();
       },
     },
     haulTruckDispatches: {
       immediate: true,
       handler() {
-        this.updateLocalHaulTrucks(this.fullAssets.filter(a => a.type === 'Haul Truck'));
+        this.updateLocalHaulTrucks(this.fullAssets);
         this.updateStructure();
       },
     },
     digUnitActivities: {
       immediate: true,
       handler() {
-        this.updateLocalDigUnits(this.fullAssets.filter(a => a.secondaryType === 'Dig Unit'));
+        this.updateLocalDigUnits(this.fullAssets);
         this.updateStructure();
       },
     },
@@ -174,26 +174,30 @@ export default {
 
       this.pendingUpdate = false;
       const currentlyHasAssets = this.localHaulTrucks.length !== 0;
-      const newHTs = fullAssets.map(fa => {
-        const ht = addHaulTruckInfo(toLocalFullAsset(fa), this.haulTruckDispatches);
+      const newHTs = fullAssets
+        .filter(a => a.type === 'Haul Truck' && a.hasDevice)
+        .map(fa => {
+          const ht = addHaulTruckInfo(toLocalFullAsset(fa), this.haulTruckDispatches);
 
-        const oldAsset = attributeFromList(this.localHaulTrucks, 'id', ht.id) || {};
+          const oldAsset = attributeFromList(this.localHaulTrucks, 'id', ht.id) || {};
 
-        if (currentlyHasAssets && !haulTruckDispatchEqual(ht.dispatch, oldAsset.dispatch)) {
-          ht.updatedExternally = true;
-        }
+          if (currentlyHasAssets && !haulTruckDispatchEqual(ht.dispatch, oldAsset.dispatch)) {
+            ht.updatedExternally = true;
+          }
 
-        ht.synced = true;
+          ht.synced = true;
 
-        return ht;
-      });
+          return ht;
+        });
 
       this.localHaulTrucks = newHTs;
     },
     updateLocalDigUnits(assets) {
-      this.localDigUnits = assets.map(a => {
-        return addDigUnitInfo(toLocalFullAsset(a), this.digUnitActivities);
-      });
+      this.localDigUnits = assets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(a => {
+          return addDigUnitInfo(toLocalFullAsset(a), this.digUnitActivities);
+        });
     },
     updateStructure() {
       this.localHaulTrucks.forEach(ht => {
