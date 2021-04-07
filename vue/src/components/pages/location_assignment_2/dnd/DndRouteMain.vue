@@ -57,7 +57,6 @@ import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import AssignedLayout from './layout/AssignedLayout.vue';
 
 import { attributeFromList } from '@/code/helpers';
-import MoveDumpsModal from './MoveDumpsModal.vue';
 
 function toLocalFullAsset(asset) {
   return {
@@ -267,6 +266,7 @@ export default {
     },
     onAddRoute(initials = {}) {
       const opts = {
+        title: 'Add Route',
         ...initials,
         digUnits: this.digUnitOptions,
         locations: this.locations,
@@ -284,6 +284,9 @@ export default {
     },
     onDragEnd() {
       this.draggedAsset = null;
+      if (this.pendingUpdate) {
+        this.updateLocalHaulTrucks(this.fullAssets);
+      }
     },
     onSetHaulTruck({ asset, digUnitId, loadId, dumpId }) {
       this.setHaulTruck(asset, digUnitId, loadId, dumpId);
@@ -372,6 +375,7 @@ export default {
       }
 
       const opts = {
+        title: 'Move Trucks To',
         submitName: 'Submit',
         digUnitId,
         loadId,
@@ -406,10 +410,43 @@ export default {
         return;
       }
 
-      const opts = {};
+      const opts = {
+        title: 'Move Dumps To',
+        submitName: 'Move',
+        digUnitId,
+        loadId,
+        digUnits: this.digUnitOptions,
+        locations: this.locations,
+        loadLocations: this.loadLocations,
+        hideDump: true,
+      };
 
-      this.$modal.create(MoveDumpsModal, opts).onClose(resp => {
-        console.dir(resp);
+      this.$modal.create(AddRouteModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
+        }
+
+        // if there is a change
+        if (resp.digUnitId === digUnitId && resp.loadId === loadId) {
+          console.info('[Dnd] No change in route, no dumps moved');
+          return;
+        }
+
+        const affectedRoutes = this.structure.routes.filter(r => {
+          return r.digUnitId === digUnitId && r.loadId === loadId;
+        });
+
+        const affectedHaulTrucks = this.localHaulTrucks.filter(h => {
+          const d = h.dispatch;
+          return d.digUnitId === digUnitId && d.loadId === loadId;
+        });
+
+        affectedRoutes.forEach(r => {
+          const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
+          this.massSetHaulTrucks(movedAssets, resp.digUnitId, resp.loadId, r.dumpId);
+          this.structure.add(resp.digUnitId, resp.loadId, r.dumpId);
+          this.structure.remove(digUnitId, loadId, r.dumpId);
+        });
       });
     },
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {

@@ -1,5 +1,6 @@
 <template>
   <div class="add-route-modal">
+    <div v-if="title" class="title">{{ title }}</div>
     <table>
       <tr>
         <td class="key">
@@ -26,7 +27,7 @@
           </template>
         </td>
       </tr>
-      <tr>
+      <tr v-if="!hideDump">
         <td class="key">Dump</td>
         <td class="value">
           <DropDown
@@ -65,6 +66,7 @@ export default {
     DropDown,
   },
   props: {
+    title: { type: String, default: '' },
     submitName: { type: String, default: 'Add' },
     digUnitId: { type: [Number, String], default: null },
     loadId: { type: [Number, String], default: null },
@@ -73,6 +75,7 @@ export default {
     locations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },
+    hideDump: { type: Boolean, default: false },
   },
   data: () => {
     return {
@@ -148,6 +151,14 @@ export default {
 
 .add-route-modal .separator {
   height: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #677e8c;
+}
+
+.add-route-modal .title {
+  width: 100%;
+  font-size: 2rem;
+  text-align: center;
   margin-bottom: 1rem;
   border-bottom: 1px solid #677e8c;
 }
