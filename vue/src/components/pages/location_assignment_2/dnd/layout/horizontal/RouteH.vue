@@ -15,10 +15,17 @@
               v-tooltip="'Clear All'"
               class="clear"
               :icon="trashIcon"
+              @click="onClearRoute()"
             />
-            <Icon v-else v-tooltip="'Remove'" class="remove" :icon="crossIcon" />
+            <Icon
+              v-else
+              v-tooltip="'Remove'"
+              class="remove"
+              :icon="crossIcon"
+              @click="onRemoveRoute()"
+            />
 
-            <Icon v-tooltip="'Add Dump'" class="add" :icon="addIcon" />
+            <Icon v-tooltip="'Add Dump'" class="add" :icon="addIcon" @click="onRequestAddDump()" />
           </template>
         </div>
         <div class="dig-unit-tile-wrapper">
@@ -40,7 +47,7 @@
         @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dumpId, $event)"
         @remove-dump="onRemoveDump(dumpId)"
         @clear-dump="onClearDump(dumpId)"
-        @move-dump="onMoveDump(dumpId)"
+        @move-trucks="onMoveTrucks"
       />
     </div>
   </div>
@@ -129,7 +136,8 @@ export default {
       this.$emit('clear-route', payload);
     },
     onRequestAddDump() {
-      this.$emit('request-add-dump');
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId };
+      this.$emit('request-add-dump', payload);
     },
     onRemoveDump(dumpId) {
       const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
@@ -139,9 +147,9 @@ export default {
       const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
       this.$emit('clear-dump', payload);
     },
-    onMoveDump(dumpId) {
-      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
-      this.$emit('move-dump', payload);
+    onMoveTrucks({ dumpId, assetIds }) {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId, assetIds };
+      this.$emit('move-trucks', payload);
     },
   },
 };

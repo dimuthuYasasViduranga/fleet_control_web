@@ -9,15 +9,10 @@
               v-tooltip="'Clear Trucks'"
               class="clear"
               :icon="trashIcon"
-              @click="onClearDump(dumpId)"
+              @click="onClearDump()"
             />
 
-            <Icon
-              v-tooltip="'Move Trucks'"
-              class="move"
-              :icon="editIcon"
-              @click="onMoveDump(dumpId)"
-            />
+            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" @click="onMoveTrucks()" />
           </template>
 
           <Icon
@@ -25,7 +20,7 @@
             v-tooltip="'Remove Dump'"
             class="remove"
             :icon="crossIcon"
-            @click="onRemoveDump(dumpId)"
+            @click="onRemoveDump()"
           />
         </template>
       </div>
@@ -117,8 +112,9 @@ export default {
     onClearDump() {
       this.$emit('clear-dump', this.dumpId);
     },
-    onMoveDump() {
-      this.$emit('move-dump', this.dumpId);
+    onMoveTrucks() {
+      const assetIds = this.assignedHaulTrucks.map(a => a.id);
+      this.$emit('move-trucks', { dumpId: this.dumpId, assetIds });
     },
   },
 };

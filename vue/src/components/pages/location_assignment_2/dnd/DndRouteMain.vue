@@ -19,8 +19,8 @@
         @clear-route="onConfirmClearRoute"
         @request-add-dump="onRequestAddDump"
         @remove-dump="onRemoveDump"
-        @clear-dump="onClearDump"
-        @move-dump="onMoveDump"
+        @clear-dump="onConfirmClearDump"
+        @move-trucks="onMoveTrucks"
       />
     </div>
 
@@ -31,6 +31,7 @@
 <script>
 import { attributeFromList } from '@/code/helpers';
 import AddRouteModal from './AddRouteModal.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import { RouteStructure } from './routeStructure.js';
 import SimpleLayout from './SimpleLayout.vue';
@@ -99,19 +100,24 @@ export default {
     };
   },
   computed: {
-    // assets() {
-    //   return this.fullAssets.map(toLocalFullAsset);
-    // },
-    // digUnits() {
-    //   return this.assets
-    //     .filter(a => a.secondaryType === 'Dig Unit')
-    //     .map(a => addDigUnitInfo(a, this.digUnitActivities));
-    // },
-    // haulTrucks() {
-    //   return this.assets
-    //     .filter(a => a.type === 'Haul Truck')
-    //     .map(a => addHaulTruckInfo(a, this.haulTruckDispatches));
-    // },
+    digUnitOptions() {
+      const activities = this.digUnitActivities;
+      const locations = this.locations;
+      return this.fullAssets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(a => {
+          const locationId = attributeFromList(activities, 'assetId', a.id, 'locationId');
+
+          const locationName = attributeFromList(locations, 'id', locationId, 'name');
+
+          const name = locationName ? `${a.name} (${locationName})` : a.name;
+
+          return {
+            id: a.id,
+            name,
+          };
+        });
+    },
     otherAssets() {
       return this.fullAssets
         .filter(a => a.type !== 'Haul Truck' && a.secondaryType !== 'Dig Unit')
@@ -199,6 +205,20 @@ export default {
       this.localHaulTrucks = this.localHaulTrucks.slice();
       this.$emit('set-haul-truck', { assetId: asset.id, digUnitId, loadId, dumpId });
     },
+    massSetHaulTrucks(assets, digUnitId, loadId, dumpId) {
+      assets.forEach(asset => {
+        if (asset && asset.type === 'Haul Truck') {
+          asset.digUnitId = digUnitId;
+          asset.loadId = loadId;
+          asset.dumpId = dumpId;
+
+          asset.synced = false;
+        }
+      });
+
+      this.localHaulTrucks = this.localHaulTrucks.slice();
+      this.$emit('mass-set-haul-trucks', { assetIds, digUnitId, loadId, dumpId });
+    },
     onAddRoute() {
       const opts = {
         digUnits: this.digUnits,
@@ -219,11 +239,9 @@ export default {
       this.draggedAsset = null;
     },
     onSetHaulTruck({ asset, digUnitId, loadId, dumpId }) {
-      console.dir('---- on set haul truck');
       this.setHaulTruck(asset, digUnitId, loadId, dumpId);
     },
     onRemoveRoute(route) {
-      console.dir('--- on remove route');
       this.structure.removeAllDumpsFor(route.digUnitId, route.loadId);
     },
     onConfirmClearRoute(event) {
@@ -231,22 +249,86 @@ export default {
       console.dir(event);
       // prompt to say that everything will be cleared
     },
-    onRequestAddDump(event) {
-      console.dir('--- request add dump');
-      console.dir(event);
-      // open the add modal here with some details (just add route with start values)
+    onRequestAddDump({ digUnitId, loadId }) {
+      const opts = {
+        digUnitId,
+        loadId,
+        digUnits: this.digUnitOptions,
+        locations: this.locations,
+        loadLocations: this.loadLocations,
+        dumpLocations: this.dumpLocations,
+      };
+
+      this.$modal.create(AddRouteModal, opts).onClose(resp => {
+        if (resp) {
+          this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
+        }
+      });
     },
-    onRemoveDump(event) {
-      console.dir('---- remove dump');
-      console.dir(event);
+    onRemoveDump(route) {
+      this.structure.remove(route.digUnitId, route.loadId, route.dumpId);
     },
-    onClearDump(event) {
-      console.dir('---- clear dump');
-      console.dir(event);
+    onConfirmClearDump({ digUnitId, loadId, dumpId }) {
+      const ok = 'yes';
+      const opts = {
+        title: 'Clear Dump',
+        body: 'Are you sure you want to remove all assets from this dump?',
+        ok,
+      };
+
+      this.$modal.create(ConfirmModal, opts).onClose(resp => {
+        if (resp === ok) {
+          this.clearDump(digUnitId, loadId, dumpId);
+        }
+      });
     },
-    onMoveDump(event) {
-      console.dir('---- move dump');
-      console.dir(event);
+    clearDump(digUnitId, loadId, dumpId) {
+      const assets = this.localHaulTrucks.filter(h => {
+        return h.digUnitId === digUnitId && h.loadId === loadId && h.dumpId === dumpId;
+      });
+
+      if (assets.length) {
+        this.structure.remove(digUnitId, loadId, dumpId);
+        return;
+      }
+
+      this.massSetHaulTrucks(assets, null, null, null);
+      this.structure.remove(digUnitId, laodId, dumpId);
+    },
+    onMoveTrucks({ assetIds, digUnitId, loadId, dumpId }) {
+      if (assetIds.length === 0) {
+        console.error('[Dnd] Cannot move 0 trucks');
+        return;
+      }
+
+      const opts = {
+        submitName: 'Submit',
+        digUnitId,
+        loadId,
+        dumpId,
+        digUnits: this.digUnitOptions,
+        locations: this.locations,
+        loadLocations: this.loadLocations,
+        dumpLocations: this.dumpLocations,
+      };
+
+      this.$modal.create(AddRouteModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
+        }
+
+        // if there is a change
+        if (resp.digUnitId === digUnitId && resp.loadId === loadId && resp.dumpId === dumpId) {
+          console.info('[Dnd] No change in route, no assets moved');
+          return;
+        }
+
+        const assets = this.localHaulTrucks.filter(a => assetIds.includes(a.id));
+
+        this.massSetHaulTrucks(assets, resp.digUnitId, resp.loadId, resp.dumpId);
+        this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
+        this.structure.remove(digUnitId, loadId, dumpId);
+      });
     },
   },
 };

@@ -112,8 +112,8 @@ export default {
   },
   mounted() {
     this.localDigUnitId = this.digUnitId;
-    this.localDumpId = this.dumpId;
     this.localLoadId = this.loadId;
+    this.localDumpId = this.dumpId;
   },
   methods: {
     onClose(resp) {

@@ -18,6 +18,12 @@ export class RouteStructure {
       return;
     }
 
+    if (digUnitId && loadId) {
+      console.info('[Structure] Cannot have dig unit and load id at the same time');
+      this.add(digUnitId, null, dumpId);
+      return;
+    }
+
     const existingRoute = this.get(digUnitId, loadId, dumpId);
     if (!existingRoute) {
       this._routes.push(new Route(digUnitId, loadId, dumpId));

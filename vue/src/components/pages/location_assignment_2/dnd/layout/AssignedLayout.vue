@@ -23,7 +23,7 @@
         @request-add-dump="propagate('request-add-dump', $event)"
         @remove-dump="propagate('remove-dump', $event)"
         @clear-dump="propagate('clear-dump', $event)"
-        @move-dump="propagate('move-dump', $event)"
+        @move-trucks="propagate('move-trucks', $event)"
       />
     </div>
   </div>
