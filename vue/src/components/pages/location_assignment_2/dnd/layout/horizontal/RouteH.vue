@@ -5,7 +5,7 @@
       <div class="heading">
         <div class="title">{{ heading }}</div>
         <!-- may want to simply make the heading itself be a clickable button -->
-        <Icon class="edit-icon" :icon="editIcon" />
+        <Icon v-tooltip="'Edit Location'" class="edit-icon" :icon="editIcon" />
       </div>
       <div class="dig-unit-region" @mouseenter="hovering = true" @mouseleave="hovering = false">
         <div class="actions">
@@ -22,12 +22,8 @@
           </template>
         </div>
         <div class="dig-unit-tile-wrapper">
-          <AssetTile
-            v-if="digUnit"
-            class="dig-unit-tile"
-            :class="{ 'no-dig-unit': !digUnit }"
-            :asset="digUnit"
-          />
+          <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
+          <div v-else class="no-dig-unit"></div>
         </div>
       </div>
     </div>
@@ -37,8 +33,14 @@
         v-for="dumpId in dumpIds"
         :key="dumpId"
         :dumpId="dumpId"
-        :haulTrucks="haulTrucks"
+        :haulTrucks="assignedHaulTrucks"
         :locations="locations"
+        @drag-start="onDragStart"
+        @drag-end="onDragEnd"
+        @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dumpId, $event)"
+        @remove-dump="onRemoveDump(dumpId)"
+        @clear-dump="onClearDump(dumpId)"
+        @move-dump="onMoveDump(dumpId)"
       />
     </div>
   </div>
@@ -108,6 +110,40 @@ export default {
       });
     },
   },
+  methods: {
+    onDragStart(asset) {
+      this.$emit('drag-start', asset);
+    },
+    onDragEnd() {
+      this.$emit('drag-end');
+    },
+    onSetHaulTruck(digUnitId, loadId, dumpId, asset) {
+      this.$emit('set-haul-truck', { digUnitId, loadId, dumpId, asset });
+    },
+    onRemoveRoute() {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId };
+      this.$emit('remove-route', payload);
+    },
+    onClearRoute() {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId };
+      this.$emit('clear-route', payload);
+    },
+    onRequestAddDump() {
+      this.$emit('request-add-dump');
+    },
+    onRemoveDump(dumpId) {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
+      this.$emit('remove-dump', payload);
+    },
+    onClearDump(dumpId) {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
+      this.$emit('clear-dump', payload);
+    },
+    onMoveDump(dumpId) {
+      const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId };
+      this.$emit('move-dump', payload);
+    },
+  },
 };
 </script>
 
@@ -160,8 +196,15 @@ export default {
   height: calc(100% - 4rem);
 }
 
-.dig-unit-region .dig-unit-tile-wrapper .asset-tile {
+.dig-unit-region .dig-unit-tile-wrapper .dig-unit-tile {
   margin: auto;
+}
+
+.dig-unit-region .dig-unit-tile-wrapper .no-dig-unit {
+  width: 6rem;
+  height: 6rem;
+  margin: auto;
+  border: 1px dashed rgb(66, 66, 66);
 }
 
 /* actions */

@@ -12,6 +12,15 @@
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
+        @drag-start="onDragStart"
+        @drag-end="onDragEnd()"
+        @set-haul-truck="onSetHaulTruck"
+        @remove-route="onRemoveRoute"
+        @clear-route="onConfirmClearRoute"
+        @request-add-dump="onRequestAddDump"
+        @remove-dump="onRemoveDump"
+        @clear-dump="onClearDump"
+        @move-dump="onMoveDump"
       />
     </div>
 
@@ -41,6 +50,8 @@ function toLocalFullAsset(asset) {
     radioNumber: asset.radioNumber,
     hasDevice: asset.hasDevice,
     present: asset.present,
+    synced: true,
+    updatedExternally: false,
   };
 }
 
@@ -52,10 +63,14 @@ function addDigUnitInfo(digUnit, activities) {
 
 function addHaulTruckInfo(haulTruck, dispatches) {
   const dispatch = attributeFromList(dispatches, 'assetId', haulTruck.id) || {};
-  haulTruck.digUnitId = dispatch.digUnitId;
-  haulTruck.loadId = dispatch.loadId;
-  haulTruck.dumpId = dispatch.dumpId;
+  haulTruck.digUnitId = dispatch.digUnitId || null;
+  haulTruck.loadId = dispatch.loadId || null;
+  haulTruck.dumpId = dispatch.dumpId || null;
   return haulTruck;
+}
+
+function haulTruckDispatchEqual(a, b) {
+  return a.digUnitId === b.digUnitId && a.loadId === b.loadId && a.dumpId === b.dumpId;
 }
 
 export default {
@@ -77,6 +92,10 @@ export default {
   data: () => {
     return {
       structure: new RouteStructure(),
+      draggedAsset: null,
+      localHaulTrucks: [],
+      localDigUnits: [],
+      pendingUpdate: false,
     };
   },
   computed: {
@@ -106,7 +125,61 @@ export default {
       return uDigUnits.concat(uHaulTrucks);
     },
   },
+  watch: {
+    haulTrucks: {
+      immediate: true,
+      handler(assets) {
+        this.updateLocalHaulTrucks(assets);
+        this.updateStructure();
+      },
+    },
+    digUnits: {
+      immediate: true,
+      handler(assets) {
+        this.updateLocalDigUnits(assets);
+      },
+    },
+  },
   methods: {
+    updateLocalHaulTrucks(assets) {
+      // if dragging, all updates are suspended to prevent freezing issues
+      if (this.draggedAsset) {
+        this.pendingUpdate = true;
+        return;
+      }
+
+      this.pendingUpdate = false;
+      const currentlyHasAssets = this.localHaulTrucks.length !== 0;
+      const newHTs = this.haulTrucks.map(ht => {
+        const oldAsset = attributeFromList(this.localHaulTrucks, 'id', ht.id) || {};
+
+        if (currentlyHasAssets && !haulTruckDispatchEqual(ht, oldAsset)) {
+          ht.updatedExternally = true;
+        }
+
+        return ht;
+      });
+
+      this.localHaulTrucks = newHTs;
+    },
+    updateLocalDigUnits(assets) {
+      this.localDigUnits = assets.slice();
+    },
+    updateStructure() {
+      this.localHaulTrucks.forEach(ht => {
+        this.structure.add(ht.digUnitId, ht.loadId, ht.dumpId);
+      });
+    },
+    setHaulTruck(asset, digUnitId, loadId, dumpId) {
+      asset.digUnitId = digUnitId;
+      asset.loadId = loadId;
+      asset.dumpId = dumpId;
+
+      asset.synced = false;
+
+      this.localHaulTrucks = this.localHaulTrucks.slice();
+      this.$emit('set-haul-truck', { assetId: asset.id, digUnitId, loadId, dumpId });
+    },
     onAddRoute() {
       const opts = {
         digUnits: this.digUnits,
@@ -120,8 +193,41 @@ export default {
         }
       });
     },
+    onDragStart(asset) {
+      this.draggedAsset = asset;
+    },
+    onDragEnd() {
+      this.draggedAsset = null;
+    },
+    onSetHaulTruck({ asset, digUnitId, loadId, dumpId }) {
+      console.dir('---- on set haul truck');
+      this.setHaulTruck(asset, digUnitId, loadId, dumpId);
+    },
     onRemoveRoute(route) {
-      this.structure.remove(route.digUnitId, route.loadId, route.dumpId);
+      console.dir('--- on remove route');
+      this.structure.removeAllDumpsFor(route.digUnitId, route.loadId);
+    },
+    onConfirmClearRoute(event) {
+      console.dir('--- confirm clear route');
+      console.dir(event);
+      // prompt to say that everything will be cleared
+    },
+    onRequestAddDump(event) {
+      console.dir('--- request add dump');
+      console.dir(event);
+      // open the add modal here with some details (just add route with start values)
+    },
+    onRemoveDump(event) {
+      console.dir('---- remove dump');
+      console.dir(event);
+    },
+    onClearDump(event) {
+      console.dir('---- clear dump');
+      console.dir(event);
+    },
+    onMoveDump(event) {
+      console.dir('---- move dump');
+      console.dir(event);
     },
   },
 };

@@ -63,6 +63,17 @@
         </template>
       </table-column>
 
+      <table-column label="Load Location" cell-class="table-cel">
+        <template slot-scope="row">
+          <DropDown
+            v-model="row.loadId"
+            :items="loadLocations"
+            label="name"
+            @change="setHaulTruckDispatch(row)"
+          />
+        </template>
+      </table-column>
+
       <table-column label="Dump Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
@@ -173,6 +184,9 @@ export default {
 
       return [{ id: null, label: 'None' }].concat(options);
     },
+    loadLocations() {
+      return [noneLocation()].concat(this.$store.state.constants.loadLocations);
+    },
     dumpLocations() {
       return [noneLocation()].concat(this.$store.state.constants.dumpLocations);
     },
@@ -249,7 +263,7 @@ export default {
       const dispatch = {
         asset_id: asset.assetId,
         dig_unit_id: asset.digUnitId,
-        load_location_id: null,
+        load_location_id: asset.loadId,
         dump_location_id: asset.dumpId,
         timestamp: Date.now(),
       };

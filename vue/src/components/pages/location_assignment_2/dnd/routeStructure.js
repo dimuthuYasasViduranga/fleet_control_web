@@ -7,7 +7,7 @@ export class RouteStructure {
     return this._routes.slice();
   }
 
-  getRoute(digUnitId, loadId, dumpId) {
+  get(digUnitId, loadId, dumpId) {
     return this._routes.find(r => {
       return r._digUnitId === digUnitId && r._loadId === loadId && r._dumpId === dumpId;
     });
@@ -15,10 +15,10 @@ export class RouteStructure {
 
   add(digUnitId, loadId, dumpId) {
     if (!digUnitId && !loadId && !dumpId) {
-      throw new Error('Cannot add empty route');
+      return;
     }
 
-    const existingRoute = this.getRoute(digUnitId, loadId, dumpId);
+    const existingRoute = this.get(digUnitId, loadId, dumpId);
     if (!existingRoute) {
       this._routes.push(new Route(digUnitId, loadId, dumpId));
     }
@@ -31,6 +31,12 @@ export class RouteStructure {
 
     this._routes = this._routes.filter(r => {
       return r._digUnitId !== digUnitId || r._loadId !== loadId || r._dumpId !== dumpId;
+    });
+  }
+
+  removeAllDumpsFor(digUnitId, loadId) {
+    this._routes = this._routes.filter(r => {
+      return r._digUnitId !== digUnitId || r._loadId !== loadId;
     });
   }
 }

@@ -5,12 +5,28 @@
       <div class="actions">
         <template v-if="hovering">
           <template v-if="assignedHaulTrucks.length">
-            <Icon v-tooltip="'Clear Trucks'" class="clear" :icon="trashIcon" />
+            <Icon
+              v-tooltip="'Clear Trucks'"
+              class="clear"
+              :icon="trashIcon"
+              @click="onClearDump(dumpId)"
+            />
 
-            <Icon v-tooltip="'Move Trucks'" class="move" :icon="editIcon" />
+            <Icon
+              v-tooltip="'Move Trucks'"
+              class="move"
+              :icon="editIcon"
+              @click="onMoveDump(dumpId)"
+            />
           </template>
 
-          <Icon v-else v-tooltip="'Remove Dump'" class="remove" :icon="crossIcon" />
+          <Icon
+            v-else
+            v-tooltip="'Remove Dump'"
+            class="remove"
+            :icon="crossIcon"
+            @click="onRemoveDump(dumpId)"
+          />
         </template>
       </div>
 
@@ -92,8 +108,17 @@ export default {
     onDropIntoHaulTruck({ addedIndex, removedIndex, payload }) {
       // is added
       if (addedIndex !== null && removedIndex === null) {
-        this.$emit('add', payload);
+        this.$emit('set-haul-truck', payload);
       }
+    },
+    onRemoveDump() {
+      this.$emit('remove-dump', this.dumpId);
+    },
+    onClearDump() {
+      this.$emit('clear-dump', this.dumpId);
+    },
+    onMoveDump() {
+      this.$emit('move-dump', this.dumpId);
     },
   },
 };

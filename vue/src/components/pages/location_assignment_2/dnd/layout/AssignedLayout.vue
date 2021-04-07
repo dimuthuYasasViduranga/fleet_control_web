@@ -15,6 +15,15 @@
         :digUnits="digUnits"
         :haulTrucks="haulTrucks"
         :locations="locations"
+        @drag-start="propagate('drag-start', $event)"
+        @drag-end="propagate('drag-end', $event)"
+        @set-haul-truck="propagate('set-haul-truck', $event)"
+        @remove-route="propagate('remove-route', $event)"
+        @clear-route="propagate('clear-route', $event)"
+        @request-add-dump="propagate('request-add-dump', $event)"
+        @remove-dump="propagate('remove-dump', $event)"
+        @clear-dump="propagate('clear-dump', $event)"
+        @move-dump="propagate('move-dump', $event)"
       />
     </div>
   </div>
@@ -67,6 +76,10 @@ export default {
       return groupRoutes(this.structure.routes);
     },
   },
-  methods: {},
+  methods: {
+    propagate(topic, event) {
+      this.$emit(topic, event);
+    },
+  },
 };
 </script>
