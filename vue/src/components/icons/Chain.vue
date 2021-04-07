@@ -1,0 +1,16 @@
+<template>
+  <g id="chain_icon">
+    <path
+      d="M7.67 5.61a1 1 0 0 1 0-1.41l3.4-3.4a1 1 0 0 1 1.41 0l2.72 2.72a1 1 0 0 1 0 1.41l-3.4 3.4a1 1 0 0 1-1.41 0m-2.06 2.06a1 1 0 0 1 0 1.41l-3.4 3.4a1 1 0 0 1-1.41 0L.79 12.49a1 1 0 0 1 0-1.41l3.4-3.4a1 1 0 0 1 1.41 0m5.84-3.12l-6.88 6.88"
+      stroke-linejoin="round"
+    />
+  </g>
+</template>
+
+<script>
+export default {
+  name: 'ChainIcon',
+  size: 16,
+  pxIconSet: 'px-utl:link',
+};
+</script>

@@ -109,10 +109,11 @@ export default {
     },
     assignedHaulTrucks() {
       return this.haulTrucks.filter(h => {
+        const dispatch = h.dispatch || {};
         return (
-          h.digUnitId === this.digUnitId &&
-          h.loadId === this.loadId &&
-          this.dumpIds.includes(h.dumpId)
+          dispatch.digUnitId === this.digUnitId &&
+          dispatch.loadId === this.loadId &&
+          this.dumpIds.includes(dispatch.dumpId)
         );
       });
     },

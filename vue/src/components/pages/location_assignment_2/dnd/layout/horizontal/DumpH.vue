@@ -85,7 +85,7 @@ export default {
       return attributeFromList(this.locations, 'id', this.dumpId, 'name');
     },
     assignedHaulTrucks() {
-      return this.haulTrucks.filter(h => h.dumpId === this.dumpId);
+      return this.haulTrucks.filter(h => h.dispatch.dumpId === this.dumpId);
     },
   },
   methods: {

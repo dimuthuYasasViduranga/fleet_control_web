@@ -2,9 +2,13 @@
   <div class="dnd-route-main">
     <button class="hx-btn" @click="onAddRoute()">Add Route</button>
     <div class="layout">
-      <!-- <OtherAssets :assets="otherAssets" /> -->
-      <!-- <UnassignedAssets :assets="unassignedAssets" /> -->
-      <!-- <SimpleLayout :structure="structure" @remove="onRemoveRoute" /> -->
+      <OtherAssets :assets="otherAssets" />
+      <UnassignedAssets
+        :assets="unassignedAssets"
+        @drag-start="onDragStart"
+        @drag-end="onDragEnd()"
+        @add="onSetUnassigned"
+      />
       <AssignedLayout
         :structure="structure"
         :haulTrucks="localHaulTrucks"
@@ -34,7 +38,6 @@ import AddRouteModal from './AddRouteModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import { RouteStructure } from './routeStructure.js';
-import SimpleLayout from './SimpleLayout.vue';
 import OtherAssets from './other_assets/OtherAssets.vue';
 import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import AssignedLayout from './layout/AssignedLayout.vue';
@@ -58,15 +61,18 @@ function toLocalFullAsset(asset) {
 
 function addDigUnitInfo(digUnit, activities) {
   const activity = attributeFromList(activities, 'assetId', digUnit.id) || {};
-  digUnit.locationId = activity.locationId;
+  digUnit.activity = { ...activity };
   return digUnit;
 }
 
 function addHaulTruckInfo(haulTruck, dispatches) {
   const dispatch = attributeFromList(dispatches, 'assetId', haulTruck.id) || {};
-  haulTruck.digUnitId = dispatch.digUnitId || null;
-  haulTruck.loadId = dispatch.loadId || null;
-  haulTruck.dumpId = dispatch.dumpId || null;
+  haulTruck.dispatch = {
+    digUnitId: dispatch.digUnitId || null,
+    loadId: dispatch.loadId || null,
+    dumpId: dispatch.dumpId || null,
+    acknowledged: dispatch.acknowledged || false,
+  };
   return haulTruck;
 }
 
@@ -77,7 +83,6 @@ function haulTruckDispatchEqual(a, b) {
 export default {
   name: 'DndRouteMain',
   components: {
-    SimpleLayout,
     UnassignedAssets,
     OtherAssets,
     AssignedLayout,
@@ -124,15 +129,15 @@ export default {
         .map(toLocalFullAsset);
     },
     unassignedAssets() {
-      // check if the dig unit is in any of the routes
-      // const routes = this.structure.routes;
+      const routes = this.structure.routes;
 
-      // const uDigUnits = this.digUnits.filter(d => routes.every(r => r.digUnitId !== d.id));
-      // const uHaulTrucks = this.haulTrucks.filter(h => !h.digUnitId && !h.loadId && !h.dumpId);
+      const uDigUnits = this.localDigUnits.filter(d => routes.every(r => r.digUnitId !== d.id));
+      const uHaulTrucks = this.localHaulTrucks.filter(h => {
+        const d = h.dispatch || {};
+        return !d.digUnitId && !d.loadId && !d.dumpId;
+      });
 
-      // return uDigUnits.concat(uHaulTrucks);
-
-      return [];
+      return uDigUnits.concat(uHaulTrucks);
     },
   },
   watch: {
@@ -174,7 +179,7 @@ export default {
 
         const oldAsset = attributeFromList(this.localHaulTrucks, 'id', ht.id) || {};
 
-        if (!haulTruckDispatchEqual(ht, oldAsset)) {
+        if (currentlyHasAssets && !haulTruckDispatchEqual(ht.dispatch, oldAsset.dispatch)) {
           ht.updatedExternally = true;
         }
 
@@ -192,13 +197,16 @@ export default {
     },
     updateStructure() {
       this.localHaulTrucks.forEach(ht => {
-        this.structure.add(ht.digUnitId, ht.loadId, ht.dumpId);
+        const d = ht.dispatch;
+        this.structure.add(d.digUnitId, d.loadId, d.dumpId);
       });
     },
     setHaulTruck(asset, digUnitId, loadId, dumpId) {
-      asset.digUnitId = digUnitId;
-      asset.loadId = loadId;
-      asset.dumpId = dumpId;
+      asset.dispatch = {
+        digUnitId,
+        loadId,
+        dumpId,
+      };
 
       asset.synced = false;
 
@@ -208,16 +216,29 @@ export default {
     massSetHaulTrucks(assets, digUnitId, loadId, dumpId) {
       assets.forEach(asset => {
         if (asset && asset.type === 'Haul Truck') {
-          asset.digUnitId = digUnitId;
-          asset.loadId = loadId;
-          asset.dumpId = dumpId;
+          asset.dispatch = {
+            digUnitId,
+            loadId,
+            dumpId,
+          };
 
           asset.synced = false;
         }
       });
 
       this.localHaulTrucks = this.localHaulTrucks.slice();
+      const assetIds = assets.map(a => a.id);
       this.$emit('mass-set-haul-trucks', { assetIds, digUnitId, loadId, dumpId });
+    },
+    onSetUnassigned({ asset }) {
+      if (asset.type === 'Haul Truck') {
+        this.setHaulTruck(asset, null, null, null);
+        return;
+      }
+
+      if (asset.secondaryType === 'Dig Unit') {
+        console.error('[Dnd] Set unassigned for dig unit is not implemented');
+      }
     },
     onAddRoute() {
       const opts = {
@@ -244,10 +265,35 @@ export default {
     onRemoveRoute(route) {
       this.structure.removeAllDumpsFor(route.digUnitId, route.loadId);
     },
-    onConfirmClearRoute(event) {
-      console.dir('--- confirm clear route');
-      console.dir(event);
-      // prompt to say that everything will be cleared
+    onConfirmClearRoute({ digUnitId, loadId }) {
+      const ok = 'yes';
+      const opts = {
+        title: 'Clear Dig Unit',
+        body:
+          'All assets assigned to this route will be removed.\n\nAre you sure you want to continue?',
+        ok,
+      };
+
+      this.$modal.create(ConfirmModal, opts).onClose(resp => {
+        if (resp === ok) {
+          this.clearRoute(digUnitId, loadId);
+        }
+      });
+    },
+    clearRoute(digUnitId, loadId) {
+      if (!digUnitId && !loadId) {
+        return;
+      }
+
+      const haulTrucks = this.localHaulTrucks.filter(h => {
+        return h.digUnitId === digUnitId && h.loadId === loadId;
+      });
+
+      this.structure.removeAllDumpsFor(digUnitId, loadId);
+
+      if (haulTrucks.length) {
+        this.massSetHaulTrucks(haulTrucks, null, null, null);
+      }
     },
     onRequestAddDump({ digUnitId, loadId }) {
       const opts = {
@@ -283,17 +329,15 @@ export default {
       });
     },
     clearDump(digUnitId, loadId, dumpId) {
-      const assets = this.localHaulTrucks.filter(h => {
+      const haulTrucks = this.localHaulTrucks.filter(h => {
         return h.digUnitId === digUnitId && h.loadId === loadId && h.dumpId === dumpId;
       });
 
-      if (assets.length) {
-        this.structure.remove(digUnitId, loadId, dumpId);
-        return;
-      }
+      this.structure.remove(digUnitId, loadId, dumpId);
 
-      this.massSetHaulTrucks(assets, null, null, null);
-      this.structure.remove(digUnitId, laodId, dumpId);
+      if (haulTrucks.length) {
+        this.massSetHaulTrucks(haulTrucks, null, null, null);
+      }
     },
     onMoveTrucks({ assetIds, digUnitId, loadId, dumpId }) {
       if (assetIds.length === 0) {
