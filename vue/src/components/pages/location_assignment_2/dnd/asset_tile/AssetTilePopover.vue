@@ -2,7 +2,10 @@
   <div class="asset-tile-popover">
     <table>
       <tr v-if="!hasDevice">
-        <td colspan="2" class="missing-device">No Tablet Assigned</td>
+        <td colspan="2" class="danger">No Tablet Assigned</td>
+      </tr>
+      <tr v-if="!hasType">
+        <td colspan="2" class="danger">No Asset Type</td>
       </tr>
       <tr>
         <td class="key">GPS Location</td>
@@ -125,6 +128,9 @@ export default {
 
       return !!this.asset.deviceId;
     },
+    hasType() {
+      return !!this.asset.type;
+    },
     activeAllocation() {
       return this.asset.activeTimeAllocation || {};
     },
@@ -169,7 +175,7 @@ export default {
   width: 100%;
 }
 
-.asset-tile-popover .missing-device {
+.asset-tile-popover .danger {
   background-color: darkred;
   text-align: center;
 }
