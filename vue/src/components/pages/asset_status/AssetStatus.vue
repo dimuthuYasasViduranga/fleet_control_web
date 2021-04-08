@@ -102,9 +102,9 @@ export default {
 
       this.$channel
         .push('set radio number', payload)
-        .receive('ok', () => this.$toasted.global.info('Radio number updated'))
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable update radio number'));
+        .receive('ok', () => this.$toaster.info('Radio number updated'))
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable update radio number'));
     },
     ignition(asset) {
       const track = this.tracks.find(t => t.assetId === asset.id);

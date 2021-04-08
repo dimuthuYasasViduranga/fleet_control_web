@@ -56,10 +56,10 @@ export default {
       this.$channel
         .push(`refresh:${agent.topic}`, {})
         .receive('ok', () => {
-          this.$toasted.global.info(`${agent.name} updated`);
+          this.$toaster.info(`${agent.name} updated`);
         })
-        .receive('error', error => this.$toasted.global.error(error.error))
-        .receive('timeout', () => this.$toasted.global.noComms(`Unable to update ${agent.name} `));
+        .receive('error', error => this.$toaster.error(error.error))
+        .receive('timeout', () => this.$toaster.noComms(`Unable to update ${agent.name} `));
     },
   },
 };

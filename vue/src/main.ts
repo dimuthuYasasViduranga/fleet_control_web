@@ -14,7 +14,7 @@ import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
-import { registerToasts } from './code/toasts.js';
+import { Toaster, registerCustomToasts } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
@@ -48,7 +48,7 @@ Vue.use(Toasted, {
     },
   },
 });
-registerToasts();
+registerCustomToasts();
 
 // Create an event bug
 Vue.prototype.$eventBus = new Vue();
@@ -57,6 +57,8 @@ Vue.prototype.$eventBus = new Vue();
 Vue.prototype.$channel = new Channel(false ? 'debug' : null);
 
 Vue.prototype.$modal = new Modal(store);
+
+Vue.prototype.$toaster = new Toaster();
 
 const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;

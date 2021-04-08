@@ -11,17 +11,29 @@
       <div class="toast toast-info">
         <div>Info:</div>
         <input class="typeable" v-model="toasts.info" />
-        <button class="hx-btn" @click="onCreateInfoToast">Create</button>
+        <button class="hx-btn" @click="onCreateInfoToast(toasts.info)">Create</button>
       </div>
       <div class="toast toast-error">
         <div>Error:</div>
         <input class="typeable" v-model="toasts.error" />
-        <button class="hx-btn" @click="onCreateErrorToast">Create</button>
+        <button class="hx-btn" @click="onCreateErrorToast(toasts.error)">Create</button>
       </div>
       <div class="toast toast-no-comms">
         <div>No Comms:</div>
         <input class="typeable" v-model="toasts.noComms" />
-        <button class="hx-btn" @click="onCreateNoCommsToast">Create</button>
+        <button class="hx-btn" @click="onCreateNoCommsToast(toasts.noComms)">Create</button>
+      </div>
+      <div class="toast only-1">
+        <div>Only one at a time:</div>
+        <button class="hx-btn" @click="onCreateInfoToast('Only one', { onlyOne: true })">
+          Create
+        </button>
+      </div>
+      <div class="toast replace">
+        <div>Replace same message:</div>
+        <button class="hx-btn" @click="onCreateInfoToast('Replace', { replace: true })">
+          Create
+        </button>
       </div>
     </hxCard>
     <hxCard class="datetime-selector" title="Datetime Input">
@@ -302,14 +314,14 @@ export default {
     setIcon(assetIcon) {
       this.selectedIcon = assetIcon;
     },
-    onCreateInfoToast() {
-      this.$toasted.global.info(this.toasts.info);
+    onCreateInfoToast(msg, opts) {
+      this.$toaster.info(msg, opts);
     },
-    onCreateErrorToast() {
-      this.$toasted.global.error(this.toasts.error);
+    onCreateErrorToast(msg, opts) {
+      this.$toaster.error(msg, opts);
     },
-    onCreateNoCommsToast() {
-      this.$toasted.global.noComms(this.toasts.noComms);
+    onCreateNoCommsToast(msg, opts) {
+      this.$toaster.noComms(msg, opts);
     },
     onOpenModal() {
       this.$modal.create(ConfirmModal, { title: 'Some text', body: 'even more text' });

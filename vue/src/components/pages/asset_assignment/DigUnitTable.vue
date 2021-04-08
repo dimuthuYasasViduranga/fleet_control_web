@@ -214,8 +214,8 @@ export default {
 
       this.$channel
         .push('set allocation', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', resp => this.$toasted.global.noComms('Unable to update allocation'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', resp => this.$toaster.noComms('Unable to update allocation'));
     },
     setActivity(asset) {
       const activity = {
@@ -228,8 +228,8 @@ export default {
 
       this.$channel
         .push('dig:set activity', activity)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update activity'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update activity'));
     },
   },
 };

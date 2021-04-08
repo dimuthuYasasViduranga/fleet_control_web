@@ -211,9 +211,9 @@ export default {
 
       this.$channel
         .push('set time code tree elements', payload)
-        .receive('ok', () => this.$toasted.global.info('Time code tree updated'))
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update time code tree'));
+        .receive('ok', () => this.$toaster.info('Time code tree updated'))
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update time code tree'));
     },
   },
 };

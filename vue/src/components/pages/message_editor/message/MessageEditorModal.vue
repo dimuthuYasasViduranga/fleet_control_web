@@ -139,12 +139,12 @@ export default {
         .receive('error', resp => {
           this.inTransit = false;
           loading.close();
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           this.inTransit = false;
           loading.close();
-          this.$toasted.global.noComms('Unable to update message');
+          this.$toaster.noComms('Unable to update message');
         });
     },
   },

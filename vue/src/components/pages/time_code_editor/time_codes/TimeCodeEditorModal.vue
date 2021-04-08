@@ -169,16 +169,16 @@ export default {
         .push('update time code', payload)
         .receive('ok', () => {
           loading.close();
-          this.$toasted.global.info(`Time Code ${timeCode.id ? 'Updated' : 'Created'}`);
+          this.$toaster.info(`Time Code ${timeCode.id ? 'Updated' : 'Created'}`);
           this.close();
         })
         .receive('error', resp => {
           loading.close();
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           loading.close();
-          this.$toasted.global.noComms('Unable to update time code');
+          this.$toaster.noComms('Unable to update time code');
         });
     },
   },

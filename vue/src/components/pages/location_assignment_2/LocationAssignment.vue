@@ -83,8 +83,8 @@ export default {
 
       this.$channel
         .push('haul:set dispatch', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update dispatch'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update dispatch'));
     },
     onMassUpdateHaulTrucks({ assetIds, digUnitId, loadId, dumpId }) {
       const payload = {
@@ -98,8 +98,8 @@ export default {
 
       this.$channel
         .push('haul:set mass dispatch', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update mass dispatch'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update mass dispatch'));
     },
   },
 };
