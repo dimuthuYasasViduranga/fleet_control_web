@@ -5,7 +5,7 @@
         <td colspan="2" class="missing-device">No Tablet Assigned</td>
       </tr>
       <tr>
-        <td class="key">Location</td>
+        <td class="key">GPS Location</td>
         <td class="value">{{ trackLocation || '--' }}</td>
       </tr>
       <tr>
