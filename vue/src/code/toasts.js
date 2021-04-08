@@ -7,12 +7,12 @@ import NoWifi from './../components/icons/noWifi.vue';
 const VALID_TYPES = ['info', 'error', 'no-comms'];
 
 export class Toaster {
-  getDetails(toast) {
-    return toast ? getToastDetails(toast) : undefined;
-  }
-
   clearAll() {
     Vue.toasted.toasts.forEach(t => t.remove());
+  }
+
+  clear(predicate) {
+    Vue.toasted.toasts.filter(predicate).forEach(t => t.remove());
   }
 
   info(msg, opts) {
@@ -45,19 +45,14 @@ export class Toaster {
 
     if (opts.replace) {
       for (const t of Vue.toasted.toasts) {
-        const details = getToastDetails(t);
-
-        if (details.type === type && details.text === msg) {
+        if (t.type === type && t.text === msg) {
           t.remove();
         }
       }
     }
 
     if (opts.onlyOne) {
-      const alreadyExists = Vue.toasted.toasts.some(t => {
-        const details = getToastDetails(t);
-        return details.type === type && details.text === msg;
-      });
+      const alreadyExists = Vue.toasted.toasts.some(t => t.type === type && t.text == msg);
 
       if (alreadyExists) {
         console.log('[Toaster] Msg skipped as it already exists');
@@ -66,13 +61,28 @@ export class Toaster {
     }
 
     if (opts.if) {
-      const canProceed = Vue.toasted.toasts.every(t => opts.if(t, getToastDetails(t)));
+      const canProceed = Vue.toasted.toasts.every(opts.if);
       if (!canProceed) {
         return;
       }
     }
 
-    Vue.toasted.global[type](msg);
+    const newToast = Vue.toasted.global[type](msg);
+    newToast.type = type;
+    newToast._text = msg;
+    const setTextCallback = newToast.text;
+
+    Object.defineProperty(newToast, 'text', {
+      set: function(text) {
+        // need to write a custom text function here because the icon
+        // is being removed
+        newToast._text = text;
+        setTextCallback(text);
+      },
+      get: function() {
+        return newToast._text;
+      },
+    });
   }
 }
 
