@@ -201,6 +201,8 @@ function toHaulTruckDispatchEvent(assets, locations, dispatches) {
   return dispatches.map(d => {
     const assetName = attributeFromList(assets, 'id', d.assetId, 'name');
 
+    const digUnitName = attributeFromList(assets, 'id', d.digUnitId, 'name');
+
     const loadLocation = getLocationName(locations, d.loadId);
     const dumpLocation = getLocationName(locations, d.dumpId);
 
@@ -209,12 +211,12 @@ function toHaulTruckDispatchEvent(assets, locations, dispatches) {
       groupId: d.groupId,
       assetId: d.assetId,
       assetName,
-
+      digUnitName,
       loadLocation,
       dumpLocation,
       timestamp: copyDate(d.timestamp),
       serverTimestamp: copyDate(d.serverTimestamp),
-      searchable: ['loadLocation', 'dumpLocation', 'nextLocation', 'assetName'],
+      searchable: ['digUnitName', 'loadLocation', 'dumpLocation', 'nextLocation', 'assetName'],
     };
   });
 }
@@ -236,11 +238,12 @@ function toHaulTruckMassDispatchEvents(events) {
       groupId,
       assetIds,
       assetNames: assetNamesString,
+      digUnitName: baseEvent.digUnitName,
       loadLocation: baseEvent.loadLocation,
       dumpLocation: baseEvent.dumpLocation,
       timestamp: copyDate(baseEvent.timestamp),
       serverTimestamp: copyDate(baseEvent.serverTimestamp),
-      searchable: ['assetNames', 'loadLocation', 'dumpLocation'],
+      searchable: ['assetNames', 'digUnitName', 'loadLocation', 'dumpLocation'],
     };
   });
 }

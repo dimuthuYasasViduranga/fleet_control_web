@@ -14,14 +14,6 @@ export function attributeFromList(items, matchKey, matchValue, retKey) {
   return item === undefined ? undefined : item[retKey];
 }
 
-export function toRunName(load, dump) {
-  let runString = 'Unassigned';
-  if (load || dump) {
-    runString = `${load || 'Unassigned'} \u27f9 ${dump || 'Unassigned'}`;
-  }
-  return runString;
-}
-
 export function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
