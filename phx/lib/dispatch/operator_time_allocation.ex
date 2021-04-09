@@ -93,12 +93,17 @@ defmodule Dispatch.OperatorTimeAllocation do
           assets: list(map),
           data: list(operator_time_allocation)
         }
-  def build_report(data) do
-    start_time = data.start_time
-    end_time = data.end_time
-
+  def build_report(%{start_time: start_time, end_time: end_time} = data) do
     time_allocs =
       Enum.map(data.assets, fn asset ->
+        allocs = Enum.filter(data.time_allocations, &(&1.asset_id == asset.id))
+
+        assignments =
+          data.device_assignments
+          |> Enum.filter(&(&1.asset_id == asset.id))
+          |> to_device_assignment_spans()
+          |> Enum.reject(&is_nil(&1.operator_id))
+
         # for each asset
         # get relevant allocations
 
@@ -130,6 +135,7 @@ defmodule Dispatch.OperatorTimeAllocation do
             [gaps] ++ allocs
         end
         |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
+        |> Enum.map(&crop_span(&1, start_time, end_time))
     end)
 
     # for each operator
@@ -227,6 +233,43 @@ defmodule Dispatch.OperatorTimeAllocation do
 
       true ->
         {all_partials, completed}
+    end
+  end
+
+  @doc """
+  Splits the given span by the provided spans. Returns a list of new spans, with the splitter span
+  that caused the split
+  """
+  @spec split_span_by(span, list(splitter :: span)) :: list({new_span :: span, splitter :: span})
+  def split_span_by(span, splitters) do
+    # filter splitters to all those that affect the span
+
+    # for each splitter, determine how the span should be split
+
+    # order all the elements by the new_spans start_time
+  end
+
+  defp to_device_assignment_spans(assignments) do
+    assignments
+    |> Enum.sort_by(& &1.timestamp, {:asc, NaiveDateTime})
+    |> Enum.chunk_every(2, 1)
+    |> Enum.map(fn [a, b] ->
+      a
+      |> Map.put(:start_time, a.timestamp)
+      |> Map.put(:end_time, b.timestamp)
+      |> Map.drop([:timestamp])
+    end)
+  end
+
+  defp crop_span(span, start_time, end_time) do
+    start_time = naive_min_or_max([span.start_time, start_time], :max)
+    end_time = naive_min_or_max([span.end_time, end_time], :min)
+
+    span
+    |> span.put(:start_time, start_time)
+    |> case do
+      %{end_time: nil} = span -> span.put(span, :active_end_time, end_time)
+      span -> span.put(span, :end_time, end_time)
     end
   end
 end

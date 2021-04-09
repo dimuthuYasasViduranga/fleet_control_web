@@ -446,8 +446,22 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
     end
   end
 
-  describe "build_report/1" do
-    test "no data" do
+  describe "build_report/1 -" do
+    test "no allocations" do
+      start_time = ~N[2020-01-01 00:00:00]
+
+      data = %{
+        start_time: start_time,
+        end_time: NaiveDateTime.add(start_time, 60),
+        assets: [],
+        operators: [],
+        time_allocations: [],
+        device_assignments: []
+      }
+
+      actual = OperatorTimeAllocation.build_report(data)
+
+      # assert actual == []
     end
 
     test "asset data with no operator login" do
