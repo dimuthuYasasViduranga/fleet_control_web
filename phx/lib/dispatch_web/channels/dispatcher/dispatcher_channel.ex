@@ -454,6 +454,23 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in("get operator time allocation data", calendar_id, socket) do
+    case CalendarAgent.get(%{id: calendar_id}) do
+      nil ->
+        {:reply, to_error("shift does not exists"), socket}
+
+      shift ->
+        data = []
+
+        payload = %{
+          shift: shift,
+          data: data
+        }
+
+        {:reply, {:ok, payload}, socket}
+    end
+  end
+
   def handle_in(
         "report:time allocation",
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
