@@ -4,9 +4,9 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
 
   alias Dispatch.OperatorTimeAllocation
 
-  describe "flatten_spans/1 -" do
-    def to_span(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
+  def to_span(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
 
+  describe "flatten_spans/1 -" do
     test "no spans" do
       actual = OperatorTimeAllocation.flatten_spans([])
       assert actual == []
@@ -170,8 +170,6 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
   end
 
   describe "find_gaps/2 (start and end) -" do
-    defp to_range(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
-
     test "0 elements" do
       actual = OperatorTimeAllocation.find_gaps([])
       assert actual == []
@@ -184,7 +182,7 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
       range_end = NaiveDateTime.add(a_end, 60)
 
       a = to_span(a_start, a_end)
-      actual = OperatorTimeAllocation.find_gaps([a], to_range(range_start, range_end))
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, range_end))
 
       expected = [
         to_span(range_start, a_start),
@@ -199,7 +197,7 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
       range_end = NaiveDateTime.add(range_start, 60)
 
       a = to_span(range_start, range_end)
-      actual = OperatorTimeAllocation.find_gaps([a], to_range(range_start, range_end))
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, range_end))
 
       assert actual == []
     end
@@ -211,7 +209,7 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
       a_end = NaiveDateTime.add(range_end, 60)
 
       a = to_span(a_start, a_end)
-      actual = OperatorTimeAllocation.find_gaps([a], to_range(range_start, range_end))
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, range_end))
 
       assert actual == []
     end
@@ -235,19 +233,185 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
         to_span(a_end, b_start)
       ]
 
-      actual = OperatorTimeAllocation.find_gaps([a, b], to_range(range_start, range_end))
+      actual = OperatorTimeAllocation.find_gaps([a, b], to_span(range_start, range_end))
 
       assert actual == expected
     end
   end
 
   describe "find_gaps/2 (only start) -" do
+    test "0 elements" do
+      actual = OperatorTimeAllocation.find_gaps([])
+      assert actual == []
+    end
+
+    test "element within range" do
+      range_start = ~N[2020-01-01 00:00:00]
+      a_start = NaiveDateTime.add(range_start, 60)
+      a_end = NaiveDateTime.add(a_start, 60)
+
+      a = to_span(a_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, nil))
+
+      expected = [
+        to_span(range_start, a_start)
+      ]
+
+      assert actual == expected
+    end
+
+    test "element equal to range" do
+      range_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(range_start, 60)
+
+      a = to_span(range_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, nil))
+
+      assert actual == []
+    end
+
+    test "element bigger than range" do
+      a_start = ~N[2020-01-01 00:00:00]
+      range_start = NaiveDateTime.add(a_start, 60)
+      a_end = NaiveDateTime.add(range_start, 60)
+
+      a = to_span(a_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(range_start, nil))
+
+      assert actual == []
+    end
+
+    test "gap between elements" do
+      # Input
+      # |---a---|      |---b---|
+      #
+      # Expected
+      #         |------|
+
+      range_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(range_start, 60)
+      b_start = NaiveDateTime.add(a_end, 60)
+      b_end = NaiveDateTime.add(b_start, 60)
+
+      a = to_span(range_start, a_end)
+      b = to_span(b_start, b_end)
+
+      expected = [
+        to_span(a_end, b_start)
+      ]
+
+      actual = OperatorTimeAllocation.find_gaps([a, b], to_span(range_start, nil))
+
+      assert actual == expected
+    end
   end
 
   describe "find_gaps/2 (only end) -" do
+    test "0 elements" do
+      actual = OperatorTimeAllocation.find_gaps([])
+      assert actual == []
+    end
+
+    test "element within range" do
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+      range_end = NaiveDateTime.add(a_end, 60)
+
+      a = to_span(a_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(nil, range_end))
+
+      expected = [
+        to_span(a_end, range_end)
+      ]
+
+      assert actual == expected
+    end
+
+    test "element equal to range" do
+      a_start = ~N[2020-01-01 00:00:00]
+      range_end = NaiveDateTime.add(a_start, 60)
+
+      a = to_span(a_start, range_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(nil, range_end))
+
+      assert actual == []
+    end
+
+    test "element bigger than range" do
+      a_start = ~N[2020-01-01 00:00:00]
+      range_end = NaiveDateTime.add(a_start, 60)
+      a_end = NaiveDateTime.add(range_end, 60)
+
+      a = to_span(a_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a], to_span(nil, range_end))
+
+      assert actual == []
+    end
+
+    test "gap between elements" do
+      # Input
+      # |---a---|      |---b---|
+      #
+      # Expected
+      #         |------|
+
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+      b_start = NaiveDateTime.add(a_end, 60)
+      range_end = NaiveDateTime.add(b_start, 60)
+
+      a = to_span(a_start, a_end)
+      b = to_span(b_start, range_end)
+
+      expected = [
+        to_span(a_end, b_start)
+      ]
+
+      actual = OperatorTimeAllocation.find_gaps([a, b], to_span(nil, range_end))
+
+      assert actual == expected
+    end
   end
 
   describe "find_gaps/2 (no start or end)" do
+    test "0 elements" do
+      actual = OperatorTimeAllocation.find_gaps([])
+      assert actual == []
+    end
+
+    test "1 element" do
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+
+      a = to_span(a_start, a_end)
+      actual = OperatorTimeAllocation.find_gaps([a])
+
+      assert actual == []
+    end
+
+    test "gap between elements" do
+      # Input
+      # |---a---|      |---b---|
+      #
+      # Expected
+      #         |------|
+
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+      b_start = NaiveDateTime.add(a_end, 60)
+      b_end = NaiveDateTime.add(b_start, 60)
+
+      a = to_span(a_start, a_end)
+      b = to_span(b_start, b_end)
+
+      expected = [
+        to_span(a_end, b_start)
+      ]
+
+      actual = OperatorTimeAllocation.find_gaps([a, b])
+
+      assert actual == expected
+    end
   end
 
   describe "build_report/1" do
