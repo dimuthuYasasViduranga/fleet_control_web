@@ -167,6 +167,38 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
 
       assert actual == expected
     end
+
+    test "equal sized elements" do
+      start_time = ~N[2020-01-01 00:00:00]
+      end_time = NaiveDateTime.add(start_time, 60)
+
+      a = to_span(start_time, end_time)
+
+      expected = [a]
+
+      actual = OperatorTimeAllocation.flatten_spans([a, a])
+
+      assert actual == expected
+    end
+
+    test "zero duration elements" do
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = a_start
+      b_start = a_end
+      b_end = NaiveDateTime.add(b_start, 60)
+      c_start = b_end
+      c_end = c_start
+
+      a = to_span(a_start, a_end)
+      b = to_span(b_start, b_end)
+      c = to_span(c_start, c_end)
+
+      expected = [a, b, c]
+
+      actual = OperatorTimeAllocation.flatten_spans([a, b, c])
+
+      assert actual == expected
+    end
   end
 
   describe "find_gaps/2 (start and end) -" do

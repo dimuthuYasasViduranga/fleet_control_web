@@ -197,12 +197,12 @@ defmodule Dispatch.OperatorTimeAllocation do
     |> Enum.map(fn span -> [{span.start_time, :start, span}, {span.end_time, :end, span}] end)
     |> List.flatten()
     |> Enum.sort_by(&elem(&1, 0), {:asc, NaiveDateTime})
+    |> Enum.dedup_by(fn {ts, type, _span} -> {ts, type} end)
     |> Enum.reduce({[], []}, &do_flatten_key_event/2)
     |> elem(1)
     |> Enum.reverse()
   end
 
-  # element = {timestamp, :start/end, span}
   defp do_flatten_key_event({_ts, _type, span}, {[], completed}), do: {[span], completed}
 
   defp do_flatten_key_event(event, {[partial | other_partials] = all_partials, completed}) do
