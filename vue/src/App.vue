@@ -1,27 +1,17 @@
 <template>
   <div>
-    <div v-if="isUsingInternetExplorer" class="ie-warning">
-      <p>FleetControl does not support Internet Explorer. Please try using another browser</p>
-      <p>
-        If you are not using Internet Explorer, please email support@haultrax.com so that this can
-        be rectified in the future
-      </p>
-      <button class="hx-btn" @click="isUsingInternetExplorer = false">Proceed</button>
-    </div>
-    <template v-else>
-      <Layout :routes="routes" :username="username" :logout="logout" :login="login">
-        <template slot="header">
-          <TimezoneSelector />
-          <ChatButton />
-          <!-- <HelpButton /> -->
-        </template>
-      </Layout>
-      <!-- This is persistent and a fixed overlay -->
-      <ChatOverlay />
-      <ChatButtonFloating />
-      <NotificationBar />
-      <AssetAssignmentModal />
-    </template>
+    <Layout :routes="routes" :username="username" :logout="logout" :login="login">
+      <template slot="header">
+        <TimezoneSelector />
+        <ChatButton />
+        <!-- <HelpButton /> -->
+      </template>
+    </Layout>
+    <!-- This is persistent and a fixed overlay -->
+    <ChatOverlay />
+    <ChatButtonFloating />
+    <NotificationBar />
+    <AssetAssignmentModal />
   </div>
 </template>
 
@@ -38,17 +28,6 @@ import HelpButton from './components/header_buttons/HelpButton.vue';
 import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
-
-function getIsUsingInternetExplorer() {
-  try {
-    const userAgent = window.navigator.userAgent;
-    const iePresent = userAgent.indexOf('MSIE ') > -1;
-    const ie11Present = !!userAgent.match(/Trident.*rv\:11\./);
-    return iePresent || ie11Present;
-  } catch {
-    return false;
-  }
-}
 
 export default {
   name: 'app',
@@ -71,7 +50,6 @@ export default {
     return {
       title: 'Dispatch',
       username: '',
-      isUsingInternetExplorer: false,
     };
   },
   computed: {
@@ -87,9 +65,6 @@ export default {
         this.initialiseChannel();
       }
     },
-  },
-  created() {
-    this.isUsingInternetExplorer = getIsUsingInternetExplorer();
   },
   mounted() {
     this.initialiseChannel();
@@ -302,12 +277,5 @@ a[href^='#/gap'] div {
 
 .nav-bar .hx-icon .svg {
   stroke-width: 1;
-}
-
-.ie-warning {
-  text-align: center;
-  color: white;
-  font-size: 1.5rem;
-  font-family: 'GE Inspira Sans', sans-serif;
 }
 </style>
