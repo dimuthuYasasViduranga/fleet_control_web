@@ -35,6 +35,15 @@
           Create
         </button>
       </div>
+      <div class="toast update-text">
+        <div>Changing toast:</div>
+        <button
+          class="hx-btn"
+          @click="onCreateChangingToast('Loading ...', 'Loading Complete', 1500)"
+        >
+          Create
+        </button>
+      </div>
     </hxCard>
     <hxCard class="datetime-selector" title="Datetime Input">
       <hxCard
@@ -322,6 +331,12 @@ export default {
     },
     onCreateNoCommsToast(msg, opts) {
       this.$toaster.noComms(msg, opts);
+    },
+    onCreateChangingToast(initial, after, timeout) {
+      const toast = this.$toaster.error(initial);
+      setTimeout(() => {
+        toast.text = after;
+      }, timeout);
     },
     onOpenModal() {
       this.$modal.create(ConfirmModal, { title: 'Some text', body: 'even more text' });

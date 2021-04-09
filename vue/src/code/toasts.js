@@ -67,37 +67,31 @@ export class Toaster {
       }
     }
 
-    const newToast = Vue.toasted.global[type](msg);
-    newToast.type = type;
-    newToast._text = msg;
-    const setTextCallback = newToast.text;
-
-    Object.defineProperty(newToast, 'text', {
-      set: function(text) {
-        // need to write a custom text function here because the icon
-        // is being removed
-        newToast._text = text;
-        setTextCallback(text);
-      },
-      get: function() {
-        return newToast._text;
-      },
-    });
+    return createToast(msg, type);
   }
 }
 
-function getToastDetails(toast) {
-  const text = (toast.el.innerText || '')
-    .split('\nCLEAR')
-    .slice(0, -1)
-    .join('\nCLEAR');
-  let type = toast.el.classList[toast.el.classList.length - 1];
+function createToast(msg, type) {
+  const newToast = Vue.toasted.global[type](`<span class="toast-text">${msg}</span>`);
+  newToast.type = type;
+  newToast._text = msg;
 
-  if (!VALID_TYPES.includes(type)) {
-    type = null;
-  }
+  Object.defineProperty(newToast, 'text', {
+    set: function(text) {
+      newToast._text = text;
+      const textEl = Array.prototype.slice
+        .call(newToast.el.childNodes)
+        .find(e => e.classList.contains('toast-text'));
+      if (textEl) {
+        textEl.innerText = text;
+      }
+    },
+    get: function() {
+      return newToast._text;
+    },
+  });
 
-  return { text, type };
+  return newToast;
 }
 
 export function registerCustomToasts() {
