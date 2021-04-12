@@ -461,9 +461,18 @@ defmodule DispatchWeb.DispatcherChannel do
         {:reply, to_error("shift does not exists"), socket}
 
       shift ->
+        now = NaiveDateTime.utc_now()
+
+        end_time =
+          case NaiveDateTime.compare(shift.shift_end, now) == :gt do
+            true -> now
+            _ -> shift.shift_end
+          end
+
         report =
-          OperatorTimeAllocation.fetch_data(shift.shift_start, shift.shift_end)
+          OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
           |> OperatorTimeAllocation.build_report()
+          |> Map.put(:end_time, shift.shift_end)
 
         payload = %{
           shift: shift,

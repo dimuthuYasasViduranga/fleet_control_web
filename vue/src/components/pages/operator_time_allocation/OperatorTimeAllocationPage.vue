@@ -61,15 +61,15 @@ import fuzzysort from 'fuzzysort';
 function parseOperatorData(data) {
   const assets = data.assets.map(parseAsset);
   const operators = data.operators.map(parseOperator);
-  const startTime = toUtcDate(data.start_time);
-  const endTime = toUtcDate(data.end_time);
+  const rangeStart = toUtcDate(data.start_time);
+  const rangeEnd = toUtcDate(data.end_time);
   const allocations = data.operator_allocations.map(alloc => {
     return parseOperatorAllocation(alloc, assets, operators);
   });
 
   return {
-    startTime,
-    endTime,
+    rangeStart,
+    rangeEnd,
     assets,
     operators,
     allocations,
