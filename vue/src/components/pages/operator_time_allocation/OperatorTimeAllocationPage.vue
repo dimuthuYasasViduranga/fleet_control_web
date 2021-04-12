@@ -155,11 +155,6 @@ export default {
   methods: {
     onShiftChange(shift) {
       this.shift = shift;
-
-      if (this.shiftInTransit !== shift.id) {
-        this.clearData();
-      }
-
       this.fetchAllocationsByShift(shift);
     },
     onToggleHideBlankOperators() {
@@ -177,6 +172,10 @@ export default {
         return;
       }
 
+      if (this.shiftInTransit) {
+        return;
+      }
+
       this.shiftInTransit = shift.id;
 
       this.$channel
@@ -184,7 +183,7 @@ export default {
         .receive('ok', data => {
           this.shiftSelectDisabled = false;
 
-          if (this.shiftInTransit === shift.id) {
+          if (this.shiftInTransit === data.shift.id) {
             this.clearData();
             this.shiftOperatorData = parseOperatorData(data.data);
           } else {
