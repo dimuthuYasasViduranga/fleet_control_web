@@ -142,7 +142,7 @@ export function dedupByMany(list, keys) {
 }
 
 /**
- * Returns a map of [key, element | element[valKey]]
+ * Returns a map of {key => element | element[valKey]}
  * @param {Array} list - array to group
  * @param {String} key - key to group on
  * @param {String} valKey - key to group. default null (all keys)

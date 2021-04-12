@@ -179,7 +179,7 @@ export default {
     SlotWrapper,
   },
   props: {
-    name: { type: String, default: randChartName() },
+    name: { type: [String, Number], default: randChartName() },
     timeSpans: { type: Array, default: () => [] },
     layout: { type: Object, default: () => ({}) },
     colors: { type: Array, default: () => [] },
