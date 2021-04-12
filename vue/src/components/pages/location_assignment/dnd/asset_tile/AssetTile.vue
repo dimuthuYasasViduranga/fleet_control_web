@@ -119,7 +119,8 @@ export default {
       }
     },
     icon() {
-      return this.$store.state.constants.icons[this.asset.type];
+      const icons = this.$store.state.constants.icons;
+      return icons[this.asset.type] || icons.Unknown;
     },
     locations() {
       return this.$store.state.constants.locations;

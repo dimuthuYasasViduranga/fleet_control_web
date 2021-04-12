@@ -20,8 +20,7 @@ const DUMP_TYPES = ['crusher', 'waste_dump', 'rehab', 'stockpile', 'waste_stockp
 
 function getIcons() {
   return {
-    [undefined]: UnknownIcon,
-    [null]: UnknownIcon,
+    Unknown: UnknownIcon,
     'Haul Truck': HaulTruckIcon,
     Watercart: WaterTruckIcon,
     Excavator: ExcavatorIcon,
@@ -129,7 +128,7 @@ function parseRadioNumber(radioNumber) {
   };
 }
 
-function parseOperator(operator) {
+export function parseOperator(operator) {
   const fullname = getFullName(operator.name, operator.nickname);
   const shortname = operator.nickname || operator.name;
   return {
