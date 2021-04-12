@@ -40,11 +40,14 @@ defmodule Dispatch.OperatorTimeAllocation do
 
   @spec fetch_data(NaiveDateTime.t(), NaiveDateTime.t()) :: map()
   def fetch_data(start_time, end_time) do
+    now = NaiveDateTime.utc_now()
     assets = AssetAgent.get_assets()
 
     operators = OperatorAgent.all()
 
-    time_allocations = pull_time_allocations(start_time, end_time)
+    time_allocations =
+      pull_time_allocations(start_time, end_time)
+      |> Enum.map(&Map.put(&1, :end_time, &1.end_time || now))
 
     device_assignments = pull_device_assignments(start_time, end_time)
 
