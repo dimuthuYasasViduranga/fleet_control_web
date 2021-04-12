@@ -4,7 +4,7 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
 
   alias Dispatch.OperatorTimeAllocation
 
-  def to_span(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
+  defp to_span(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
 
   describe "flatten_spans/1 -" do
     test "no spans" do
@@ -653,8 +653,25 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
     end
   end
 
-  describe "build_report/1 -" do
-    test "no allocations" do
+  describe "create_operator_allocations/1 -" do
+    defp to_alloc(asset, start_time, end_time, data) do
+      %{
+        asset_id: asset[:id],
+        start_time: start_time,
+        end_time: end_time,
+        data: data
+      }
+    end
+
+    defp to_assignment(asset, operator, timestamp) do
+      %{
+        asset_id: asset[:id],
+        operator_id: operator[:id],
+        timestamp: timestamp
+      }
+    end
+
+    test "no data" do
       start_time = ~N[2020-01-01 00:00:00]
 
       data = %{
@@ -666,12 +683,170 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
         device_assignments: []
       }
 
-      actual = OperatorTimeAllocation.build_report(data)
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
 
-      # assert actual == []
+      assert actual == []
+    end
+
+    test "1 asset (no op, op, no op)" do
+      # Asset Allocs
+      #         |-----T1-----|-----T2-----|-----T3-----|
+      #
+      # Device Assignments
+      #         |------------|------------|
+      # asset:  A            A            A
+      # op:     -            O            -
+      #
+      # Expected (operator, asset, TC)
+      #         | (O, -, -)  | (O, A, T2) |  (O, -, -) |
+      asset = %{id: "Asset"}
+      operator = %{id: "Person"}
+
+      start_time = ~N[2020-01-01 00:00:00]
+      login = NaiveDateTime.add(start_time, 60)
+      logout = NaiveDateTime.add(login, 60)
+      end_time = NaiveDateTime.add(logout, 60)
+
+      asset_time_allocs = [
+        to_alloc(asset, start_time, login, "Standby"),
+        to_alloc(asset, login, logout, "Ready"),
+        to_alloc(asset, logout, end_time, "MEM")
+      ]
+
+      assignments = [
+        to_assignment(asset, nil, start_time),
+        to_assignment(asset, operator, login),
+        to_assignment(asset, nil, logout)
+      ]
+
+      data = %{
+        start_time: start_time,
+        end_time: end_time,
+        assets: [asset],
+        operators: [operator],
+        time_allocations: asset_time_allocs,
+        device_assignments: assignments
+      }
+
+      expected = [
+        %{
+          start_time: start_time,
+          end_time: login,
+          operator_id: operator.id,
+          asset_id: nil
+        },
+        %{
+          start_time: login,
+          end_time: logout,
+          operator_id: operator.id,
+          asset_id: asset.id,
+          data: "Ready"
+        },
+        %{
+          start_time: logout,
+          end_time: end_time,
+          operator_id: operator.id,
+          asset_id: nil
+        }
+      ]
+
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+      assert actual == expected
     end
 
     test "asset data with no operator login" do
+      # Asset Allocs
+      #         |-----T1-----|-----T2-----|-----T3-----|
+      #
+      # Expected
+      #         Nothing
+      asset = %{id: "Asset"}
+      operator = %{id: "Person"}
+
+      start_time = ~N[2020-01-01 00:00:00]
+      ts_a = NaiveDateTime.add(start_time, 60)
+      ts_b = NaiveDateTime.add(ts_a, 60)
+      end_time = NaiveDateTime.add(ts_b, 60)
+
+      asset_time_allocs = [
+        to_alloc(asset, start_time, ts_a, "Standby"),
+        to_alloc(asset, ts_a, ts_b, "Ready"),
+        to_alloc(asset, ts_a, end_time, "MEM")
+      ]
+
+      data = %{
+        start_time: start_time,
+        end_time: end_time,
+        assets: [asset],
+        operators: [operator],
+        time_allocations: asset_time_allocs,
+        device_assignments: []
+      }
+
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+      assert actual == []
+    end
+
+    test "assignments with no asset allocations" do
+      # Asset Allocs
+      #         |                                     |
+      #
+      # Device Assignments
+      #         |------------|------------|
+      # asset:  A            A            A
+      # op:     -            O            -
+      #
+      # Expected (operator, asset, TC)
+      #         | (O, -, -)  | (O, A, -) |  (O, -, -) |
+      asset = %{id: "Asset"}
+      operator = %{id: "Person"}
+
+      start_time = ~N[2020-01-01 00:00:00]
+      login = NaiveDateTime.add(start_time, 60)
+      logout = NaiveDateTime.add(login, 60)
+      end_time = NaiveDateTime.add(logout, 60)
+
+      assignments = [
+        to_assignment(asset, nil, start_time),
+        to_assignment(asset, operator, login),
+        to_assignment(asset, nil, logout)
+      ]
+
+      data = %{
+        start_time: start_time,
+        end_time: end_time,
+        assets: [asset],
+        operators: [operator],
+        time_allocations: [],
+        device_assignments: assignments
+      }
+
+      expected = [
+        %{
+          start_time: start_time,
+          end_time: login,
+          operator_id: operator.id,
+          asset_id: nil
+        },
+        %{
+          start_time: login,
+          end_time: logout,
+          operator_id: operator.id,
+          asset_id: asset.id
+        },
+        %{
+          start_time: logout,
+          end_time: end_time,
+          operator_id: operator.id,
+          asset_id: nil
+        }
+      ]
+
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+      assert actual == expected
     end
   end
 end

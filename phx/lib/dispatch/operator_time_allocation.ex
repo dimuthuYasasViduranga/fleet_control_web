@@ -89,68 +89,75 @@ defmodule Dispatch.OperatorTimeAllocation do
   @spec build_report(time_data) :: %{
           start_time: NaiveDateTime.t(),
           end_time: NaiveDateTime.t(),
-          operators: list(map),
           assets: list(map),
-          data: list(operator_time_allocation)
+          operators: list(map),
+          operator_allocations: list(operator_time_allocation)
         }
-  def build_report(%{start_time: start_time, end_time: end_time} = data) do
-    time_allocs =
+  def build_report(time_data) do
+    operator_allocs = create_operator_allocations(time_data)
+
+    %{
+      start_time: time_data.start_time,
+      end_time: time_data.end_time,
+      assets: time_data.assets,
+      operators: time_data.operators,
+      daoperator_allocationsta: operator_allocs
+    }
+  end
+
+  @spec create_operator_allocations(time_data) :: list(map)
+  def create_operator_allocations(%{start_time: start_time, end_time: end_time} = data) do
+    assignments_with_allocs =
       Enum.map(data.assets, fn asset ->
         allocs = Enum.filter(data.time_allocations, &(&1.asset_id == asset.id))
 
-        assignments =
+        operator_assignment_spans =
           data.device_assignments
           |> Enum.filter(&(&1.asset_id == asset.id))
           |> point_in_time_to_spans(end_time)
           |> Enum.reject(&is_nil(&1.operator_id))
 
-        # get all relevant allocs
-
-        # convert device assignments into compatible spans
-
-        # for each asset
-        # get relevant allocations
-
-        # get relevant device assignmnets
-
-        # convert device assignments to spans
-
-        # add operator tags to each allocation (and split on change)
-        []
+        operator_assignment_spans
+        |> Enum.map(fn assign ->
+          case split_span_by(assign, allocs) do
+            [] -> [{assign, %{}}]
+            splits -> splits
+          end
+        end)
+        |> List.flatten()
+        |> Enum.map(fn {assign, alloc} -> Map.merge(alloc, assign) end)
       end)
       |> List.flatten()
 
-    # remove all allocations without an operator id
-    # group all allocations by operator_id
-    time_alloc_lookup =
-      time_allocs
-      |> Enum.filter(&is_nil(&1.asset_id))
-      |> Enum.group_by(& &1.operator_id)
+    assignment_lookup = Enum.group_by(assignments_with_allocs, & &1.operator_id)
 
     Enum.map(data.operators, fn operator ->
-      operator_allocs =
-        case time_alloc_lookup[operator.id] do
-          nil ->
-            []
+      case assignment_lookup[operator.id] do
+        nil ->
+          []
 
-          allocs ->
-            gaps = find_gaps(allocs, %{start_time: start_time, end_time: end_time})
+        assigns ->
+          gaps =
+            assigns
+            |> find_gaps(%{start_time: start_time, end_time: end_time})
+            |> Enum.map(fn gap ->
+              gap
+              |> Map.put(:asset_id, nil)
+              |> Map.put(:operator_id, operator.id)
+            end)
 
-            [gaps] ++ allocs
-        end
-        |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
-        |> Enum.map(&crop_span(&1, start_time, end_time))
+          gaps ++ assigns
+      end
+      |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
+      |> Enum.map(&crop_span(&1, start_time, end_time))
     end)
-
-    # for each operator
-    # get allocations
-
-    # if there is at least 1 allocation, find remaining no_asset gaps
-    # this will require flattening all allocations for the operator first (because of overlaps, etc)
+    |> List.flatten()
+    |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
   end
 
   @doc """
-  Returns a list of spans, corresponding to any gaps in the given data
+  Returns a list of spans, corresponding to any gaps in the given data.
+  If there is overlapping data, it is flattened for the calculation
   If start_time is given, gaps between start_time and first element are detected
   If end_time is given, gaps between last element and end are detected
   """
@@ -318,10 +325,10 @@ defmodule Dispatch.OperatorTimeAllocation do
     end_time = naive_min_or_max([span.end_time, end_time], :min)
 
     span
-    |> span.put(:start_time, start_time)
+    |> Map.put(:start_time, start_time)
     |> case do
-      %{end_time: nil} = span -> span.put(span, :active_end_time, end_time)
-      span -> span.put(span, :end_time, end_time)
+      %{end_time: nil} = span -> Map.put(span, :active_end_time, end_time)
+      span -> Map.put(span, :end_time, end_time)
     end
   end
 end
