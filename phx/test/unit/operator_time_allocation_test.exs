@@ -559,6 +559,100 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
     end
   end
 
+  describe "point_in_time_to_spans/2 -" do
+    test "no data" do
+      actual = OperatorTimeAllocation.point_in_time_to_spans([])
+      assert actual == []
+    end
+
+    test "1 point (no end time)" do
+      point = %{timestamp: ~N[2020-01-01 00:00:00]}
+      actual = OperatorTimeAllocation.point_in_time_to_spans([point])
+
+      assert actual == []
+    end
+
+    test "1 point (end time)" do
+      timestamp = ~N[2020-01-01 00:00:00]
+      end_time = NaiveDateTime.add(timestamp, 60)
+
+      point = %{timestamp: timestamp}
+
+      expected = [%{start_time: timestamp, end_time: end_time}]
+
+      actual = OperatorTimeAllocation.point_in_time_to_spans([point], end_time)
+
+      assert actual == expected
+    end
+
+    test "1 point (end of time before start)" do
+      end_time = ~N[2020-01-01 00:00:00]
+      timestamp = NaiveDateTime.add(end_time, 60)
+
+      point = %{timestamp: timestamp}
+
+      actual = OperatorTimeAllocation.point_in_time_to_spans([point], end_time)
+
+      assert actual == []
+    end
+
+    test "2 points (no end time)" do
+      ts_a = ~N[2020-01-01 00:00:00]
+      ts_b = NaiveDateTime.add(ts_a, 60)
+      end_time = NaiveDateTime.add(ts_b, 60)
+
+      input = [
+        %{timestamp: ts_a},
+        %{timestamp: ts_b}
+      ]
+
+      expected = [
+        %{start_time: ts_a, end_time: ts_b},
+        %{start_time: ts_b, end_time: end_time}
+      ]
+
+      actual = OperatorTimeAllocation.point_in_time_to_spans(input, end_time)
+
+      assert actual == expected
+    end
+
+    test "2 equal points (no end time)" do
+      timestamp = ~N[2020-01-01 00:00:00]
+
+      input = [
+        %{timestamp: timestamp},
+        %{timestamp: timestamp}
+      ]
+
+      expected = [
+        %{start_time: timestamp, end_time: timestamp}
+      ]
+
+      actual = OperatorTimeAllocation.point_in_time_to_spans(input)
+
+      assert actual == expected
+    end
+
+    test "2 points (end time before range)" do
+      end_time = ~N[2020-01-01 00:00:00]
+      ts_a = NaiveDateTime.add(end_time, 60)
+      ts_b = NaiveDateTime.add(ts_a, 60)
+
+      input = [
+        %{timestamp: ts_a},
+        %{timestamp: ts_b}
+      ]
+
+      expected = [
+        %{start_time: ts_a, end_time: ts_b}
+      ]
+
+      actual = OperatorTimeAllocation.point_in_time_to_spans(input, end_time)
+
+      assert actual == expected
+    end
+  end
+
   describe "build_report/1 -" do
     test "no allocations" do
       start_time = ~N[2020-01-01 00:00:00]

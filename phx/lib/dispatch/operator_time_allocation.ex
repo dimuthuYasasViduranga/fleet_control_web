@@ -101,8 +101,12 @@ defmodule Dispatch.OperatorTimeAllocation do
         assignments =
           data.device_assignments
           |> Enum.filter(&(&1.asset_id == asset.id))
-          |> to_device_assignment_spans()
+          |> point_in_time_to_spans(end_time)
           |> Enum.reject(&is_nil(&1.operator_id))
+
+        # get all relevant allocs
+
+        # convert device assignments into compatible spans
 
         # for each asset
         # get relevant allocations
@@ -237,8 +241,8 @@ defmodule Dispatch.OperatorTimeAllocation do
   end
 
   @doc """
-  Splits the given span by the provided spans. Returns a list of new spans, with the splitter span
-  that caused the split
+  Splits the given span by the provided spans. Returns a list of new spans,
+  with the splitter span that caused the split
   """
   @spec split_span_by(span, list(splitter :: span)) :: list({new_span :: span, splitter :: span})
   def split_span_by(span, splitters) do
@@ -273,14 +277,38 @@ defmodule Dispatch.OperatorTimeAllocation do
     |> Enum.sort_by(&elem(&1, 0), {:asc, NaiveDateTime})
   end
 
-  defp to_device_assignment_spans(assignments) do
-    assignments
-    |> Enum.sort_by(& &1.timestamp, {:asc, NaiveDateTime})
-    |> Enum.chunk_every(2, 1)
-    |> Enum.map(fn [a, b] ->
-      a
-      |> Map.put(:start_time, a.timestamp)
-      |> Map.put(:end_time, b.timestamp)
+  @doc """
+  Converts a set of point in time values into spans (timestamp -> {start_time, end_time})
+  When an end time is given, the last point will be extended to it, given that it is later than its start
+  """
+  @spec point_in_time_to_spans(%{timestamp: NaiveDateTime.t()}, NaiveDateTime.t() | nil) ::
+          list(span)
+  def point_in_time_to_spans(assignments, end_time \\ nil)
+
+  def point_in_time_to_spans([], _end_time), do: []
+
+  def point_in_time_to_spans([_], nil), do: []
+
+  def point_in_time_to_spans(assignments, end_time) do
+    sorted_assignments = Enum.sort_by(assignments, & &1.timestamp, {:asc, NaiveDateTime})
+
+    latest = List.last(sorted_assignments)
+
+    sorted_assignments =
+      cond do
+        is_nil(end_time) || NaiveDateTime.compare(latest.timestamp, end_time) != :lt ->
+          sorted_assignments
+
+        true ->
+          sorted_assignments ++ [%{timestamp: end_time}]
+      end
+
+    sorted_assignments
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.map(fn [cur, next] ->
+      cur
+      |> Map.put(:start_time, cur.timestamp)
+      |> Map.put(:end_time, next.timestamp)
       |> Map.drop([:timestamp])
     end)
   end
