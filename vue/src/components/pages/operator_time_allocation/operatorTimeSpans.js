@@ -2,7 +2,6 @@ import { copyDate } from '../../../code/time';
 import { addDynamicLevels, toTimeSpan } from '../time_allocation/timeSpan';
 
 const COLORS = {
-  [undefined]: 'grey',
   Ready: 'green',
   Standby: 'floralwhite',
   Process: 'gold',
@@ -10,7 +9,7 @@ const COLORS = {
   'No Task': '#004200',
 };
 
-const MISSING_COLOR = 'magenta';
+const MISSING_COLOR = 'black';
 
 export function toOperatorTimeSpans(allocations, assetName) {
   // create a set of basic allocations (all level 0)
@@ -46,19 +45,27 @@ export function operatorStyler(timeSpan, region) {
   const isFocus = region === 'focus';
   const isOverlapping = timeSpan.isOverlapping;
 
-  const fill = getFill(timeSpan);
-  const opacity = isFocus ? 0.75 : 0.5;
+  const opacityScale = isFocus ? 0.75 : 0.5;
   const strokeWidth = isFocus ? 0.75 : 0.1;
   const stroke = isOverlapping ? 'red' : 'black';
 
-  return {
-    fill,
-    selectedFill: fill,
-    opacity,
-    strokeWidth,
-    stroke,
-    strokeOpacity: 1,
-  };
+  if (!timeSpan.data.assetName) {
+    return {
+      fill: 'orange',
+      opacity: 0.2 * opacityScale,
+      strokeWidth,
+      stroke,
+      strokeOpacity: 1,
+    };
+  } else {
+    return {
+      fill: getFill(timeSpan),
+      opacity: opacityScale,
+      strokeWidth,
+      stroke,
+      strokeOpacity: 1,
+    };
+  }
 }
 
 function getFill(timeSpan) {

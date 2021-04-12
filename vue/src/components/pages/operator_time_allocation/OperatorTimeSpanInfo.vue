@@ -19,6 +19,11 @@
         :maxDatetime="rangeEnd"
         :contextHeight="contextHeight"
       >
+        <template slot-scope="timeSpan">
+          <div class="__tooltip-boundary">
+            <OperatorTimeSpanTooltip :timeSpan="timeSpan" />
+          </div>
+        </template>
       </TimeSpanChart>
     </div>
   </div>
@@ -27,6 +32,7 @@
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import TimeSpanChart from '../time_allocation/chart/TimeSpanChart.vue';
+import OperatorTimeSpanTooltip from './OperatorTimeSpanTooltip.vue';
 import { toOperatorTimeSpans, operatorStyler, operatorColors } from './operatorTimeSpans.js';
 
 import UserIcon from '@/components/icons/Man.vue';
@@ -68,6 +74,7 @@ export default {
   components: {
     Icon,
     TimeSpanChart,
+    OperatorTimeSpanTooltip,
   },
   props: {
     operatorId: { type: [String, Number] },
@@ -82,13 +89,13 @@ export default {
       margins: {
         focus: {
           top: 15,
-          left: 60,
+          left: 100,
           right: 5,
           bottom: 30,
         },
         context: {
           top: 15,
-          left: 60,
+          left: 100,
           right: 5,
           bottom: 30,
         },
@@ -163,6 +170,10 @@ export default {
   width: 100%;
   height: 400px;
   margin: 0 0.5rem;
+}
+
+.operator-time-span-info .axis--y .tick {
+  font-size: 1rem;
 }
 
 .__tooltip-boundary {
