@@ -11,25 +11,33 @@
         @refresh="onRefresh"
       />
 
-      <div class="options">
-        <!-- Show all operators, only show operators with data, etc -->
-      </div>
-
       <div class="search-bar-wrapper">
         <SearchBar placeholder="Search operator name" v-model="search" :showClear="true" />
       </div>
-
-      <div class="time-allocations">
-        <OperatorTimeSpanInfo
-          v-for="operator in filteredOperatorData"
-          :key="operator.id"
-          :operatorId="operator.id"
-          :operatorName="operator.name"
-          :allocations="operator.allocations"
-          :rangeStart="operator.rangeStart"
-          :rangeEnd="operator.rangeEnd"
+      <div class="blank-toggle">
+        <input
+          type="checkbox"
+          :checked="hideBlankOperators"
+          @change="onToggleHideBlankOperators()"
         />
+        <span @click="onToggleHideBlankOperators()">Hide Blank Operators</span>
       </div>
+
+      <Loading v-if="!!shiftInTransit" :isLoading="true" />
+      <template v-else>
+        <div v-if="filteredOperatorData.length" class="time-allocations">
+          <OperatorTimeSpanInfo
+            v-for="operator in filteredOperatorData"
+            :key="operator.id"
+            :operatorId="operator.id"
+            :operatorName="operator.name"
+            :allocations="operator.allocations"
+            :rangeStart="operator.rangeStart"
+            :rangeEnd="operator.rangeEnd"
+          />
+        </div>
+        <div v-else class="no-allocations">No Data to Show</div>
+      </template>
     </hxCard>
   </div>
 </template>
@@ -37,6 +45,7 @@
 <script>
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
+import Loading from 'hx-layout/Loading.vue';
 
 import ShiftSelector from '@/components/ShiftSelector.vue';
 import SearchBar from '@/components/SearchBar.vue';
@@ -45,7 +54,9 @@ import OperatorTimeSpanInfo from './OperatorTimeSpanInfo.vue';
 import ClockIcon from '@/components/icons/Time.vue';
 import { parseAsset, parseOperator } from '@/store/modules/constants';
 import { toUtcDate } from '@/code/time';
-import { attributeFromList, groupBy } from '@/code/helpers';
+import { attributeFromList, groupBy, isInText } from '@/code/helpers';
+
+import fuzzysort from 'fuzzysort';
 
 function parseOperatorData(data) {
   const assets = data.assets.map(parseAsset);
@@ -87,6 +98,7 @@ export default {
   name: 'OperatorTimeAllocation',
   components: {
     hxCard,
+    Loading,
     ShiftSelector,
     SearchBar,
     OperatorTimeSpanInfo,
@@ -100,6 +112,7 @@ export default {
       shift: null,
       shiftInTransit: null,
       search: '',
+      hideBlankOperators: true,
     };
   },
   computed: {
@@ -111,23 +124,32 @@ export default {
       if (!this.shiftOperatorData) {
         return [];
       }
-      // this needs to be left join operator list so that blanks show up
 
       const lookup = groupBy(this.shiftOperatorData.allocations, 'operatorId');
 
-      return Object.values(lookup)
-        .map(allocs => {
-          const first = allocs[0];
+      let operatorData = this.shiftOperatorData.operators
+        .map(operator => {
+          const allocs = lookup[operator.id] || [];
 
           return {
-            id: first.operatorId,
-            name: first.operatorName || '',
+            id: operator.id,
+            name: operator.fullname || '',
             rangeStart: this.shiftOperatorData.rangeStart,
             rangeEnd: this.shiftOperatorData.rangeEnd,
             allocations: allocs,
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (this.hideBlankOperators) {
+        operatorData = operatorData.filter(o => o.allocations.length);
+      }
+
+      if (this.search) {
+        operatorData = fuzzysort.go(this.search, operatorData, { key: 'name' }).map(r => r.obj);
+      }
+
+      return operatorData;
     },
   },
   methods: {
@@ -139,6 +161,9 @@ export default {
       }
 
       this.fetchAllocationsByShift(shift);
+    },
+    onToggleHideBlankOperators() {
+      this.hideBlankOperators = !this.hideBlankOperators;
     },
     onRefresh() {
       this.maxShiftDatetime = new Date();
@@ -160,6 +185,7 @@ export default {
           this.shiftSelectDisabled = false;
 
           if (this.shiftInTransit === shift.id) {
+            this.clearData();
             this.shiftOperatorData = parseOperatorData(data.data);
           } else {
             console.error(
@@ -186,4 +212,39 @@ export default {
 </script>
 
 <style>
+.operator-time-allocation-page .loading-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.operator-time-allocation-page .loading-wrapper svg {
+  margin: auto;
+  display: block;
+  min-height: 15rem;
+}
+
+.operator-time-allocation-page .blank-toggle {
+  padding: 0.5rem 0;
+}
+
+.operator-time-allocation-page .blank-toggle input,
+.operator-time-allocation-page .blank-toggle span {
+  cursor: pointer;
+}
+
+.operator-time-allocation-page .search-bar-wrapper {
+  max-width: 24rem;
+  margin: 0.5rem 0;
+  height: 1.6rem;
+}
+
+.operator-time-allocation-page .no-allocations {
+  color: gray;
+  font-size: 1.5rem;
+  font-style: italic;
+  width: 100%;
+  height: 200px;
+  padding-top: 90px;
+  text-align: center;
+}
 </style>

@@ -5,10 +5,36 @@
         <Icon class="operator-icon" :icon="userIcon" />
       </div>
       <div class="operator-name">{{ operatorName }}</div>
-      <div class="summary">Summary</div>
+      <table class="summary">
+        <tr>
+          <th class="key">Ready</th>
+          <td class="value">{{ formatDuration(summary.Ready) }}</td>
+        </tr>
+        <tr>
+          <th class="key">Process</th>
+          <td class="value">{{ formatDuration(summary.Process) }}</td>
+        </tr>
+        <tr>
+          <th class="key">Standby</th>
+          <td class="value">{{ formatDuration(summary.Standby) }}</td>
+        </tr>
+        <tr>
+          <th class="key">Down</th>
+          <td class="value">{{ formatDuration(summary.Down) }}</td>
+        </tr>
+        <tr v-if="summary.Unknown">
+          <th class="key">Unknown</th>
+          <td class="value">{{ formatDuration(summary.Unknown) }}</td>
+        </tr>
+        <tr>
+          <th class="key">Off Asset</th>
+          <td class="value">{{ formatDuration(summary['Off Asset']) }}</td>
+        </tr>
+      </table>
     </div>
     <div class="chart-wrapper">
       <TimeSpanChart
+        v-if="allocations.length"
         :name="operatorId"
         :timeSpans="allTimeSpans"
         :layout="chartLayout"
@@ -25,6 +51,7 @@
           </div>
         </template>
       </TimeSpanChart>
+      <div v-else class="no-data">-- No Data --</div>
     </div>
   </div>
 </template>
@@ -38,6 +65,7 @@ import { toOperatorTimeSpans, operatorStyler, operatorColors } from './operatorT
 import UserIcon from '@/components/icons/Man.vue';
 import { groupBy, uniq } from '@/code/helpers';
 import { firstBy } from 'thenby';
+import { formatSeconds } from '@/code/time';
 
 const NO_ASSET = 'No Asset';
 
@@ -104,6 +132,23 @@ export default {
     };
   },
   computed: {
+    summary() {
+      const summary = {
+        Ready: 0,
+        Standby: 0,
+        Process: 0,
+        Down: 0,
+        Unknown: 0,
+        'Off Asset': 0,
+      };
+
+      this.allocations.forEach(alloc => {
+        const duration = alloc.endTime.getTime() - alloc.startTime.getTime();
+        const key = !alloc.assetId ? 'Off Asset' : alloc.timeCodeGroup || 'Unknown';
+        summary[key] += duration;
+      });
+      return summary;
+    },
     timeSpanColors() {
       return operatorColors();
     },
@@ -136,6 +181,14 @@ export default {
     timeSpanStyler(timeSpan, region) {
       return operatorStyler(timeSpan, region);
     },
+    formatDuration(ms) {
+      const seconds = Math.trunc(ms / 1000);
+
+      if (!seconds) {
+        return '--';
+      }
+      return formatSeconds(seconds);
+    },
   },
 };
 </script>
@@ -153,6 +206,15 @@ export default {
   width: 12rem;
 }
 
+.operator-time-span-info .info .summary {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.operator-time-span-info .info .summary tr {
+  height: 1.5rem;
+}
+
 .operator-time-span-info .info .operator-name {
   font-size: 1.25rem;
   text-decoration: underline;
@@ -168,8 +230,17 @@ export default {
 .operator-time-span-info .chart-wrapper {
   transition: width 0.2s, height 0.2s;
   width: 100%;
-  height: 400px;
+  height: 300px;
   margin: 0 0.5rem;
+}
+
+.operator-time-span-info .chart-wrapper .no-data {
+  width: 100%;
+  height: 100%;
+  font-size: 1.25rem;
+  font-style: italic;
+  color: gray;
+  padding-top: 120px;
 }
 
 .operator-time-span-info .axis--y .tick {
