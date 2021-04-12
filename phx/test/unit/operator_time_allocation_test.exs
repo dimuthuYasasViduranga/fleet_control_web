@@ -446,6 +446,119 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
     end
   end
 
+  describe "split_span_by/2 -" do
+    test "no splitters" do
+      timestamp = ~N[2021-01-01 00:00:00]
+      a = to_span(timestamp, NaiveDateTime.add(timestamp, 60))
+
+      actual = OperatorTimeAllocation.split_span_by(a, [])
+
+      assert actual == []
+    end
+
+    test "splitter has no overlap" do
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+      s_start = NaiveDateTime.add(a_end, 60)
+      s_end = NaiveDateTime.add(s_start, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(s_start, s_end)
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == []
+    end
+
+    test "splitter equal" do
+      a_start = ~N[2020-01-01 00:00:00]
+      a_end = NaiveDateTime.add(a_start, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(a_start, a_end)
+
+      expected = [
+        {a, s}
+      ]
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == expected
+    end
+
+    test "splitter covers" do
+      s_start = ~N[2020-01-01 00:00:00]
+      a_start = NaiveDateTime.add(s_start, 60)
+      a_end = NaiveDateTime.add(a_start, 60)
+      s_end = NaiveDateTime.add(a_end, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(s_start, s_end)
+
+      expected = [
+        {a, s}
+      ]
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == expected
+    end
+
+    test "splitter within" do
+      a_start = ~N[2020-01-01 00:00:00]
+      s_start = NaiveDateTime.add(a_start, 60)
+      s_end = NaiveDateTime.add(s_start, 60)
+      a_end = NaiveDateTime.add(s_end, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(s_start, s_end)
+
+      expected = [
+        {to_span(s_start, s_end), s}
+      ]
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == expected
+    end
+
+    test "splitter ends in" do
+      s_start = ~N[2020-01-01 00:00:00]
+      a_start = NaiveDateTime.add(s_start, 60)
+      s_end = NaiveDateTime.add(a_start, 60)
+      a_end = NaiveDateTime.add(s_end, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(s_start, s_end)
+
+      expected = [
+        {to_span(a_start, s_end), s}
+      ]
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == expected
+    end
+
+    test "splitter starts in" do
+      a_start = ~N[2020-01-01 00:00:00]
+      s_start = NaiveDateTime.add(a_start, 60)
+      a_end = NaiveDateTime.add(s_start, 60)
+      s_end = NaiveDateTime.add(a_end, 60)
+
+      a = to_span(a_start, a_end)
+      s = to_span(s_start, s_end)
+
+      expected = [
+        {to_span(s_start, a_end), s}
+      ]
+
+      actual = OperatorTimeAllocation.split_span_by(a, [s])
+
+      assert actual == expected
+    end
+  end
+
   describe "build_report/1 -" do
     test "no allocations" do
       start_time = ~N[2020-01-01 00:00:00]

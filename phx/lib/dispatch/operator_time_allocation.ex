@@ -3,7 +3,7 @@ defmodule Dispatch.OperatorTimeAllocation do
   Used to fetch data for, and generate operator centric time allocation information
   """
 
-  alias Dispatch.{AssetAgent, OperatorAgent, DeviceAssignmentAgent}
+  alias Dispatch.{AssetAgent, OperatorAgent, DeviceAssignmentAgent, Helper}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
   alias HpsData.Repo
 
@@ -242,11 +242,35 @@ defmodule Dispatch.OperatorTimeAllocation do
   """
   @spec split_span_by(span, list(splitter :: span)) :: list({new_span :: span, splitter :: span})
   def split_span_by(span, splitters) do
-    # filter splitters to all those that affect the span
+    splitters
+    |> Enum.map(&{&1, Helper.coverage(&1, span)})
+    |> Enum.reject(fn {_, coverage} -> coverage === :no_overlap end)
+    |> Enum.map(fn {splitter, coverage} ->
+      case coverage do
+        :equals ->
+          {span, splitter}
 
-    # for each splitter, determine how the span should be split
+        :covers ->
+          {span, splitter}
 
-    # order all the elements by the new_spans start_time
+        :within ->
+          new_span =
+            span
+            |> Map.put(:start_time, splitter.start_time)
+            |> Map.put(:end_time, splitter.end_time)
+
+          {new_span, splitter}
+
+        :end_within ->
+          new_span = Map.put(span, :end_time, splitter.end_time)
+          {new_span, splitter}
+
+        :start_within ->
+          new_span = Map.put(span, :start_time, splitter.start_time)
+          {new_span, splitter}
+      end
+    end)
+    |> Enum.sort_by(&elem(&1, 0), {:asc, NaiveDateTime})
   end
 
   defp to_device_assignment_spans(assignments) do
