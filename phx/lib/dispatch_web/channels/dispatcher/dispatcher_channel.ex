@@ -21,6 +21,7 @@ defmodule DispatchWeb.DispatcherChannel do
 
   alias Dispatch.{
     Helper,
+    OperatorTimeAllocation,
     AssetAgent,
     ActivityAgent,
     DeviceAgent,
@@ -460,11 +461,13 @@ defmodule DispatchWeb.DispatcherChannel do
         {:reply, to_error("shift does not exists"), socket}
 
       shift ->
-        data = []
+        report =
+          OperatorTimeAllocation.fetch_data(shift.shift_start, shift.shift_end)
+          |> OperatorTimeAllocation.build_report()
 
         payload = %{
           shift: shift,
-          data: data
+          data: report
         }
 
         {:reply, {:ok, payload}, socket}

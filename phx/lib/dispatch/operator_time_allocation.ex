@@ -101,7 +101,7 @@ defmodule Dispatch.OperatorTimeAllocation do
       end_time: time_data.end_time,
       assets: time_data.assets,
       operators: time_data.operators,
-      daoperator_allocationsta: operator_allocs
+      operator_allocations: operator_allocs
     }
   end
 
@@ -281,7 +281,7 @@ defmodule Dispatch.OperatorTimeAllocation do
           {new_span, splitter}
       end
     end)
-    |> Enum.sort_by(&elem(&1, 0), {:asc, NaiveDateTime})
+    |> Enum.sort_by(&elem(&1, 0).start_time, {:asc, NaiveDateTime})
   end
 
   @doc """
