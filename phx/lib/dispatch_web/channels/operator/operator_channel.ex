@@ -34,6 +34,8 @@ defmodule DispatchWeb.OperatorChannel do
 
   alias Phoenix.Socket
 
+  @max_clock_lead_s 60
+
   @type topic :: String.t()
 
   @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
@@ -133,12 +135,13 @@ defmodule DispatchWeb.OperatorChannel do
   end
 
   def handle_in("submit offline logins", logins, socket) when is_list(logins) do
+    device_id = socket.assigns.device_id
     now = NaiveDateTime.utc_now()
 
     logins
     |> Enum.map(fn login ->
       %{
-        device_id: login["device_id"],
+        device_id: device_id,
         asset_id: login["asset_id"],
         operator_id: login["operator_id"],
         timestamp: Helper.to_naive(login["timestamp"]),
@@ -151,7 +154,10 @@ defmodule DispatchWeb.OperatorChannel do
         |> Map.values()
         |> Enum.any?(&is_nil/1)
 
-      any_nils || NaiveDateTime.compare(login.timestamp, now) == :gt
+      in_future =
+        NaiveDateTime.compare(login.timestamp, NaiveDateTime.add(now, @max_clock_lead_s)) == :gt
+
+      any_nils || in_future
     end)
     |> Enum.each(fn login ->
       DeviceAssignmentAgent.new(login)
@@ -178,7 +184,10 @@ defmodule DispatchWeb.OperatorChannel do
       timestamp = logout["timestamp"]
 
       is_nil(asset_id) || !timestamp ||
-        NaiveDateTime.compare(Helper.to_naive(timestamp), now) == :gt
+        NaiveDateTime.compare(
+          Helper.to_naive(timestamp),
+          NaiveDateTime.add(now, @max_clock_lead_s)
+        ) == :gt
     end)
     |> Enum.each(fn logout ->
       timestamp = logout["timestamp"]
