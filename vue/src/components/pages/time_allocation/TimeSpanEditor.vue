@@ -787,12 +787,12 @@ export default {
         .receive('error', error => {
           this.updateInTransit = false;
           loading.close();
-          this.$toasted.global.error(error.error);
+          this.$toaster.error(error.error);
         })
         .receive('timeout', () => {
           this.updateInTransit = false;
           loading.close();
-          this.$toasted.global.error('Request time out');
+          this.$toaster.error('Request time out');
         });
     },
     onConfirmLock() {
@@ -874,12 +874,12 @@ export default {
         })
         .receive('error', () => {
           console.error('[TimeAllocEditor] Could not get report');
-          this.$toasted.global.error('Could not fetch report');
+          this.$toaster.error('Could not fetch report');
           this.reportInTransit = false;
         })
         .receive('timeout', () => {
           console.error('[TimeAllocEditor] Could not get report. Timed out');
-          this.$toasted.global.noComms('Unable to fetch report');
+          this.$toaster.noComms('Unable to fetch report');
           this.reportInTransit = false;
         });
     },

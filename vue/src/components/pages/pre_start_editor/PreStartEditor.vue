@@ -126,14 +126,14 @@ export default {
     },
     submit() {
       if (!this.assetTypeId) {
-        this.$toasted.global.error('Must select asset type');
+        this.$toaster.error('Must select asset type');
         return;
       }
 
       const error = getFirstValidationError(this.form);
 
       if (error) {
-        this.$toasted.global.error(error);
+        this.$toaster.error(error);
         return;
       }
 
@@ -141,9 +141,9 @@ export default {
 
       this.$channel
         .push('pre-start:add form', payload)
-        .receive('ok', () => this.$toasted.global.info('Pre-start submitted'))
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.error('Unable to update pre-start'));
+        .receive('ok', () => this.$toaster.info('Pre-start submitted'))
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.error('Unable to update pre-start'));
     },
   },
 };

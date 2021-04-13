@@ -14,7 +14,7 @@
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
-import AssetTile from './AssetTile.vue';
+import AssetTile from '../asset_tile/AssetTile.vue';
 
 import LocationIcon from '@/components/icons/Location.vue';
 
@@ -31,7 +31,7 @@ export default {
   data: () => {
     return {
       locationIcon: LocationIcon,
-      show: true,
+      show: false,
     };
   },
   computed: {

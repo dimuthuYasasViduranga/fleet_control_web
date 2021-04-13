@@ -4,28 +4,47 @@
       <div class="star">{{ '\u2b50' }}</div>
       <div class="text">Mass Change | {{ assets }}</div>
     </div>
+    <div v-if="isUnassigned" class="message">
+      <span class="new italics">Unassigned</span>
+    </div>
     <div class="message">
-      <span class="new">{{ route }}</span>
+      <span class="new">
+        <span :class="{ italics: !sourceName }">
+          {{ sourceName || 'No Source' }}
+        </span>
+        {{ arrow }}
+        <span :class="{ italics: !dumpName }">
+          {{ dumpName || 'No Dump' }}
+        </span>
+      </span>
     </div>
   </div>
 </template>
 
 <script>
-import { toRunName } from '../../../../../code/helpers';
 export default {
   name: 'HaulTruckMassDispatchEvent',
   props: {
     entry: { type: Object, required: true },
   },
+  data: () => {
+    return {
+      arrow: '\u27f9',
+    };
+  },
   computed: {
-    route() {
+    isUnassigned() {
       const entry = this.entry;
-      const load = entry.loadLocation;
-      const dump = entry.dumpLocation;
-      return toRunName(load, dump);
+      return !entry.digUnitName && !entry.loadLocation && !entry.dumpLocation;
     },
     assets() {
       return this.entry.assetNames;
+    },
+    sourceName() {
+      return this.entry.digUnitName || this.entry.loadLocation;
+    },
+    dumpName() {
+      return this.entry.dumpName;
     },
   },
 };
@@ -35,7 +54,7 @@ export default {
 .haul-truck-mass-dispatch-event {
   border: 2px dashed grey;
   padding: 0.25rem;
-  background-color: #2f3133;
+  background-color: #38393a;
   color: darkgray;
 }
 
@@ -52,5 +71,10 @@ export default {
   display: flex;
   flex-wrap: wrap;
   padding-left: 1.5rem;
+}
+
+.haul-truck-mass-dispatch-event .italics {
+  font-style: italic;
+  opacity: 0.85;
 }
 </style>

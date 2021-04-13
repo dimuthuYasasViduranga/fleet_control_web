@@ -328,7 +328,7 @@ export default {
       const answers = Object.values(this.answers).filter(ans => ans);
       const error = validateMessage(this.selectedAssetIds, message, answers, this.maxLength);
       if (error) {
-        this.$toasted.global.error(error);
+        this.$toaster.error(error);
         return;
       }
 
@@ -350,8 +350,8 @@ export default {
       this.$channel
         .push('add dispatcher message', payload)
         .receive('ok', () => this.close())
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to send message'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to send message'));
     },
     sendMassMsg(assetIds, message, answers = []) {
       const validAnswers = answers.length === 0 ? null : answers.map(a => a.toLowerCase());
@@ -365,8 +365,8 @@ export default {
       this.$channel
         .push('add mass dispatcher message', payload)
         .receive('ok', () => this.close())
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to send message'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to send message'));
     },
   },
 };

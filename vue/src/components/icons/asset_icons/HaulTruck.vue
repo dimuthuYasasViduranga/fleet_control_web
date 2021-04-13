@@ -22,7 +22,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 #haul_truck_icon {
   stroke-width: 1.2;
 }

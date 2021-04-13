@@ -14,14 +14,6 @@ export function attributeFromList(items, matchKey, matchValue, retKey) {
   return item === undefined ? undefined : item[retKey];
 }
 
-export function toRunName(load, dump) {
-  let runString = 'Unassigned';
-  if (load || dump) {
-    runString = `${load || 'Unassigned'} \u27f9 ${dump || 'Unassigned'}`;
-  }
-  return runString;
-}
-
 export function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -150,7 +142,7 @@ export function dedupByMany(list, keys) {
 }
 
 /**
- * Returns a map of [key, element | element[valKey]]
+ * Returns a map of {key => element | element[valKey]}
  * @param {Array} list - array to group
  * @param {String} key - key to group on
  * @param {String} valKey - key to group. default null (all keys)
@@ -212,4 +204,51 @@ function equalFrom(arr, subarr, offset) {
   }
 
   return true;
+}
+
+export class Dictionary {
+  constructor(hasher = JSON.stringify) {
+    this._entries = {};
+    this._hasher = hasher;
+  }
+
+  get(keys) {
+    return (this._entries[this._hasher(keys)] || {}).value;
+  }
+
+  add(keys, value, onConflict = (n, o) => n) {
+    const accessor = this._hasher(keys);
+    const existing = this._entries[accessor];
+    if (existing) {
+      this._entries[accessor].value = onConflict(value, existing.value);
+    } else {
+      this._entries[accessor] = { keys, value };
+    }
+  }
+
+  append(keys, value) {
+    const accessor = this._hasher(keys);
+    const existing = this._entries[accessor];
+    if (existing) {
+      this._entries[accessor].value.push(value);
+    } else {
+      this._entries[accessor] = { keys, value: [value] };
+    }
+  }
+
+  remove(keys) {
+    delete this._entries[this._hasher(keys)];
+  }
+
+  has(keys) {
+    return !!this._entries[this._hasher(keys)];
+  }
+
+  forEach(predicate = (ks, v) => null) {
+    Object.values(this._entries).forEach(data => predicate(data.keys, data.value));
+  }
+
+  map(predicate = (ks, v) => null) {
+    return Object.values(this._entries).map(data => predicate(data.keys, data.value));
+  }
 }

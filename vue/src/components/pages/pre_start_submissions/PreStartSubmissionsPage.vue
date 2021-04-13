@@ -103,7 +103,7 @@ export default {
       const onError = (type, msg) => {
         this.fetchingData = false;
         this.localSubmissions = [];
-        this.$toasted.global[type](msg);
+        this.$toaster[type](msg);
       };
 
       const payload = {

@@ -245,11 +245,11 @@ export default {
         })
         .receive('error', resp => {
           this.reportInTransit = null;
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           this.reportInTransit = null;
-          this.$toasted.global.noComms('Unable to fetch report');
+          this.$toaster.noComms('Unable to fetch report');
         });
     },
   },

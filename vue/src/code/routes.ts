@@ -9,6 +9,7 @@ import ActivityLog from '../components/pages/activity_log/ActivityLog.vue';
 import TimeAllocationPage from '../components/pages/time_allocation/TimeAllocationPage.vue';
 import TimeAllocationReport from '../components/pages/time_allocation_report/TimeAllocationReport.vue';
 import TimeCodeEditorPage from '../components/pages/time_code_editor/TimeCodeEditorPage.vue';
+import OperatorTimeAllocationPage from '../components/pages/operator_time_allocation/OperatorTimeAllocationPage.vue';
 import MessageEditorPage from '../components/pages/message_editor/MessageEditorPage.vue';
 import MineMap from '../components/pages/mine_map/MineMap.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
@@ -29,7 +30,8 @@ import LocationIcon from '../components/icons/Location.vue';
 import ManIcon from '../components/icons/Man.vue';
 import ListIcon from '../components/icons/List.vue';
 import LineIcon from '../components/icons/Line.vue';
-import TimeIcon from '../components/icons/Time.vue';
+import ClockWithTruckIcon from '../components/icons/ClockWithTruck.vue';
+import ClockWithUserIcon from '../components/icons/ClockWithUser.vue';
 import MapIcon from '../components/icons/Map.vue';
 import BellIcon from '../components/icons/Bell.vue';
 import PlaneEngineIcon from '../components/icons/PlaneEngine.vue';
@@ -159,7 +161,13 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       name: 'Time Allocation',
       path: '/time_allocation',
       component: TimeAllocationPage,
-      icon: TimeIcon,
+      icon: ClockWithTruckIcon,
+    },
+    {
+      name: 'Operator Time Allocation',
+      path: '/operator_time_allocation',
+      component: OperatorTimeAllocationPage,
+      icon: ClockWithUserIcon,
     },
     {
       name: 'Time Allocation Report',

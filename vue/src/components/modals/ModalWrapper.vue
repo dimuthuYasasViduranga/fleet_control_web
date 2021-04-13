@@ -134,9 +134,4 @@ export default {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
-
-/* this is a way to overcome the scrollbar being removed when using "scrolllock" */
-html {
-  background-color: #121f26;
-}
 </style>

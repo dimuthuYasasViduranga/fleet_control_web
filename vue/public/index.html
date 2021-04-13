@@ -1,17 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-    <title>FleetControl</title>
-  </head>
-  <body>
-    <noscript>
-      <strong>We're sorry but FleetControl doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <div id="app"></div>
-    <!-- built files will be auto injected -->
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <title>FleetControl</title>
+  <style>
+    html {
+      background-color: #121f26;
+    }
+
+    #ie-warning {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      text-align: center;
+      color: white;
+      background-color: #121f26;
+      font-size: 1.5rem;
+      font-family: 'GE Inspira Sans', sans-serif;
+      z-index: 1000;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <strong>
+      We're sorry but FleetControl doesn't work properly without JavaScript enabled. Please enable it to continue.
+    </strong>
+  </noscript>
+  <!-- App element is inserted by the following -->
+  <div id="app"></div>
+  <div id="ie-warning">
+    <p>FleetControl does not support Internet Explorer. Please try using another browser</p>
+    <p>
+      If you are not using Internet Explorer, please email support@haultrax.com so that this message can
+      be removed
+    </p>
+    <button id="remove-ie-warning">Proceed</button>
+  </div>
+  <!-- built files will be auto injected -->
+  <script type="text/javascript">
+    function isUsingInternetExplorer() {
+      try {
+        const userAgent = window.navigator.userAgent;
+        const iePresent = userAgent.indexOf('MSIE ') > -1;
+        const ie11Present = !!userAgent.match(/Trident.*rv\:11\./);
+        return iePresent || ie11Present;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function removeWarning() {
+      const warning = document.getElementById("ie-warning");
+      warning.parentNode.removeChild(warning);
+    }
+
+    const btn = document.getElementById("remove-ie-warning");
+    btn.onclick = function () {
+      removeWarning();
+    }
+
+    // if skip, or not using internet explorer, remove warning
+    if (!isUsingInternetExplorer()) {
+      removeWarning();
+    }
+
+  </script>
+</body>
+
 </html>

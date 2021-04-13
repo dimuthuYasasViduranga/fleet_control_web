@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { toUtcDate } from '../../code/time.js';
 
+import UnknownIcon from '../../components/icons/asset_icons/Unknown.vue';
 import HaulTruckIcon from '../../components/icons/asset_icons/HaulTruck.vue';
 import WaterTruckIcon from '../../components/icons/asset_icons/WaterTruck.vue';
 import ExcavatorIcon from '../../components/icons/asset_icons/Excavator.vue';
@@ -19,6 +20,7 @@ const DUMP_TYPES = ['crusher', 'waste_dump', 'rehab', 'stockpile', 'waste_stockp
 
 function getIcons() {
   return {
+    Unknown: UnknownIcon,
     'Haul Truck': HaulTruckIcon,
     Watercart: WaterTruckIcon,
     Excavator: ExcavatorIcon,
@@ -126,7 +128,7 @@ function parseRadioNumber(radioNumber) {
   };
 }
 
-function parseOperator(operator) {
+export function parseOperator(operator) {
   const fullname = getFullName(operator.name, operator.nickname);
   const shortname = operator.nickname || operator.name;
   return {

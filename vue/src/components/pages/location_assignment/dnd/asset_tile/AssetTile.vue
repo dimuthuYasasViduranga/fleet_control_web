@@ -70,9 +70,9 @@ import TabletIcon from '@/components/icons/Tablet.vue';
 const FLASH_DURATION = 10;
 
 function getAndResolveExternalUpdateClass(asset) {
-  if (asset.updatedExtenally === true) {
+  if (asset.updatedExternally === true) {
     // this is to make the element flash a colour
-    setTimeout(() => (asset.updatedExtenally = false), FLASH_DURATION);
+    setTimeout(() => (asset.updatedExternally = false), FLASH_DURATION);
     return 'tile-updated';
   }
   return '';
@@ -103,6 +103,10 @@ export default {
   },
   computed: {
     hasDevice() {
+      if (this.asset.hasDevice !== undefined) {
+        return this.asset.hasDevice;
+      }
+
       return !!this.asset.deviceId;
     },
     secondaryIcon() {
@@ -115,7 +119,8 @@ export default {
       }
     },
     icon() {
-      return this.$store.state.constants.icons[this.asset.type];
+      const icons = this.$store.state.constants.icons;
+      return icons[this.asset.type] || icons.Unknown;
     },
     locations() {
       return this.$store.state.constants.locations;

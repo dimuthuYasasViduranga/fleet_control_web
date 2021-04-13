@@ -21,6 +21,7 @@ defmodule DispatchWeb.DispatcherChannel do
 
   alias Dispatch.{
     Helper,
+    OperatorTimeAllocation,
     AssetAgent,
     ActivityAgent,
     DeviceAgent,
@@ -448,6 +449,34 @@ defmodule DispatchWeb.DispatcherChannel do
           device_assignments: device_assignments,
           timeusage: timeusage,
           cycles: cycles
+        }
+
+        {:reply, {:ok, payload}, socket}
+    end
+  end
+
+  def handle_in("get operator time allocation data", calendar_id, socket) do
+    case CalendarAgent.get(%{id: calendar_id}) do
+      nil ->
+        {:reply, to_error("shift does not exists"), socket}
+
+      shift ->
+        now = NaiveDateTime.utc_now()
+
+        end_time =
+          case NaiveDateTime.compare(shift.shift_end, now) == :gt do
+            true -> now
+            _ -> shift.shift_end
+          end
+
+        report =
+          OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
+          |> OperatorTimeAllocation.build_report()
+          |> Map.put(:end_time, shift.shift_end)
+
+        payload = %{
+          shift: shift,
+          data: report
         }
 
         {:reply, {:ok, payload}, socket}

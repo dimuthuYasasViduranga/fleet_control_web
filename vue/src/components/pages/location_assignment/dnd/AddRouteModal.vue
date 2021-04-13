@@ -1,19 +1,33 @@
 <template>
   <div class="add-route-modal">
+    <div v-if="title" class="title">{{ title }}</div>
     <table>
       <tr>
-        <td class="key">Dig Unit</td>
+        <td class="key">
+          <DropDown v-model="source" :items="sourceOptions" label="id" :useScrollLock="false" />
+        </td>
         <td class="value">
-          <DropDown
-            v-model="localDigUnitId"
-            :items="digUnitOptions"
-            label="name"
-            :useScrollLock="false"
-          />
-          <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
+          <template v-if="source === 'Dig Unit'">
+            <DropDown
+              v-model="localDigUnitId"
+              :items="digUnitOptions"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
+          </template>
+          <template v-else>
+            <DropDown
+              v-model="localLoadId"
+              :items="availableLoads"
+              label="name"
+              :useScrollLock="false"
+            />
+            <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
+          </template>
         </td>
       </tr>
-      <tr>
+      <tr v-if="!hideDump">
         <td class="key">Dump</td>
         <td class="value">
           <DropDown
@@ -52,19 +66,26 @@ export default {
     DropDown,
   },
   props: {
+    title: { type: String, default: '' },
     submitName: { type: String, default: 'Add' },
     digUnitId: { type: [Number, String], default: null },
+    loadId: { type: [Number, String], default: null },
     dumpId: { type: [Number, String], default: null },
     digUnits: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },
+    loadLocations: { type: Array, default: () => [] },
+    hideDump: { type: Boolean, default: false },
   },
   data: () => {
     return {
       crossIcon: ErrorIcon,
       localDigUnitId: null,
       localDumpId: null,
+      localLoadId: null,
       showAllLocations: false,
+      source: 'Dig Unit',
+      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Load' }],
     };
   },
   computed: {
@@ -78,6 +99,14 @@ export default {
         };
       });
     },
+    availableLoads() {
+      return filterLocations(
+        this.loadLocations,
+        this.locations,
+        this.localLoadId,
+        this.showAllLocations,
+      );
+    },
     availableDumps() {
       return filterLocations(
         this.dumpLocations,
@@ -89,15 +118,23 @@ export default {
   },
   mounted() {
     this.localDigUnitId = this.digUnitId;
+    this.localLoadId = this.loadId;
     this.localDumpId = this.dumpId;
+
+    if (!this.digUnitId && this.loadId) {
+      this.source = 'Load';
+    }
   },
   methods: {
     onClose(resp) {
       this.$emit('close', resp);
     },
     onSubmit() {
+      const digUnitId = this.source === 'Dig Unit' ? this.localDigUnitId : null;
+      const loadId = this.source === 'Load' ? this.localLoadId : null;
       const payload = {
-        digUnitId: this.localDigUnitId,
+        digUnitId,
+        loadId,
         dumpId: this.localDumpId,
       };
 
@@ -109,11 +146,19 @@ export default {
 
 <style>
 .add-route-modal-wrapper .modal-container {
-  max-width: 32rem;
+  max-width: 38rem;
 }
 
 .add-route-modal .separator {
   height: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #677e8c;
+}
+
+.add-route-modal .title {
+  width: 100%;
+  font-size: 2rem;
+  text-align: center;
   margin-bottom: 1rem;
   border-bottom: 1px solid #677e8c;
 }
@@ -128,14 +173,21 @@ export default {
 }
 
 .add-route-modal tr .key {
-  width: 11rem;
+  width: 13rem;
   font-size: 2rem;
+}
+
+.add-route-modal tr .key .dropdown-wrapper {
+  width: 100%;
+  height: 2.5rem;
+  font-size: 1.5rem;
 }
 
 .add-route-modal tr .value {
   display: flex;
   font-size: 1.5rem;
   text-align: center;
+  padding: 4px;
 }
 
 .add-route-modal tr .value .dropdown-wrapper {

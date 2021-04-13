@@ -25,8 +25,7 @@
 <script>
 import hxCard from 'hx-layout/Card.vue';
 import { Container, Draggable } from 'vue-smooth-dnd';
-import AssetTile from './AssetTile.vue';
-
+import AssetTile from '../asset_tile/AssetTile.vue';
 import LocationIcon from '@/components/icons/Location.vue';
 
 export default {

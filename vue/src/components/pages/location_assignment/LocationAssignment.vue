@@ -1,23 +1,24 @@
 <template>
-  <hxCard class="location-assignment" :hideTitle="true">
+  <hxCard class="location-assignment-2" :hideTitle="true">
     <loaded>
       <div class="settings">
         <Icon
-          v-tooltip="{ content: 'Settings', placement: 'left' }"
+          v-tooltip="{ content: 'Layout Settings', placement: 'left' }"
           :icon="cogIcon"
           @click="onOpenSettings()"
         />
       </div>
-      <DndRoutes
-        :orientation="settings.orientation"
-        :settings="settings"
-        :digUnits="digUnits"
-        :haulTrucks="haulTrucks"
-        :otherAssets="otherAssets"
+      <DndRouteMain
+        :orientation="dndSettings.orientation"
+        :layoutSettings="dndSettings"
+        :fullAssets="fullAssets"
         :locations="locations"
+        :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
-        @set-haul-truck="onSetHaulTruck"
-        @mass-set-haul-truck="onMassSetHaulTruck"
+        :digUnitActivities="digUnitActivities"
+        :haulTruckDispatches="haulTruckDispatches"
+        @set-haul-truck="onUpdateHaulTruck"
+        @mass-set-haul-trucks="onMassUpdateHaulTrucks"
       />
     </loaded>
   </hxCard>
@@ -28,12 +29,10 @@ import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
 import Loaded from '@/components/Loaded.vue';
-import DndRoutes from './DndRoutes.vue';
-import DndSettingsModal from './DndSettingsModal.vue';
 
-import { attributeFromList } from '@/code/helpers';
-
+import DndRouteMain from './dnd/DndRouteMain.vue';
 import CogIcon from '@/components/icons/Cog.vue';
+import DndSettingsModal from './dnd/DndSettingsModal.vue';
 
 export default {
   name: 'LocationAssignment',
@@ -41,94 +40,66 @@ export default {
     hxCard,
     Icon,
     Loaded,
-    DndRoutes,
+    DndRouteMain,
   },
   data: () => {
     return {
       cogIcon: CogIcon,
-      routeStructure: {},
-      dropPlaceholderOptions: {
-        className: 'tile-drop-preview',
-        animationDuration: '150',
-        showOnTop: true,
-      },
     };
   },
   computed: {
     ...mapState('constants', {
       locations: state => state.locations,
+      loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
     }),
-    settings() {
-      return this.$store.state.dndSettings;
-    },
+    ...mapState({
+      haulTruckDispatches: state => state.haulTruck.currentDispatches,
+      digUnitActivities: state => state.digUnit.currentActivities,
+    }),
     fullAssets() {
-      return this.$store.getters.fullAssets.filter(
-        fa => fa.hasDevice || fa.secondaryType === 'Dig Unit',
-      );
+      return this.$store.getters.fullAssets;
     },
-    digUnits() {
-      const activities = this.$store.state.digUnit.currentActivities;
-
-      return this.fullAssets
-        .filter(a => a.secondaryType === 'Dig Unit')
-        .map(a => {
-          const activity = attributeFromList(activities, 'assetId', a.id) || {};
-          return { ...a, activity: { ...activity } };
-        });
-    },
-    haulTrucks() {
-      const dispatches = this.$store.state.haulTruck.currentDispatches;
-
-      return this.fullAssets
-        .filter(a => a.type === 'Haul Truck')
-        .map(a => {
-          const dispatch = attributeFromList(dispatches, 'assetId', a.id) || {};
-          return { ...a, dispatch: { ...dispatch } };
-        });
-    },
-    otherAssets() {
-      const usedAssetIds = []
-        .concat(this.digUnits)
-        .concat(this.haulTrucks)
-        .map(a => a.id);
-      return this.fullAssets.filter(a => !usedAssetIds.includes(a.id));
+    dndSettings() {
+      return this.$store.state.dndSettings;
     },
   },
   methods: {
     onOpenSettings() {
-      this.$modal.create(DndSettingsModal, { settings: this.settings }).onClose(resp => {
+      this.$modal.create(DndSettingsModal, { settings: this.dndSettings }).onClose(resp => {
         if (resp) {
           this.$store.commit('setDndSettings', resp);
         }
       });
     },
-    onSetHaulTruck({ assetId, digUnitId, dumpId }) {
+    onUpdateHaulTruck({ assetId, digUnitId, loadId, dumpId }) {
       const payload = {
         asset_id: assetId,
         dig_unit_id: digUnitId,
+        load_location_id: loadId,
         dump_location_id: dumpId,
         timestamp: Date.now(),
       };
 
       this.$channel
         .push('haul:set dispatch', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update dispatch'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update dispatch'));
     },
-    onMassSetHaulTruck({ assetIds, digUnitId, dumpId }) {
+    onMassUpdateHaulTrucks({ assetIds, digUnitId, loadId, dumpId }) {
       const payload = {
         asset_ids: assetIds,
         dispatch: {
           dig_unit_id: digUnitId,
+          load_location_id: loadId,
           dump_location_id: dumpId,
         },
       };
 
       this.$channel
         .push('haul:set mass dispatch', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update mass dispatch'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update mass dispatch'));
     },
   },
 };
@@ -150,5 +121,4 @@ export default {
   opacity: 0.5;
 }
 </style>
-
 
