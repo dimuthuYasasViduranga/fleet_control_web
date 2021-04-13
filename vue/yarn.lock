@@ -5103,10 +5103,6 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
-marker-clusterer-plus@^2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/marker-clusterer-plus/-/marker-clusterer-plus-2.1.4.tgz#f8eff74d599dab3b7d0e3fed5264ea0e704f5d67"
-
 math-random@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/math-random/-/math-random-1.0.1.tgz#8b3aac588b8a66e4975e3cdea67f7bb329601fac"
@@ -8134,19 +8130,12 @@ vue-toasted@^1.1.28:
   version "1.1.28"
   resolved "https://registry.yarnpkg.com/vue-toasted/-/vue-toasted-1.1.28.tgz#dbabb83acc89f7a9e8765815e491d79f0dc65c26"
 
-vue2-gmap-custom-marker@^5.6.2:
-  version "5.6.2"
-  resolved "https://registry.yarnpkg.com/vue2-gmap-custom-marker/-/vue2-gmap-custom-marker-5.6.2.tgz#ea995aabca651307759df94ce29eb7ef8c90587f"
+vue2-gmap-custom-marker@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/vue2-gmap-custom-marker/-/vue2-gmap-custom-marker-6.0.1.tgz#eab36675745d7e5026303c3e6d982b8076ca064e"
   dependencies:
-    vue "^2.5.17"
-    vue2-google-maps "^0.10.2"
-
-vue2-google-maps@^0.10.2:
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/vue2-google-maps/-/vue2-google-maps-0.10.7.tgz#2e4c1239386001bd47777d8c6a0475e5320cc3a8"
-  dependencies:
-    babel-runtime "^6.26.0"
-    marker-clusterer-plus "^2.1.4"
+    gmap-vue "^1.5.0"
+    vue "^2.x"
 
 vue2-perfect-scrollbar@^1.5.0:
   version "1.5.0"
@@ -8167,6 +8156,10 @@ vue@2.6.10:
 vue@^2.5.17:
   version "2.5.17"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.5.17.tgz#0f8789ad718be68ca1872629832ed533589c6ada"
+
+vue@^2.x:
+  version "2.6.12"
+  resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.12.tgz#f5ebd4fa6bd2869403e29a896aed4904456c9123"
 
 vuex@^3.6.0:
   version "3.6.2"
