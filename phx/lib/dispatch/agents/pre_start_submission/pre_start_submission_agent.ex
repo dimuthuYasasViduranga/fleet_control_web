@@ -7,79 +7,107 @@ defmodule Dispatch.PreStartSubmissionAgent do
   alias Dispatch.{Helper, AgentHelper}
   require Logger
 
-  alias __MODULE__.{Data, Reshape}
+  alias __MODULE__.Data
   alias HpsData.Schemas.Dispatch.PreStart
   alias HpsData.Repo
 
   alias Ecto.Multi
 
-  @type control :: %{
+  @type ticket_status_type :: %{
           id: integer,
-          response_id: integer,
-          section_id: integer,
-          order: integer,
-          label: String.t(),
-          answer: boolean | nil,
-          comment: String.t() | nil
-        }
-
-  @type section :: %{
-          id: integer,
-          form_id: integer,
-          order: integer,
-          title: String.t(),
-          details: String.t() | nil,
-          controls: list(control)
-        }
-
-  @type form :: %{
-          id: integer,
-          dispatcher_id: integer,
-          asset_type_id: integer,
-          sections: list(section),
-          timestamp: NaiveDateTime.t(),
-          server_timestamp: NaiveDateTime.t()
+          name: String.t(),
+          alias: String.t() | nil
         }
 
   @type submission :: %{
-          id: integer,
-          form_id: integer,
-          asset_id: integer,
-          operator_id: integer | nil,
-          employee_id: String.t() | nil,
-          comment: String.t() | nil,
-          form: form,
-          timestamp: NaiveDateTime.t(),
-          server_timestamp: NaiveDateTime.t()
-        }
+    id: integer,
+    form_id: integer,
+    form: form,
+    asset_id: integer,
+    operator_id: integer | nil,
+    employee_id: String.t() | nil,
+    comment: String.t(),
+    responses: list(response),
+    timestamp: NaiveDateTime.t(),
+    server_timestamp: NaiveDateTime.t()
+  }
+
+  @type form :: %{
+    id: integer,
+    asset_type_id: integer,
+    dispatcher_id: integer,
+    sections: list(section),
+    timestamp: NaiveDateTime.t(),
+    server_timestamp: NaiveDateTime.t(),
+  }
+
+  @type section :: %{
+    id: integer,
+    form_id: integer,
+    order: integer,
+    title: String.t(),
+    details: String.t(),
+    controls: list(control)
+  }
+
+  @type control :: %{
+    id: integer,
+    section_id: integer,
+    order: integer,
+    label: String.t()
+  }
+
+  @type response :: %{
+    id: integer,
+    submission_id: integer,
+    control_id: integer,
+    answer: boolean | nil,
+    comment: String.t(),
+    ticket_id: integer,
+    ticket: ticket | nil
+  }
+
+  @type ticket :: %{
+    id: integer,
+    asset_id: integer,
+    created_by_dispatcher_id: integer,
+    active_status: ticket_status,
+    timestamp: NaiveDateTime.t(),
+    server_timestamp: NaiveDateTime.t()
+  }
+
+  @type ticket_status :: %{
+    id: integer,
+    ticket_id: integer,
+    reference: String.t(),
+    details: String.t(),
+    created_by_dispatcher_id: integer | nil,
+    status_type_id: integer,
+    active: true,
+    timestamp: NaiveDateTime.t(),
+    server_timestamp: NaiveDateTime.t()
+  }
 
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
-  defp init(), do: %{current: pull_latest_submissions()}
-
-  defp pull_latest_submissions() do
-    {submissions, forms, sections, controls, responses} = Data.get_latest_submissions()
-    Enum.map(submissions, &Reshape.to_submission_tree(&1, forms, sections, controls, responses))
-  end
-
-  defp pull_submission(submission_id) do
-    {submission, forms, sections, controls, responses} = Data.get_submission(submission_id)
-    Reshape.to_submission_tree(submission, forms, sections, controls, responses)
+  def init() do
+    %{
+      current: Data.pull_latest_submissions(),
+      ticket_status_types: Data.pull_ticket_status_types()
+    }
   end
 
   @spec refresh!() :: :ok
   def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
 
-  @spec all() :: list(submission)
-  def all(), do: Agent.get(__MODULE__, & &1[:current])
+  @spec current() :: list()
+  def current(), do: Agent.get(__MODULE__, & &1[:current])
 
-  @spec get_between(NaiveDateTime.t(), NaiveDateTime.t()) :: list(submission)
-  def get_between(start_time, end_time) do
-    {submissions, forms, sections, controls, responses} =
-      Data.get_submissions_between(start_time, end_time)
+  @spec ticket_status_types() :: list(ticket_status_type)
+  def ticket_status_types(), do: Agent.get(__MODULE__, & &1[:ticket_status_types])
 
-    Enum.map(submissions, &Reshape.to_submission_tree(&1, forms, sections, controls, responses))
-  end
+  @spec get_between(NaiveDateTime.t(), NaiveDateTime.t()) :: list()
+  def get_between(start_time, end_time), do: Data.pull_submissions_between(start_time, end_time)
 
   @spec add(map) :: {:ok, submission} | {:error, :missing_responess | term}
   def add(%{"form_id" => _} = submission) do
@@ -105,37 +133,35 @@ defmodule Dispatch.PreStartSubmissionAgent do
   def add(%{responses: []}), do: {:error, :missing_responses}
 
   def add(raw_submission) do
-    Agent.get_and_update(__MODULE__, fn state ->
-      raw_submission
-      |> insert_submission()
-      |> case do
-        {:ok, %{submission: submission}} ->
-          complete_submission = pull_submission(submission.id)
+    Agent.get_and_update(__MODULE__, fn
+      state ->
+        raw_submission
+        |> insert_submission()
+        |> case do
+          {:ok, %{submission: submission}} ->
+            submission = Data.pull_submission(submission.id)
+            |> IO.inspect()
 
-          state =
-            case can_store_submission?(
-                   state.current,
-                   complete_submission.asset_id,
-                   complete_submission.timestamp
-                 ) do
-              true ->
-                AgentHelper.override_or_add(
-                  state,
-                  :current,
-                  complete_submission,
-                  &(&1.asset_id == complete_submission.asset_id),
-                  nil
-                )
+            state =
+              case can_store_submission?(state.current, submission.asset_id, submission.timestamp) do
+                true ->
+                  AgentHelper.override_or_add(
+                    state,
+                    :current,
+                    submission,
+                    &(&1.asset_id == submission.asset_id),
+                    nil
+                  )
 
-              false ->
-                state
-            end
+                _ ->
+                  state
+              end
 
-          {{:ok, complete_submission}, state}
+            {{:ok, submission}, state}
 
-        error ->
-          {error, state}
-      end
+          error ->
+            {error, state}
+        end
     end)
   end
 
@@ -146,7 +172,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
         asset_id: raw_sub.asset_id,
         operator_id: raw_sub.operator_id,
         employee_id: raw_sub[:employee_id],
-        comment: raw_sub.comment,
+        comment: raw_sub[:comment],
         timestamp: raw_sub.timestamp
       })
 
@@ -177,7 +203,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
     |> Enum.find(&(&1.asset_id == asset_id))
     |> case do
       %{timestamp: current_timestamp} ->
-        NaiveDateTime.compare(new_timestamp, current_timestamp) == :gt
+        NaiveDateTime.compare(new_timestamp, current_timestamp) != :lt
 
       _ ->
         true

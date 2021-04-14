@@ -353,7 +353,7 @@ defmodule DispatchWeb.Broadcast do
 
   def send_pre_start_submissions_to_all() do
     payload = %{
-      submissions: PreStartSubmissionAgent.all()
+      submissions: PreStartSubmissionAgent.current()
     }
 
     Endpoint.broadcast(@dispatch, "set pre-start submissions", payload)

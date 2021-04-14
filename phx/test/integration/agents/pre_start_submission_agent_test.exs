@@ -43,17 +43,12 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
       |> Map.get(:controls)
       |> List.first()
 
-    [form_id: pre_start.id, control: control]
-  end
+    status_types =
+      PreStartSubmissionAgent.ticket_status_types()
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.into(%{})
 
-  defp response_formatter(resp) do
-    %{
-      id: resp.id,
-      submission_id: resp.submission_id,
-      control_id: resp.control_id,
-      answer: resp.answer,
-      comment: resp.comment
-    }
+    [form_id: pre_start.id, control: control, status_types: status_types]
   end
 
   describe "add/1 -" do
@@ -75,11 +70,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       {:ok, actual} = PreStartSubmissionAgent.add(submission)
 
-      resp_control =
-        actual.form.sections
-        |> List.first()
-        |> Map.get(:controls)
-        |> List.first()
+      [actual_response] = actual.responses
 
       # return
       assert actual.form_id == form_id
@@ -87,23 +78,15 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
       assert actual.operator_id == op.id
       assert actual.comment == submission.comment
 
-      assert resp_control.id == control.id
-      assert resp_control.answer == response.answer
-      assert resp_control.comment == response.comment
+      assert actual_response.control_id == control.id
+      assert actual_response.answer == response.answer
+      assert actual_response.comment == response.comment
 
       # store
-      assert PreStartSubmissionAgent.all() == [actual]
+      assert PreStartSubmissionAgent.current() == [actual]
 
       # database
-      ecto_response = %{
-        id: resp_control.response_id,
-        submission_id: actual.id,
-        control_id: resp_control.id,
-        answer: resp_control.answer,
-        comment: resp_control.comment
-      }
-
-      assert_db_contains(PreStart.Response, ecto_response, &response_formatter/1)
+      assert_db_contains(PreStart.Response, Map.drop(actual_response, [:ticket]))
       assert_db_count(PreStart.Response, 1)
 
       ecto_submission =
@@ -207,6 +190,82 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
         ^pid,
         {%Postgrex.Error{}, _stack}
       }
+    end
+  end
+
+  @tag :skip
+  describe "add_ticket/1 -" do
+    defp create_response(asset, operator, form_id, control) do
+      response = %{
+        control_id: control.id,
+        answer: false,
+        comment: nil
+      }
+
+      submission = %{
+        form_id: form_id,
+        asset_id: asset.id,
+        operator_id: operator.id,
+        comment: nil,
+        responses: [response],
+        timestamp: NaiveDateTime.utc_now()
+      }
+
+      {:ok, actual} = PreStartSubmissionAgent.add(submission)
+
+      resp_control =
+        actual.form.sections
+        |> List.first()
+        |> Map.get(:controls)
+        |> List.first()
+
+      {form_id, resp_control}
+    end
+
+    test "valid", %{
+      asset: asset,
+      operator: op,
+      form_id: form_id,
+      control: control,
+      status_types: st
+    } do
+      {form_id, response} = create_response(asset, op, form_id, control)
+
+      ticket = %{
+        response_id: response.id,
+        dispatcher_id: nil,
+        status_type_id: st["raised"],
+        timestamp: NaiveDateTime.utc_now()
+      }
+
+      PreStartSubmissionAgent.add_ticket(ticket)
+
+      # return
+
+      # store
+
+      # database
+    end
+
+    test "invalid (invalid response id)" do
+    end
+
+    test "" do
+    end
+  end
+
+  describe "update_ticket/1 -" do
+    test "valid" do
+      # create form
+
+      # submit ticket
+
+      # add a ticket
+
+      # update ticket
+    end
+
+    test "invalid (invalid ticket id)" do
     end
   end
 end
