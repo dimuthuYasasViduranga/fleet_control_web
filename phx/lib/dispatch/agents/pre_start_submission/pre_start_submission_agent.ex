@@ -299,8 +299,83 @@ defmodule Dispatch.PreStartSubmissionAgent do
     |> Repo.transaction()
   end
 
-  @spec update_ticket(map) :: {:ok, ticket, submission} | {:error, :invalid_id | term}
-  def update_ticket(raw_params) do
+  @spec update_ticket_status(map) ::
+          {:ok, ticket_status, affected_submission :: list(submission)}
+          | {:error, :invalid_id | term}
+  def update_ticket_status(raw_params) do
     params = Helper.to_atom_map!(raw_params)
+
+    Helper.get_by_or_nil(Repo, PreStart.TicketStatus, %{id: params[:ticket_id], active: true})
+    |> case do
+      nil ->
+        {:error, :invalid_id}
+
+      ticket_status ->
+        Agent.get_and_update(__MODULE__, fn state ->
+          case update_ticket_status(ticket_status, params) do
+            {:ok, _data} ->
+              submissions = Data.pull_submissions_with_ticket(ticket_status.ticket_id)
+
+              state =
+                Enum.reduce(submissions, state, fn sub, acc ->
+                  case can_store_submission?(acc.current, sub.asset_id, sub.timestamp) do
+                    true ->
+                      AgentHelper.override_or_add(
+                        state,
+                        :current,
+                        sub,
+                        &(&1.asset_id == sub.asset_id),
+                        nil
+                      )
+
+                    _ ->
+                      state
+                  end
+                end)
+
+              {{:ok, ticket_status, submissions}, state}
+
+            error ->
+              {error, state}
+          end
+        end)
+    end
+  end
+
+  defp update_ticket_status(active_status, params) do
+    base_status = %{
+      ticket_id: active_status.ticket_id,
+      reference: params[:reference],
+      details: params[:details],
+      created_by_dispatcher_id: params[:dispatcher_id],
+      status_type_id: params[:status_type_id],
+      active: false,
+      timestamp: params.timestamp
+    }
+
+    case NaiveDateTime.compare(params.timestamp, active_status.timestamp) do
+      :gt ->
+        new_status =
+          base_status
+          |> Map.put(:active, true)
+          |> PreStart.TicketStatus.new()
+
+        clear_query =
+          from(ts in PreStart.TicketStatus,
+            where: ts.ticket_id == ^active_status.ticket_id and ts.active == true
+          )
+
+        Multi.new()
+        |> Multi.update_all(:clear_active, clear_query, set: [active: false])
+        |> Multi.insert(:new_status, new_status)
+        |> Repo.transaction()
+
+      _ ->
+        new_status = PreStart.TicketStatus.new(base_status)
+
+        Multi.new()
+        |> Multi.insert(:new_status, new_status)
+        |> Repo.transaction()
+    end
   end
 end

@@ -68,6 +68,23 @@ defmodule Dispatch.PreStartSubmissionAgent.Data do
     |> preload_and_destruct(repo)
   end
 
+  @spec pull_submissions_with_ticket(integer, repo :: atom) :: list(submission)
+  def pull_submissions_with_ticket(ticket_id, repo \\ Repo)
+  def pull_submissions_with_ticket(nil, _repo), do: []
+
+  def pull_submissions_with_ticket(ticket_id, repo) do
+    from(s in PreStart.Submission,
+      join: r in PreStart.Response,
+      on: [submission_id: s.id],
+      join: t in PreStart.Ticket,
+      on: [id: r.ticket_id],
+      where: t.id == ^ticket_id,
+      select: s
+    )
+    |> repo.all()
+    |> preload_and_destruct(repo)
+  end
+
   defp remove_ecto_structs(list) when is_list(list), do: Enum.map(list, &remove_ecto_structs/1)
 
   defp remove_ecto_structs(%_{__meta__: _meta} = struct) do
