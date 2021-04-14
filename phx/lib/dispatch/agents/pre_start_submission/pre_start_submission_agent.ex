@@ -214,7 +214,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
   def add_ticket(raw_params) do
     params = Helper.to_atom_map!(raw_params)
 
-    Helper.get_by_or_nil(Repo, PreStart.Response, %{id: raw_params[:response_id]})
+    Helper.get_by_or_nil(Repo, PreStart.Response, %{id: params[:response_id]})
     |> case do
       nil ->
         {:error, :invalid_id}
@@ -245,7 +245,10 @@ defmodule Dispatch.PreStartSubmissionAgent do
                 end
 
               # get ticket
-              ticket = Enum.find(submission.response, &(&1.id == response.id))
+              ticket =
+                submission.responses
+                |> Enum.find(&(&1.id == response.id))
+                |> Map.get(:ticket)
 
               {{:ok, ticket, submission}, state}
 
@@ -288,7 +291,8 @@ defmodule Dispatch.PreStartSubmissionAgent do
       |> repo.insert()
     end)
     |> Multi.run(:update_response, fn repo, %{ticket: ticket} ->
-      repo.get(response_id)
+      PreStart.Response
+      |> repo.get(response_id)
       |> PreStart.Response.changeset(%{ticket_id: ticket.id})
       |> repo.update()
     end)

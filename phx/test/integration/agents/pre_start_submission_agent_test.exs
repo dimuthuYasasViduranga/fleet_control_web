@@ -48,7 +48,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
       |> Enum.map(&{&1.name, &1.id})
       |> Enum.into(%{})
 
-    [form_id: pre_start.id, control: control, status_types: status_types]
+    [form_id: pre_start.id, control: control, status_types: status_types, dispatcher: dispatcher]
   end
 
   describe "add/1 -" do
@@ -193,7 +193,6 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
     end
   end
 
-  @tag :skip
   describe "add_ticket/1 -" do
     defp create_response(asset, operator, form_id, control) do
       response = %{
@@ -213,38 +212,72 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       {:ok, actual} = PreStartSubmissionAgent.add(submission)
 
-      resp_control =
-        actual.form.sections
-        |> List.first()
-        |> Map.get(:controls)
-        |> List.first()
+      [response] = actual.responses
 
-      {form_id, resp_control}
+      {form_id, response}
     end
 
     test "valid", %{
       asset: asset,
       operator: op,
+      dispatcher: dispatcher,
       form_id: form_id,
       control: control,
-      status_types: st
+      status_types: status_types
     } do
       {form_id, response} = create_response(asset, op, form_id, control)
 
+      status_type = status_types["raised"]
+
       ticket = %{
         response_id: response.id,
-        dispatcher_id: nil,
-        status_type_id: st["raised"],
+        dispatcher_id: dispatcher.id,
+        asset_id: asset.id,
+        status_type_id: status_type,
         timestamp: NaiveDateTime.utc_now()
       }
 
-      PreStartSubmissionAgent.add_ticket(ticket)
+      {:ok, actual_ticket, updated_submission} = PreStartSubmissionAgent.add_ticket(ticket)
 
       # return
+      # ticket itself
+      assert actual_ticket.id != nil
+      assert actual_ticket.asset_id == asset.id
+      assert actual_ticket.created_by_dispatcher_id == dispatcher.id
+      assert NaiveDateTime.compare(actual_ticket.timestamp, ticket.timestamp) == :eq
+
+      # the active status
+      actual_status = actual_ticket.active_status
+      assert actual_status.id != nil
+      assert actual_status.ticket_id == actual_ticket.id
+      assert actual_status.created_by_dispatcher_id == dispatcher.id
+      assert actual_status.details == nil
+      assert actual_status.reference == nil
+      assert actual_status.status_type_id == status_type
+      assert NaiveDateTime.compare(actual_status.timestamp, ticket.timestamp) == :eq
+
+      # the updated submission
+      assert updated_submission.id == response.submission_id
 
       # store
+      assert PreStartSubmissionAgent.current() == [updated_submission]
 
       # database
+      actual_response =
+        updated_submission.responses
+        |> List.first()
+        |> Map.drop([:ticket])
+
+      assert_db_contains(PreStart.Ticket, Map.drop(actual_ticket, [:active_status]))
+      assert_db_count(PreStart.Ticket, 1)
+
+      assert_db_contains(PreStart.TicketStatus, actual_ticket.active_status)
+      assert_db_count(PreStart.TicketStatus, 1)
+
+      assert_db_contains(PreStart.Response, actual_response)
+      assert_db_count(PreStart.Response, 1)
+
+      assert_db_contains(PreStart.Submission, Map.drop(updated_submission, [:form, :responses]))
     end
 
     test "invalid (invalid response id)" do
