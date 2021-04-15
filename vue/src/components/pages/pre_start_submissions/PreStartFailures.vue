@@ -40,6 +40,7 @@ function controlsWithResponses(controls, responses) {
     return {
       id: c.id,
       sectionId: c.id,
+      responseId: r.id,
       order: c.order,
       label: c.label,
       answer: r.answer,

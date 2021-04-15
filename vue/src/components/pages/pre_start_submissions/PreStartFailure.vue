@@ -28,10 +28,26 @@
           />
         </div>
 
-        <div class="control" v-for="(control, cIndex) in submission.controls" :key="cIndex">
+        <div
+          class="control"
+          v-for="(control, cIndex) in submission.controls"
+          :key="cIndex"
+          :class="{
+            closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
+          }"
+        >
           <div class="outline">
             <div class="label">{{ control.label }}</div>
-            <div class="answer red-text">Fail</div>
+            <div class="answer">
+              <div v-if="!control.ticketId" class="fail-answer">
+                <span class="red-text">Fail</span>
+              </div>
+              <div v-else class="ticket-status">
+                <div class="status">
+                  {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
+                </div>
+              </div>
+            </div>
           </div>
           <div v-if="control.comment" class="comment">• {{ control.comment }}</div>
         </div>
@@ -46,10 +62,17 @@ import Icon from 'hx-layout/Icon.vue';
 
 import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
 
-import { formatDateIn } from '@/code/time';
+import { formatDateIn, toUtcDate } from '@/code/time';
 
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 import InfoIcon from '@/components/icons/Info.vue';
+import { attributeFromList } from '@/code/helpers';
+
+function statusChanged(a, b) {
+  return (
+    a.reference !== b.reference || a.details !== b.details || a.statusTypeId !== b.statusTypeId
+  );
+}
 
 export default {
   name: 'PreStartFailure',
@@ -73,6 +96,12 @@ export default {
     total() {
       return this.submissions.reduce((acc, s) => acc + s.controls.length, 0);
     },
+    ticketStatusTypes() {
+      return this.$store.state.constants.preStartTicketStatusTypes;
+    },
+    closedStatusId() {
+      return attributeFromList(this.ticketStatusTypes, 'name', 'closed', 'id');
+    },
   },
   methods: {
     toggleShow() {
@@ -84,6 +113,9 @@ export default {
     },
     onOpenViewer(submission) {
       this.$modal.create(PreStartSubmissionModal, { submission });
+    },
+    getTicketStatus(statusId) {
+      return attributeFromList(this.ticketStatusTypes, 'id', statusId, 'name');
     },
   },
 };
@@ -156,12 +188,23 @@ export default {
   border-bottom: 1px solid #677e8c;
 }
 
+.pre-start-failure .control.closed {
+  background-color: rgba(139, 67, 0, 0.281);
+}
+
 .pre-start-failure .submission .control .outline {
   display: grid;
-  grid-template-columns: auto 3rem;
+  grid-template-columns: auto auto;
 }
 
 .pre-start-failure .submission .control .comment {
   margin-left: 2rem;
+}
+
+.pre-start-failure .submission .control .answer {
+  font-weight: bold;
+  font-size: 1.25rem;
+  justify-self: right;
+  padding-right: 1rem;
 }
 </style>
