@@ -93,17 +93,32 @@ defmodule DispatchWeb.Broadcast do
     end
   end
 
-  def broadcast_all_operators(topic, payload, filter \\ nil) do
-    case filter do
-      nil -> AssetAgent.get_assets()
-      _ -> AssetAgent.get_assets() |> Enum.filter(&filter.(&1))
-    end
-    |> Enum.map(fn asset ->
-      case get_assignment(%{asset_id: asset.id}) do
-        {device, _assignment, _type} ->
-          Endpoint.broadcast("#{@operators}:#{device.uuid}", topic, payload)
+  @doc """
+  Used to broadcast to all assignments that have a device. There is no guarentee that the message is received.
 
-        _ ->
+  If payload is a function, it can allow for conditional broadcast per asset
+  """
+  @spec broadcast_all_operators(String.t(), map | fun, fun | nil) :: :ok
+  def broadcast_all_operators(topic, payload_or_func, asset_filter \\ nil) do
+    assets =
+      case asset_filter do
+        nil -> AssetAgent.get_assets()
+        predicate -> AssetAgent.get_assets() |> Enum.filter(&predicate.(&1))
+      end
+
+    Enum.map(assets, fn asset ->
+      case get_assignment(%{asset_id: asset.id}) do
+        {device, assignment, _type} ->
+          case is_function(payload_or_func) do
+            true -> payload_or_func.(device, assignment)
+            _ -> payload_or_func
+          end
+          |> case do
+            nil -> nil
+            payload -> Endpoint.broadcast("#{@operators}:#{device.uuid}", topic, payload)
+          end
+
+        nil ->
           nil
       end
     end)
@@ -356,7 +371,16 @@ defmodule DispatchWeb.Broadcast do
     historic = PreStartSubmissionAgent.historic()
 
     Endpoint.broadcast(@dispatch, "set pre-start submissions", %{current: current})
-    broadcast_all_operators("set pre-start submissions", %{current: current, historic: historic})
+
+    broadcast_all_operators("set pre-start submissions", fn _device, %{asset_id: asset_id} ->
+      asset_current = Enum.find(current, &(&1.asset_id == asset_id))
+      asset_historic = Enum.filter(historic, &(&1.asset_id == asset_id))
+
+      %{
+        current: asset_current,
+        historic: asset_historic
+      }
+    end)
   end
 
   def send_activity(identifier, source, activity_type) do

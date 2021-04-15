@@ -400,6 +400,10 @@ defmodule DispatchWeb.OperatorChannel do
       track: latest_track,
       other_tracks: other_tracks,
       pre_starts: PreStartAgent.all(),
+      pre_start_submissions: %{
+        current: PreStartSubmissionAgent.current(asset_id),
+        historic: PreStartSubmissionAgent.historic(asset_id)
+      },
       map_manifest: MapTileAgent.get()
     }
 

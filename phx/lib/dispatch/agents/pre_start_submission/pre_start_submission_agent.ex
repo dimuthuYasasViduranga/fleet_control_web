@@ -117,8 +117,22 @@ defmodule Dispatch.PreStartSubmissionAgent do
   @spec current() :: list(submission)
   def current(), do: Agent.get(__MODULE__, & &1[:current])
 
+  @spec current(integer) :: submission | nil
+  def current(asset_id) do
+    Agent.get(__MODULE__, fn state ->
+      Enum.find(state.current, &(&1.asset_id == asset_id))
+    end)
+  end
+
   @spec historic() :: list(submission)
   def historic(), do: Agent.get(__MODULE__, & &1[:historic])
+
+  @spec historic(integer) :: list(submission)
+  def historic(asset_id) do
+    Agent.get(__MODULE__, fn state ->
+      Enum.filter(state.historic, &(&1.asset_id == asset_id))
+    end)
+  end
 
   @spec ticket_status_types() :: list(ticket_status_type)
   def ticket_status_types(), do: Agent.get(__MODULE__, & &1[:ticket_status_types])
