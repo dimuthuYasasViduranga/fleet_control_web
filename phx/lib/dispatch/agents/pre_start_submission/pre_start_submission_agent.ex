@@ -89,11 +89,24 @@ defmodule Dispatch.PreStartSubmissionAgent do
           server_timestamp: NaiveDateTime.t()
         }
 
+  @max_hold_days 7
+
+  @cull_opts %{
+    time_key: :timestamp,
+    group_key: :asset_id,
+    max_age: @max_hold_days * 60 * 60,
+    max_group_size: @max_hold_days * 2 * 2
+  }
+
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
   def init() do
+    now = NaiveDateTime.utc_now()
+    before = NaiveDateTime.add(now, -@cull_opts.max_age)
+
     %{
       current: Data.pull_latest_submissions(),
+      historic: Data.pull_submissions_between(before, now),
       ticket_status_types: Data.pull_ticket_status_types()
     }
   end
@@ -101,8 +114,11 @@ defmodule Dispatch.PreStartSubmissionAgent do
   @spec refresh!() :: :ok
   def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
 
-  @spec current() :: list()
+  @spec current() :: list(submission)
   def current(), do: Agent.get(__MODULE__, & &1[:current])
+
+  @spec historic() :: list(submission)
+  def historic(), do: Agent.get(__MODULE__, & &1[:historic])
 
   @spec ticket_status_types() :: list(ticket_status_type)
   def ticket_status_types(), do: Agent.get(__MODULE__, & &1[:ticket_status_types])
@@ -226,24 +242,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
             {:ok, _data} ->
               submission = Data.pull_submission(response.submission_id)
 
-              state =
-                case can_store_submission?(
-                       state.current,
-                       submission.asset_id,
-                       submission.timestamp
-                     ) do
-                  true ->
-                    AgentHelper.override_or_add(
-                      state,
-                      :current,
-                      submission,
-                      &(&1.asset_id == submission.asset_id),
-                      nil
-                    )
-
-                  _ ->
-                    state
-                end
+              state = update_state(state, submission)
 
               # get ticket
               ticket =
@@ -325,22 +324,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
             {:ok, data} ->
               submissions = Data.pull_submissions_with_ticket(ticket_status.ticket_id)
 
-              state =
-                Enum.reduce(submissions, state, fn sub, acc ->
-                  case can_store_submission?(acc.current, sub.asset_id, sub.timestamp) do
-                    true ->
-                      AgentHelper.override_or_add(
-                        state,
-                        :current,
-                        sub,
-                        &(&1.asset_id == sub.asset_id),
-                        nil
-                      )
-
-                    _ ->
-                      state
-                  end
-                end)
+              state = update_state(state, submissions)
 
               new_status = PreStart.TicketStatus.to_map(data.new_status)
 
@@ -387,6 +371,31 @@ defmodule Dispatch.PreStartSubmissionAgent do
         Multi.new()
         |> Multi.insert(:new_status, new_status)
         |> Repo.transaction()
+    end
+  end
+
+  defp update_state(state, submissions) when is_list(submissions) do
+    Enum.reduce(submissions, state, fn sub, acc -> update_state(acc, sub) end)
+  end
+
+  defp update_state(state, %{asset_id: asset_id, timestamp: timestamp} = submission) do
+    # add to historic
+    state =
+      AgentHelper.override_or_add(
+        state,
+        :historic,
+        submission,
+        &(&1.id == submission.id),
+        @cull_opts
+      )
+
+    # add to current if required
+    case can_store_submission?(state.current, asset_id, timestamp) do
+      true ->
+        AgentHelper.override_or_add(state, :current, submission, &(&1.asset_id == asset_id), nil)
+
+      _ ->
+        state
     end
   end
 end

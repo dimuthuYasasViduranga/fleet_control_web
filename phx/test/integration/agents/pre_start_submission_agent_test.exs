@@ -84,6 +84,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       # store
       assert PreStartSubmissionAgent.current() == [actual]
+      assert PreStartSubmissionAgent.historic() == [actual]
 
       # database
       assert_db_contains(PreStart.Response, Map.drop(actual_response, [:ticket]))
@@ -261,6 +262,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       # store
       assert PreStartSubmissionAgent.current() == [updated_submission]
+      assert PreStartSubmissionAgent.historic() == [updated_submission]
 
       # database
       actual_response =
@@ -366,6 +368,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       # store
       assert PreStartSubmissionAgent.current() == [updated_submission]
+      assert PreStartSubmissionAgent.historic() == [updated_submission]
 
       # database
       assert_db_contains(PreStart.Ticket, Map.drop(ticket, [:active_status]))
@@ -416,6 +419,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       # store
       assert PreStartSubmissionAgent.current() == [submission]
+      assert PreStartSubmissionAgent.historic() == [submission]
 
       # database
       assert_db_contains(PreStart.Ticket, Map.drop(ticket, [:active_status]))
