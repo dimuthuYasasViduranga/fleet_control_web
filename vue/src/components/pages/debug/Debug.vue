@@ -4,6 +4,7 @@
       <div class="modal-list">
         <button class="hx-btn" @click="onOpenModal">Open Modal</button>
         <button class="hx-btn" @click="onChainModals">Chain Modal</button>
+        <button class="hx-btn" @click="onNestedModals">Nested Modals</button>
         <button class="hx-btn" @click="onCreateLoadingModal">Loading Modal</button>
       </div>
     </hxCard>
@@ -182,6 +183,9 @@
       <NIcon style="width: 8rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
       <NIcon style="width: 8rem" :icon="excavatorIcon" />
     </hxCard>
+    <hxCard title="Auto Size TextArea" :icon="bugIcon">
+      <AutoSizeTextArea style="width: 6rem" v-model="textAreaText" />
+    </hxCard>
   </div>
 </template>
 
@@ -203,9 +207,11 @@ import GraderIcon from '../../icons/asset_icons/Grader.vue';
 import DrillIcon from '../../icons/asset_icons/Drill.vue';
 import LVIcon from '../../icons/asset_icons/LightVehicle.vue';
 
+import AutoSizeTextArea from '@/components/AutoSizeTextArea.vue';
 import NIcon from '@/components/NIcon.vue';
 import ConfirmModal from '../../../components/modals/ConfirmModal.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
+import NestedModal from './NestedModal.vue';
 
 import Dately from '@/components/dately/Dately.vue';
 
@@ -231,6 +237,7 @@ export default {
     icon,
     NIcon,
     Dately,
+    AutoSizeTextArea,
   },
   data: () => {
     return {
@@ -298,6 +305,7 @@ export default {
         max: '2019-10-20T10:30:00Z',
         timezone: 'local',
       },
+      textAreaText: '',
     };
   },
   computed: {
@@ -349,6 +357,9 @@ export default {
             this.$modal.create(ConfirmModal, { title: 'Modal 2', body: 'No more after this' });
           }
         });
+    },
+    onNestedModals() {
+      this.$modal.create(NestedModal);
     },
     onCreateLoadingModal() {
       const modal = this.$modal.create(
