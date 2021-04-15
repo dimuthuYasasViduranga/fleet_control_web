@@ -36,6 +36,7 @@ export default {
 }
 
 .auto-size-text-area > textarea {
+  z-index: 2;
   resize: none;
   overflow: hidden;
 }
@@ -66,5 +67,6 @@ export default {
   padding: 0.33rem;
   position: absolute;
   color: gray;
+  z-index: 1;
 }
 </style>
