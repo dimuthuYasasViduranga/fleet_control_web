@@ -352,11 +352,11 @@ defmodule DispatchWeb.Broadcast do
   end
 
   def send_pre_start_submissions_to_all() do
-    payload = %{
-      submissions: PreStartSubmissionAgent.current()
-    }
+    current = PreStartSubmissionAgent.current()
+    historic = PreStartSubmissionAgent.historic()
 
-    Endpoint.broadcast(@dispatch, "set pre-start submissions", payload)
+    Endpoint.broadcast(@dispatch, "set pre-start submissions", %{current: current})
+    broadcast_all_operators("set pre-start submissions", %{current: current, historic: historic})
   end
 
   def send_activity(identifier, source, activity_type) do
