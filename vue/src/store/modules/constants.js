@@ -260,7 +260,7 @@ export function parsePreStart(form) {
 function parsePreStartSection(section) {
   return {
     id: section.id,
-    formId: section.formId,
+    formId: section.form_id,
     order: section.order,
     title: section.title,
     details: section.details,
@@ -271,7 +271,7 @@ function parsePreStartSection(section) {
 function parsePreStartControl(control) {
   return {
     id: control.id,
-    sectionId: control.sectionId,
+    sectionId: control.section_id,
     order: control.order,
     label: control.label,
   };

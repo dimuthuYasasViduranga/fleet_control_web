@@ -221,7 +221,7 @@ function parseTicket(ticket) {
   const status = ticket.active_status;
   return {
     id: ticket.id,
-    assetId: ticket.assetId,
+    assetId: ticket.asset_id,
     createdByDispatcherId: ticket.created_by_dispatcher_id,
     activeStatus: {
       id: status.id,
