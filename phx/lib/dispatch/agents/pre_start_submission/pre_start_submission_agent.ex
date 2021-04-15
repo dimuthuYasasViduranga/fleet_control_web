@@ -305,7 +305,10 @@ defmodule Dispatch.PreStartSubmissionAgent do
   def update_ticket_status(raw_params) do
     params = Helper.to_atom_map!(raw_params)
 
-    Helper.get_by_or_nil(Repo, PreStart.TicketStatus, %{id: params[:ticket_id], active: true})
+    Helper.get_by_or_nil(Repo, PreStart.TicketStatus, %{
+      ticket_id: params[:ticket_id],
+      active: true
+    })
     |> case do
       nil ->
         {:error, :invalid_id}
@@ -313,7 +316,11 @@ defmodule Dispatch.PreStartSubmissionAgent do
       ticket_status ->
         Agent.get_and_update(__MODULE__, fn state ->
           case update_ticket_status(ticket_status, params) do
-            {:ok, _data} ->
+            {:ok, %{new_status: %{active: false}} = data} ->
+              new_status = PreStart.TicketStatus.to_map(data.new_status)
+              {{:ok, new_status, []}, state}
+
+            {:ok, data} ->
               submissions = Data.pull_submissions_with_ticket(ticket_status.ticket_id)
 
               state =
@@ -333,7 +340,9 @@ defmodule Dispatch.PreStartSubmissionAgent do
                   end
                 end)
 
-              {{:ok, ticket_status, submissions}, state}
+              new_status = PreStart.TicketStatus.to_map(data.new_status)
+
+              {{:ok, new_status, submissions}, state}
 
             error ->
               {error, state}

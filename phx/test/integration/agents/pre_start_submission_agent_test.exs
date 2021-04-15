@@ -194,7 +194,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
   end
 
   describe "add_ticket/1 -" do
-    defp create_response(asset, operator, form_id, control) do
+    defp create_response(asset, operator, form_id, control, timestamp \\ NaiveDateTime.utc_now()) do
       response = %{
         control_id: control.id,
         answer: false,
@@ -207,7 +207,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
         operator_id: operator.id,
         comment: nil,
         responses: [response],
-        timestamp: NaiveDateTime.utc_now()
+        timestamp: timestamp
       }
 
       {:ok, actual} = PreStartSubmissionAgent.add(submission)
@@ -225,7 +225,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
       control: control,
       status_types: status_types
     } do
-      {form_id, response} = create_response(asset, op, form_id, control)
+      {_form_id, response} = create_response(asset, op, form_id, control)
 
       status_type = status_types["raised"]
 
@@ -281,24 +281,157 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
     end
 
     test "invalid (invalid response id)" do
-    end
-
-    test "" do
+      error = PreStartSubmissionAgent.add_ticket(%{response_id: nil})
+      assert error == {:error, :invalid_id}
     end
   end
 
   describe "update_ticket/1 -" do
-    test "valid" do
-      # create form
+    defp create_response_with_ticket(context, timestamp \\ NaiveDateTime.utc_now()) do
+      response = %{
+        control_id: context.control.id,
+        answer: false,
+        comment: nil
+      }
 
-      # submit ticket
+      submission = %{
+        form_id: context.form_id,
+        asset_id: context.asset.id,
+        operator_id: context.operator.id,
+        comment: nil,
+        responses: [response],
+        timestamp: timestamp
+      }
 
-      # add a ticket
+      {:ok, actual} = PreStartSubmissionAgent.add(submission)
 
-      # update ticket
+      [response] = actual.responses
+
+      status_type = context.status_types["raised"]
+
+      ticket = %{
+        response_id: response.id,
+        dispatcher_id: context.dispatcher.id,
+        asset_id: context.asset.id,
+        status_type_id: status_type,
+        timestamp: timestamp
+      }
+
+      {:ok, actual_ticket, updated_submission} = PreStartSubmissionAgent.add_ticket(ticket)
+
+      {
+        Map.put(response, :ticket_id, actual_ticket.id),
+        actual_ticket,
+        actual_ticket.active_status,
+        updated_submission
+      }
+    end
+
+    test "valid", %{status_types: status_types} = context do
+      {response, ticket, ticket_status, submission} = create_response_with_ticket(context)
+
+      status_type = status_types["pending"]
+      timestamp = NaiveDateTime.utc_now()
+
+      params = %{
+        ticket_id: ticket.id,
+        reference: "ref",
+        details: "details",
+        status_type_id: status_type,
+        timestamp: timestamp
+      }
+
+      {:ok, actual_status, [updated_submission]} =
+        PreStartSubmissionAgent.update_ticket_status(params)
+
+      # return
+      # new status
+      assert actual_status.id != ticket_status.id
+      assert actual_status.ticket_id == ticket.id
+      assert actual_status.reference == "ref"
+      assert actual_status.details == "details"
+      assert actual_status.active == true
+      assert actual_status.created_by_dispatcher_id == nil
+      assert actual_status.status_type_id == status_type
+      assert NaiveDateTime.compare(actual_status.timestamp, timestamp) == :eq
+
+      # changed submission
+      assert updated_submission.id == submission.id
+      assert NaiveDateTime.compare(updated_submission.timestamp, submission.timestamp) == :eq
+
+      # response
+      [updated_response] = updated_submission.responses
+      assert updated_response.id == response.id
+      assert updated_response.ticket_id == ticket.id
+
+      # store
+      assert PreStartSubmissionAgent.current() == [updated_submission]
+
+      # database
+      assert_db_contains(PreStart.Ticket, Map.drop(ticket, [:active_status]))
+      assert_db_count(PreStart.Ticket, 1)
+
+      refute_db_contains(PreStart.TicketStatus, ticket_status)
+      assert_db_contains(PreStart.TicketStatus, Map.put(ticket_status, :active, false))
+      assert_db_contains(PreStart.TicketStatus, actual_status)
+      assert_db_count(PreStart.TicketStatus, 2)
+
+      assert_db_contains(PreStart.Response, Map.drop(updated_response, [:ticket]))
+      assert_db_count(PreStart.Response, 1)
+    end
+
+    test "valid (ticket old - not active)", %{status_types: status_types} = context do
+      old_timestamp = ~N[2018-01-01 00:00:00]
+
+      {response, ticket, ticket_status, submission} =
+        create_response_with_ticket(context, old_timestamp)
+
+      status_type = status_types["pending"]
+      status_timestamp = NaiveDateTime.add(old_timestamp, -60)
+
+      params = %{
+        ticket_id: ticket.id,
+        reference: "ref",
+        details: "details",
+        status_type_id: status_type,
+        timestamp: status_timestamp
+      }
+
+      {:ok, actual_status, affected_submissions} =
+        PreStartSubmissionAgent.update_ticket_status(params)
+
+      # return
+      # new status
+      assert actual_status.id != ticket_status.id
+      assert actual_status.ticket_id == ticket.id
+      assert actual_status.reference == "ref"
+      assert actual_status.details == "details"
+      assert actual_status.active == false
+      assert actual_status.created_by_dispatcher_id == nil
+      assert actual_status.status_type_id == status_type
+      assert NaiveDateTime.compare(actual_status.timestamp, status_timestamp) == :eq
+
+      # changed submission
+      assert affected_submissions == []
+
+      # store
+      assert PreStartSubmissionAgent.current() == [submission]
+
+      # database
+      assert_db_contains(PreStart.Ticket, Map.drop(ticket, [:active_status]))
+      assert_db_count(PreStart.Ticket, 1)
+
+      assert_db_contains(PreStart.TicketStatus, ticket_status)
+      assert_db_contains(PreStart.TicketStatus, actual_status)
+      assert_db_count(PreStart.TicketStatus, 2)
+
+      assert_db_contains(PreStart.Response, Map.drop(response, [:ticket]))
+      assert_db_count(PreStart.Response, 1)
     end
 
     test "invalid (invalid ticket id)" do
+      error = PreStartSubmissionAgent.update_ticket_status(%{ticket_id: nil})
+      assert error == {:error, :invalid_id}
     end
   end
 end
