@@ -213,6 +213,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
   @spec add_ticket(map) :: {:ok, ticket, submission} | {:error, :invalid_id | term}
   def add_ticket(raw_params) do
     params = Helper.to_atom_map!(raw_params)
+    params = Map.put(params, :timestamp, Helper.to_naive(params.timestamp))
 
     Helper.get_by_or_nil(Repo, PreStart.Response, %{id: params[:response_id]})
     |> case do
@@ -304,6 +305,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
           | {:error, :invalid_id | term}
   def update_ticket_status(raw_params) do
     params = Helper.to_atom_map!(raw_params)
+    params = Map.put(params, :timestamp, Helper.to_naive(params.timestamp))
 
     Helper.get_by_or_nil(Repo, PreStart.TicketStatus, %{
       ticket_id: params[:ticket_id],
