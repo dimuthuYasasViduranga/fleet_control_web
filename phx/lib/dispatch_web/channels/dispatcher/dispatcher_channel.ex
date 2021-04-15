@@ -70,6 +70,7 @@ defmodule DispatchWeb.DispatcherChannel do
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
       operators: OperatorAgent.all(),
       dispatchers: DispatcherAgent.all(),
+      pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
 
       # devices
       devices: DeviceAgent.safe_all(),
@@ -544,6 +545,13 @@ defmodule DispatchWeb.DispatcherChannel do
       error ->
         {:reply, to_error(error), socket}
     end
+  end
+
+  def handle_in("set pre-start response ticket", params, socket) do
+    IO.inspect("---- prestart respponse ticket")
+    IO.inspect(params)
+
+    {:reply, :ok, socket}
   end
 
   @decorate only_in(:dev)

@@ -274,8 +274,14 @@ function parsePreStartControl(control) {
     sectionId: control.sectionId,
     order: control.order,
     label: control.label,
-    answer: control.answer,
-    comment: control.comment,
+  };
+}
+
+function parsePreStartTicketStatusType(type) {
+  return {
+    id: type.id,
+    name: type.name,
+    alias: type.alias,
   };
 }
 
@@ -363,6 +369,7 @@ const state = {
   mapManifest: Object(),
   quickMessages: Array(),
   preStarts: Array(),
+  preStartTicketStatusTypes: Array(),
 };
 
 const getters = {
@@ -499,6 +506,10 @@ const actions = {
     const formattedMessage = messages.map(parseQuickMessage);
     commit('setQuickMessages', formattedMessage);
   },
+  setPreStartTicketStatusTypes({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartTicketStatusType);
+    commit('setPreStartTicketStatusTypes', formattedTypes);
+  },
 };
 
 const mutations = {
@@ -574,6 +585,9 @@ const mutations = {
   },
   setQuickMessages(state, messages = []) {
     state.quickMessages = messages;
+  },
+  setPreStartTicketStatusTypes(state, types = []) {
+    state.preStartTicketStatusTypes = types;
   },
 };
 

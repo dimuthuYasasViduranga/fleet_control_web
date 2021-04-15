@@ -26,16 +26,28 @@ function getControls(form) {
   return form.sections.map(s => s.controls).flat();
 }
 
-function getFailCount(form) {
-  return getControls(form).filter(c => c.answer === false).length;
-}
-
 function getOperator(operators, operatorId, employeeId) {
   return (
     attributeFromList(operators, 'id', operatorId) ||
     attributeFromList(operators, 'employeeId', employeeId) ||
     {}
   );
+}
+
+function controlsWithResponses(controls, responses) {
+  return controls.map(c => {
+    const r = attributeFromList(responses, 'controlId', c.id) || {};
+    return {
+      id: c.id,
+      sectionId: c.id,
+      order: c.order,
+      label: c.label,
+      answer: r.answer,
+      comment: r.comment,
+      ticketId: r.ticketId,
+      ticket: r.ticket,
+    };
+  });
 }
 
 function getAssetFailures(submissions, assets, operators, assetSubFilter = subs => subs) {
@@ -57,7 +69,9 @@ function getAssetFailures(submissions, assets, operators, assetSubFilter = subs 
 function createAssetFailure(asset, subs, operators) {
   const failedSubmissions = subs
     .map(s => {
-      const failedControls = getControls(s.form).filter(c => c.answer === false);
+      const failedControls = controlsWithResponses(getControls(s.form), s.responses).filter(
+        c => c.answer === false,
+      );
       return {
         id: s.id,
         submission: s,

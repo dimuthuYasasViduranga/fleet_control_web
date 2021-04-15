@@ -205,6 +205,7 @@ export default {
         ['constants/setOperators', resp.operators],
         ['constants/setDispatchers', resp.dispatchers],
         ['constants/setPreStarts', resp.pre_starts],
+        ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
 
         // devices
         ['deviceStore/setDevices', resp.devices],

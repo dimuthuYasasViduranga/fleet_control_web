@@ -52,11 +52,8 @@ import ChevronIcon from '@/components/icons/ChevronRight.vue';
 
 import { formatDateIn } from '@/code/time';
 
-function getFailCount(form) {
-  return form.sections
-    .map(s => s.controls)
-    .flat()
-    .filter(c => c.answer === false).length;
+function getFailCount(responses) {
+  return responses.filter(r => r.answer === false).length;
 }
 
 export default {
@@ -84,7 +81,7 @@ export default {
       return this.icons[this.asset.type];
     },
     failCount() {
-      return getFailCount(this.latestSubmission.form);
+      return getFailCount(this.latestSubmission.responses);
     },
     allSubmissions() {
       const subs = this.submissions.slice();
@@ -92,7 +89,7 @@ export default {
       subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
       return subs.map(s => {
-        const isFail = getFailCount(s.form);
+        const isFail = getFailCount(s.responses);
         return {
           class: isFail ? 'fail' : '',
           label: this.formatTime(s.timestamp),

@@ -196,9 +196,26 @@ export function parsePreStartSubmission(submission) {
     employeeId: submission.employee_id,
     comment: submission.comment,
     form: parsePreStart(submission.form),
+    responses: submission.responses.map(parseResponse),
     timestamp: toUtcDate(submission.timestamp),
     serverTimestamp: toUtcDate(submission.server_timestamp),
   };
+}
+
+function parseResponse(response) {
+  return {
+    id: response.id,
+    submissionId: response.submission_id,
+    controlId: response.control_id,
+    answer: response.answer,
+    comment: response.comment,
+    ticketId: response.ticket_id,
+    ticket: parseTicket(response.ticket),
+  };
+}
+
+function parseTicket(ticket) {
+  return ticket;
 }
 
 const getters = {
