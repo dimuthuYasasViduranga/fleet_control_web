@@ -184,7 +184,8 @@
       <NIcon style="width: 8rem" :icon="excavatorIcon" />
     </hxCard>
     <hxCard title="Auto Size TextArea" :icon="bugIcon">
-      <AutoSizeTextArea style="width: 6rem" v-model="textAreaText" />
+      Input Text: {{ textAreaText }}
+      <AutoSizeTextArea style="width: 6rem" v-model="textAreaText" placeholder="Enter text" />
     </hxCard>
   </div>
 </template>

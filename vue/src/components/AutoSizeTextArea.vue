@@ -1,6 +1,7 @@
 <template>
   <div ref="replica" class="auto-size-text-area">
-    <textarea :value="input" @input="onInput" />
+    <textarea :value="value" @input="onInput" />
+    <div v-show="!value && placeholder" class="placeholder">{{placeholder}}</div>
   </div>
 </template>
 
@@ -8,7 +9,8 @@
 export default {
   name: 'AutoSizeTextArea',
   props: {
-    input: { type: String },
+    value: { type: String },
+    placeholder: { type: String },
   },
   methods: {
     onInput(event) {
@@ -48,6 +50,7 @@ export default {
   color: #b6c3cc;
   background-color: transparent;
   outline: none;
+  padding: 0.33rem;
   transition: background 0.4s, border-color 0.4s, color 0.4s;
 
   grid-area: 1 / 1 / 2 / 2;
@@ -57,5 +60,11 @@ export default {
   background-color: white;
   color: #0c1419;
   outline: none;
+}
+
+.auto-size-text-area .placeholder {
+  padding: 0.33rem;
+  position: absolute;
+  color: gray;
 }
 </style>
