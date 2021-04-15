@@ -22,7 +22,11 @@
           class="control"
           v-for="(control, cIndex) in controlsWithResponses(section.controls, submission.responses)"
           :key="cIndex"
-          :class="{ fail: control.answer === false, na: control.answer === null }"
+          :class="{
+            fail: control.answer === false,
+            closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
+            na: control.answer === null,
+          }"
         >
           <div class="outline">
             <div class="label">{{ control.label }}</div>
@@ -32,13 +36,21 @@
                 <span class="red-text">Fail</span>
                 <Icon
                   class="raise-ticket-icon"
-                  v-tooltip="'Riase Ticket'"
+                  v-tooltip="'Raise Ticket'"
                   :icon="tagIcon"
                   @click="onRaiseTicket(control)"
                 />
               </div>
-              <div v-else-if="control.answer === false && control.ticketId" class="ticket-answer">
-                Has Ticket
+              <div v-else-if="control.answer === false && control.ticketId" class="ticket-status">
+                <div class="status">
+                  {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
+                </div>
+                <Icon
+                  class="edit-ticket-status-icon"
+                  v-tooltip="'Edit Ticket Status'"
+                  :icon="editIcon"
+                  @click="onUpdateTicketStatus(control, control.ticket.activeStatus)"
+                />
               </div>
               <div v-else>N/A</div>
             </div>
@@ -63,7 +75,7 @@ import TagIcon from '@/components/icons/Tag.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 
 import { attributeFromList } from '@/code/helpers';
-import { formatDateIn } from '@/code/time';
+import { formatDateIn, toUtcDate } from '@/code/time';
 import PreStartCreateTicketModal from './PreStartCreateTicketModal.vue';
 
 function getOperator(operators, operatorId, employeeId) {
@@ -71,6 +83,12 @@ function getOperator(operators, operatorId, employeeId) {
     attributeFromList(operators, 'id', operatorId) ||
     attributeFromList(operators, 'employeeId', employeeId) ||
     {}
+  );
+}
+
+function statusChanged(a, b) {
+  return (
+    a.reference !== b.reference || a.details !== b.details || a.statusTypeId !== b.statusTypeId
   );
 }
 
@@ -101,11 +119,17 @@ export default {
     operator() {
       return getOperator(this.operators, this.submission.operatorId, this.submission.employeeId);
     },
+    closedStatusId() {
+      return attributeFromList(this.ticketStatusTypes, 'name', 'closed', 'id');
+    },
   },
   methods: {
     formatTime(date) {
       const tz = this.$timely.current.timezone;
       return formatDateIn(date, tz, { format: '(yyyy-MM-dd) HH:mm:ss' });
+    },
+    getTicketStatus(statusId) {
+      return attributeFromList(this.ticketStatusTypes, 'id', statusId, 'name');
     },
     controlsWithResponses(controls, responses) {
       return controls.map(c => {
@@ -113,6 +137,7 @@ export default {
         return {
           id: c.id,
           sectionId: c.id,
+          responseId: r.id,
           order: c.order,
           label: c.label,
           answer: r.answer,
@@ -123,16 +148,107 @@ export default {
       });
     },
     onRaiseTicket(control) {
-      console.dir('--- raising ticket');
-      console.dir(control);
       const opts = {
         controlText: control.label,
         controlComment: control.comment,
       };
 
       this.$modal.create(PreStartCreateTicketModal, opts).onClose(resp => {
-        console.dir(resp);
+        if (!resp) {
+          return;
+        }
+
+        this.raiseTicket(this.submission.assetId, control, resp);
       });
+    },
+    raiseTicket(assetId, control, ticketParams) {
+      const payload = {
+        asset_id: assetId,
+        response_id: control.responseId,
+        reference: ticketParams.reference,
+        details: ticketParams.details,
+        status_type_id: ticketParams.statusTypeId,
+        timestamp: Date.now(),
+      };
+
+      this.$channel
+        .push('set pre-start response ticket', payload)
+        .receive('ok', ({ ticket }) => {
+          this.$toaster.info('Ticket Created');
+          const status = ticket.active_status;
+
+          const resp = this.submission.responses.find(r => r.id === control.responseId);
+
+          resp.ticketId = ticket.id;
+          resp.ticket = {
+            id: ticket.id,
+            assetId: ticket.asset_id,
+            createdByDispatcherId: ticket.created_by_dispatcher_id,
+            activeStatus: {
+              id: status.id,
+              ticketId: status.ticket_id,
+              reference: status.reference,
+              details: status.details,
+              createdByDispatcherId: status.created_by_dispatcher_id,
+              statusTypeId: status.status_type_id,
+              timestamp: toUtcDate(status.timestamp),
+              serverTimestamp: toUtcDate(status.server_timestamp),
+            },
+            timestamp: toUtcDate(ticket.timestamp),
+            serverTimestamp: toUtcDate(ticket.serverTimestamp),
+          };
+        })
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to create ticket'));
+    },
+    onUpdateTicketStatus(control, status) {
+      const opts = {
+        title: 'Update Ticket Status',
+        controlText: control.label,
+        controlComment: control.comment,
+        reference: status.reference,
+        details: status.details,
+        statusTypeId: status.statusTypeId,
+      };
+
+      this.$modal.create(PreStartCreateTicketModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
+        }
+
+        if (statusChanged(status, resp)) {
+          this.updateTicketStatus(status.ticketId, resp, control);
+        }
+      });
+    },
+    updateTicketStatus(ticketId, status, control) {
+      const payload = {
+        ticket_id: ticketId,
+        reference: status.reference,
+        details: status.details,
+        status_type_id: status.statusTypeId,
+        timestamp: Date.now(),
+      };
+
+      this.$channel
+        .push('update pre-start response ticket status', payload)
+        .receive('ok', resp => {
+          this.$toaster.info('Ticket Updated');
+          const newStatus = resp.status;
+
+          control.ticket.activeStatus = {
+            id: newStatus.id,
+            ticketId: newStatus.ticket_id,
+            reference: newStatus.reference,
+            details: newStatus.details,
+            createdByDisaptcherId: newStatus.created_by_dispatcher_id,
+            statusTypeId: newStatus.status_type_id,
+            timestamp: toUtcDate(newStatus.timestamp),
+            serverTimestamp: toUtcDate(newStatus.server_timestamp),
+          };
+        })
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update ticket'));
     },
   },
 };
@@ -181,7 +297,7 @@ export default {
 
 .pre-start-submission-modal .control .outline {
   display: grid;
-  grid-template-columns: auto 4rem;
+  grid-template-columns: auto auto;
   color: #b6c3cc;
 }
 
@@ -189,7 +305,12 @@ export default {
   background-color: rgba(139, 0, 0, 0.281);
 }
 
-.pre-start-submission-modal .control .fail-answer {
+.pre-start-submission-modal .control.closed {
+  background-color: rgba(139, 67, 0, 0.281);
+}
+
+.pre-start-submission-modal .control .fail-answer,
+.pre-start-submission-modal .control .ticket-status {
   display: flex;
 }
 
@@ -201,23 +322,27 @@ export default {
 .pre-start-submission-modal .control .answer {
   font-weight: bold;
   font-size: 1.25rem;
+  justify-self: right;
 }
 
 .pre-start-submission-modal .control .comment {
   margin-left: 2rem;
 }
 
-.pre-start-submission-modal .control .raise-ticket-icon {
+.pre-start-submission-modal .control .raise-ticket-icon,
+.pre-start-submission-modal .control .edit-ticket-status-icon {
   cursor: pointer;
   height: 2.5rem;
   padding-left: 10px;
 }
 
-.pre-start-submission-modal .control .raise-ticket-icon svg {
-  stroke-width: 2;
+.pre-start-submission-modal .control .raise-ticket-icon svg,
+.pre-start-submission-modal .control .edit-ticket-status-icon svg {
+  stroke-width: 1;
 }
 
-.pre-start-submission-modal .control .raise-ticket-icon:hover {
+.pre-start-submission-modal .control .raise-ticket-icon:hover,
+.pre-start-submission-modal .control .edit-ticket-status-icon:hover {
   stroke: orange;
 }
 

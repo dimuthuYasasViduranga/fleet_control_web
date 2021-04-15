@@ -192,7 +192,7 @@ export default {
 
 .pre-start-report .all-submissions .hx-btn {
   width: 6rem;
-  margin: 0 0.1rem;
+  margin: 0.1rem;
 }
 
 .pre-start-report .all-submissions .fail {

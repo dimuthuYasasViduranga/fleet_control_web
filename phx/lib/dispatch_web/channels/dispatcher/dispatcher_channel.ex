@@ -548,10 +548,38 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   def handle_in("set pre-start response ticket", params, socket) do
-    IO.inspect("---- prestart respponse ticket")
-    IO.inspect(params)
+    dispatcher_id = get_dispatcher_id(socket)
 
-    {:reply, :ok, socket}
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.add_ticket()
+    |> case do
+      {:ok, ticket, _submission} ->
+        Broadcast.send_pre_start_submissions_to_all()
+        {:reply, {:ok, %{ticket: ticket}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  def handle_in("update pre-start response ticket status", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.update_ticket_status()
+    |> case do
+      {:ok, status, submissions} ->
+        if status.active == true and length(submissions) > 0 do
+          Broadcast.send_pre_start_submissions_to_all()
+        end
+
+        {:reply, {:ok, %{status: status}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
   end
 
   @decorate only_in(:dev)

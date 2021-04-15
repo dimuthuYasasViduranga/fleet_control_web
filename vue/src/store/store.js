@@ -215,7 +215,27 @@ function parseResponse(response) {
 }
 
 function parseTicket(ticket) {
-  return ticket;
+  if (!ticket) {
+    return null;
+  }
+  const status = ticket.active_status;
+  return {
+    id: ticket.id,
+    assetId: ticket.assetId,
+    createdByDispatcherId: ticket.created_by_dispatcher_id,
+    activeStatus: {
+      id: status.id,
+      ticketId: status.ticket_id,
+      reference: status.reference,
+      details: status.details,
+      statusTypeId: status.status_type_id,
+      createdByDispatcherId: status.created_by_dispatcher_id,
+      timestamp: toUtcDate(status.timestamp),
+      serverTimestamp: toUtcDate(status.server_timestamp),
+    },
+    timestamp: toUtcDate(ticket.timestamp),
+    serverTimestamp: toUtcDate(ticket.server_timestamp),
+  };
 }
 
 const getters = {
