@@ -274,6 +274,8 @@ function parsePreStartControl(control) {
     sectionId: control.section_id,
     order: control.order,
     label: control.label,
+    requiresComment: control.requires_comment,
+    categoryId: control.category_id,
   };
 }
 
@@ -282,6 +284,15 @@ function parsePreStartTicketStatusType(type) {
     id: type.id,
     name: type.name,
     alias: type.alias,
+  };
+}
+
+function parsePreStartControlCategory(cat) {
+  return {
+    id: cat.id,
+    name: cat.name,
+    order: cat.order,
+    action: cat.action,
   };
 }
 
@@ -370,6 +381,7 @@ const state = {
   quickMessages: Array(),
   preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
+  preStartControlCategories: Array(),
 };
 
 const getters = {
@@ -510,6 +522,10 @@ const actions = {
     const formattedTypes = types.map(parsePreStartTicketStatusType);
     commit('setPreStartTicketStatusTypes', formattedTypes);
   },
+  setPreStartControlCategories({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartControlCategory);
+    commit('setPreStartControlCategories', formattedTypes);
+  },
 };
 
 const mutations = {
@@ -588,6 +604,9 @@ const mutations = {
   },
   setPreStartTicketStatusTypes(state, types = []) {
     state.preStartTicketStatusTypes = types;
+  },
+  setPreStartControlCategories(state, types = []) {
+    state.preStartControlCategories = types;
   },
 };
 

@@ -71,6 +71,7 @@ defmodule DispatchWeb.DispatcherChannel do
       operators: OperatorAgent.all(),
       dispatchers: DispatcherAgent.all(),
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
+      pre_start_control_categories: PreStartAgent.categories(),
 
       # devices
       devices: DeviceAgent.safe_all(),

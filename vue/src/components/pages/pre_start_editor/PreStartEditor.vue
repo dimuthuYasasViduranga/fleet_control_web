@@ -58,6 +58,8 @@ function formToPayload(assetTypeId, form) {
         controls: s.controls.map(c => {
           return {
             label: c.label,
+            requires_comment: c.requiresComment,
+            category_id: c.categoryId,
           };
         }),
       };
@@ -79,6 +81,8 @@ function toForm(preStartForm) {
         controls: s.controls.map(c => {
           return {
             label: c.label,
+            requiresComment: c.requiresComment,
+            categoryId: c.categoryId,
           };
         }),
       };
@@ -150,7 +154,7 @@ export default {
 </script>
 
 <style>
-.pre-start-editor .dropdown-wrapper {
+.pre-start-editor .actions .dropdown-wrapper {
   width: 10rem;
 }
 
