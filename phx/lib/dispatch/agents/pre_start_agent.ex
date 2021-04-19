@@ -252,10 +252,22 @@ defmodule Dispatch.PreStartAgent do
 
   defp validate_control({control, index}, section_ref) do
     label = control["label"]
+    requires_comment = control["requires_comment"] || false
+    category_id = control["category_id"]
 
     case !!label do
-      true -> {:ok, %{section_ref: section_ref, label: label, order: index}}
-      _ -> {:error, :missing_control_label}
+      true ->
+        {:ok,
+         %{
+           section_ref: section_ref,
+           label: label,
+           requires_comment: requires_comment,
+           category_id: category_id,
+           order: index
+         }}
+
+      _ ->
+        {:error, :missing_control_label}
     end
   end
 
@@ -299,7 +311,9 @@ defmodule Dispatch.PreStartAgent do
           %{
             section_id: section_lookup[c.section_ref],
             order: c.order,
-            label: c.label
+            label: c.label,
+            requires_comment: c[:requires_comment] || false,
+            category_id: c[:category_id]
           }
         end)
 
