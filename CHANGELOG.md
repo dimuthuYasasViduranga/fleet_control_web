@@ -3,6 +3,20 @@
 ## pending [unreleased]
 - N/A
 
+## 0.10.0
+- added centralised timezone selector
+- haul trucks can be assigned to a dig_unit OR load location
+  - came with complete re-styling of drag and drag (again ...)
+- custom toast implementation
+  - easier to style
+  - prevents spamming of disconnect/reconnect when socket falls asleep
+- better auth errors
+- added quick select modal for dispatcher messages
+- added unknown asset type icon
+- added operator time allocation page 
+  - this is only inferred data, not fact
+- implemented pre-starts, pre-start submissions, pre-start tickets, pre-start control categories
+
 ## 0.9.0
 - first consolidated version
 
