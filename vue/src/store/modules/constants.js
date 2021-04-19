@@ -264,7 +264,7 @@ function parsePreStartSection(section) {
     order: section.order || 0,
     title: section.title,
     details: section.details,
-    controls: section.controls.map(parsePreStartControl),
+    controls: section.controls.map(parsePreStartControl).sort((a, b) => a.order - b.order),
   };
 }
 
@@ -272,7 +272,7 @@ function parsePreStartControl(control) {
   return {
     id: control.id,
     sectionId: control.section_id,
-    order: control.order,
+    order: control.order || 0,
     label: control.label,
     requiresComment: control.requires_comment,
     categoryId: control.category_id,
