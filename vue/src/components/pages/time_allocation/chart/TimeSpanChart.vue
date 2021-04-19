@@ -179,7 +179,7 @@ export default {
     SlotWrapper,
   },
   props: {
-    name: { type: String, default: randChartName() },
+    name: { type: [String, Number], default: randChartName() },
     timeSpans: { type: Array, default: () => [] },
     layout: { type: Object, default: () => ({}) },
     colors: { type: Array, default: () => [] },
@@ -227,6 +227,9 @@ export default {
     chartLayout() {
       return parseLayout(this.layout);
     },
+    timezone() {
+      return this.$timely.current.timezone;
+    },
   },
   watch: {
     margin() {
@@ -248,6 +251,9 @@ export default {
       this.updateChart();
     },
     contextHeight() {
+      this.updateChart();
+    },
+    timezone() {
       this.updateChart();
     },
   },
@@ -323,6 +329,7 @@ export default {
         range,
         this.chartLayout,
         () => this.onContextBrushEnd(chart),
+        this.timezone,
       );
 
       this.chart = chart;

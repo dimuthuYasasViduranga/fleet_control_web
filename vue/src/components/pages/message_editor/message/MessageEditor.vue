@@ -129,8 +129,8 @@ export default {
         .receive('ok', () => {
           this.pendingType = null;
         })
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update message'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update message'));
     },
     onDelete(row) {
       this.showEditModal = false;
@@ -158,8 +158,8 @@ export default {
         .receive('ok', () => {
           this.pendingType = null;
         })
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update message'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update message'));
     },
     onEditorClose() {
       this.pendingType = null;

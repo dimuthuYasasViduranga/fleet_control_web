@@ -48,7 +48,7 @@
 import Icon from 'hx-layout/Icon.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 import { attributeFromList } from '@/code/helpers';
-import { formatTodayRelative, todayRelativeFormat } from '../../../../code/time';
+import { formatDateRelativeToIn } from '../../../../code/time';
 
 const MS_TO_KMH = 3.6;
 const RECENCY = 10 * 60 * 1000; // 10 minutes
@@ -107,7 +107,8 @@ export default {
     },
     timestamp() {
       const timestamp = this.asset.track.timestamp;
-      return formatTodayRelative(timestamp);
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(timestamp, tz);
     },
     timestampClass() {
       const timestamp = this.asset.track.timestamp;

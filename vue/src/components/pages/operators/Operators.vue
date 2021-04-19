@@ -91,7 +91,7 @@ export default {
       };
     },
     onError(msg) {
-      this.$toasted.global.error(msg);
+      this.$toaster.error(msg);
     },
   },
 };

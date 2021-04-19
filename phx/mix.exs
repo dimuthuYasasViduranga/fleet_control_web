@@ -60,7 +60,6 @@ defmodule DispatchWeb.MixProject do
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.2"},
       {:poison, "~> 3.0"},
-      {:cluster_graph_ex, git: "https://github.com/Haultrax/cluster_graph_ex.git"},
 
       # this overrides a dependency in cluster graph
       {:hps_data,
@@ -86,6 +85,7 @@ defmodule DispatchWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/asset_types.exs",
         "run ./deps/hps_data/priv/repo/seeds/losses/test.exs",
         # fleet control seeds
+        "run ./deps/hps_data/priv/repo/seeds/dispatch/pre_start_ticket_status_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/material_type/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",

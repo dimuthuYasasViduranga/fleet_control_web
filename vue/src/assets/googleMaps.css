@@ -48,3 +48,10 @@
 .g-control[g-position='BOTTOM_RIGHT'] {
   margin-bottom: 20px;
 }
+
+/* removes square outline when clicking on the cluster */
+.gmap-map .cluster:focus,
+.gmap-map .cluster > img:focus,
+.gmap-map .cluster > div:focus {
+  outline: none;
+}

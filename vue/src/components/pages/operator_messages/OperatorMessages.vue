@@ -50,7 +50,7 @@ import Icon from 'hx-layout/Icon.vue';
 
 import BellIcon from '../../icons/Bell.vue';
 
-import { formatTodayRelative } from './../../../code/time';
+import { formatDateRelativeToIn } from './../../../code/time';
 import { attributeFromList } from '../../../code/helpers';
 
 function getItemBtId(id, list) {
@@ -92,7 +92,8 @@ export default {
   },
   methods: {
     time(serverTimestamp) {
-      return formatTodayRelative(serverTimestamp);
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(serverTimestamp, tz);
     },
     onAcknowledge(row) {
       const channel = this.$channel;

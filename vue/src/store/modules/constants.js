@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-import { toUtcDate, setSiteTimezone } from '../../code/time.js';
+import { toUtcDate } from '../../code/time.js';
 
+import UnknownIcon from '../../components/icons/asset_icons/Unknown.vue';
 import HaulTruckIcon from '../../components/icons/asset_icons/HaulTruck.vue';
 import WaterTruckIcon from '../../components/icons/asset_icons/WaterTruck.vue';
 import ExcavatorIcon from '../../components/icons/asset_icons/Excavator.vue';
@@ -19,6 +20,7 @@ const DUMP_TYPES = ['crusher', 'waste_dump', 'rehab', 'stockpile', 'waste_stockp
 
 function getIcons() {
   return {
+    Unknown: UnknownIcon,
     'Haul Truck': HaulTruckIcon,
     Watercart: WaterTruckIcon,
     Excavator: ExcavatorIcon,
@@ -126,7 +128,7 @@ function parseRadioNumber(radioNumber) {
   };
 }
 
-function parseOperator(operator) {
+export function parseOperator(operator) {
   const fullname = getFullName(operator.name, operator.nickname);
   const shortname = operator.nickname || operator.name;
   return {
@@ -173,12 +175,20 @@ function parseAssetType(assetType) {
   };
 }
 
+function parseTimeCategory(category) {
+  return {
+    id: category.id,
+    name: category.name,
+  };
+}
+
 function parseTimeCode(timeCode) {
   return {
     id: timeCode.id,
     code: timeCode.code,
     name: timeCode.name,
     groupId: timeCode.group_id,
+    categoryId: timeCode.category_id,
   };
 }
 
@@ -219,17 +229,6 @@ function parseOperatorMessageType(messageType) {
   };
 }
 
-function parseCluster(cluster) {
-  return {
-    id: cluster.id,
-    lat: cluster.lat,
-    lon: cluster.lon,
-    north: cluster.north,
-    east: cluster.east,
-    locationId: cluster.location_id,
-  };
-}
-
 function parseLoadStyle(style) {
   return {
     id: style.id,
@@ -247,12 +246,12 @@ function parseMaterialType(type) {
   };
 }
 
-export function parsePreStart(form) {
+export function parsePreStartForm(form) {
   return {
     id: form.id,
     assetTypeId: form.asset_type_id,
     dispatcherId: form.dispatcher_id,
-    sections: form.sections.map(parsePreStartSection),
+    sections: form.sections.map(parsePreStartSection).sort((a, b) => a.order - b.order),
     timestamp: toUtcDate(form.timestamp),
     serverTimestmap: toUtcDate(form.server_timestamp),
   };
@@ -261,8 +260,8 @@ export function parsePreStart(form) {
 function parsePreStartSection(section) {
   return {
     id: section.id,
-    formId: section.formId,
-    order: section.order,
+    formId: section.form_id,
+    order: section.order || 0,
     title: section.title,
     details: section.details,
     controls: section.controls.map(parsePreStartControl),
@@ -272,33 +271,51 @@ function parsePreStartSection(section) {
 function parsePreStartControl(control) {
   return {
     id: control.id,
-    sectionId: control.sectionId,
+    sectionId: control.section_id,
     order: control.order,
     label: control.label,
-    answer: control.answer,
-    comment: control.comment,
+    requiresComment: control.requires_comment,
+    categoryId: control.category_id,
   };
 }
 
-function setStaticData(dispatch, data) {
+function parsePreStartTicketStatusType(type) {
+  return {
+    id: type.id,
+    name: type.name,
+    alias: type.alias,
+  };
+}
+
+function parsePreStartControlCategory(cat) {
+  return {
+    id: cat.id,
+    name: cat.name,
+    order: cat.order,
+    action: cat.action,
+  };
+}
+
+function setStaticData(dispatch, data, timely) {
   // all in constants
   [
     ['setLocationData', data.locations],
-    ['setClusters', data.clusters],
+    ['setQuickMessages', data.quick_messages],
     ['setMapConfig', data.map_config],
     ['setAssets', data.assets],
     ['setAssetTypes', data.asset_types],
-    ['setTimezone', data.timezone],
     ['setShifts', data.shifts],
     ['setShiftTypes', data.shift_types],
     ['setTimeCodes', data.time_codes],
     ['setTimeCodeGroups', data.time_code_groups],
+    ['setTimeCodeCategories', data.time_code_categories],
     ['setOperatorMessageTypes', data.operator_message_types],
     ['setLoadStyles', data.load_styles],
     ['setMaterialTypes', data.material_types],
   ].forEach(([path, value]) => dispatch(path, value));
 
   dispatch('connection/setUserToken', data.user_token, { root: true });
+  timely.setSiteZone(data.timezone);
 }
 
 function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
@@ -320,6 +337,20 @@ function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
   };
 }
 
+function parseQuickMessage(message) {
+  if (message.answers) {
+    return {
+      message: message.message,
+      answers: message.answers.slice(0, 2),
+    };
+  }
+
+  return {
+    message: message.message,
+    answers: null,
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
@@ -328,10 +359,8 @@ const state = {
   assets: Array(),
   assetTypes: Array(),
   operators: Array(),
-  timezone: 'local',
   shifts: Array(),
   shiftTypes: Array(),
-  clusters: Array(),
   locations: Array(),
   loadLocations: Array(),
   dumpLocations: Array(),
@@ -339,6 +368,7 @@ const state = {
   timeCodes: Array(),
   timeCodeGroups: Array(),
   timeCodeTreeElements: Array(),
+  timeCodeCategories: Array(),
   operatorMessageTypeTree: Array(),
   operatorMessageTypes: Array(),
   radioNumbers: Array(),
@@ -348,7 +378,10 @@ const state = {
   mapCenter: Object(),
   mapZoom: null,
   mapManifest: Object(),
-  preStarts: Array(),
+  quickMessages: Array(),
+  preStartForms: Array(),
+  preStartTicketStatusTypes: Array(),
+  preStartControlCategories: Array(),
 };
 
 const getters = {
@@ -374,7 +407,7 @@ const getters = {
 };
 
 const actions = {
-  getStaticData({ dispatch }, [hostname, callback]) {
+  getStaticData({ dispatch }, [hostname, callback, timely]) {
     if (callback === undefined) {
       callback = () => {
         return;
@@ -384,7 +417,7 @@ const actions = {
     axios
       .get(`${hostname}/api/static_data`)
       .then(({ data }) => {
-        setStaticData(dispatch, data);
+        setStaticData(dispatch, data, timely);
         return data;
       })
       .then(callback)
@@ -404,9 +437,6 @@ const actions = {
         console.error(error);
       });
   },
-  setTimezone({ commit }, timezone) {
-    commit('setTimezone', timezone);
-  },
   setShifts({ commit }, shifts = []) {
     const formattedShifts = shifts.map(parseShift);
     commit('setShifts', formattedShifts);
@@ -414,10 +444,6 @@ const actions = {
   setShiftTypes({ commit }, shiftTypes = []) {
     const formattedShiftTypes = shiftTypes.map(parseShiftType);
     commit('setShiftTypes', formattedShiftTypes);
-  },
-  setClusters({ commit }, clusters = []) {
-    const formattedClusters = clusters.map(parseCluster);
-    commit('setClusters', formattedClusters);
   },
   setLocationData({ commit }, locs = []) {
     const locations = locs.map(parseLocation);
@@ -480,25 +506,34 @@ const actions = {
     const materialTypes = types.map(parseMaterialType);
     commit('setMaterialTypes', materialTypes);
   },
-  setPreStarts({ commit }, preStarts = []) {
-    const formattedPreStarts = preStarts.map(parsePreStart);
-    commit('setPreStarts', formattedPreStarts);
+  setPreStartForms({ commit }, forms = []) {
+    const formattedForms = forms.map(parsePreStartForm);
+    commit('setPreStartForms', formattedForms);
+  },
+  setTimeCodeCategories({ commit }, categories = []) {
+    const formattedCategories = categories.map(parseTimeCategory);
+    commit('setTimeCodeCategories', formattedCategories);
+  },
+  setQuickMessages({ commit }, messages = []) {
+    const formattedMessage = messages.map(parseQuickMessage);
+    commit('setQuickMessages', formattedMessage);
+  },
+  setPreStartTicketStatusTypes({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartTicketStatusType);
+    commit('setPreStartTicketStatusTypes', formattedTypes);
+  },
+  setPreStartControlCategories({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartControlCategory);
+    commit('setPreStartControlCategories', formattedTypes);
   },
 };
 
 const mutations = {
-  setTimezone(state, timezone) {
-    setSiteTimezone(timezone);
-    state.timezone = timezone;
-  },
   setShifts(state, shifts = []) {
     state.shifts = shifts;
   },
   setShiftTypes(state, shiftTypes = []) {
     state.shiftTypes = shiftTypes;
-  },
-  setClusters(state, clusters = []) {
-    state.clusters = clusters;
   },
   setLocationData(state, locations = []) {
     const sortedLocations = locations.slice();
@@ -558,8 +593,20 @@ const mutations = {
   setMaterialTypes(state, types = []) {
     state.materialTypes = types;
   },
-  setPreStarts(state, preStarts = []) {
-    state.preStarts = preStarts;
+  setPreStartForms(state, forms = []) {
+    state.preStartForms = forms;
+  },
+  setTimeCodeCategories(state, categories = []) {
+    state.timeCodeCategories = categories;
+  },
+  setQuickMessages(state, messages = []) {
+    state.quickMessages = messages;
+  },
+  setPreStartTicketStatusTypes(state, types = []) {
+    state.preStartTicketStatusTypes = types;
+  },
+  setPreStartControlCategories(state, types = []) {
+    state.preStartControlCategories = types;
   },
 };
 

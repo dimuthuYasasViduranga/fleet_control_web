@@ -116,7 +116,7 @@
 </template> 
  
 <script>
-import { MapElementFactory } from 'vue2-google-maps';
+import { MapElementFactory } from 'gmap-vue';
 
 function copyMarker(marker) {
   return {

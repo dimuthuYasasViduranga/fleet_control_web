@@ -38,7 +38,6 @@ export default {
   },
   props: {
     asset: { type: Object, required: true },
-    locations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -46,14 +45,14 @@ export default {
     };
   },
   computed: {
-    ...mapState('constants', {
-      materialTypes: state => state.materialTypes,
-      loadStyles: state => state.loadStyles,
+    ...mapState({
+      materialTypes: state => state.constants.materialTypes,
+      loadStyles: state => state.constants.loadStyles,
+      locations: state => state.constants.locations,
+      activities: state => state.digUnit.currentActivities,
     }),
     activity() {
-      return (
-        this.$store.state.digUnit.currentActivities.find(a => a.assetId === this.asset.id) || {}
-      );
+      return attributeFromList(this.activities, 'assetId', this.asset.id) || {};
     },
     materialType() {
       return attributeFromList(

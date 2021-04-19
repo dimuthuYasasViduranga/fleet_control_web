@@ -99,7 +99,7 @@
 </template> 
  
 <script>
-import { MapElementFactory } from 'vue2-google-maps';
+import { MapElementFactory } from 'gmap-vue';
 import { DrawingManager } from './gmapDrawing.js';
 
 function defaultModes() {

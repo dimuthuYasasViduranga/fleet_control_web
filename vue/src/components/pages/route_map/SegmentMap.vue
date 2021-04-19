@@ -53,7 +53,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { gmapApi } from 'vue2-google-maps';
+import { gmapApi } from 'gmap-vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 
 function graphToSegments(graph, google) {

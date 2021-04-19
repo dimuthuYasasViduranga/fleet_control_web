@@ -1,23 +1,9 @@
 import { DateTime } from 'luxon';
 
-let SITE_TIMEZONE = 'local';
-
-export function setSiteTimezone(timezone) {
-  if (timezone === 'site' || !timezone) {
-    console.error(`[Time] Cannot set site timezone to '${timezone}'`);
-    return;
-  }
-  SITE_TIMEZONE = timezone;
-  console.log(`[Time] Site timezone updated to '${timezone}'`);
-}
-
-export function getSiteTimezone() {
-  return SITE_TIMEZONE;
-}
-
-export function formatDateIn(date, opts) {
+export function formatDateIn(date, tz, opts) {
   const { timezone, format } = {
-    ...{ timezone: 'site', format: 'yyyy-LL-dd HH:mm:ss' },
+    format: 'yyyy-LL-dd HH:mm:ss',
+    timezone: tz || 'local',
     ...(opts || {}),
   };
 
@@ -37,39 +23,28 @@ export function setTimeZone(datetime, timezone) {
   if (!timezone) {
     return datetime;
   }
-  if (timezone === 'site') {
-    return setTimeZone(datetime, SITE_TIMEZONE);
-  }
   return datetime.setZone(timezone);
 }
 
-export function formatTodayRelative(date, opts) {
-  const { timezone, format } = {
-    ...{ timezone: 'site', format: 'HH:mm:ss' },
-    ...(opts || {}),
-  };
-
+export function formatDateRelativeToIn(date, tz, now = new Date()) {
   if (!date) {
     return null;
   }
 
-  const now = setTimeZone(DateTime.utc(), timezone);
-  const lux = DateTime.fromJSDate(new Date(date));
-  const inZone = setTimeZone(lux, timezone);
 
-  if (!equalDownTill(now, inZone, 'year')) {
-    return inZone.toFormat(`(LLL-dd yyyy) ${format}`);
+  if (isSameDownTo(date, now, tz, 'day')) {
+    return formatDateIn(date, tz, { format: 'HH:mm:ss' });
   }
-
-  if (!equalDownTill(now, inZone, 'day')) {
-    return inZone.toFormat(`(LLL-dd) ${format}`);
-  }
-
-  return inZone.toFormat(format);
+  return formatDateIn(date, tz, { format: '(LLL-dd) HH:mm:ss' });
 }
 
-function equalDownTill(a, b, unit) {
-  return a.hasSame(b, unit);
+export function isSameDownTo(date1, date2, timezone, unit) {
+  if (!date1 || !date2) {
+    return false;
+  }
+  const lux1 = setTimeZone(date1, timezone);
+  const lux2 = setTimeZone(date2, timezone);
+  return lux1.hasSame(lux2, unit);
 }
 
 export function fromJSDate(date) {
@@ -90,11 +65,7 @@ export function toUtcDate(validDate) {
 }
 
 export function copyDate(date) {
-  if (!date) {
-    return null;
-  }
-
-  return new Date(date);
+  return date ? new Date(date) : null;
 }
 
 export function isDateEqual(a, b) {

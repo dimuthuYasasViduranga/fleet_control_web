@@ -52,6 +52,17 @@
         </template>
       </table-column>
 
+      <table-column label="Dig Unit (location)" cell-class="table-cel">
+        <template slot-scope="row">
+          <DropDown
+            v-model="row.digUnitId"
+            :items="digUnitsWithLocations"
+            label="label"
+            @change="setHaulTruckDispatch(row)"
+          />
+        </template>
+      </table-column>
+
       <table-column label="Load Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
@@ -118,8 +129,21 @@ export default {
     };
   },
   computed: {
+    assets() {
+      return this.$store.state.constants.assets;
+    },
     haulTruckDispatches() {
       return this.$store.state.haulTruck.currentDispatches;
+    },
+    digUnits() {
+      const activities = this.$store.state.digUnit.currentActivities;
+
+      return this.assets
+        .filter(a => a.secondaryType === 'Dig Unit')
+        .map(a => {
+          const activity = attributeFromList(activities, 'assetId', a.id) || {};
+          return { ...a, activity: { ...activity } };
+        });
     },
     haulTrucks() {
       const dispatches = this.haulTruckDispatches;
@@ -131,6 +155,7 @@ export default {
             assetId: asset.id,
             assetName: asset.name,
             operator: asset.operator.fullname || '',
+            digUnitId: dispatch.digUnitId,
             loadId: dispatch.loadId,
             dumpId: dispatch.dumpId,
             nextId: dispatch.nextId,
@@ -139,6 +164,25 @@ export default {
             present: asset.present,
           };
         });
+    },
+    digUnitsWithLocations() {
+      const locations = this.$store.state.constants.locations;
+
+      const options = this.digUnits
+        .map(d => {
+          const locationId = (d.activity || {}).locationId;
+          const locName = attributeFromList(locations, 'id', locationId, 'name');
+
+          const label = locName ? `${d.name} (${locName})` : d.name;
+          return {
+            id: d.id,
+            name: d.name,
+            label,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return [{ id: null, label: 'None' }].concat(options);
     },
     loadLocations() {
       return [noneLocation()].concat(this.$store.state.constants.loadLocations);
@@ -212,12 +256,13 @@ export default {
 
       this.$channel
         .push('set allocation', payload)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', resp => this.$toasted.global.noComms('Unable to update allocation'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', resp => this.$toaster.noComms('Unable to update allocation'));
     },
     setHaulTruckDispatch(asset) {
       const dispatch = {
         asset_id: asset.assetId,
+        dig_unit_id: asset.digUnitId,
         load_location_id: asset.loadId,
         dump_location_id: asset.dumpId,
         timestamp: Date.now(),
@@ -225,8 +270,8 @@ export default {
 
       this.$channel
         .push('haul:set dispatch', dispatch)
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update dispatch'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update dispatch'));
     },
   },
 };

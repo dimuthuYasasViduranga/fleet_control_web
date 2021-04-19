@@ -1,25 +1,30 @@
 <template>
   <hxCard class="pre-start-report" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="submission-time">{{ asset.name }} ({{ formatTime(submission.timestamp) }})</div>
+      <div class="submission-time">
+        {{ asset.name }} ({{ formatTime(latestSubmission.timestamp) }})
+      </div>
       <div class="status gap-left">
         <div v-if="failCount > 0" class="red-text">Fail</div>
         <div v-else class="green-text">Pass</div>
       </div>
       <Icon
+        v-if="latestSubmission"
         v-tooltip="'Open Pre-Start'"
         class="info-icon gap-left"
         :icon="infoIcon"
-        @click="onOpenViewer(submission)"
+        @click="onOpenViewer(latestSubmission)"
       />
-      <Icon
-        v-if="allSubmissions.length > 1"
-        v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
-        class="chevron-icon gap-left"
-        :icon="chevronIcon"
-        :rotation="showSubmissions ? 270 : 90"
-        @click="toggleShowSubmissions"
-      />
+      <template v-if="submissions.length > 1">
+        <Icon
+          v-tooltip="showSubmissions ? 'Show Less' : 'Show More'"
+          class="chevron-icon gap-left"
+          :icon="chevronIcon"
+          :rotation="showSubmissions ? 270 : 90"
+          @click="toggleShowSubmissions"
+        />
+        <span class="count">({{ submissions.length }})</span>
+      </template>
     </div>
     <div v-if="showSubmissions" class="all-submissions">
       <button
@@ -46,13 +51,9 @@ import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 
 import { formatDateIn } from '@/code/time';
-import { attributeFromList } from '@/code/helpers';
 
-function getFailCount(form) {
-  return form.sections
-    .map(s => s.controls)
-    .flat()
-    .filter(c => c.answer === false).length;
+function getFailCount(responses) {
+  return responses.filter(r => r.answer === false).length;
 }
 
 export default {
@@ -62,9 +63,8 @@ export default {
     Icon,
   },
   props: {
-    submission: { type: Object, required: true },
-    otherSubmissions: { type: Array, default: () => [] },
-    assets: { type: Array, default: () => [] },
+    asset: { type: Object, required: true },
+    submissions: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
   },
   data: () => {
@@ -77,30 +77,28 @@ export default {
     };
   },
   computed: {
-    asset() {
-      return attributeFromList(this.assets, 'id', this.submission.assetId) || {};
-    },
     icon() {
       return this.icons[this.asset.type];
     },
     failCount() {
-      return getFailCount(this.submission.form);
+      return getFailCount(this.latestSubmission.responses);
     },
     allSubmissions() {
-      const subs = [this.submission].concat(this.otherSubmissions);
+      const subs = this.submissions.slice();
 
       subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
       return subs.map(s => {
-        const isFail = getFailCount(s.form);
+        const isFail = getFailCount(s.responses);
         return {
           class: isFail ? 'fail' : '',
           label: this.formatTime(s.timestamp),
           submission: s,
         };
       });
-
-      return [];
+    },
+    latestSubmission() {
+      return this.allSubmissions[this.allSubmissions.length - 1].submission;
     },
   },
   methods: {
@@ -111,7 +109,8 @@ export default {
       this.$modal.create(PreStartSubmissionModal, { submission });
     },
     formatTime(date) {
-      return formatDateIn(date, { format: 'HH:mm' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(date, tz, { format: 'HH:mm' });
     },
   },
 };
@@ -177,6 +176,11 @@ export default {
   cursor: pointer;
 }
 
+.pre-start-report .count {
+  font-size: 1rem;
+  padding-left: 0.2rem;
+}
+
 .pre-start-report .info-icon:hover {
   opacity: 0.5;
 }
@@ -188,7 +192,7 @@ export default {
 
 .pre-start-report .all-submissions .hx-btn {
   width: 6rem;
-  margin: 0 0.1rem;
+  margin: 0.1rem;
 }
 
 .pre-start-report .all-submissions .fail {

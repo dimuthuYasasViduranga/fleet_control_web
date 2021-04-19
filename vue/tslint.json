@@ -45,6 +45,7 @@
         "named": "never",
         "asyncArrow": "always"
       }
-    ]
+    ],
+    "member-access": false
   }
 }

@@ -4,6 +4,7 @@
       <div class="modal-list">
         <button class="hx-btn" @click="onOpenModal">Open Modal</button>
         <button class="hx-btn" @click="onChainModals">Chain Modal</button>
+        <button class="hx-btn" @click="onNestedModals">Nested Modals</button>
         <button class="hx-btn" @click="onCreateLoadingModal">Loading Modal</button>
       </div>
     </hxCard>
@@ -11,17 +12,38 @@
       <div class="toast toast-info">
         <div>Info:</div>
         <input class="typeable" v-model="toasts.info" />
-        <button class="hx-btn" @click="onCreateInfoToast">Create</button>
+        <button class="hx-btn" @click="onCreateInfoToast(toasts.info)">Create</button>
       </div>
       <div class="toast toast-error">
         <div>Error:</div>
         <input class="typeable" v-model="toasts.error" />
-        <button class="hx-btn" @click="onCreateErrorToast">Create</button>
+        <button class="hx-btn" @click="onCreateErrorToast(toasts.error)">Create</button>
       </div>
       <div class="toast toast-no-comms">
         <div>No Comms:</div>
         <input class="typeable" v-model="toasts.noComms" />
-        <button class="hx-btn" @click="onCreateNoCommsToast">Create</button>
+        <button class="hx-btn" @click="onCreateNoCommsToast(toasts.noComms)">Create</button>
+      </div>
+      <div class="toast only-1">
+        <div>Only one at a time:</div>
+        <button class="hx-btn" @click="onCreateInfoToast('Only one', { onlyOne: true })">
+          Create
+        </button>
+      </div>
+      <div class="toast replace">
+        <div>Replace same message:</div>
+        <button class="hx-btn" @click="onCreateInfoToast('Replace', { replace: true })">
+          Create
+        </button>
+      </div>
+      <div class="toast update-text">
+        <div>Changing toast:</div>
+        <button
+          class="hx-btn"
+          @click="onCreateChangingToast('Loading ...', 'Loading Complete', 1500)"
+        >
+          Create
+        </button>
       </div>
     </hxCard>
     <hxCard class="datetime-selector" title="Datetime Input">
@@ -154,6 +176,17 @@
         <icon style="height: 6rem; width: 12rem" :icon="selectedIcon" />
       </div>
     </hxCard>
+    <hxCard class="nested-icons" title="Nested Icons" :icon="bugIcon">
+      <NIcon :icon="bugIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 2rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 4rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 8rem" :icon="excavatorIcon" :secondaryIcon="tabletIcon" />
+      <NIcon style="width: 8rem" :icon="excavatorIcon" />
+    </hxCard>
+    <hxCard title="Auto Size TextArea" :icon="bugIcon">
+      Input Text: {{ textAreaText }}
+      <AutoSizeTextArea style="width: 6rem" v-model="textAreaText" placeholder="Enter text" />
+    </hxCard>
   </div>
 </template>
 
@@ -163,6 +196,7 @@ import hxCard from 'hx-layout/Card.vue';
 import icon from 'hx-layout/Icon.vue';
 
 import BugIcon from '../../icons/Bug.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
 
 import DozerIcon from '../../icons/asset_icons/Dozer.vue';
 import HaulTruckIcon from '../../icons/asset_icons/HaulTruck.vue';
@@ -174,8 +208,11 @@ import GraderIcon from '../../icons/asset_icons/Grader.vue';
 import DrillIcon from '../../icons/asset_icons/Drill.vue';
 import LVIcon from '../../icons/asset_icons/LightVehicle.vue';
 
+import AutoSizeTextArea from '@/components/AutoSizeTextArea.vue';
+import NIcon from '@/components/NIcon.vue';
 import ConfirmModal from '../../../components/modals/ConfirmModal.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
+import NestedModal from './NestedModal.vue';
 
 import Dately from '@/components/dately/Dately.vue';
 
@@ -199,11 +236,15 @@ export default {
   components: {
     hxCard,
     icon,
+    NIcon,
     Dately,
+    AutoSizeTextArea,
   },
   data: () => {
     return {
       bugIcon: BugIcon,
+      excavatorIcon: ExcavatorIcon,
+      tabletIcon: TabletIcon,
       selectedIcon: ASSET_ICONS[0],
       assetIcons: ASSET_ICONS,
       toasts: {
@@ -265,6 +306,7 @@ export default {
         max: '2019-10-20T10:30:00Z',
         timezone: 'local',
       },
+      textAreaText: '',
     };
   },
   computed: {
@@ -284,19 +326,26 @@ export default {
   },
   methods: {
     formatDate(date) {
-      return formatDateIn(date, { format: 'yyyy-MM-dd HH:mm:ss' });
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(date, tz, { format: 'yyyy-MM-dd HH:mm:ss' });
     },
     setIcon(assetIcon) {
       this.selectedIcon = assetIcon;
     },
-    onCreateInfoToast() {
-      this.$toasted.global.info(this.toasts.info);
+    onCreateInfoToast(msg, opts) {
+      this.$toaster.info(msg, opts);
     },
-    onCreateErrorToast() {
-      this.$toasted.global.error(this.toasts.error);
+    onCreateErrorToast(msg, opts) {
+      this.$toaster.error(msg, opts);
     },
-    onCreateNoCommsToast() {
-      this.$toasted.global.noComms(this.toasts.noComms);
+    onCreateNoCommsToast(msg, opts) {
+      this.$toaster.noComms(msg, opts);
+    },
+    onCreateChangingToast(initial, after, timeout) {
+      const toast = this.$toaster.error(initial);
+      setTimeout(() => {
+        toast.text = after;
+      }, timeout);
     },
     onOpenModal() {
       this.$modal.create(ConfirmModal, { title: 'Some text', body: 'even more text' });
@@ -309,6 +358,9 @@ export default {
             this.$modal.create(ConfirmModal, { title: 'Modal 2', body: 'No more after this' });
           }
         });
+    },
+    onNestedModals() {
+      this.$modal.create(NestedModal);
     },
     onCreateLoadingModal() {
       const modal = this.$modal.create(
@@ -393,5 +445,9 @@ export default {
 .debug-page .datetime-selector .value-table td {
   width: 6rem;
   text-align: center;
+}
+
+.debug-page .nested-icons .secondary-icon {
+  stroke: orange;
 }
 </style>

@@ -82,23 +82,35 @@ defmodule DispatchWeb.AuthController do
         "device_uuid" => device_uuid,
         "device_token" => token
       }) do
-    with :ok <- Token.validate_token(device_uuid, token),
-         %{id: operator_id, deleted: false} <- OperatorAgent.get(:employee_id, employee_id) do
-      %{id: device_id} = DeviceAgent.get(%{uuid: device_uuid})
+    case Token.validate_token(device_uuid, token) do
+      :ok ->
+        case OperatorAgent.get(:employee_id, employee_id) do
+          %{id: operator_id, deleted: false} ->
+            case DeviceAgent.get(%{uuid: device_uuid}) do
+              %{id: device_id} ->
+                token =
+                  Phoenix.Token.sign(
+                    conn,
+                    "operator socket",
+                    {device_id, device_uuid, operator_id}
+                  )
 
-      token = Phoenix.Token.sign(conn, "operator socket", {device_id, device_uuid, operator_id})
+                data = Jason.encode!(%{token: token})
 
-      data = Jason.encode!(%{token: token})
+                send_resp(conn, 200, data)
 
-      send_resp(conn, 200, data)
-    else
-      false ->
-        error_reply(conn, 401, "Invalid Employee ID")
+              _ ->
+                error_reply(conn, 403, "Unauthorized Device")
+            end
 
-      %{deleted: true} ->
-        error_reply(conn, 403, "Operator Unauthorized. Please Contact Controller")
+          %{deleted: true} ->
+            error_reply(conn, 401, "Operator Unauthorized. Please Contact Controller")
 
-      _error ->
+          _ ->
+            error_reply(conn, 401, "Invalid Employee Id")
+        end
+
+      _ ->
         error_reply(conn, 403, "Unauthorized Device")
     end
   end

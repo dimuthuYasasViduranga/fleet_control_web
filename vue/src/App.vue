@@ -1,26 +1,17 @@
 <template>
   <div>
-    <div v-if="isUsingInternetExplorer" class="ie-warning">
-      <p>FleetControl does not support Internet Explorer. Please try using another browser</p>
-      <p>
-        If you are not using Internet Explorer, please email support@haultrax.com so that this can
-        be rectified in the future
-      </p>
-      <button class="hx-btn" @click="isUsingInternetExplorer = false">Proceed</button>
-    </div>
-    <template v-else>
-      <Layout :routes="routes" :username="username" :logout="logout" :login="login">
-        <template slot="header">
-          <ChatButton />
-          <!-- <HelpButton /> -->
-        </template>
-      </Layout>
-      <!-- This is persistent and a fixed overlay -->
-      <ChatOverlay />
-      <ChatButtonFloating />
-      <NotificationBar />
-      <AssetAssignmentModal />
-    </template>
+    <Layout :routes="routes" :username="username" :logout="logout" :login="login">
+      <template slot="header">
+        <TimezoneSelector />
+        <ChatButton />
+        <!-- <HelpButton /> -->
+      </template>
+    </Layout>
+    <!-- This is persistent and a fixed overlay -->
+    <ChatOverlay />
+    <ChatButtonFloating />
+    <NotificationBar />
+    <AssetAssignmentModal />
   </div>
 </template>
 
@@ -30,23 +21,13 @@ import Layout from 'hx-layout/Layout.vue';
 
 import axios from 'axios';
 
+import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
 import ChatButton from './components/header_buttons/ChatButton.vue';
 import ChatButtonFloating from './components/header_buttons/ChatButtonFloating.vue';
 import HelpButton from './components/header_buttons/HelpButton.vue';
 import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
-
-function getIsUsingInternetExplorer() {
-  try {
-    const userAgent = window.navigator.userAgent;
-    const iePresent = userAgent.indexOf('MSIE ') > -1;
-    const ie11Present = !!userAgent.match(/Trident.*rv\:11\./);
-    return iePresent || ie11Present;
-  } catch {
-    return false;
-  }
-}
 
 export default {
   name: 'app',
@@ -57,6 +38,7 @@ export default {
   },
   components: {
     Layout,
+    TimezoneSelector,
     ChatButton,
     HelpButton,
     ChatOverlay,
@@ -68,7 +50,6 @@ export default {
     return {
       title: 'Dispatch',
       username: '',
-      isUsingInternetExplorer: false,
     };
   },
   computed: {
@@ -84,9 +65,6 @@ export default {
         this.initialiseChannel();
       }
     },
-  },
-  created() {
-    this.isUsingInternetExplorer = getIsUsingInternetExplorer();
   },
   mounted() {
     this.initialiseChannel();
@@ -145,7 +123,6 @@ export default {
             dispatch('constants/setOperatorMessageTypeTree', data.message_type_tree);
           },
         ],
-        ['set clusters', data => dispatch('constants/setClusters', data.clusters)],
         [
           'set calendar data',
           data => {
@@ -156,7 +133,6 @@ export default {
         ['set asset radios', data => dispatch('constants/setRadioNumbers', data.asset_radios)],
         ['set operators', data => dispatch('constants/setOperators', data.operators)],
         ['set dispatchers', data => dispatch('constants/setDispatchers', data.dispatchers)],
-
         [
           'set time code tree elements',
           data => dispatch('constants/setTimeCodeTreeElements', data.time_code_tree_elements),
@@ -167,9 +143,13 @@ export default {
             dispatch('constants/setTimeCodeTreeElements', data.time_code_tree_elements);
             dispatch('constants/setTimeCodes', data.time_codes);
             dispatch('constants/setTimeCodeGroups', data.time_code_groups);
+            dispatch('constants/setTimeCodeCategories', data.time_code_categories);
           },
         ],
-        ['set pre-starts', data => dispatch('constants/setPreStarts', data.pre_starts)],
+        [
+          'set pre-start forms',
+          data => dispatch('constants/setPreStartForms', data.pre_start_forms),
+        ],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
@@ -183,7 +163,7 @@ export default {
         ['set activity log', data => dispatch('setActivityLog', data.activities)],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
-        ['set pre-start submissions', data => dispatch('setPreStartSubmissions', data.submissions)],
+        ['set pre-start submissions', data => dispatch('setPreStartSubmissions', data.current)],
         ['new track', resp => dispatch('trackStore/addTrack', resp.track)],
         [
           'set time allocations',
@@ -227,7 +207,9 @@ export default {
         ['constants/setRadioNumbers', resp.radio_numbers],
         ['constants/setOperators', resp.operators],
         ['constants/setDispatchers', resp.dispatchers],
-        ['constants/setPreStarts', resp.pre_starts],
+        ['constants/setPreStartForms', resp.pre_start_forms],
+        ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
+        ['constants/setPreStartControlCategories', resp.pre_start_control_categories],
 
         // devices
         ['deviceStore/setDevices', resp.devices],
@@ -300,12 +282,5 @@ a[href^='#/gap'] div {
 
 .nav-bar .hx-icon .svg {
   stroke-width: 1;
-}
-
-.ie-warning {
-  text-align: center;
-  color: white;
-  font-size: 1.5rem;
-  font-family: 'GE Inspira Sans', sans-serif;
 }
 </style>

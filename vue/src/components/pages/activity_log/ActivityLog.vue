@@ -52,7 +52,7 @@
 
 <script type="text/javascript">
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { formatTodayRelative } from './../../../code/time';
+import { formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
@@ -102,7 +102,8 @@ export default {
         return '';
       }
 
-      return formatTodayRelative(date);
+      const tz = this.$timely.current.timezone;
+      return v(date, tz);
     },
   },
 };

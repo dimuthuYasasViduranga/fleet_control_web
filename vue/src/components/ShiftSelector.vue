@@ -46,6 +46,7 @@
       <div class="gap"></div>
 
       <icon v-if="showRefresh" class="refresh-icon" :icon="refreshIcon" @click="onRefresh" />
+      <span v-if="!isUsingSiteTimezone" class="timezone-different">(Site time only)</span>
     </div>
   </div>
 </template>
@@ -119,6 +120,9 @@ export default {
     };
   },
   computed: {
+    isUsingSiteTimezone() {
+      return this.$timely.current.isSite;
+    },
     shift: {
       get() {
         const shiftId = (this.value || {}).id;
@@ -395,5 +399,11 @@ export default {
   cursor: pointer;
   width: 1.3rem;
   height: 1.3rem;
+}
+
+.shift-selector .timezone-different {
+  margin-left: 0.5rem;
+  font-style: italic;
+  line-height: 1.25rem;
 }
 </style>

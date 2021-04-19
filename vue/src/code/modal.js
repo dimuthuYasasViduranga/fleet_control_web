@@ -58,7 +58,7 @@ export class Modal {
     this.store = store;
   }
 
-  create(component, componentProps, options) {
+  create(component, componentProps = {}, options = {}) {
     // create a div to mount over
     const modalElement = document.createElement('div');
     document.body.appendChild(modalElement);

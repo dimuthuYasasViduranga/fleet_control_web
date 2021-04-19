@@ -171,8 +171,10 @@ export default {
       operators: state => state.operators,
       devices: state => state.devices,
       locations: state => state.locations,
-      timezone: state => state.timezone,
     }),
+    timezone() {
+      return this.$timely.current.timezone;
+    },
     filteredReports() {
       const selectedAssetTypes = this.selectedAssetTypes.filter(t => t.selected).map(t => t.type);
       return this.reports.filter(
@@ -243,11 +245,11 @@ export default {
         })
         .receive('error', resp => {
           this.reportInTransit = null;
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           this.reportInTransit = null;
-          this.$toasted.global.noComms('Unable to fetch report');
+          this.$toaster.noComms('Unable to fetch report');
         });
     },
   },

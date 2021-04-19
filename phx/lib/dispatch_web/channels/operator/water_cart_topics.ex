@@ -4,7 +4,7 @@ defmodule DispatchWeb.OperatorChannel.WaterCartTopics do
   """
   alias Dispatch.HaulTruckDispatchAgent
 
-  def get_asset_type_state(_asset, _operator) do
+  def get_asset_type_state(_asset, _operator_id) do
     %{
       haul_truck_dispatches: HaulTruckDispatchAgent.current()
     }

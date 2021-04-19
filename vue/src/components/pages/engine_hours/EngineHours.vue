@@ -38,7 +38,7 @@
 
 <script>
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { copyDate, formatTodayRelative } from './../../../code/time';
+import { copyDate, formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
@@ -89,7 +89,8 @@ export default {
       if (!time) {
         return '--';
       }
-      const format = formatTodayRelative(time, { format: 'HH:mm' });
+      const tz = this.$timely.current.timezone;
+      const format = formatDateRelativeToIn(time, tz);
       const deltaHours = (Date.now() - time) / (3600 * 1000);
       let color = '';
 

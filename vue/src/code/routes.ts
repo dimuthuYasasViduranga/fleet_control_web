@@ -9,9 +9,9 @@ import ActivityLog from '../components/pages/activity_log/ActivityLog.vue';
 import TimeAllocationPage from '../components/pages/time_allocation/TimeAllocationPage.vue';
 import TimeAllocationReport from '../components/pages/time_allocation_report/TimeAllocationReport.vue';
 import TimeCodeEditorPage from '../components/pages/time_code_editor/TimeCodeEditorPage.vue';
+import OperatorTimeAllocationPage from '../components/pages/operator_time_allocation/OperatorTimeAllocationPage.vue';
 import MessageEditorPage from '../components/pages/message_editor/MessageEditorPage.vue';
 import MineMap from '../components/pages/mine_map/MineMap.vue';
-import AssetProgressLine from '../components/pages/asset_progress_line/AssetProgressLine.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
 import OperatorMessages from '../components/pages/operator_messages/OperatorMessages.vue';
 import DispatcherMessages from '../components/pages/dispatcher_messages/DispatcherMessages.vue';
@@ -30,7 +30,8 @@ import LocationIcon from '../components/icons/Location.vue';
 import ManIcon from '../components/icons/Man.vue';
 import ListIcon from '../components/icons/List.vue';
 import LineIcon from '../components/icons/Line.vue';
-import TimeIcon from '../components/icons/Time.vue';
+import ClockWithTruckIcon from '../components/icons/ClockWithTruck.vue';
+import ClockWithUserIcon from '../components/icons/ClockWithUser.vue';
 import MapIcon from '../components/icons/Map.vue';
 import BellIcon from '../components/icons/Bell.vue';
 import PlaneEngineIcon from '../components/icons/PlaneEngine.vue';
@@ -98,18 +99,12 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       icon: MapIcon,
     },
     {
-      name: 'Asset Progress',
-      path: '/asset_progress_line',
-      component: AssetProgressLine,
-      icon: LineIcon,
-    },
-    {
       name: 'Route Map',
       path: '/route_map',
       component: RouteMapPage,
       icon: LineIcon,
     },
-    { path: 'gap_1', gap: true },
+    { path: '/gap_1', gap: true },
     {
       name: 'Operators',
       path: '/operators',
@@ -140,7 +135,7 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       component: PreStartEditor,
       icon: ReportIcon,
     },
-    { path: 'gap_2', gap: true },
+    { path: '/gap_2', gap: true },
     {
       name: 'Asset Status',
       path: '/asset_status',
@@ -166,7 +161,13 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       name: 'Time Allocation',
       path: '/time_allocation',
       component: TimeAllocationPage,
-      icon: TimeIcon,
+      icon: ClockWithTruckIcon,
+    },
+    {
+      name: 'Operator Time Allocation',
+      path: '/operator_time_allocation',
+      component: OperatorTimeAllocationPage,
+      icon: ClockWithUserIcon,
     },
     {
       name: 'Time Allocation Report',
@@ -174,14 +175,14 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       component: TimeAllocationReport,
       icon: ReportIcon,
     },
-    { path: 'gap_3', gap: true },
+    { path: '/gap_3', gap: true },
     {
       name: 'Cycle Tally',
       path: '/cycle_tally',
       component: CycleTally,
       icon: ListIcon,
     },
-    { path: 'gap_4', gap: true },
+    { path: '/gap_4', gap: true },
     {
       name: 'Activity Log',
       path: '/activity_log',

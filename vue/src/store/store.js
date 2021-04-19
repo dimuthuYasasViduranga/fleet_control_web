@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '../code/time.js';
-import { parsePreStart } from './modules/constants.js';
+import { parsePreStartForm } from './modules/constants.js';
 
 import connection from './modules/connection.js';
 import constants from './modules/constants.js';
@@ -176,7 +176,7 @@ const state = {
   },
   preStartSubmissions: Array(),
   dndSettings: {
-    orientation: 'vertical',
+    orientation: 'horizontal',
     vertical: {
       orderBy: 'location',
       columns: 2,
@@ -195,9 +195,46 @@ export function parsePreStartSubmission(submission) {
     operatorId: submission.operator_id,
     employeeId: submission.employee_id,
     comment: submission.comment,
-    form: parsePreStart(submission.form),
+    form: parsePreStartForm(submission.form),
+    responses: submission.responses.map(parseResponse),
     timestamp: toUtcDate(submission.timestamp),
     serverTimestamp: toUtcDate(submission.server_timestamp),
+  };
+}
+
+function parseResponse(response) {
+  return {
+    id: response.id,
+    submissionId: response.submission_id,
+    controlId: response.control_id,
+    answer: response.answer,
+    comment: response.comment,
+    ticketId: response.ticket_id,
+    ticket: parseTicket(response.ticket),
+  };
+}
+
+function parseTicket(ticket) {
+  if (!ticket) {
+    return null;
+  }
+  const status = ticket.active_status;
+  return {
+    id: ticket.id,
+    assetId: ticket.asset_id,
+    createdByDispatcherId: ticket.created_by_dispatcher_id,
+    activeStatus: {
+      id: status.id,
+      ticketId: status.ticket_id,
+      reference: status.reference,
+      details: status.details,
+      statusTypeId: status.status_type_id,
+      createdByDispatcherId: status.created_by_dispatcher_id,
+      timestamp: toUtcDate(status.timestamp),
+      serverTimestamp: toUtcDate(status.server_timestamp),
+    },
+    timestamp: toUtcDate(ticket.timestamp),
+    serverTimestamp: toUtcDate(ticket.server_timestamp),
   };
 }
 
@@ -224,7 +261,7 @@ const getters = {
       ),
     );
   },
-  events: state => {
+  events: state => timezone => {
     const {
       operatorMessages,
       dispatcherMessages,
@@ -281,6 +318,7 @@ const getters = {
       historicDeviceAssignments,
       haulTruckDispatches,
       timeAllocations,
+      timezone,
     );
   },
   operatorMessages: ({ operatorMessages, constants }) => {

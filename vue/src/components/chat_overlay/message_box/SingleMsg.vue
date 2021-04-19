@@ -33,6 +33,13 @@
         @keydown="sendOnEnter"
       />
       <div class="button-wrapper">
+        <Icon
+          v-if="filteredQuickMessages.length"
+          v-tooltip="'Quick Message'"
+          class="quick-message"
+          :icon="tagIcon"
+          @click="onOpenQuickMessages()"
+        />
         <button class="hx-btn button-send" @click="onSendMsg">Send</button>
         <button class="hx-btn button-clear" @click="clearMsg">Clear</button>
       </div>
@@ -41,17 +48,25 @@
 </template>
 
 <script>
+import Icon from 'hx-layout/Icon.vue';
+import TagIcon from '@/components/icons/Tag.vue';
+import QuickSelectModal from '@/components/modals/QuickSelectModal.vue';
 const ENTER = 13;
 
 export default {
   name: 'SingleMsg',
+  components: {
+    Icon,
+  },
   props: {
     asset: { type: Object, default: () => null },
     maxLength: { type: Number, default: 40 },
     maxAnswerLength: { type: Number, default: 10 },
+    quickMessages: { type: Array, default: [] },
   },
   data: () => {
     return {
+      tagIcon: TagIcon,
       text: '',
       error: '',
       answers: {
@@ -73,6 +88,12 @@ export default {
     },
     messagePlaceholder() {
       return `Enter message here (${this.maxLength}) characters max`;
+    },
+    filteredQuickMessages() {
+      return this.quickMessages.filter(m => {
+        const validAnswers = (m.answers || []).filter(a => a.length < this.maxAnswerLength);
+        return m.message.length < this.maxLength && (validAnswers.length === 2 || !m.answers);
+      });
     },
     showAnswers() {
       return this.text.includes('?');
@@ -142,6 +163,31 @@ export default {
       this.error = '';
       this.text = '';
     },
+    onOpenQuickMessages() {
+      const items = this.filteredQuickMessages.map(m => {
+        const label =
+          (m.answers || []).length === 2 ? `${m.message} [${m.answers.join('|')}]` : m.message;
+        return {
+          label,
+          message: m.message,
+          answers: m.answers,
+        };
+      });
+
+      const opts = { title: 'Quick Message', items, label: 'label' };
+      this.$modal.create(QuickSelectModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
+        }
+
+        this.text = resp.message;
+
+        if ((resp.answers || []).length === 2) {
+          this.answers.a = resp.answers[0];
+          this.answers.b = resp.answers[1];
+        }
+      });
+    },
     sendMsgToAsset(asset, message, answers = []) {
       const validAnswers = answers.length === 0 ? null : answers.map(a => a.toLowerCase());
       const body = {
@@ -197,21 +243,15 @@ export default {
   color: #0c1419;
 }
 
-.single-msg .message-box-answer {
-  margin-left: 0.5rem;
-  width: 3rem;
-}
-
-.single-msg .button-wrapper .hx-btn:disabled {
-  background-color: #293238;
-  color: #757575;
-  cursor: default;
-}
-
 .single-msg .text-box-wrapper {
   display: flex;
   flex-direction: row;
   width: 100%;
+}
+
+.single-msg .text-box-wrapper .message-box-answer {
+  margin-left: 0.5rem;
+  width: 3rem;
 }
 
 .single-msg .text-box-wrapper .message-box-input {
@@ -219,7 +259,19 @@ export default {
 }
 
 .single-msg .text-box-wrapper .button-wrapper {
+  display: flex;
   flex: 0 0 auto;
+}
+
+.single-msg .text-box-wrapper .button-wrapper .hx-btn:disabled {
+  background-color: #293238;
+  color: #757575;
+  cursor: default;
+}
+
+.single-msg .text-box-wrapper .button-wrapper .quick-message {
+  padding-top: 0.5rem;
+  cursor: pointer;
 }
 
 .single-msg .to-field {

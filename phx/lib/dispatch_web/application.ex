@@ -5,9 +5,6 @@ defmodule DispatchWeb.Application do
 
   def agents() do
     [
-      # clusters
-      {ClusterGraph.Agent, HpsData.Repo},
-
       # agents
       Dispatch.LocationAgent,
       Dispatch.CalendarAgent,

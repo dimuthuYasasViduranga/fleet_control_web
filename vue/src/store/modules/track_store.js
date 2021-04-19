@@ -2,36 +2,7 @@ import { toUtcDate } from '../../code/time';
 
 const PENDING_TRACK_MERGE_PERIOD = 10 * 1000;
 
-function parseDistance(distance) {
-  if (isNaN(distance) || distance == null) {
-    return null;
-  }
-  return distance;
-}
-
-function parseAssetTypeInfo(track) {
-  switch (track.asset_type) {
-    case 'Haul Truck':
-      const info = track.haul_truck_info || {};
-      return [
-        'haulTruckInfo',
-        {
-          loadId: info.load_location_id || null,
-          dumpId: info.dump_location_id || null,
-          loadDistance: parseDistance(info.load_location_distance),
-          dumpDistance: parseDistance(info.dump_location_distance),
-          currentClusterId: info.current_cluster_id,
-          loadPath: info.load_location_path || [],
-          dumpPath: info.dump_location_path || [],
-        },
-      ];
-  }
-
-  return ['noAssetInfo', null];
-}
-
 function parseTrack(track) {
-  const [key, data] = parseAssetTypeInfo(track);
   return {
     name: track.asset_name,
     assetId: parseInt(track.asset_id, 10),
@@ -49,7 +20,6 @@ function parseTrack(track) {
       name: track.location_name,
       type: track.location_type,
     },
-    [key]: data,
     timestamp: toUtcDate(track.timestamp),
     valid: track.valid,
   };

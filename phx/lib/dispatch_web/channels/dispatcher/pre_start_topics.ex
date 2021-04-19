@@ -22,7 +22,7 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
       data["timestamp"] || NaiveDateTime.utc_now()
     )
 
-    Broadcast.send_pre_starts_to_all()
+    Broadcast.send_pre_start_forms_to_all()
 
     {:reply, :ok, socket}
   end

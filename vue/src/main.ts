@@ -13,11 +13,12 @@ import App from './App.vue';
 import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
-import { registerToasts } from './code/toasts.js';
+import { Timely } from './code/timely.js';
+import { Toaster, registerCustomToasts } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
-import * as VueGoogleMaps from 'vue2-google-maps';
+import * as VueGoogleMaps from 'gmap-vue';
 
 // config
 const isDev = process.env.NODE_ENV === 'development';
@@ -47,7 +48,7 @@ Vue.use(Toasted, {
     },
   },
 });
-registerToasts();
+registerCustomToasts();
 
 // Create an event bug
 Vue.prototype.$eventBus = new Vue();
@@ -56,6 +57,11 @@ Vue.prototype.$eventBus = new Vue();
 Vue.prototype.$channel = new Channel(false ? 'debug' : null);
 
 Vue.prototype.$modal = new Modal(store);
+
+Vue.prototype.$toaster = new Toaster();
+
+const timely = Vue.observable(new Timely());
+Vue.prototype.$timely = timely;
 
 // setup routes
 declare var document: { location: { href: string } };
@@ -90,6 +96,6 @@ Promise.all(promises).then(() => {
     }).$mount('#app');
   }
 
-  store.dispatch('constants/getStaticData', [hostname, createApp]);
+  store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
   store.dispatch('trackStore/startPendingInterval');
 });

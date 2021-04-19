@@ -17,7 +17,9 @@ defmodule Dispatch.PreStartAgent do
           id: integer,
           section_id: integer,
           order: integer,
-          label: String.t()
+          label: String.t(),
+          requires_comment: boolean(),
+          category_id: integer | nil
         }
 
   @type section :: %{
@@ -38,9 +40,34 @@ defmodule Dispatch.PreStartAgent do
           sections: list(section)
         }
 
+  @type category :: %{
+          id: integer,
+          name: String.t(),
+          order: integer,
+          action: String.t() | nil
+        }
+
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
-  defp init(), do: %{current: pull_latest_forms()}
+  defp init() do
+    %{
+      current: pull_latest_forms(),
+      categories: pull_categories()
+    }
+  end
+
+  defp pull_categories() do
+    from(c in PreStart.ControlCategory,
+      select: %{
+        id: c.id,
+        name: c.name,
+        order: c.order,
+        action: c.action
+      },
+      order_by: [asc: c.order]
+    )
+    |> Repo.all()
+  end
 
   defp pull_latest_forms() do
     {:ok, {forms, sections, controls}} =
@@ -100,7 +127,9 @@ defmodule Dispatch.PreStartAgent do
           id: c.id,
           section_id: c.section_id,
           order: c.order,
-          label: c.label
+          label: c.label,
+          requires_comment: c.requires_comment || false,
+          category_id: c.category_id
         }
       end)
       |> Enum.sort_by(& &1.order)
@@ -121,6 +150,9 @@ defmodule Dispatch.PreStartAgent do
   @spec all() :: list(form)
   def all(), do: Agent.get(__MODULE__, & &1[:current])
 
+  @spec categories() :: list(category)
+  def categories(), do: Agent.get(__MODULE__, & &1[:categories])
+
   @spec get(integer) :: form | nil
   def get(asset_type_id) do
     Agent.get(__MODULE__, fn state ->
@@ -129,10 +161,12 @@ defmodule Dispatch.PreStartAgent do
   end
 
   @spec add(integer, integer, list(map), NaiveDateTime.t()) ::
-          {:ok, form} | {:error, :invalid_asset_type | :old}
-  def add(nil, _, _, _), do: {:error, :invalid_asset_type}
+          {:ok, form} | {:error, :invalid_asset_type | :missing_sections | term}
+  def add(nil, _dispatcher_id, _secionts, _timestamp), do: {:error, :invalid_asset_type}
 
-  def add(asset_type_id, dispatcher_id, sections, timestamp) do
+  def add(_asset_type_id, _dispatcher_id, [], _timestamp), do: {:error, :missing_sections}
+
+  def add(asset_type_id, dispatcher_id, sections, timestamp) when is_list(sections) do
     case validate_sections(sections) do
       {:ok, {sections, controls}} ->
         Agent.get_and_update(__MODULE__, fn state ->
@@ -175,7 +209,7 @@ defmodule Dispatch.PreStartAgent do
     |> Enum.reduce(%{sections: [], controls: [], errors: []}, &split_sections/2)
     |> case do
       %{errors: []} = groups -> {:ok, {groups.sections, groups.controls}}
-      %{errors: errors} -> {:error, errors}
+      %{errors: errors} -> {:error, List.first(errors)}
     end
   end
 
@@ -191,9 +225,7 @@ defmodule Dispatch.PreStartAgent do
     end)
   end
 
-  defp split_sections({:error, reason}, acc) do
-    Map.update!(acc, :errors, &[&1 | reason])
-  end
+  defp split_sections({:error, reason}, acc), do: Map.update!(acc, :errors, &[reason | &1])
 
   defp validate_section({section, index}) do
     section_ref = "#{index}"
@@ -220,10 +252,22 @@ defmodule Dispatch.PreStartAgent do
 
   defp validate_control({control, index}, section_ref) do
     label = control["label"]
+    requires_comment = control["requires_comment"] || false
+    category_id = control["category_id"]
 
     case !!label do
-      true -> {:ok, %{section_ref: section_ref, label: label, order: index}}
-      _ -> {:error, :missing_control_label}
+      true ->
+        {:ok,
+         %{
+           section_ref: section_ref,
+           label: label,
+           requires_comment: requires_comment,
+           category_id: category_id,
+           order: index
+         }}
+
+      _ ->
+        {:error, :missing_control_label}
     end
   end
 
@@ -267,7 +311,9 @@ defmodule Dispatch.PreStartAgent do
           %{
             section_id: section_lookup[c.section_ref],
             order: c.order,
-            label: c.label
+            label: c.label,
+            requires_comment: c[:requires_comment] || false,
+            category_id: c[:category_id]
           }
         end)
 

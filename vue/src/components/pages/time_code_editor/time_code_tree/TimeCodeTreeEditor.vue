@@ -38,6 +38,7 @@
 import TreeView from './TreeView.vue';
 import { locateChild } from './treeView.js';
 import TimeAllocationDropDown from '../../../TimeAllocationDropDown.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import { firstBy } from 'thenby';
 import { attributeFromList } from '@/code/helpers';
 
@@ -96,6 +97,22 @@ function ensureGroupRoots(groups, elements) {
   return completeRoots.concat(nonRoots);
 }
 
+function validElement(e, elements) {
+  const isRoot = !e.parentId;
+  const leafWithTimeCode = e.isLeaf && e.data.timeCodeId;
+  const groupWithChildren = !e.isLeaf && elements.filter(el => el.parentId === e.id).length !== 0;
+  return isRoot || leafWithTimeCode || groupWithChildren;
+}
+
+function removeInvalidElements(elements) {
+  const filtered = elements.filter(e => validElement(e, elements));
+  if (filtered.length === elements.length) {
+    return filtered;
+  }
+
+  return removeInvalidElements(filtered);
+}
+
 export default {
   name: 'TimeCodeTreeEditor',
   components: {
@@ -143,15 +160,38 @@ export default {
       this.setAssetType(this.selectedAssetTypeId);
     },
     onSubmit() {
+      const pendingElements = removeInvalidElements(this.localTreeElements);
+
+      if (pendingElements.length === this.localTreeElements.length) {
+        this.submit();
+        return;
+      }
+
+      const ok = 'Yes';
+      const opts = {
+        title: 'Invalid Tree',
+        body: 'There are invalid elements, would you like them to be removed before submitting?',
+        ok,
+        cancel: 'No',
+      };
+
+      this.$modal.create(ConfirmModal, opts).onClose(answer => {
+        if (answer === ok) {
+          this.localTreeElements = pendingElements;
+          this.submit();
+        }
+      });
+    },
+    submit() {
       const groupLookup = {};
-      const sortedElements = this.localTreeElements.slice();
+      const sortedElements = removeInvalidElements(this.localTreeElements);
       sortedElements.sort((a, b) => (a.parentId || 0) - (b.parentId || 0));
       sortedElements.forEach(e => {
         const timeCodeGroupId = e.data.timeCodeGroupId || groupLookup[`${e.parentId}`];
         groupLookup[`${e.id}`] = timeCodeGroupId;
       });
 
-      const elements = this.localTreeElements.map(t => {
+      const elements = sortedElements.map(t => {
         const timeCodeId = parseInt(t.data.timeCodeId, 10) || null;
         const timeCodeGroupId = groupLookup[`${t.id}`];
         const nodeName = timeCodeId ? null : t.name;
@@ -171,9 +211,9 @@ export default {
 
       this.$channel
         .push('set time code tree elements', payload)
-        .receive('ok', () => this.$toasted.global.info('Time code tree updated'))
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms('Unable to update time code tree'));
+        .receive('ok', () => this.$toaster.info('Time code tree updated'))
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update time code tree'));
     },
   },
 };

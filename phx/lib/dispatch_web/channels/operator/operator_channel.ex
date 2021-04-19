@@ -28,10 +28,13 @@ defmodule DispatchWeb.OperatorChannel do
     AssetRadioAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
-    DigUnitActivityAgent
+    DigUnitActivityAgent,
+    MapTileAgent
   }
 
   alias Phoenix.Socket
+
+  @max_clock_lead_s 60
 
   @type topic :: String.t()
 
@@ -132,12 +135,13 @@ defmodule DispatchWeb.OperatorChannel do
   end
 
   def handle_in("submit offline logins", logins, socket) when is_list(logins) do
+    device_id = socket.assigns.device_id
     now = NaiveDateTime.utc_now()
 
     logins
     |> Enum.map(fn login ->
       %{
-        device_id: login["device_id"],
+        device_id: device_id,
         asset_id: login["asset_id"],
         operator_id: login["operator_id"],
         timestamp: Helper.to_naive(login["timestamp"]),
@@ -150,7 +154,10 @@ defmodule DispatchWeb.OperatorChannel do
         |> Map.values()
         |> Enum.any?(&is_nil/1)
 
-      any_nils || NaiveDateTime.compare(login.timestamp, now) == :gt
+      in_future =
+        NaiveDateTime.compare(login.timestamp, NaiveDateTime.add(now, @max_clock_lead_s)) == :gt
+
+      any_nils || in_future
     end)
     |> Enum.each(fn login ->
       DeviceAssignmentAgent.new(login)
@@ -177,7 +184,10 @@ defmodule DispatchWeb.OperatorChannel do
       timestamp = logout["timestamp"]
 
       is_nil(asset_id) || !timestamp ||
-        NaiveDateTime.compare(Helper.to_naive(timestamp), now) == :gt
+        NaiveDateTime.compare(
+          Helper.to_naive(timestamp),
+          NaiveDateTime.add(now, @max_clock_lead_s)
+        ) == :gt
     end)
     |> Enum.each(fn logout ->
       timestamp = logout["timestamp"]
@@ -318,29 +328,6 @@ defmodule DispatchWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("cluster:distance to", %{"position" => coord, "location_id" => target_id}, socket) do
-    details =
-      %{lat: coord["lat"], lon: coord["lng"]}
-      |> ClusterGraph.distance_to(target_id)
-      |> case do
-        {distance, path} ->
-          %{
-            distance: distance,
-            cluster_ids: path,
-            location_id: target_id
-          }
-
-        _ ->
-          %{
-            distance: nil,
-            cluster_ids: [],
-            location_id: target_id
-          }
-      end
-
-    {:reply, {:ok, details}, socket}
-  end
-
   def handle_in("haul:" <> _ = topic, payload, socket) do
     HaulTruckTopics.handle_in(topic, payload, socket)
   end
@@ -367,82 +354,75 @@ defmodule DispatchWeb.OperatorChannel do
     Enum.each(asset_ids, &Broadcast.force_logout(%{asset_id: &1}))
   end
 
-  defp get_device_state(nil), do: %{}
-
   defp get_device_state(asset_id) do
-    case DeviceAssignmentAgent.get(%{asset_id: asset_id}) do
+    assignment = DeviceAssignmentAgent.get(%{asset_id: asset_id}) || %{}
+
+    asset = AssetAgent.get_asset(%{id: asset_id})
+    asset_type_id = asset[:type_id]
+
+    operator_id = assignment[:operator_id]
+
+    dispatcher_messages = DispatcherMessageAgent.all(asset_id)
+
+    active_allocation = TimeAllocationAgent.get_active(%{asset_id: asset_id})
+
+    locations =
+      LocationAgent.active_locations()
+      |> Enum.map(&Map.drop(&1, [:polygon]))
+
+    latest_track = TrackAgent.get(%{asset_id: asset_id})
+
+    other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
+
+    common_state = %{
+      device_id: assignment[:device_id],
+      asset_id: asset_id,
+      operator_id: operator_id,
+      assets: AssetAgent.get_assets(),
+      asset_types: AssetAgent.get_types(),
+      asset_radios: AssetRadioAgent.all(),
+      operators: OperatorAgent.all(),
+      locations: locations,
+      material_types: MaterialTypeAgent.get_active(),
+      load_styles: LoadStyleAgent.all(),
+      time_codes: TimeCodeAgent.get_time_codes(),
+      time_code_groups: TimeCodeAgent.get_time_code_groups(),
+      time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(asset_type_id),
+      device_assignments: DeviceAssignmentAgent.current(),
+      dig_unit_activities: DigUnitActivityAgent.current(),
+      assignment: assignment,
+      dispatcher_messages: dispatcher_messages,
+      unread_operator_messages: OperatorMessageAgent.unread(asset_id),
+      operator_message_types: OperatorMessageTypeAgent.types(),
+      operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(asset_type_id),
+      engine_hours: EngineHoursAgent.get_asset(asset_id),
+      allocation: active_allocation,
+      track: latest_track,
+      other_tracks: other_tracks,
+      pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
+      pre_start_control_categories: PreStartAgent.categories(),
+      pre_start_forms: PreStartAgent.all(),
+      pre_start_submissions: %{
+        current: PreStartSubmissionAgent.current(asset_id),
+        historic: PreStartSubmissionAgent.historic(asset_id)
+      },
+      map_manifest: MapTileAgent.get()
+    }
+
+    # get asset type is defined through using Topics
+    case get_asset_type_state(asset, operator_id) do
       nil ->
-        %{}
+        %{common: common_state}
 
-      %{asset_id: nil} ->
-        %{}
-
-      assignment ->
-        clusters =
-          ClusterGraph.Agent.get()
-          |> elem(0)
-          |> Enum.map(&Map.drop(&1, [:north, :east]))
-
-        asset = AssetAgent.get_asset(%{id: asset_id})
-
-        operator = OperatorAgent.get(:id, assignment.operator_id) |> Map.drop([:employee_id])
-
-        dispatcher_messages = DispatcherMessageAgent.all(asset_id)
-
-        active_allocation = TimeAllocationAgent.get_active(%{asset_id: asset_id})
-
-        locations =
-          LocationAgent.active_locations()
-          |> Enum.map(&Map.drop(&1, [:polygon]))
-
-        latest_track = TrackAgent.get(%{asset_id: asset_id})
-
-        other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
-
-        common_state = %{
-          asset: asset,
-          device_id: assignment.device_id,
-          assets: AssetAgent.get_assets(),
-          asset_types: AssetAgent.get_types(),
-          asset_radios: AssetRadioAgent.all(),
-          operators: OperatorAgent.all(),
-          locations: locations,
-          material_types: MaterialTypeAgent.get_active(),
-          load_styles: LoadStyleAgent.all(),
-          time_codes: TimeCodeAgent.get_time_codes(),
-          time_code_groups: TimeCodeAgent.get_time_code_groups(),
-          time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(asset.type_id),
-          device_assignments: DeviceAssignmentAgent.current(),
-          dig_unit_activities: DigUnitActivityAgent.current(),
-          assignment: assignment,
-          dispatcher_messages: dispatcher_messages,
-          unread_operator_messages: OperatorMessageAgent.unread(asset_id),
-          operator_message_types: OperatorMessageTypeAgent.types(),
-          operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(asset.type_id),
-          engine_hours: EngineHoursAgent.get_asset(asset_id),
-          allocation: active_allocation,
-          operator: operator,
-          track: latest_track,
-          other_tracks: other_tracks,
-          clusters: clusters,
-          pre_starts: PreStartAgent.all()
+      {asset_type, asset_type_state} ->
+        %{
+          :common => common_state,
+          asset_type => asset_type_state
         }
-
-        # get asset type is defined through using Topics
-        case get_asset_type_state(asset, operator) do
-          nil ->
-            %{common: common_state}
-
-          {asset_type, asset_type_state} ->
-            %{
-              :common => common_state,
-              asset_type => asset_type_state
-            }
-        end
     end
   end
 
-  def get_asset_type_state(asset, operator) do
+  def get_asset_type_state(asset, operator_id) do
     asset_type = asset[:secondary_type] || asset[:type]
 
     case asset_type do
@@ -450,13 +430,13 @@ defmodule DispatchWeb.OperatorChannel do
         nil
 
       "Haul Truck" ->
-        {asset_type, HaulTruckTopics.get_asset_type_state(asset, operator)}
+        {asset_type, HaulTruckTopics.get_asset_type_state(asset, operator_id)}
 
       "Dig Unit" ->
-        {asset_type, DigUnitTopics.get_asset_type_state(asset, operator)}
+        {asset_type, DigUnitTopics.get_asset_type_state(asset, operator_id)}
 
       "Watercart" ->
-        {asset_type, WaterCartTopics.get_asset_type_state(asset, operator)}
+        {asset_type, WaterCartTopics.get_asset_type_state(asset, operator_id)}
 
       _ ->
         Logger.error("No state for asset: '#{asset.name}' of type '#{asset.type}'")

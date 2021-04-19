@@ -21,6 +21,7 @@ defmodule DispatchWeb.DispatcherChannel do
 
   alias Dispatch.{
     Helper,
+    OperatorTimeAllocation,
     AssetAgent,
     ActivityAgent,
     DeviceAgent,
@@ -69,6 +70,8 @@ defmodule DispatchWeb.DispatcherChannel do
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
       operators: OperatorAgent.all(),
       dispatchers: DispatcherAgent.all(),
+      pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
+      pre_start_control_categories: PreStartAgent.categories(),
 
       # devices
       devices: DeviceAgent.safe_all(),
@@ -92,8 +95,8 @@ defmodule DispatchWeb.DispatcherChannel do
         historic: TimeAllocationAgent.historic()
       },
       fleetops_data: FleetOpsAgent.get(),
-      pre_starts: PreStartAgent.all(),
-      pre_start_submissions: PreStartSubmissionAgent.all(),
+      pre_start_forms: PreStartAgent.all(),
+      pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
 
       # haul truck
@@ -454,6 +457,34 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in("get operator time allocation data", calendar_id, socket) do
+    case CalendarAgent.get(%{id: calendar_id}) do
+      nil ->
+        {:reply, to_error("shift does not exists"), socket}
+
+      shift ->
+        now = NaiveDateTime.utc_now()
+
+        end_time =
+          case NaiveDateTime.compare(shift.shift_end, now) == :gt do
+            true -> now
+            _ -> shift.shift_end
+          end
+
+        report =
+          OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
+          |> OperatorTimeAllocation.build_report()
+          |> Map.put(:end_time, shift.shift_end)
+
+        payload = %{
+          shift: shift,
+          data: report
+        }
+
+        {:reply, {:ok, payload}, socket}
+    end
+  end
+
   def handle_in(
         "report:time allocation",
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
@@ -511,6 +542,41 @@ defmodule DispatchWeb.DispatcherChannel do
       {:ok, _} ->
         Broadcast.send_devices_to_dispatcher()
         {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  def handle_in("set pre-start response ticket", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.add_ticket()
+    |> case do
+      {:ok, ticket, _submission} ->
+        Broadcast.send_pre_start_submissions_to_all()
+        {:reply, {:ok, %{ticket: ticket}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  def handle_in("update pre-start response ticket status", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.update_ticket_status()
+    |> case do
+      {:ok, status, submissions} ->
+        if status.active == true and length(submissions) > 0 do
+          Broadcast.send_pre_start_submissions_to_all()
+        end
+
+        {:reply, {:ok, %{status: status}}, socket}
 
       error ->
         {:reply, to_error(error), socket}

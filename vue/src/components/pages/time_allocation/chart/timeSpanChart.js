@@ -158,6 +158,7 @@ export function createChart(
   range,
   layout,
   onContextBrushEnd,
+  timezone,
 ) {
   // create the overall svg area
   const svg = canvas
@@ -171,8 +172,15 @@ export function createChart(
   const xRange = calculateXRange(timeSpans, range);
 
   // create focus (main) and context (slicer) areas
-  const focus = createFocusChart(svg, dimensions.focus, xRange, layout);
-  const context = createContextChart(svg, dimensions.context, xRange, layout, onContextBrushEnd);
+  const focus = createFocusChart(svg, dimensions.focus, xRange, layout, timezone);
+  const context = createContextChart(
+    svg,
+    dimensions.context,
+    xRange,
+    layout,
+    onContextBrushEnd,
+    timezone,
+  );
 
   // create some defs (culling path and hatching)
   const defs = svg.append('defs');
@@ -279,8 +287,8 @@ function removeSeconds(dateString) {
   return dateString;
 }
 
-function tickToDateFormatter(date, index, textElements) {
-  const luxDate = setTimeZone(fromJSDate(date), 'site');
+function tickToDateFormatter(date, index, textElements, timezone = 'local') {
+  const luxDate = setTimeZone(fromJSDate(date), timezone);
   const startOfDay = luxDate.startOf('day');
   const isStartOfDay = luxDate.equals(startOfDay);
 
@@ -314,7 +322,7 @@ function tickToDateFormatter(date, index, textElements) {
   return isStartOfDay ? luxDate.toFormat('LLL dd') : luxDate.toFormat(format);
 }
 
-function createFocusChart(svg, dimensions, xRange, layout) {
+function createFocusChart(svg, dimensions, xRange, layout, timezone) {
   // create scales
   const focusXScale = d3
     .scaleTime()
@@ -340,7 +348,11 @@ function createFocusChart(svg, dimensions, xRange, layout) {
     .append('g')
     .attr('class', 'axis axis--x')
     .attr('transform', `translate(0, ${dimensions.height})`)
-    .call(focusXAxis.tickFormat(tickToDateFormatter));
+    .call(
+      focusXAxis.tickFormat((date, index, textElements) => {
+        return tickToDateFormatter(date, index, textElements, timezone);
+      }),
+    );
 
   // attach y-axis
   if (layout.yAxis.show) {
@@ -371,7 +383,7 @@ function createFocusChart(svg, dimensions, xRange, layout) {
   };
 }
 
-function createContextChart(svg, dimensions, xRange, layout, onContextBrushEnd) {
+function createContextChart(svg, dimensions, xRange, layout, onContextBrushEnd, timezone) {
   // no dimensions === dont render
   if (!dimensions) {
     return null;
@@ -398,7 +410,11 @@ function createContextChart(svg, dimensions, xRange, layout, onContextBrushEnd) 
     .append('g')
     .attr('class', 'axis axis--x')
     .attr('transform', `translate(0, ${dimensions.height})`)
-    .call(contextXAxis.ticks(6).tickFormat(tickToDateFormatter));
+    .call(
+      contextXAxis.ticks(6).tickFormat((date, index, textElements) => {
+        return tickToDateFormatter(date, index, textElements, timezone);
+      }),
+    );
 
   // create a context brush
   const contextBrush = d3

@@ -333,7 +333,7 @@ export default {
     assignmentSummary() {
       const groups = this.assignments.reduce((acc, assignment) => {
         const name = assignment.operator || 'No Operator';
-        acc[name] = acc[name] || 0 + assignment.duration;
+        acc[name] = (acc[name] || 0) + assignment.duration;
         return acc;
       }, {});
       return Object.entries(groups).map(([name, duration]) => {
@@ -354,7 +354,8 @@ export default {
       this.filters[filter] = !this.filters[filter];
     },
     formatDate(epoch) {
-      return formatDateIn(new Date(epoch));
+      const tz = this.$timely.current.timezone;
+      return formatDateIn(new Date(epoch), tz);
     },
     formatDuration(seconds) {
       const [days, remainder] = divMod(seconds, SECONDS_IN_DAY);
@@ -388,7 +389,7 @@ export default {
     onEditAllocations() {
       const shift = this.shift;
       if (!shift) {
-        this.$toasted.global.error('No shift available for editing');
+        this.$toaster.error('No shift available for editing');
         return;
       }
 
@@ -423,11 +424,11 @@ export default {
         })
         .receive('error', resp => {
           loading.close();
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           loading.close();
-          this.$toasted.global.noComms('Unable to load time allocations');
+          this.$toaster.noComms('Unable to load time allocations');
         });
     },
     onUpdate() {

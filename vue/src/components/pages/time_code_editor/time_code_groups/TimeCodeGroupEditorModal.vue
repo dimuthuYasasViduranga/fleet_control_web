@@ -95,11 +95,11 @@ export default {
         })
         .receive('error', resp => {
           loading.close();
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           loading.close();
-          this.$toasted.global.noComms('Unable to update time code group');
+          this.$toaster.noComms('Unable to update time code group');
         });
     },
   },

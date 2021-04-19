@@ -5,6 +5,7 @@
       :asset="selectedAsset"
       :maxLength="maxMsgLen"
       :maxAnswerLength="maxAnsLen"
+      :quickMessages="quickMessages"
     />
 
     <button v-else class="hx-btn mass-msg-btn" @click="onOpenMassMsg">Open Mass Messaging</button>
@@ -33,9 +34,21 @@ export default {
       maxAnsLen: 10,
     };
   },
+  computed: {
+    quickMessages() {
+      return this.$store.state.constants.quickMessages;
+    },
+  },
   methods: {
     onOpenMassMsg() {
-      this.$modal.create(MassMsgModal, { assets: this.assets });
+      const opts = {
+        assets: this.assets,
+        maxLength: this.maxMsgLen,
+        maxAnswerLength: this.maxAnsLen,
+        quickMessages: this.quickMessages,
+      };
+
+      this.$modal.create(MassMsgModal, opts);
     },
   },
 };

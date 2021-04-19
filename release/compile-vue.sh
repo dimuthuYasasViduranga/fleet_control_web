@@ -1,12 +1,13 @@
 echo Expected directory structure:
-echo dispatcher-ui/
-echo dispatch_phx/
+echo phx/
+echo vue/
 
+cd vue
 yarn build
 
 echo 'elixir - phoenix'
-rm -fr ../dispatch_phx/priv/static/*
-cp -a dist/. ../dispatch_phx/priv/static/
-cd ../dispatch_phx
+rm -fr ../phx/priv/static/*
+cp -a dist/. ../phx/priv/static/
+cd ../phx
 mix phx.digest
 

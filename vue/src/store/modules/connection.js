@@ -1,7 +1,9 @@
-import Vue from 'vue';
-
+import { Toaster as ToasterClass } from '@/code/toasts';
+const Toaster = new ToasterClass();
 const UPDATE_INTERVAL = 5 * 1000;
 const LONG_OFFLINE_DURATION = 30 * 1000;
+const COMMS_ESTABLISH_MSG = 'Connection established';
+const COMMS_LOST_MSG = 'Connection lost';
 
 function getStatus(state) {
   if (state.isAlive && state.isConnected) {
@@ -28,10 +30,12 @@ function toastConnection(newStatus, oldStatus) {
   }
   switch (newStatus) {
     case 'connected':
-      Vue.toasted.global.info('Connection established');
+      Toaster.clear(toast => toast.type === 'no-comms' && toast.text === COMMS_LOST_MSG);
+      Toaster.info(COMMS_ESTABLISH_MSG, { replace: true });
       break;
     case 'disconnected':
-      Vue.toasted.global.noComms('Connection lost');
+      Toaster.clear(toast => toast.type === 'info' && toast.text === COMMS_ESTABLISH_MSG);
+      Toaster.noComms(COMMS_LOST_MSG, { replace: true });
       break;
   }
 }

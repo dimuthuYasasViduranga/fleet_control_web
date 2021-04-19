@@ -19,6 +19,7 @@ defmodule Dispatch.AgentHelper do
     rescue
       error ->
         Logger.error(inspect(error))
+        # Logger.error(Exception.format(:error, error, __STACKTRACE__))
         Logger.warn("waiting to initialise #{caller_module}")
         :timer.sleep(@error_timeout)
         start_link(init_func)

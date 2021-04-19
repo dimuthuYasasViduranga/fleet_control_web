@@ -41,7 +41,7 @@
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
 
-import { formatSeconds, formatDateIn } from '../../../../code/time.js';
+import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
 import { attributeFromList, uniq } from '../../../../code/helpers';
 
 function toPlural(value, unit, suffix) {
@@ -65,11 +65,11 @@ export default {
     },
   },
   methods: {
-    formatTimestamp(date) {
-      if (!date) {
+    formatTimestamp(timestamp) {
+      if (!timestamp) {
         return '--';
       }
-      return formatDateIn(new Date(date), { format: 'HH:mm:ss' });
+      return formatDateRelativeToIn(new Date(timestamp), this.$timely.current.timezone);
     },
     formatDuration(startTime, endTime) {
       if (!startTime || !endTime) {

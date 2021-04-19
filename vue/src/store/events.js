@@ -14,6 +14,7 @@ export function toEvents(
   deviceAssignments,
   haulTruckDispatches,
   timeAllocations,
+  timezone,
 ) {
   const opMsgs = toOperatorMessageEvents(
     assets,
@@ -50,7 +51,7 @@ export function toEvents(
     .concat(timeAllocEvents);
 
   const assetIds = assets.map(a => a.id);
-  const dateSeparators = getDateSeparators(events, assetIds);
+  const dateSeparators = getDateSeparators(events, assetIds, timezone);
   events = events.concat(dateSeparators);
 
   // order by timestamp
@@ -134,7 +135,7 @@ function toDispatcherMessageEvents(assets, dispatchers, messages) {
       text: m.message,
       acknowledged: m.acknowledged,
       groupId: m.groupId,
-      searchable: ['assetName', 'text', 'eventType', 'answer'],
+      searchable: ['assetName', 'text', 'eventType', 'answer', 'dispatcher'],
     };
   });
 
@@ -200,6 +201,8 @@ function toHaulTruckDispatchEvent(assets, locations, dispatches) {
   return dispatches.map(d => {
     const assetName = attributeFromList(assets, 'id', d.assetId, 'name');
 
+    const digUnitName = attributeFromList(assets, 'id', d.digUnitId, 'name');
+
     const loadLocation = getLocationName(locations, d.loadId);
     const dumpLocation = getLocationName(locations, d.dumpId);
 
@@ -208,12 +211,12 @@ function toHaulTruckDispatchEvent(assets, locations, dispatches) {
       groupId: d.groupId,
       assetId: d.assetId,
       assetName,
-
+      digUnitName,
       loadLocation,
       dumpLocation,
       timestamp: copyDate(d.timestamp),
       serverTimestamp: copyDate(d.serverTimestamp),
-      searchable: ['loadLocation', 'dumpLocation', 'nextLocation', 'assetName'],
+      searchable: ['digUnitName', 'loadLocation', 'dumpLocation', 'nextLocation', 'assetName'],
     };
   });
 }
@@ -235,11 +238,12 @@ function toHaulTruckMassDispatchEvents(events) {
       groupId,
       assetIds,
       assetNames: assetNamesString,
+      digUnitName: baseEvent.digUnitName,
       loadLocation: baseEvent.loadLocation,
       dumpLocation: baseEvent.dumpLocation,
       timestamp: copyDate(baseEvent.timestamp),
       serverTimestamp: copyDate(baseEvent.serverTimestamp),
-      searchable: ['assetNames', 'loadLocation', 'dumpLocation'],
+      searchable: ['assetNames', 'digUnitName', 'loadLocation', 'dumpLocation'],
     };
   });
 }
@@ -341,7 +345,7 @@ function toTimeAllocEvent([assetId, allocs], assets) {
     .filter(alloc => alloc.timestamp);
 }
 
-function getDateSeparators(events, assetIds) {
+function getDateSeparators(events, assetIds, timezone) {
   // asset ids are added so that all filters work with them
   if (!events) {
     return [];
@@ -350,13 +354,13 @@ function getDateSeparators(events, assetIds) {
   const timestamps = events.map(e => e.timestamp);
   timestamps.unshift(new Date());
 
-  const separators = timestamps.map(ts => toDateSeparator(ts, assetIds));
+  const separators = timestamps.map(ts => toDateSeparator(ts, assetIds, timezone));
 
   return dedupBy(separators, 'date');
 }
 
-function toDateSeparator(date, assetIds) {
-  const site = setTimeZone(date, 'site').startOf('day');
+function toDateSeparator(date, assetIds, timezone) {
+  const site = setTimeZone(date, timezone).startOf('day');
   const dateString = site.toFormat('yyyy-MM-dd');
   const timestamp = site.toJSDate();
   return {

@@ -141,8 +141,8 @@ export default {
       this.$channel
         .push(topic, payload)
         .receive('ok', () => this.onClose())
-        .receive('error', resp => this.$toasted.global.error(resp.error))
-        .receive('timeout', () => this.$toasted.global.noComms(timeoutMsg));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms(timeoutMsg));
     },
   },
 };

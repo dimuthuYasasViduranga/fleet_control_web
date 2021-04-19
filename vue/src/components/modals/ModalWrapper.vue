@@ -1,10 +1,10 @@
 <template>
-  <transition :name="modalName" @after-leave="onFullClose">
+  <transition :name="modalName" @after-leave="onFullClose" @after-enter="loaded = true">
     <div
+      v-show="show"
       class="modal-mask"
       :class="[wrapperClass, component.wrapperClass]"
-      v-show="show"
-      @mousedown="onOuterClick()"
+      @click="onOuterClick()"
     >
       <div
         ref="modal-container-wrapper"
@@ -12,7 +12,11 @@
         @keyup.esc="onEsc()"
         tabindex="0"
       >
-        <div class="modal-container" @mousedown.stop @click.stop>
+        <div
+          class="modal-container"
+          @mousedown.stop="setInsideClick()"
+          @click.stop="clearInsideClick()"
+        >
           <component :is="component" v-bind="componentProps" @close="triggerClose" />
         </div>
       </div>
@@ -21,8 +25,12 @@
 </template>
 
 <script>
+import ClickOutside from 'vue-click-outside';
 export default {
   name: 'Modal',
+  directives: {
+    ClickOutside,
+  },
   props: {
     component: { type: Object, required: true },
     componentProps: { type: Object, required: true },
@@ -34,9 +42,11 @@ export default {
   },
   data: () => {
     return {
+      loaded: false,
       show: false,
       originalPos: { x: 0, y: 0 },
       pendingAnswer: undefined,
+      hasClickedInside: false,
     };
   },
   mounted() {
@@ -73,10 +83,17 @@ export default {
         this.triggerClose();
       }
     },
+    setInsideClick() {
+      this.hasClickedInside = true;
+    },
+    clearInsideClick() {
+      this.hasClickedInside = false;
+    },
     onOuterClick() {
-      if (this.clickOutsideClose) {
+      if (this.loaded && this.clickOutsideClose && !this.hasClickedInside) {
         this.triggerClose();
       }
+      this.clearInsideClick();
     },
   },
 };
@@ -133,10 +150,5 @@ export default {
 .modal-leave-active .modal-container {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
-}
-
-/* this is a way to overcome the scrollbar being removed when using "scrolllock" */
-html {
-  background-color: #121f26;
 }
 </style>

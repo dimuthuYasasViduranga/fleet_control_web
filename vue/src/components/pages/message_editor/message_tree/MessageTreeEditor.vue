@@ -159,15 +159,15 @@ export default {
         .push('set operator message type tree', payload)
         .receive('ok', () => {
           loading.close();
-          this.$toasted.global.info('Message tree updated');
+          this.$toaster.info('Message tree updated');
         })
         .receive('error', resp => {
           loading.close();
-          this.$toasted.global.error(resp.error);
+          this.$toaster.error(resp.error);
         })
         .receive('timeout', () => {
           loading.close();
-          this.$toasted.global.noComms('Unable to update message tree');
+          this.$toaster.noComms('Unable to update message tree');
         });
     },
   },

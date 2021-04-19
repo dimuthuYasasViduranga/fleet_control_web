@@ -20,15 +20,15 @@ LABEL git-commit=${commit} \
 
 RUN git config --global url."https://${token}:@github.com/".insteadOf "https://github.com/"
 
-COPY . .
+COPY phx .
 
 # Delete all config
 RUN rm -rf config
 
 # copy over production config
-COPY config/config.exs config/config.exs
-COPY config/prod.exs config/prod.exs
-COPY config/releases.exs config/releases.exs
+COPY phx/config/config.exs config/config.exs
+COPY phx/config/prod.exs config/prod.exs
+COPY phx/config/releases.exs config/releases.exs
 
 # Get and compile dependencies
 RUN MIX_ENV=prod mix deps.get
