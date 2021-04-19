@@ -61,6 +61,8 @@ function createSection() {
 function createControl() {
   return {
     label: '',
+    requiresComment: false,
+    categoryId: null,
   };
 }
 

@@ -146,7 +146,10 @@ export default {
             dispatch('constants/setTimeCodeCategories', data.time_code_categories);
           },
         ],
-        ['set pre-starts', data => dispatch('constants/setPreStarts', data.pre_starts)],
+        [
+          'set pre-start forms',
+          data => dispatch('constants/setPreStartForms', data.pre_start_forms),
+        ],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
@@ -160,7 +163,7 @@ export default {
         ['set activity log', data => dispatch('setActivityLog', data.activities)],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
-        ['set pre-start submissions', data => dispatch('setPreStartSubmissions', data.submissions)],
+        ['set pre-start submissions', data => dispatch('setPreStartSubmissions', data.current)],
         ['new track', resp => dispatch('trackStore/addTrack', resp.track)],
         [
           'set time allocations',
@@ -204,7 +207,9 @@ export default {
         ['constants/setRadioNumbers', resp.radio_numbers],
         ['constants/setOperators', resp.operators],
         ['constants/setDispatchers', resp.dispatchers],
-        ['constants/setPreStarts', resp.pre_starts],
+        ['constants/setPreStartForms', resp.pre_start_forms],
+        ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
+        ['constants/setPreStartControlCategories', resp.pre_start_control_categories],
 
         // devices
         ['deviceStore/setDevices', resp.devices],

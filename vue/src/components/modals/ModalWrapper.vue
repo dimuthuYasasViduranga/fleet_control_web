@@ -1,13 +1,22 @@
 <template>
   <transition :name="modalName" @after-leave="onFullClose" @after-enter="loaded = true">
-    <div v-show="show" class="modal-mask" :class="[wrapperClass, component.wrapperClass]">
+    <div
+      v-show="show"
+      class="modal-mask"
+      :class="[wrapperClass, component.wrapperClass]"
+      @click="onOuterClick()"
+    >
       <div
         ref="modal-container-wrapper"
         class="modal-container-wrapper"
         @keyup.esc="onEsc()"
         tabindex="0"
       >
-        <div class="modal-container" v-click-outside="onOuterClick" @mousedown.stop @click.stop>
+        <div
+          class="modal-container"
+          @mousedown.stop="setInsideClick()"
+          @click.stop="clearInsideClick()"
+        >
           <component :is="component" v-bind="componentProps" @close="triggerClose" />
         </div>
       </div>
@@ -37,6 +46,7 @@ export default {
       show: false,
       originalPos: { x: 0, y: 0 },
       pendingAnswer: undefined,
+      hasClickedInside: false,
     };
   },
   mounted() {
@@ -73,10 +83,17 @@ export default {
         this.triggerClose();
       }
     },
+    setInsideClick() {
+      this.hasClickedInside = true;
+    },
+    clearInsideClick() {
+      this.hasClickedInside = false;
+    },
     onOuterClick() {
-      if (this.loaded && this.clickOutsideClose) {
+      if (this.loaded && this.clickOutsideClose && !this.hasClickedInside) {
         this.triggerClose();
       }
+      this.clearInsideClick();
     },
   },
 };

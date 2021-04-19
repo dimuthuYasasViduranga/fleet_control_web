@@ -246,12 +246,12 @@ function parseMaterialType(type) {
   };
 }
 
-export function parsePreStart(form) {
+export function parsePreStartForm(form) {
   return {
     id: form.id,
     assetTypeId: form.asset_type_id,
     dispatcherId: form.dispatcher_id,
-    sections: form.sections.map(parsePreStartSection),
+    sections: form.sections.map(parsePreStartSection).sort((a, b) => a.order - b.order),
     timestamp: toUtcDate(form.timestamp),
     serverTimestmap: toUtcDate(form.server_timestamp),
   };
@@ -260,8 +260,8 @@ export function parsePreStart(form) {
 function parsePreStartSection(section) {
   return {
     id: section.id,
-    formId: section.formId,
-    order: section.order,
+    formId: section.form_id,
+    order: section.order || 0,
     title: section.title,
     details: section.details,
     controls: section.controls.map(parsePreStartControl),
@@ -271,11 +271,28 @@ function parsePreStartSection(section) {
 function parsePreStartControl(control) {
   return {
     id: control.id,
-    sectionId: control.sectionId,
+    sectionId: control.section_id,
     order: control.order,
     label: control.label,
-    answer: control.answer,
-    comment: control.comment,
+    requiresComment: control.requires_comment,
+    categoryId: control.category_id,
+  };
+}
+
+function parsePreStartTicketStatusType(type) {
+  return {
+    id: type.id,
+    name: type.name,
+    alias: type.alias,
+  };
+}
+
+function parsePreStartControlCategory(cat) {
+  return {
+    id: cat.id,
+    name: cat.name,
+    order: cat.order,
+    action: cat.action,
   };
 }
 
@@ -362,7 +379,9 @@ const state = {
   mapZoom: null,
   mapManifest: Object(),
   quickMessages: Array(),
-  preStarts: Array(),
+  preStartForms: Array(),
+  preStartTicketStatusTypes: Array(),
+  preStartControlCategories: Array(),
 };
 
 const getters = {
@@ -487,9 +506,9 @@ const actions = {
     const materialTypes = types.map(parseMaterialType);
     commit('setMaterialTypes', materialTypes);
   },
-  setPreStarts({ commit }, preStarts = []) {
-    const formattedPreStarts = preStarts.map(parsePreStart);
-    commit('setPreStarts', formattedPreStarts);
+  setPreStartForms({ commit }, forms = []) {
+    const formattedForms = forms.map(parsePreStartForm);
+    commit('setPreStartForms', formattedForms);
   },
   setTimeCodeCategories({ commit }, categories = []) {
     const formattedCategories = categories.map(parseTimeCategory);
@@ -498,6 +517,14 @@ const actions = {
   setQuickMessages({ commit }, messages = []) {
     const formattedMessage = messages.map(parseQuickMessage);
     commit('setQuickMessages', formattedMessage);
+  },
+  setPreStartTicketStatusTypes({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartTicketStatusType);
+    commit('setPreStartTicketStatusTypes', formattedTypes);
+  },
+  setPreStartControlCategories({ commit }, types = []) {
+    const formattedTypes = types.map(parsePreStartControlCategory);
+    commit('setPreStartControlCategories', formattedTypes);
   },
 };
 
@@ -566,14 +593,20 @@ const mutations = {
   setMaterialTypes(state, types = []) {
     state.materialTypes = types;
   },
-  setPreStarts(state, preStarts = []) {
-    state.preStarts = preStarts;
+  setPreStartForms(state, forms = []) {
+    state.preStartForms = forms;
   },
   setTimeCodeCategories(state, categories = []) {
     state.timeCodeCategories = categories;
   },
   setQuickMessages(state, messages = []) {
     state.quickMessages = messages;
+  },
+  setPreStartTicketStatusTypes(state, types = []) {
+    state.preStartTicketStatusTypes = types;
+  },
+  setPreStartControlCategories(state, types = []) {
+    state.preStartControlCategories = types;
   },
 };
 
