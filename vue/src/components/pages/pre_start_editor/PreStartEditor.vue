@@ -65,14 +65,14 @@ function formToPayload(assetTypeId, form) {
   };
 }
 
-function toForm(preStart) {
-  if (!preStart) {
+function toForm(preStartForm) {
+  if (!preStartForm) {
     return null;
   }
   return {
     title: '',
     details: '',
-    sections: preStart.sections.map(s => {
+    sections: preStartForm.sections.map(s => {
       return {
         title: s.title,
         details: s.details,
@@ -103,14 +103,14 @@ export default {
   computed: {
     ...mapState('constants', {
       assetTypes: state => [{ type: 'Select Asset' }].concat(state.assetTypes),
-      preStarts: state => state.preStarts,
+      preStartForms: state => state.preStartForms,
     }),
   },
   methods: {
     onAssetTypeChange(typeId) {
       this.assetTypeId = typeId;
-      const preStart = this.preStarts.find(ps => ps.assetTypeId === typeId);
-      this.form = toForm(preStart);
+      const preStartForm = this.preStartForms.find(ps => ps.assetTypeId === typeId);
+      this.form = toForm(preStartForm);
     },
     onConfirmSubmit() {
       this.$modal

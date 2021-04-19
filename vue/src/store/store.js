@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '../code/time.js';
-import { parsePreStart } from './modules/constants.js';
+import { parsePreStartForm } from './modules/constants.js';
 
 import connection from './modules/connection.js';
 import constants from './modules/constants.js';
@@ -195,7 +195,7 @@ export function parsePreStartSubmission(submission) {
     operatorId: submission.operator_id,
     employeeId: submission.employee_id,
     comment: submission.comment,
-    form: parsePreStart(submission.form),
+    form: parsePreStartForm(submission.form),
     responses: submission.responses.map(parseResponse),
     timestamp: toUtcDate(submission.timestamp),
     serverTimestamp: toUtcDate(submission.server_timestamp),

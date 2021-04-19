@@ -246,7 +246,7 @@ function parseMaterialType(type) {
   };
 }
 
-export function parsePreStart(form) {
+export function parsePreStartForm(form) {
   return {
     id: form.id,
     assetTypeId: form.asset_type_id,
@@ -368,7 +368,7 @@ const state = {
   mapZoom: null,
   mapManifest: Object(),
   quickMessages: Array(),
-  preStarts: Array(),
+  preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
 };
 
@@ -494,9 +494,9 @@ const actions = {
     const materialTypes = types.map(parseMaterialType);
     commit('setMaterialTypes', materialTypes);
   },
-  setPreStarts({ commit }, preStarts = []) {
-    const formattedPreStarts = preStarts.map(parsePreStart);
-    commit('setPreStarts', formattedPreStarts);
+  setPreStartForms({ commit }, forms = []) {
+    const formattedForms = forms.map(parsePreStartForm);
+    commit('setPreStartForms', formattedForms);
   },
   setTimeCodeCategories({ commit }, categories = []) {
     const formattedCategories = categories.map(parseTimeCategory);
@@ -577,8 +577,8 @@ const mutations = {
   setMaterialTypes(state, types = []) {
     state.materialTypes = types;
   },
-  setPreStarts(state, preStarts = []) {
-    state.preStarts = preStarts;
+  setPreStartForms(state, forms = []) {
+    state.preStartForms = forms;
   },
   setTimeCodeCategories(state, categories = []) {
     state.timeCodeCategories = categories;

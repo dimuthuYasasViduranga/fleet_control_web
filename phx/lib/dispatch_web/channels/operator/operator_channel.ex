@@ -400,7 +400,7 @@ defmodule DispatchWeb.OperatorChannel do
       track: latest_track,
       other_tracks: other_tracks,
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
-      pre_starts: PreStartAgent.all(),
+      pre_start_forms: PreStartAgent.all(),
       pre_start_submissions: %{
         current: PreStartSubmissionAgent.current(asset_id),
         historic: PreStartSubmissionAgent.historic(asset_id)

@@ -146,7 +146,7 @@ export default {
             dispatch('constants/setTimeCodeCategories', data.time_code_categories);
           },
         ],
-        ['set pre-starts', data => dispatch('constants/setPreStarts', data.pre_starts)],
+        ['set pre-start forms', data => dispatch('constants/setPreStartForms', data.pre_start_forms)],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
@@ -204,7 +204,7 @@ export default {
         ['constants/setRadioNumbers', resp.radio_numbers],
         ['constants/setOperators', resp.operators],
         ['constants/setDispatchers', resp.dispatchers],
-        ['constants/setPreStarts', resp.pre_starts],
+        ['constants/setPreStartForms', resp.pre_start_forms],
         ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
 
         // devices

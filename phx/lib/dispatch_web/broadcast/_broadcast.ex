@@ -356,9 +356,9 @@ defmodule DispatchWeb.Broadcast do
     Endpoint.broadcast(@dispatch, "set time allocations", payload)
   end
 
-  def send_pre_starts_to_all() do
+  def send_pre_start_forms_to_all() do
     payload = %{
-      pre_starts: PreStartAgent.all()
+      pre_start_forms: PreStartAgent.all()
     }
 
     Endpoint.broadcast(@dispatch, "set pre-starts", payload)
