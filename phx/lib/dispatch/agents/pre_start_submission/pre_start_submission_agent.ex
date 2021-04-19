@@ -94,7 +94,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
   @cull_opts %{
     time_key: :timestamp,
     group_key: :asset_id,
-    max_age: @max_hold_days * 60 * 60,
+    max_age: @max_hold_days * 24 * 60 * 60,
     max_group_size: @max_hold_days * 2 * 2
   }
 
@@ -172,20 +172,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
           {:ok, %{submission: submission}} ->
             submission = Data.pull_submission(submission.id)
 
-            state =
-              case can_store_submission?(state.current, submission.asset_id, submission.timestamp) do
-                true ->
-                  AgentHelper.override_or_add(
-                    state,
-                    :current,
-                    submission,
-                    &(&1.asset_id == submission.asset_id),
-                    nil
-                  )
-
-                _ ->
-                  state
-              end
+            state = update_state(state, submission)
 
             {{:ok, submission}, state}
 
@@ -318,7 +305,7 @@ defmodule Dispatch.PreStartSubmissionAgent do
           | {:error, :invalid_id | term}
   def update_ticket_status(raw_params) do
     params = Helper.to_atom_map!(raw_params)
-    params = Map.put(params, :timestamp, Helper.to_naive(params.timestamp))
+    params = Map.put(params, :timestamp, Helper.to_naive(params[:timestamp]))
 
     Helper.get_by_or_nil(Repo, PreStart.TicketStatus, %{
       ticket_id: params[:ticket_id],

@@ -384,7 +384,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
     end
 
     test "valid (ticket old - not active)", %{status_types: status_types} = context do
-      old_timestamp = ~N[2018-01-01 00:00:00]
+      old_timestamp = ~N[2000-01-01 00:00:00]
 
       {response, ticket, ticket_status, submission} =
         create_response_with_ticket(context, old_timestamp)
@@ -419,7 +419,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
       # store
       assert PreStartSubmissionAgent.current() == [submission]
-      assert PreStartSubmissionAgent.historic() == [submission]
+      assert PreStartSubmissionAgent.historic() == []
 
       # database
       assert_db_contains(PreStart.Ticket, Map.drop(ticket, [:active_status]))
