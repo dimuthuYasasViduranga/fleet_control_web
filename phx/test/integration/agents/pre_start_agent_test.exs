@@ -98,7 +98,9 @@ defmodule Dispatch.PreStartAgentTest do
               id: c.id,
               section_id: c.section_id,
               label: c.label,
-              order: c.order
+              order: c.order,
+              requires_comment: c[:requires_comment],
+              category_id: c[:category_id]
             }
           end)
 

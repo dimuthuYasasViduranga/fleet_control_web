@@ -361,9 +361,9 @@ defmodule DispatchWeb.Broadcast do
       pre_start_forms: PreStartAgent.all()
     }
 
-    Endpoint.broadcast(@dispatch, "set pre-starts", payload)
+    Endpoint.broadcast(@dispatch, "set pre-start forms", payload)
 
-    broadcast_all_operators("set pre-starts", payload)
+    broadcast_all_operators("set pre-start forms", payload)
   end
 
   def send_pre_start_submissions_to_all() do
