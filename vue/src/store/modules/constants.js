@@ -251,7 +251,7 @@ export function parsePreStartForm(form) {
     id: form.id,
     assetTypeId: form.asset_type_id,
     dispatcherId: form.dispatcher_id,
-    sections: form.sections.map(parsePreStartSection),
+    sections: form.sections.map(parsePreStartSection).sort((a, b) => a.order - b.order),
     timestamp: toUtcDate(form.timestamp),
     serverTimestmap: toUtcDate(form.server_timestamp),
   };
@@ -261,7 +261,7 @@ function parsePreStartSection(section) {
   return {
     id: section.id,
     formId: section.form_id,
-    order: section.order,
+    order: section.order || 0,
     title: section.title,
     details: section.details,
     controls: section.controls.map(parsePreStartControl),

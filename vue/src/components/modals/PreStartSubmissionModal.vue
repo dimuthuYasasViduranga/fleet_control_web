@@ -112,6 +112,7 @@ export default {
       assets: state => state.assets,
       operators: state => state.operators,
       ticketStatusTypes: state => state.preStartTicketStatusTypes,
+      categories: state => state.preStartControlCategories,
     }),
     asset() {
       return attributeFromList(this.assets, 'id', this.submission.assetId) || {};
@@ -140,6 +141,9 @@ export default {
           responseId: r.id,
           order: c.order,
           label: c.label,
+          requiresComment: c.requiresComment,
+          categoryId: c.categoryId,
+          category: attributeFromList(this.categories, 'id', c.categoryId, 'name'),
           answer: r.answer,
           comment: r.comment,
           ticketId: r.ticketId,
