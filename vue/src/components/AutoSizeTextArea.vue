@@ -31,7 +31,6 @@ export default {
 .auto-size-text-area::after {
   content: attr(data-replicated-value) ' ';
   white-space: pre-wrap;
-  word-break: break-all;
   visibility: hidden;
 }
 
