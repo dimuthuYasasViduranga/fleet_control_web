@@ -176,7 +176,7 @@ export default {
       };
 
       this.$channel
-        .push('set pre-start response ticket', payload)
+        .push('pre-start:set response ticket', payload)
         .receive('ok', ({ ticket }) => {
           this.$toaster.info('Ticket Created');
           const status = ticket.active_status;
@@ -235,7 +235,7 @@ export default {
       };
 
       this.$channel
-        .push('update pre-start response ticket status', payload)
+        .push('pre-start:update response ticket status', payload)
         .receive('ok', resp => {
           this.$toaster.info('Ticket Updated');
           const newStatus = resp.status;

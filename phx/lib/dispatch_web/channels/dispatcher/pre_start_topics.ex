@@ -5,9 +5,12 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
 
   alias Dispatch.{Helper, PreStartAgent, PreStartSubmissionAgent}
   alias DispatchWeb.Broadcast
+  use DispatchWeb.Authorization.Decorator
+  import DispatchWeb.DispatcherChannel, only: [to_error: 1]
 
   defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 
+  @decorate authorized(:can_edit_pre_starts)
   def handle_in(
         "pre-start:add form",
         %{"asset_type_id" => asset_type_id, "sections" => sections} = data,
@@ -48,6 +51,41 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
         }
 
         {:reply, {:ok, payload}, socket}
+    end
+  end
+
+  def handle_in("pre-start:set response ticket", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.add_ticket()
+    |> case do
+      {:ok, ticket, _submission} ->
+        Broadcast.send_pre_start_submissions_to_all()
+        {:reply, {:ok, %{ticket: ticket}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  def handle_in("pre-start: update response ticket status", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.update_ticket_status()
+    |> case do
+      {:ok, status, submissions} ->
+        if status.active == true and length(submissions) > 0 do
+          Broadcast.send_pre_start_submissions_to_all()
+        end
+
+        {:reply, {:ok, %{status: status}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
     end
   end
 end

@@ -1,13 +1,12 @@
 defmodule DispatchWeb.Authorization.Decorator do
   use Decorator.Define, authorized: 1, only_in: 1
 
-  require Logger
-
   @type reply :: {:reply, term, Phoenix.Socket.t()}
 
   @spec authorized(atom, term, Decorator.Decorate.Context.t()) :: reply
   def authorized(permission, body, %{args: [topic, _payload, socket]}) do
     quote do
+      require Logger
       socket = unquote(socket)
       permission = unquote(permission)
 
@@ -31,6 +30,7 @@ defmodule DispatchWeb.Authorization.Decorator do
   @spec only_in(:test | :dev | :prod, term, Decorator.Decorate.Context.t()) :: reply
   def only_in(env, body, %{args: [topic, _payload, socket]}) do
     quote do
+      require Logger
       mix_env =
         case Code.ensure_compiled(Mix) do
           {:module, _} -> Mix.env()
