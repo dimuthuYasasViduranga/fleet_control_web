@@ -100,7 +100,7 @@ export default {
 
 <style>
 .pre-start-create-ticket-modal-wrapper .modal-container {
-  max-width: 328rem;
+  max-width: 40rem;
 }
 
 .pre-start-create-ticket-modal .title {
