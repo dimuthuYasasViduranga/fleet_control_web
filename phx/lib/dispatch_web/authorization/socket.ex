@@ -8,6 +8,7 @@ defmodule DispatchWeb.Authorization.Socket do
       can_edit_time_codes: false,
       can_edit_messages: false,
       can_refresh_agents: false,
+      can_edit_pre_starts: false
     }
   end
 
