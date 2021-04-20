@@ -250,6 +250,7 @@ export default {
 @import './assets/tooltip.css';
 @import './assets/toasted.css';
 @import './assets/toggle.css';
+@import './assets/dnd.css';
 
 /* firefox scrollbar color was transparent */
 html {
