@@ -1,7 +1,10 @@
 ## Changelog
 
 ## pending [unreleased]
-- N/A
+- fixed ticket modal width
+- fixed autosize textarea breaking words
+- fixed drag and drag being presented as a table
+- Added multiple assets for one device notification
 
 ## 0.10.0
 - added centralised timezone selector

@@ -48,6 +48,19 @@ import PendingDeviceTable from './PendingDeviceTable.vue';
 import TabletIcon from '../../icons/Tablet.vue';
 import { attributeFromList, formatDeviceUUID } from '../../../code/helpers.js';
 
+function getMultipleAssignments(assignments, assets, deviceId) {
+  const deviceAssigns = assignments.filter(a => a.deviceId === deviceId);
+
+  if (deviceAssigns.length > 1) {
+    const assetNames = deviceAssigns.map(assign =>
+      attributeFromList(assets, 'id', assign.assetId, 'name'),
+    );
+    return [true, assetNames];
+  }
+
+  return [false, []];
+}
+
 export default {
   name: 'DeviceAssignment',
   components: {
@@ -88,6 +101,12 @@ export default {
       const assignments = this.devices
         .filter(d => d.authorized)
         .map(d => {
+          const [hasMultipleAssignments, multipleAssignmentAssetNames] = getMultipleAssignments(
+            this.assignments,
+            this.assets,
+            d.id,
+          );
+
           const [assetId, operatorId] = attributeFromList(this.assignments, 'deviceId', d.id, [
             'assetId',
             'operatorId',
@@ -111,6 +130,8 @@ export default {
             assetType,
             operatorId,
             operatorName,
+            hasMultipleAssignments,
+            multipleAssignmentAssetNames,
             deviceDetails: d.details || {},
             present: this.presenceList.includes(d.uuid),
           };
