@@ -10,12 +10,19 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
 
   defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 
+  def handle_in(topic, data, socket) do
+    case topic do
+      "pre-start:add form" -> add_form(topic, data, socket)
+      _ -> handle(topic, data, socket)
+    end
+  end
+
   @decorate authorized(:can_edit_pre_starts)
-  def handle_in(
-        "pre-start:add form",
-        %{"asset_type_id" => asset_type_id, "sections" => sections} = data,
-        socket
-      ) do
+  defp add_form(
+         "pre-start:add form",
+         %{"asset_type_id" => asset_type_id, "sections" => sections} = data,
+         socket
+       ) do
     dispatcher_id = get_dispatcher_id(socket)
 
     PreStartAgent.add(
@@ -30,11 +37,11 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     {:reply, :ok, socket}
   end
 
-  def handle_in(
-        "pre-start:get submissions",
-        data,
-        socket
-      ) do
+  defp handle(
+         "pre-start:get submissions",
+         data,
+         socket
+       ) do
     start_time = Helper.to_naive(data["start_time"])
     end_time = Helper.to_naive(data["end_time"])
 
@@ -54,7 +61,7 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     end
   end
 
-  def handle_in("pre-start:set response ticket", params, socket) do
+  defp handle("pre-start:set response ticket", params, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
     params

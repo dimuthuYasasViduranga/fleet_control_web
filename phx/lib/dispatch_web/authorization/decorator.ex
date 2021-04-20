@@ -31,6 +31,7 @@ defmodule DispatchWeb.Authorization.Decorator do
   def only_in(env, body, %{args: [topic, _payload, socket]}) do
     quote do
       require Logger
+
       mix_env =
         case Code.ensure_compiled(Mix) do
           {:module, _} -> Mix.env()
