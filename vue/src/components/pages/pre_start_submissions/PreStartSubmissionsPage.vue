@@ -26,6 +26,7 @@
         :submissions="localSubmissions"
         :assets="assets"
         :icons="icons"
+        @refresh="onRefresh()"
       />
       <PreStartFailures
         v-else-if="selectedModeId === 'failures'"
@@ -48,6 +49,32 @@ import PreStartFailures from './PreStartFailures.vue';
 import ReportIcon from '@/components/icons/Report.vue';
 
 import { parsePreStartSubmission } from '@/store/store';
+import { attributeFromList } from '@/code/helpers';
+
+function toLocalSubmission(rawSub, closedStatusTypeId) {
+  const submission = parsePreStartSubmission(rawSub);
+
+  const failures = submission.responses.filter(r => r.answer === false);
+
+  const failuresWithoutTickets = failures.filter(r => !r.ticketId);
+
+  const closedTickets = failures.filter(
+    r => r.ticket && r.ticket.activeStatus.statusTypeId === closedStatusTypeId,
+  );
+
+  const openTickets = failures.filter(
+    r => r.ticket && r.ticket.activeStatus.statusTypeId !== closedStatusTypeId,
+  );
+
+  submission.responseCounts = {
+    failures: failures.length,
+    failuresWithoutTickets: failuresWithoutTickets.length,
+    closed: closedTickets.length,
+    open: openTickets.length,
+  };
+
+  return submission;
+}
 
 export default {
   name: 'PreStartSubmissionsPage',
@@ -79,6 +106,14 @@ export default {
       shiftTypes: state => state.shiftTypes,
       icons: state => state.icons,
     }),
+    closedStatusTypeId() {
+      return attributeFromList(
+        this.$store.state.constants.preStartTicketStatusTypes,
+        'name',
+        'closed',
+        'id',
+      );
+    },
   },
   methods: {
     setMode(modeId) {
@@ -122,7 +157,9 @@ export default {
             return;
           }
 
-          this.localSubmissions = data.submissions.map(parsePreStartSubmission);
+          this.localSubmissions = data.submissions.map(s =>
+            toLocalSubmission(s, this.closedStatusTypeId),
+          );
         })
         .receive('error', resp => onError('error', resp.error))
         .receive('timeout', () => onError('noComms', 'Unable to fetch submissions'));

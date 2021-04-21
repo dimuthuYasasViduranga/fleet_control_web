@@ -106,6 +106,7 @@ export default {
     return {
       tagIcon: TagIcon,
       editIcon: EditIcon,
+      hasMadeChanges: false,
     };
   },
   computed: {
@@ -126,6 +127,11 @@ export default {
     },
   },
   methods: {
+    outerClickIntercept() {
+      if (this.hasMadeChanges) {
+        return 'refresh';
+      }
+    },
     formatTime(date) {
       const tz = this.$timely.current.timezone;
       return formatDateIn(date, tz, { format: '(yyyy-MM-dd) HH:mm:ss' });
@@ -179,6 +185,7 @@ export default {
       this.$channel
         .push('pre-start:set response ticket', payload)
         .receive('ok', ({ ticket }) => {
+          this.hasMadeChanges = true;
           this.$toaster.info('Ticket Created');
           const status = ticket.active_status;
 
@@ -239,6 +246,7 @@ export default {
       this.$channel
         .push('pre-start:update response ticket status', payload)
         .receive('ok', resp => {
+          this.hasMadeChanges = true;
           this.$toaster.info('Ticket Updated');
           const newStatus = resp.status;
 
