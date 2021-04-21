@@ -36,3 +36,5 @@ dispatch_server-*.tar
 **/config/*.secret.exs
 .elixir_ls
 apps/dispatch/cte_cluster_store_development
+
+CHANGELOG.symlink.md
