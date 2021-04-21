@@ -3,6 +3,16 @@
     <div class="title">{{ title }}</div>
 
     <div class="separator"></div>
+    <template v-if="timestamp">
+      <table>
+        <tr>
+          <td class="key">Last Updated</td>
+          <td class="value">{{ formatDate(timestamp) }}</td>
+        </tr>
+      </table>
+
+      <div class="separator"></div>
+    </template>
 
     <table>
       <tr v-if="controlText">
@@ -49,6 +59,7 @@
 import DropDown from '@/components/dropdown/DropDown.vue';
 import AutoSizeTextArea from '@/components/AutoSizeTextArea.vue';
 import { attributeFromList } from '@/code/helpers';
+import { formatDateRelativeToIn } from '@/code/time';
 export default {
   name: 'PreStartCreateTicketModal',
   wrapperClass: 'pre-start-create-ticket-modal-wrapper',
@@ -61,6 +72,7 @@ export default {
     submitName: { type: String, default: 'Create' },
     controlText: { type: String },
     controlComment: { type: String },
+    timestamp: { type: Date },
     reference: { type: String },
     details: { type: String },
     statusTypeId: { type: [Number, String] },
@@ -86,6 +98,9 @@ export default {
   methods: {
     close(resp) {
       this.$emit('close', resp);
+    },
+    formatDate(date) {
+      return formatDateRelativeToIn(date, this.$timely.current.timezone);
     },
     onSubmit() {
       this.close({
@@ -126,6 +141,7 @@ export default {
 .pre-start-create-ticket-modal tr .key {
   font-size: 1.75rem;
   width: 11rem;
+  text-transform: capitalize;
 }
 
 .pre-start-create-ticket-modal tr .value {

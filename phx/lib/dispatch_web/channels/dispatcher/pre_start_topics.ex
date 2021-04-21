@@ -77,7 +77,7 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     end
   end
 
-  defp handle("pre-start: update response ticket status", params, socket) do
+  defp handle("pre-start:update response ticket status", params, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
     params

@@ -24,6 +24,7 @@
           :key="cIndex"
           :class="{
             fail: control.answer === false,
+            'has-ticket': control.ticketId,
             closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
             na: control.answer === null,
           }"
@@ -42,7 +43,7 @@
                 />
               </div>
               <div v-else-if="control.answer === false && control.ticketId" class="ticket-status">
-                <div class="status">
+                <div class="status" style="text-transform: capitalize">
                   {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
                 </div>
                 <Icon
@@ -210,6 +211,7 @@ export default {
         title: 'Update Ticket Status',
         controlText: control.label,
         controlComment: control.comment,
+        timestamp: status.timestamp,
         reference: status.reference,
         details: status.details,
         statusTypeId: status.statusTypeId,
@@ -309,8 +311,12 @@ export default {
   background-color: rgba(139, 0, 0, 0.281);
 }
 
-.pre-start-submission-modal .control.closed {
+.pre-start-submission-modal .control.has-ticket {
   background-color: rgba(139, 67, 0, 0.281);
+}
+
+.pre-start-submission-modal .control.closed {
+  background-color: rgba(88, 88, 88, 0.281);
 }
 
 .pre-start-submission-modal .control .fail-answer,
