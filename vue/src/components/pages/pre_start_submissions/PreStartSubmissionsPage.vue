@@ -34,6 +34,7 @@
         :assets="assets"
         :operators="operators"
         :icons="icons"
+        @refresh="onRefresh()"
       />
     </hxCard>
   </div>

@@ -12,6 +12,7 @@
         :assetName="asset.name"
         :icon="icons[asset.type]"
         :submissions="asset.failedSubmissions"
+        @refresh="$emit('refresh', $event)"
       />
     </div>
   </div>

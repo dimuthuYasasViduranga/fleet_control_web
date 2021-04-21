@@ -1,9 +1,7 @@
 <template>
   <hxCard class="pre-start-failure" :icon="icon">
     <div class="title-post" slot="title-post">
-      <div class="heading">
-        {{ assetName }} ({{ total === 1 ? '1 Failure' : `${total} Failures` }})
-      </div>
+      <div class="heading">{{ assetName }} ({{ breakdown }})</div>
       <Icon
         v-tooltip="show ? 'Show Less' : 'Show More'"
         class="chevron-icon gap-left"
@@ -34,6 +32,7 @@
           :key="cIndex"
           :class="{
             closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
+            open: control.ticketId && control.ticket.activeStatus.statusTypeId !== closedStatusId,
           }"
         >
           <div class="outline">
@@ -74,6 +73,23 @@ function statusChanged(a, b) {
   );
 }
 
+function breakdownText(counts) {
+  const text = [];
+  if (counts.failuresWithoutTickets) {
+    text.push(`Failures: ${counts.failuresWithoutTickets}`);
+  }
+
+  if (counts.closed) {
+    text.push(`Closed: ${counts.closed}`);
+  }
+
+  if (counts.open) {
+    text.push(`Open: ${counts.open}`);
+  }
+
+  return text.join(' | ');
+}
+
 export default {
   name: 'PreStartFailure',
   components: {
@@ -93,8 +109,18 @@ export default {
     };
   },
   computed: {
-    total() {
-      return this.submissions.reduce((acc, s) => acc + s.controls.length, 0);
+    breakdown() {
+      const counts = this.submissions
+        .map(s => s.submission.responseCounts)
+        .reduce(
+          (acc, responseCount = {}) => {
+            Object.entries(responseCount).forEach(([key, count]) => (acc[key] += count));
+            return acc;
+          },
+          { closed: 0, failures: 0, failuresWithoutTickets: 0, open: 0 },
+        );
+
+      return breakdownText(counts);
     },
     ticketStatusTypes() {
       return this.$store.state.constants.preStartTicketStatusTypes;
@@ -112,7 +138,11 @@ export default {
       return formatDateIn(date, tz, { format: 'HH:mm:ss' });
     },
     onOpenViewer(submission) {
-      this.$modal.create(PreStartSubmissionModal, { submission });
+      this.$modal.create(PreStartSubmissionModal, { submission }).onClose(resp => {
+        if (resp === 'refresh') {
+          this.$emit('refresh');
+        }
+      });
     },
     getTicketStatus(statusId) {
       return attributeFromList(this.ticketStatusTypes, 'id', statusId, 'name');
@@ -189,6 +219,10 @@ export default {
 }
 
 .pre-start-failure .control.closed {
+  background-color: rgba(88, 88, 88, 0.281);
+}
+
+.pre-start-failure .control.open {
   background-color: rgba(139, 67, 0, 0.281);
 }
 

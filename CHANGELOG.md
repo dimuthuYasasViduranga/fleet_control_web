@@ -6,6 +6,8 @@
 - fixed drag and drag being presented as a table
 - Added multiple assets for one device notification
 - fixed pre-start section/control ordering
+- added last update time for ticket statuses
+- added colors for ticket statuses
 
 ## 0.10.0
 - added centralised timezone selector
