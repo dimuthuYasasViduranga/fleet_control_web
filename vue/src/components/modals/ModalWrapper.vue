@@ -17,7 +17,7 @@
           @mousedown.stop="setInsideClick()"
           @click.stop="clearInsideClick()"
         >
-          <component :is="component" v-bind="componentProps" @close="triggerClose" />
+          <component ref="modal" :is="component" v-bind="componentProps" @close="triggerClose" />
         </div>
       </div>
     </div>
@@ -91,7 +91,10 @@ export default {
     },
     onOuterClick() {
       if (this.loaded && this.clickOutsideClose && !this.hasClickedInside) {
-        this.triggerClose();
+        const onOuterClick = this.$refs.modal.outerClickIntercept;
+
+        const answer = onOuterClick ? onOuterClick() : undefined;
+        this.triggerClose(answer);
       }
       this.clearInsideClick();
     },

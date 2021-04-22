@@ -8,6 +8,7 @@
         :asset="report.asset"
         :submissions="report.submissions"
         :icons="icons"
+        @refresh="$emit('refresh', $event)"
       />
     </div>
   </div>

@@ -5,8 +5,13 @@
         {{ asset.name }} ({{ formatTime(latestSubmission.timestamp) }})
       </div>
       <div class="status gap-left">
-        <div v-if="failCount > 0" class="red-text">Fail</div>
-        <div v-else class="green-text">Pass</div>
+        <div v-if="latestSubmission.responseCounts.failuresWithoutTickets" class="failure">
+          Fail
+        </div>
+        <div v-else-if="latestSubmission.responseCounts.open" class="open">Open Tickets</div>
+
+        <div v-else-if="latestSubmission.responseCounts.closed" class="closed">Rectified</div>
+        <div v-else class="pass">Pass</div>
       </div>
       <Icon
         v-if="latestSubmission"
@@ -51,9 +56,28 @@ import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 
 import { formatDateIn } from '@/code/time';
+import { attributeFromList } from '@/code/helpers';
 
 function getFailCount(responses) {
   return responses.filter(r => r.answer === false).length;
+}
+
+function getItemClass(responses, closedStatusTypeId) {
+  const failures = responses.filter(r => r.answer === false);
+
+  if (failures.length === 0) {
+    return '';
+  }
+
+  if (failures.filter(r => !r.ticketId).length) {
+    return 'failure';
+  }
+
+  if (failures.every(r => r.ticket.activeStatus.statusTypeId === closedStatusTypeId)) {
+    return 'closed';
+  }
+
+  return 'open';
 }
 
 export default {
@@ -80,6 +104,14 @@ export default {
     icon() {
       return this.icons[this.asset.type];
     },
+    closedTicketStatusId() {
+      return attributeFromList(
+        this.$store.state.constants.preStartTicketStatusTypes,
+        'name',
+        'closed',
+        'id',
+      );
+    },
     failCount() {
       return getFailCount(this.latestSubmission.responses);
     },
@@ -89,9 +121,9 @@ export default {
       subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
       return subs.map(s => {
-        const isFail = getFailCount(s.responses);
+        const itemClass = getItemClass(s.responses, this.closedTicketStatusId);
         return {
-          class: isFail ? 'fail' : '',
+          class: itemClass,
           label: this.formatTime(s.timestamp),
           submission: s,
         };
@@ -106,7 +138,11 @@ export default {
       this.showSubmissions = !this.showSubmissions;
     },
     onOpenViewer(submission) {
-      this.$modal.create(PreStartSubmissionModal, { submission });
+      this.$modal.create(PreStartSubmissionModal, { submission }).onClose(resp => {
+        if (resp === 'refresh') {
+          this.$emit('refresh');
+        }
+      });
     },
     formatTime(date) {
       const tz = this.$timely.current.timezone;
@@ -117,8 +153,6 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/textColors.css';
-
 /* hxCard styling */
 .pre-start-report.hxCardIcon {
   height: 2.5rem;
@@ -152,8 +186,24 @@ export default {
 
 /* status indicator */
 .pre-start-report .status {
-  width: 3rem;
+  width: 10rem;
   text-align: center;
+}
+
+.pre-start-report .status .failure {
+  color: red;
+}
+
+.pre-start-report .status .open {
+  color: orange;
+}
+
+.pre-start-report .status .closed {
+  color: green;
+}
+
+.pre-start-report .status .pass {
+  color: green;
 }
 
 .pre-start-report .gap-left {
@@ -195,7 +245,15 @@ export default {
   margin: 0.1rem;
 }
 
-.pre-start-report .all-submissions .fail {
+.pre-start-report .all-submissions .failure {
   background-color: rgba(139, 0, 0, 0.644);
+}
+
+.pre-start-report .all-submissions .closed {
+  background-color: rgba(126, 126, 126, 0.644);
+}
+
+.pre-start-report .all-submissions .open {
+  background-color: rgba(139, 74, 0, 0.644);
 }
 </style>

@@ -25,13 +25,20 @@
 
       <table-column label="Asset" cell-class="table-cel" show="assetName">
         <template slot-scope="row">
-          <DropDown
-            v-model="row.assetId"
-            :items="dropdownAssets"
-            label="label"
-            :useScrollLock="false"
-            @change="onChange(row)"
-          />
+          <div class="asset-selection">
+            <DropDown
+              v-model="row.assetId"
+              :items="dropdownAssets"
+              label="label"
+              :useScrollLock="false"
+              @change="onChange(row)"
+            />
+            <Icon
+              v-if="row.hasMultipleAssignments"
+              v-tooltip="getMultipleAssignmentTooltip(row)"
+              :icon="alertIcon"
+            />
+          </div>
         </template>
       </table-column>
 
@@ -88,6 +95,7 @@ import DropDown from '../../dropdown/DropDown.vue';
 
 import TabletIcon from '../../icons/Tablet.vue';
 import InfoIcon from '../../icons/Info.vue';
+import AlertIcon from '../../icons/Alert.vue';
 
 const WARNING = `Revoking a device will prevent it from being able to log into FleetControl.
 
@@ -114,6 +122,7 @@ export default {
     return {
       tabletIcon: TabletIcon,
       infoIcon: InfoIcon,
+      alertIcon: AlertIcon,
     };
   },
   computed: {
@@ -174,6 +183,17 @@ export default {
     onOpenDeviceInfo(row) {
       this.$modal.create(DeviceInfoModal, { device: row });
     },
+    getMultipleAssignmentTooltip(row) {
+      const items = row.multipleAssignmentAssetNames.map(name => `<li>${name}</li>`).join('');
+      const assetList = `<ul>${items}</ul>`;
+
+      const content = `Multiple assets assigned to this device\n${assetList}\nPlease unassigned`;
+
+      return {
+        html: true,
+        content,
+      };
+    },
   },
 };
 </script>
@@ -221,6 +241,19 @@ export default {
 .device-assignment-table .actions span {
   margin-left: 2rem;
   line-height: 2rem;
+}
+
+.device-assignment-table .asset-selection {
+  display: flex;
+}
+
+.device-assignment-table .asset-selection .hx-icon {
+  stroke: orange;
+  margin-left: 10px;
+}
+
+.device-assignment-table .asset-selection .hx-icon svg {
+  stroke-width: 2;
 }
 
 @media screen and (max-width: 950px) {

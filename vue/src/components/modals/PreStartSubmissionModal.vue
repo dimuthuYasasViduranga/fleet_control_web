@@ -24,6 +24,7 @@
           :key="cIndex"
           :class="{
             fail: control.answer === false,
+            'has-ticket': control.ticketId,
             closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
             na: control.answer === null,
           }"
@@ -42,7 +43,7 @@
                 />
               </div>
               <div v-else-if="control.answer === false && control.ticketId" class="ticket-status">
-                <div class="status">
+                <div class="status" style="text-transform: capitalize">
                   {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
                 </div>
                 <Icon
@@ -105,6 +106,7 @@ export default {
     return {
       tagIcon: TagIcon,
       editIcon: EditIcon,
+      hasMadeChanges: false,
     };
   },
   computed: {
@@ -125,6 +127,11 @@ export default {
     },
   },
   methods: {
+    outerClickIntercept() {
+      if (this.hasMadeChanges) {
+        return 'refresh';
+      }
+    },
     formatTime(date) {
       const tz = this.$timely.current.timezone;
       return formatDateIn(date, tz, { format: '(yyyy-MM-dd) HH:mm:ss' });
@@ -176,8 +183,9 @@ export default {
       };
 
       this.$channel
-        .push('set pre-start response ticket', payload)
+        .push('pre-start:set response ticket', payload)
         .receive('ok', ({ ticket }) => {
+          this.hasMadeChanges = true;
           this.$toaster.info('Ticket Created');
           const status = ticket.active_status;
 
@@ -210,6 +218,7 @@ export default {
         title: 'Update Ticket Status',
         controlText: control.label,
         controlComment: control.comment,
+        timestamp: status.timestamp,
         reference: status.reference,
         details: status.details,
         statusTypeId: status.statusTypeId,
@@ -235,8 +244,9 @@ export default {
       };
 
       this.$channel
-        .push('update pre-start response ticket status', payload)
+        .push('pre-start:update response ticket status', payload)
         .receive('ok', resp => {
+          this.hasMadeChanges = true;
           this.$toaster.info('Ticket Updated');
           const newStatus = resp.status;
 
@@ -309,8 +319,12 @@ export default {
   background-color: rgba(139, 0, 0, 0.281);
 }
 
-.pre-start-submission-modal .control.closed {
+.pre-start-submission-modal .control.has-ticket {
   background-color: rgba(139, 67, 0, 0.281);
+}
+
+.pre-start-submission-modal .control.closed {
+  background-color: rgba(88, 88, 88, 0.281);
 }
 
 .pre-start-submission-modal .control .fail-answer,

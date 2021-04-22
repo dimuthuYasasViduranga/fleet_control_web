@@ -153,7 +153,8 @@ defmodule Dispatch.PreStartSubmissionAgent do
           %{
             control_id: r["control_id"],
             answer: r["answer"],
-            comment: r["comment"]
+            comment: r["comment"],
+            ticket_id: r["ticket_id"]
           }
         end),
       timestamp: Helper.to_naive(submission["timestamp"])
@@ -202,7 +203,8 @@ defmodule Dispatch.PreStartSubmissionAgent do
             submission_id: submission.id,
             control_id: r.control_id,
             answer: r.answer,
-            comment: r.comment
+            comment: r.comment,
+            ticket_id: r[:ticket_id]
           }
         end)
 
