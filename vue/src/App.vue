@@ -163,7 +163,10 @@ export default {
         ['set activity log', data => dispatch('setActivityLog', data.activities)],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
-        ['set pre-start submissions', data => dispatch('setCurrentPreStartSubmissions', data.current)],
+        [
+          'set pre-start submissions',
+          data => dispatch('setCurrentPreStartSubmissions', data.current),
+        ],
         ['new track', resp => dispatch('trackStore/addTrack', resp.track)],
         [
           'set time allocations',

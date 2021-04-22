@@ -182,7 +182,7 @@ function toDispatcherMessageEvents(assets, dispatchers, messages) {
 function toHaulTruckDispatchEvents(assets, locations, dispatches) {
   const events = toHaulTruckDispatchEvent(assets, locations, dispatches);
 
-  const keys = ['loadLocation', 'dumpLocation'];
+  const keys = ['loadLocation', 'digUnitName', 'dumpLocation'];
   const singleEvents = groupBy(events, 'assetName')
     .map(([_asset, events]) => dedupByMany(events, keys))
     .flat()

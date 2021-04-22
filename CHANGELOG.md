@@ -4,6 +4,7 @@
 - added toast notifications when pre-starts come in
 - added alert for unclosed tickets on the submission page
 - fixed mass messaging not showing dig units as source
+- fixed haul truck dispatch logs not showing all changes
 
 ## 0.10.1
 - fixed ticket modal width

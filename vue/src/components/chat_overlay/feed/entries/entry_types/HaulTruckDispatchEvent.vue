@@ -36,7 +36,7 @@ export default {
       return this.entry.digUnitName || this.entry.loadLocation;
     },
     dumpName() {
-      return this.entry.dumpName;
+      return this.entry.dumpLocation;
     },
   },
 };
