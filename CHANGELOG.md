@@ -1,6 +1,7 @@
 ## Changelog
 
 ## pending [unreleased]
+- added toast notifications when pre-starts come in
 
 ## 0.10.1
 - fixed ticket modal width

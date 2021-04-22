@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import { Toaster as ToasterClass } from '@/code/toasts';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '../code/time.js';
@@ -14,6 +15,8 @@ import trackStore from './modules/track_store.js';
 import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
+
+const Toaster = new ToasterClass();
 
 export function parseEngineHour(engineHour) {
   return {
@@ -174,7 +177,7 @@ const state = {
     cycles: Array(),
     timeusage: Array(),
   },
-  preStartSubmissions: Array(),
+  currentPreStartSubmissions: Array(),
   dndSettings: {
     orientation: 'horizontal',
     vertical: {
@@ -236,6 +239,54 @@ function parseTicket(ticket) {
     timestamp: toUtcDate(ticket.timestamp),
     serverTimestamp: toUtcDate(ticket.server_timestamp),
   };
+}
+
+function notifyPreStartSubmissionChanges(state, newSubs) {
+  const oldSubs = state.currentPreStartSubmissions;
+
+  if (!oldSubs || oldSubs.length === 0) {
+    return;
+  }
+
+  const changedSubs = newSubs.filter(s => {
+    const oldSub = oldSubs.find(os => os.assetId === s.assetId);
+
+    return oldSub && oldSub.id !== s.id;
+  });
+
+  const assets = state.constants.assets || [];
+
+  changedSubs.forEach(sub => {
+    const assetName = attributeFromList(assets, 'id', sub.assetId, 'name');
+
+    const status = getPreStartSubmissionStatus(sub, state.constants.preStartTicketStatusTypes);
+
+    if (status === 'Pass') {
+      Toaster.info(`${assetName} - Pre-Start Passed`);
+    } else {
+      Toaster.error(`${assetName} - Pre-Start ${status}`);
+    }
+  });
+}
+
+function getPreStartSubmissionStatus(submission, ticketStatusTypes) {
+  const failures = submission.responses.filter(r => r.answer === false);
+
+  if (failures.length === 0) {
+    return 'Pass';
+  }
+
+  const closedTicketStatusId = attributeFromList(ticketStatusTypes, 'name', 'closed', 'id');
+
+  const closed = failures.filter(
+    f => f.ticket && f.ticket.activeStatus.statusTypeId === closedTicketStatusId,
+  );
+
+  if (closed.length === failures.length) {
+    return 'Pass';
+  }
+
+  return 'Fail';
 }
 
 const getters = {
@@ -390,9 +441,9 @@ const actions = {
     commit('setFleetOpsCycles', formattedCycles);
     commit('setFleetOpsTimeusage', formattedTimeUsage);
   },
-  setPreStartSubmissions({ commit }, submissions = []) {
+  setCurrentPreStartSubmissions({ commit }, submissions = []) {
     const formattedSubmissions = submissions.map(parsePreStartSubmission);
-    commit('setPreStartSubmissions', formattedSubmissions);
+    commit('setCurrentPreStartSubmissions', formattedSubmissions);
   },
 };
 
@@ -433,8 +484,9 @@ const mutations = {
   setFleetOpsTimeusage(state, timeusage = []) {
     state.fleetOps.timeusage = timeusage;
   },
-  setPreStartSubmissions(state, submissions = []) {
-    state.preStartSubmissions = submissions;
+  setCurrentPreStartSubmissions(state, submissions = []) {
+    notifyPreStartSubmissionChanges(state, submissions);
+    state.currentPreStartSubmissions = submissions;
   },
   setDndSettings(state, settings) {
     state.dndSettings = settings;

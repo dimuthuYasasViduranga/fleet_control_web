@@ -96,7 +96,7 @@ defmodule DispatchWeb.DispatcherChannel do
       },
       fleetops_data: FleetOpsAgent.get(),
       pre_start_forms: PreStartAgent.all(),
-      pre_start_submissions: PreStartSubmissionAgent.current(),
+      current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
 
       # haul truck
