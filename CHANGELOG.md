@@ -1,6 +1,8 @@
 ## Changelog
 
 ## pending [unreleased]
+
+## 0.10.1
 - fixed ticket modal width
 - fixed autosize textarea breaking words
 - fixed drag and drag being presented as a table
