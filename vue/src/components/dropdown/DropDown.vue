@@ -10,6 +10,7 @@
         :items="items"
         :keyName="keyName"
         :label="label"
+        :selectedLabel="selectedLabel"
         :placeholder="placeholder"
         :maxItems="maxItems"
         :searchable="searchable"
@@ -24,6 +25,7 @@
         :items="items"
         :keyName="keyName"
         :label="label"
+        :selectedLabel="selectedLabel"
         :placeholder="placeholder"
         :maxItems="maxItems"
         :searchable="searchable"
@@ -53,13 +55,14 @@ export default {
     placeholder: { type: String, default: 'Select' },
     keyName: { type: String, default: 'id' },
     label: { type: String, default: 'name' },
+    selectedLabel: String,
     items: { type: Array, default: () => [] },
     useTouch: { type: Boolean, default: false },
     maxItems: { type: Number, default: Infinity },
     autofocus: { type: Boolean, default: true },
     searchable: { type: Boolean, default: true },
-    direction: {type: String, default: 'auto'},
-    useScrollLock: {type: Boolean, default: true},
+    direction: { type: String, default: 'auto' },
+    useScrollLock: { type: Boolean, default: true },
     value: [Number, String],
   },
   data: () => {
