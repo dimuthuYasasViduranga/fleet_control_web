@@ -6,6 +6,10 @@
 - fixed mass messaging not showing dig units as source
 - fixed haul truck dispatch logs not showing all changes
 - fixed time allocation editor not rendering for time_allocation_report shortcut
+- fixed force logout requiring exception
+  - initial set if already in exception (ie not ready)
+- updated toaster again to fit customization
+- ability to change dig unit location in one operation through DND page
 
 ## 0.10.1
 - fixed ticket modal width
