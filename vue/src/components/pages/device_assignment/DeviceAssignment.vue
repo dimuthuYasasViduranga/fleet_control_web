@@ -7,6 +7,7 @@
         <DeviceAssignmentTable
           :assignments="activeAssignments"
           :assets="assets"
+          :allocations="activeTimeAllocations"
           :icons="assetIcons"
           :fullTimeCodes="fullTimeCodes"
           :highlightUUIDs="recentlyAuthorized"
@@ -90,6 +91,9 @@ export default {
       devices: state => state.devices,
       assignments: state => state.currentDeviceAssignments,
     }),
+    activeTimeAllocations() {
+      return this.$store.state.activeTimeAllocations;
+    },
     fullTimeCodes() {
       return this.$store.getters['constants/fullTimeCodes'];
     },

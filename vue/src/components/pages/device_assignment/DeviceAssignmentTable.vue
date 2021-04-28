@@ -96,6 +96,7 @@ import DropDown from '../../dropdown/DropDown.vue';
 import TabletIcon from '../../icons/Tablet.vue';
 import InfoIcon from '../../icons/Info.vue';
 import AlertIcon from '../../icons/Alert.vue';
+import { attributeFromList } from '@/code/helpers';
 
 const WARNING = `Revoking a device will prevent it from being able to log into FleetControl.
 
@@ -114,6 +115,7 @@ export default {
   props: {
     assignments: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
+    allocations: { type: Array, default: () => [] },
     fullTimeCodes: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
     highlightUUIDs: { type: Array, default: () => [] },
@@ -155,21 +157,31 @@ export default {
     onChange(row) {
       this.$emit('change', row);
     },
-    onForceLogout({ deviceId, assetTypeId }) {
+    onForceLogout({ deviceId, assetId, assetTypeId }) {
       if (!assetTypeId) {
+        console.error('[Device Assign] No asset type, forcing logout');
         this.$emit('logout', { deviceId });
         return;
       }
 
       const allowedTimeCodeIds = this.fullTimeCodes
-        .filter(tc => tc.assetTypeIds.includes(assetTypeId))
+        .filter(tc => !tc.isReady && tc.assetTypeIds.includes(assetTypeId))
         .map(tc => tc.id);
 
-      this.$modal.create(DeviceLogoutModal, { allowedTimeCodeIds }).onClose(answer => {
-        if (answer && answer.timeCodeId) {
-          this.$emit('logout', { deviceId, timeCodeId: answer.timeCodeId });
-        }
-      });
+      const activeTimeCodeId = attributeFromList(
+        this.allocations,
+        'assetId',
+        assetId,
+        'timeCodeId',
+      );
+
+      this.$modal
+        .create(DeviceLogoutModal, { timeCodeId: activeTimeCodeId, allowedTimeCodeIds })
+        .onClose(answer => {
+          if (answer && answer.timeCodeId) {
+            this.$emit('logout', { deviceId, timeCodeId: answer.timeCodeId });
+          }
+        });
     },
     onOpenRevokeConfirm(row) {
       this.$modal
