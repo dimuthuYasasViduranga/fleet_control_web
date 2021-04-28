@@ -4,43 +4,46 @@ import Icon from 'hx-layout/Icon.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
 import NoWifi from './../components/icons/noWifi.vue';
 
-const VALID_TYPES = ['info', 'error', 'no-comms'];
+let NEXT_ID = 0;
+
+function getNextId() {
+  const id = NEXT_ID;
+  NEXT_ID += 1;
+  return id;
+}
+
+// need to convert this to use show instead (more control)
 
 export class Toaster {
   clearAll() {
-    Vue.toasted.toasts.forEach(t => t.remove());
+    Vue.toasted.clear();
   }
 
   clear(predicate) {
     Vue.toasted.toasts.filter(predicate).forEach(t => t.remove());
   }
 
-  info(msg, opts) {
-    return this.custom(msg, 'info', opts);
+  info(msg, opts = {}) {
+    return this.custom(msg, 'info', { duration: 3000, ...opts });
   }
 
-  error(msg, opts) {
-    return this.custom(msg, 'error', opts);
+  error(msg, opts = {}) {
+    return this.custom(msg, 'error', { duration: 5000, ...opts, icon: ErrorIcon });
   }
 
-  noComms(msg, opts) {
-    return this.custom(msg, 'no-comms', opts);
+  noComms(msg, opts = {}) {
+    return this.custom(msg, 'no-comms', { duration: 5000, ...opts, icon: NoWifi });
   }
 
-  custom(msg, type, options) {
-    if (!VALID_TYPES.includes(type)) {
-      console.error(`[Toasted] Invalid toast type ${type}`);
-      return;
-    }
+  custom(msg, type, opts = {}) {
+    const options = {
+      ...opts,
+      className: type,
+    };
 
-    const opts = options || {};
-
-    if (opts.delay > 0) {
-      console.log(`[Toaster] Delaying toast for ${opts.delay} ms`);
-      setTimeout(() => {
-        this.custom(msg, type, { ...opts, delay: null });
-      }, opts.delay);
-      return;
+    const actions = opts.action || opts.actions;
+    if (actions) {
+      options.action = actions;
     }
 
     if (opts.replace) {
@@ -52,7 +55,7 @@ export class Toaster {
     }
 
     if (opts.onlyOne) {
-      const alreadyExists = Vue.toasted.toasts.some(t => t.type === type && t.text == msg);
+      const alreadyExists = Vue.toasted.toasts.some(t => t.type === type && t.text === msg);
 
       if (alreadyExists) {
         console.log('[Toaster] Msg skipped as it already exists');
@@ -60,72 +63,47 @@ export class Toaster {
       }
     }
 
-    if (opts.if) {
-      const canProceed = Vue.toasted.toasts.every(opts.if);
-      if (!canProceed) {
-        return;
-      }
-    }
-
-    return createToast(msg, type);
+    return createToast(msg, type, options);
   }
 }
 
-function createToast(msg, type) {
-  const newToast = Vue.toasted.global[type](`<span class="toast-text">${msg}</span>`);
-  newToast.type = type;
-  newToast._text = msg;
+function createToast(msg, type, options) {
+  const toast = Vue.toasted.show(' ', { ...options, icon: undefined });
 
-  Object.defineProperty(newToast, 'text', {
+  toast.type = type;
+  toast.id = getNextId();
+
+  // create new sections
+  const container = toast.el;
+
+  const iconSpan = document.createElement('span');
+  iconSpan.classList.add('icon');
+
+  if (options.icon) {
+    const iconPlaceholder = document.createElement('div');
+    iconSpan.appendChild(iconPlaceholder);
+
+    new Vue({ ...Icon, propsData: { icon: options.icon } }).$mount(iconPlaceholder);
+  }
+
+  const textSpan = document.createElement('span');
+  textSpan.classList.add('text');
+  textSpan.innerText = msg;
+
+  container.prepend(textSpan);
+  container.prepend(iconSpan);
+
+  // override text changer
+  toast._text = msg;
+  Object.defineProperty(toast, 'text', {
     set: function(text) {
-      newToast._text = text;
-      const textEl = Array.prototype.slice
-        .call(newToast.el.childNodes)
-        .find(e => e.classList.contains('toast-text'));
-      if (textEl) {
-        textEl.innerText = text;
-      }
+      toast._text = text;
+      textSpan.innerText = text;
     },
     get: function() {
-      return newToast._text;
+      return toast._text;
     },
   });
 
-  return newToast;
-}
-
-export function registerCustomToasts() {
-  console.log('[Toaster] Registering custom toasts');
-  Vue.toasted.register('error', msg => msg || 'Something went wrong', {
-    type: 'error',
-    duration: 5000,
-    icon: () => {
-      const placeholder = document.createElement('div');
-
-      setTimeout(() => {
-        const instance = new Vue({ ...Icon, propsData: { icon: ErrorIcon } });
-        instance.$mount(placeholder);
-      });
-
-      return placeholder;
-    },
-  });
-  Vue.toasted.register('no-comms', msg => msg || 'No Comms', {
-    type: 'error',
-    duration: 5000,
-    icon: () => {
-      const placeholder = document.createElement('div');
-
-      setTimeout(() => {
-        const instance = new Vue({ ...Icon, propsData: { icon: NoWifi } });
-        instance.$mount(placeholder);
-        instance.$el.classList.add('no-comms');
-      });
-
-      return placeholder;
-    },
-  });
-  Vue.toasted.register('info', msg => msg || 'Unknown notification', {
-    type: 'info',
-  });
+  return toast;
 }

@@ -7,14 +7,6 @@
   font-family: 'GE Inspira Sans', sans-serif;
 }
 
-.toasted-container .toasted.toasted-primary.error {
-  background-color: rgb(94, 0, 0);
-}
-
-.toasted-container .toasted.toasted-primary.info {
-  background-color: #425866;
-}
-
 .toasted-container .hx-icon {
   width: 1.5rem;
   height: 1.5rem;
@@ -25,6 +17,16 @@
   stroke-width: 1.5;
 }
 
-.toasted-container .hx-icon.no-comms svg {
+/* custom toast types */
+.toasted-container .toasted.info {
+  background-color: #425866;
+}
+
+.toasted-container .toasted.error,
+.toasted-container .toasted.no-comms {
+  background-color: #5e0000;
+}
+
+.toasted-container .toasted.no-comms .icon svg {
   stroke: orange;
 }

@@ -7,6 +7,8 @@ import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '../code/time.js';
 import { parsePreStartForm } from './modules/constants.js';
 
+import TimeIcon from '@/components/icons/Time.vue';
+
 import connection from './modules/connection.js';
 import constants from './modules/constants.js';
 import deviceStore from './modules/device_store.js';
@@ -269,6 +271,54 @@ function notifyPreStartSubmissionChanges(state, newSubs) {
   });
 }
 
+function notifyActiveTimeAllocationChanges(state, newAllocs) {
+  const oldAllocs = state.activeTimeAllocations;
+
+  if (!oldAllocs || oldAllocs.length === 0) {
+    return;
+  }
+
+  const changedAllocs = newAllocs.filter(newAlloc => {
+    const oldAlloc = oldAllocs.find(oa => oa.assetId === newAlloc.assetId);
+
+    return !oldAlloc || oldAlloc.timeCodeId !== newAlloc.timeCodeId;
+  });
+
+  const assets = state.constants.assets || [];
+  const timeCodes = state.constants.timeCodes || [];
+  const timeCodeGroups = state.constants.timeCodeGroups || [];
+
+  changedAllocs.forEach(alloc => {
+    const assetName = attributeFromList(assets, 'id', alloc.assetId, 'name');
+
+    const [timeCodeName, timeCodeGroupId] = attributeFromList(timeCodes, 'id', alloc.timeCodeId, [
+      'name',
+      'groupId',
+    ]);
+    const timeCodeGroup = attributeFromList(timeCodeGroups, 'id', timeCodeGroupId) || {};
+    const groupName = timeCodeGroup.alias || timeCodeGroup.name;
+
+    const msg = `${assetName} | ${groupName} - ${timeCodeName}`;
+    Toaster.custom(msg, 'info', {
+      duration: 5000,
+      icon: TimeIcon,
+      actions: [
+        {
+          text: 'Change',
+          onClick: (e, toast) => {
+            Vue.prototype.$eventBus.$emit('asset-assignment-open', alloc.assetId);
+            toast.goAway(0);
+          },
+        },
+        {
+          text: 'Clear',
+          onClick: (e, toast) => toast.goAway(0),
+        },
+      ],
+    });
+  });
+}
+
 function getPreStartSubmissionStatus(submission, ticketStatusTypes) {
   const failures = submission.responses.filter(r => r.answer === false);
 
@@ -464,6 +514,7 @@ const mutations = {
     state.historicEngineHours = engineHours;
   },
   setActiveTimeAllocations(state, allocs = []) {
+    notifyActiveTimeAllocationChanges(state, allocs);
     state.activeTimeAllocations = allocs;
   },
   setHistoricTimeAllocations(state, allocs = []) {

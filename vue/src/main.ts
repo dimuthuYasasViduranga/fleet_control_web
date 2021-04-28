@@ -14,7 +14,7 @@ import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
-import { Toaster, registerCustomToasts } from './code/toasts.js';
+import { Toaster } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
@@ -33,22 +33,6 @@ axios.defaults.withCredentials = true;
 Vue.use(VTooltip);
 Vue.use(VueResizeObserver);
 Vue.use(Vue2TouchEvents);
-
-// configure toasted
-Vue.use(Toasted, {
-  position: 'top-right',
-  duration: 3000,
-  keepOnHover: true,
-  className: 'hx-toasted',
-  iconPack: 'callback',
-  action: {
-    text: 'Clear',
-    onClick: (_, toastObject) => {
-      toastObject.goAway(0);
-    },
-  },
-});
-registerCustomToasts();
 
 // Create an event bug
 Vue.prototype.$eventBus = new Vue();
@@ -79,6 +63,22 @@ Promise.all(promises).then(() => {
   const logout = function() {
     document.location.href = `${hostname}/auth/logout`;
   };
+
+  // configure toasted
+  Vue.use(Toasted, {
+    position: 'top-right',
+    duration: 3000,
+    keepOnHover: true,
+    className: 'hx-toasted',
+    iconPack: 'callback',
+    router,
+    action: {
+      text: 'Clear',
+      onClick: (_, toastObject) => {
+        toastObject.goAway(0);
+      },
+    },
+  });
 
   function createApp(data: { map_config: object }) {
     const props = { routes, logout };
