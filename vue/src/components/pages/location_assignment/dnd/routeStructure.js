@@ -13,7 +13,7 @@ export class RouteStructure {
     });
   }
 
-  add(digUnitId, loadId, dumpId) {
+  add(digUnitId = null, loadId = null, dumpId = null) {
     if (!digUnitId && !loadId && !dumpId) {
       return;
     }
@@ -30,7 +30,7 @@ export class RouteStructure {
     }
   }
 
-  remove(digUnitId, loadId, dumpId) {
+  remove(digUnitId = null, loadId = null, dumpId = null) {
     if (!digUnitId && !loadId && !dumpId) {
       throw new Error('Cannot remove empty route');
     }

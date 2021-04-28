@@ -135,11 +135,13 @@ export default {
 
           const locationName = attributeFromList(locations, 'id', locationId, 'name');
 
-          const name = locationName ? `${a.name} (${locationName})` : a.name;
+          const fullname = locationName ? `${a.name} (${locationName})` : a.name;
 
           return {
             id: a.id,
-            name,
+            name: a.name,
+            locationId,
+            fullname,
           };
         });
     },
@@ -225,7 +227,7 @@ export default {
         this.structure.add(d.digUnitId, d.loadId, d.dumpId);
       });
     },
-    setHaulTruck(asset, digUnitId, loadId, dumpId) {
+    setHaulTruck(asset, digUnitId = null, loadId = null, dumpId = null) {
       asset.dispatch = {
         digUnitId,
         loadId,
@@ -237,11 +239,11 @@ export default {
       this.localHaulTrucks = this.localHaulTrucks.slice();
       this.$emit('set-haul-truck', { assetId: asset.id, digUnitId, loadId, dumpId });
     },
-    massSetHaulTrucks(assets, digUnitId, loadId, dumpId) {
+    massSetHaulTrucks(assets, digUnitId = null, loadId = null, dumpId = null) {
       assets.forEach(asset => {
         if (asset && asset.type === 'Haul Truck') {
           asset.dispatch = {
-            digUnitId,
+            digUnitId: digUnitId,
             loadId,
             dumpId,
           };
@@ -393,8 +395,12 @@ export default {
           return;
         }
 
+        if (resp.digUnitId) {
+          this.setDigUnitLocation(resp.digUnitId, resp.digUnitLocationId);
+        }
+
         // if there is a change
-        if (resp.digUnitId === digUnitId && resp.loadId === loadId && resp.dumpId === dumpId) {
+        if (resp.digUnitId == digUnitId && resp.loadId == loadId && resp.dumpId == dumpId) {
           console.info('[Dnd] No change in route, no assets moved');
           return;
         }
@@ -428,8 +434,12 @@ export default {
           return;
         }
 
+        if (resp.digUnitId) {
+          this.setDigUnitLocation(resp.digUnitId, resp.digUnitLocationId);
+        }
+
         // if there is a change
-        if (resp.digUnitId === digUnitId && resp.loadId === loadId) {
+        if (resp.digUnitId == digUnitId && resp.loadId == loadId) {
           console.info('[Dnd] No change in route, no dumps moved');
           return;
         }
@@ -460,6 +470,23 @@ export default {
 
         setTimeout(() => this.onDragEnd(), 200);
       });
+    },
+    setDigUnitLocation(digUnitId, locationId) {
+      const activity = attributeFromList(this.digUnitActivities, 'assetId', digUnitId) || {};
+
+      if (activity.locationId === locationId) {
+        return;
+      }
+
+      const payload = {
+        asset_id: digUnitId,
+        location_id: locationId,
+        material_type_id: activity.materialTypeId,
+        load_style_id: activity.loadStyleId,
+        timestamp: Date.now(),
+      };
+
+      this.$channel.push('dig:set activity', payload);
     },
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
       // is added

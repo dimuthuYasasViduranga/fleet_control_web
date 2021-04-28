@@ -9,10 +9,12 @@
         <td class="value">
           <template v-if="source === 'Dig Unit'">
             <DropDown
-              v-model="localDigUnitId"
-              :items="digUnitOptions"
-              label="name"
+              :value="localDigUnitId"
+              :items="digUnits"
+              label="fullname"
+              selectedLabel="name"
               :useScrollLock="false"
+              @change="onDigUnitChange"
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
           </template>
@@ -25,6 +27,18 @@
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
           </template>
+        </td>
+      </tr>
+      <tr v-if="source === 'Dig Unit'">
+        <td></td>
+        <td class="value">
+          <DropDown
+            v-model="localDigUnitLocationId"
+            :items="locations"
+            label="name"
+            :useScrollLock="false"
+          />
+          <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitLocationId = null" />
         </td>
       </tr>
       <tr v-if="!hideDump">
@@ -81,24 +95,15 @@ export default {
     return {
       crossIcon: ErrorIcon,
       localDigUnitId: null,
+      localDigUnitLocationId: null,
       localDumpId: null,
       localLoadId: null,
       showAllLocations: false,
       source: 'Dig Unit',
-      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Load' }],
+      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Load', text: 'Location' }],
     };
   },
   computed: {
-    digUnitOptions() {
-      return this.digUnits.map(d => {
-        const location = attributeFromList(this.locations, 'id', d.locationId, 'name');
-        const name = location ? `${d.name} (${location})` : d.name;
-        return {
-          id: d.id,
-          name,
-        };
-      });
-    },
     availableLoads() {
       return filterLocations(
         this.loadLocations,
@@ -118,6 +123,12 @@ export default {
   },
   mounted() {
     this.localDigUnitId = this.digUnitId;
+    this.localDigUnitLocationId = attributeFromList(
+      this.digUnits,
+      'id',
+      this.digUnitId,
+      'locationId',
+    );
     this.localLoadId = this.loadId;
     this.localDumpId = this.dumpId;
 
@@ -130,15 +141,27 @@ export default {
       this.$emit('close', resp);
     },
     onSubmit() {
-      const digUnitId = this.source === 'Dig Unit' ? this.localDigUnitId : null;
-      const loadId = this.source === 'Load' ? this.localLoadId : null;
-      const payload = {
-        digUnitId,
-        loadId,
-        dumpId: this.localDumpId,
-      };
+      if (this.source === 'Dig Unit') {
+        const payload = {
+          digUnitId: this.localDigUnitId,
+          digUnitLocationId: this.localDigUnitLocationId,
+          dumpId: this.localDumpId,
+        };
 
-      this.onClose(payload);
+        this.onClose(payload);
+      } else {
+        const payload = {
+          loadId: this.localLoadId,
+          dumpId: this.localDumpId,
+        };
+
+        this.onClose(payload);
+      }
+    },
+    onDigUnitChange(digUnitId) {
+      const locationId = attributeFromList(this.digUnits, 'id', digUnitId, 'locationId');
+      this.localDigUnitId = digUnitId;
+      this.localDigUnitLocationId = locationId;
     },
   },
 };
