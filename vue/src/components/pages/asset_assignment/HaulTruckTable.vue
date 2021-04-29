@@ -55,10 +55,10 @@
       <table-column label="Dig Unit (location)" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
-            v-model="row.digUnitId"
+            :value="row.digUnitId"
             :items="digUnitsWithLocations"
             label="label"
-            @change="setHaulTruckDispatch(row)"
+            @change="setDigUnitId(row, $event)"
           />
         </template>
       </table-column>
@@ -66,10 +66,10 @@
       <table-column label="Load Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
-            v-model="row.loadId"
+            :value="row.loadId"
             :items="loadLocations"
             label="name"
-            @change="setHaulTruckDispatch(row)"
+            @change="setLoadId(row, $event)"
           />
         </template>
       </table-column>
@@ -201,15 +201,15 @@ export default {
       this.$eventBus.$emit('asset-assignment-open', row.assetId);
     },
     clearHaulTruckDispatch(haulTruck) {
-      if (!haulTruck || (!haulTruck.loadId && !haulTruck.dumpId && !haulTruck.nextId)) {
+      if (!haulTruck || !(haulTruck.digUnitId || haulTruck.loadId || haulTruck.dumpId)) {
         return;
       }
 
       const asset = {
         assetId: haulTruck.assetId,
+        digUnitId: null,
         loadId: null,
         dumpId: null,
-        nextId: null,
       };
 
       this.setHaulTruckDispatch(asset);
@@ -258,6 +258,16 @@ export default {
         .push('set allocation', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', resp => this.$toaster.noComms('Unable to update allocation'));
+    },
+    setDigUnitId(row, assetId) {
+      row.loadId = null;
+      row.digUnitId = assetId;
+      this.setHaulTruckDispatch(row);
+    },
+    setLoadId(row, locationId) {
+      row.loadId = locationId;
+      row.digUnitId = null;
+      this.setHaulTruckDispatch(row);
     },
     setHaulTruckDispatch(asset) {
       const dispatch = {
