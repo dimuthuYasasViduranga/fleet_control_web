@@ -10,6 +10,8 @@
   - initial set if already in exception (ie not ready)
 - updated toaster again to fit customization
 - ability to change dig unit location in one operation through DND page
+- fixed haul truck assignment table only allowing EITHER dig_unit or load_id
+- Added other asset types, regardless of tablet assignment
 
 ## 0.10.1
 - fixed ticket modal width
