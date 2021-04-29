@@ -243,7 +243,7 @@ export default {
       assets.forEach(asset => {
         if (asset && asset.type === 'Haul Truck') {
           asset.dispatch = {
-            digUnitId: digUnitId,
+            digUnitId,
             loadId,
             dumpId,
           };
@@ -400,7 +400,7 @@ export default {
         }
 
         // if there is a change
-        if (resp.digUnitId == digUnitId && resp.loadId == loadId && resp.dumpId == dumpId) {
+        if (resp.digUnitId === digUnitId && resp.loadId === loadId && resp.dumpId === dumpId) {
           console.info('[Dnd] No change in route, no assets moved');
           return;
         }
@@ -439,7 +439,7 @@ export default {
         }
 
         // if there is a change
-        if (resp.digUnitId == digUnitId && resp.loadId == loadId) {
+        if (resp.digUnitId === digUnitId && resp.loadId === loadId) {
           console.info('[Dnd] No change in route, no dumps moved');
           return;
         }

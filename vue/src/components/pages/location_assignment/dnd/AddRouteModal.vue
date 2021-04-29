@@ -145,12 +145,15 @@ export default {
         const payload = {
           digUnitId: this.localDigUnitId,
           digUnitLocationId: this.localDigUnitLocationId,
+          loadId: null,
           dumpId: this.localDumpId,
         };
 
         this.onClose(payload);
       } else {
         const payload = {
+          digUnitId: null,
+          digUnitLocationId: null,
           loadId: this.localLoadId,
           dumpId: this.localDumpId,
         };
