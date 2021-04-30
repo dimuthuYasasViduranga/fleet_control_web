@@ -117,6 +117,7 @@ defmodule Dispatch.OperatorTimeAllocation do
         operator_assignment_spans =
           data.device_assignments
           |> Enum.filter(&(&1.asset_id == asset.id))
+          |> Enum.dedup_by(&{&1.asset_id, &1.operator_id})
           |> point_in_time_to_spans(end_time)
           |> Enum.reject(&is_nil(&1.operator_id))
 
