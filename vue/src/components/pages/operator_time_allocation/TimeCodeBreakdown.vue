@@ -9,7 +9,7 @@
           @click="onToggleShow(group.groupName, group.duration)"
         >
           <th>
-            {{ group.groupName }}
+            {{ group.groupAlias }}
             <span v-if="group.duration">{{ show[group.groupName] ? '-' : '+' }}</span>
           </th>
           <td>{{ formatDuration(group.duration) }}</td>
@@ -51,6 +51,12 @@ export default {
     };
   },
   computed: {
+    timeCodeGroupAliases() {
+      return this.$store.state.constants.timeCodeGroups.reduce((acc, group) => {
+        acc[group.name] = group.siteName;
+        return acc;
+      }, {});
+    },
     allocs() {
       return this.data.map(ts => {
         const duration = ts.endTime.getTime() - ts.startTime.getTime();
@@ -67,10 +73,13 @@ export default {
       return GROUP_ORDER.map(groupName => {
         const group = attributeFromList(byGroup, 'timeCodeGroup', groupName) || {};
 
+        const groupAlias = this.timeCodeGroupAliases[groupName];
+
         const allocations = this.groupAllocsBy(group.allocations || [], 'timeCode');
 
         return {
           groupName,
+          groupAlias,
           allocations,
           duration: group.duration || 0,
           show: false,
