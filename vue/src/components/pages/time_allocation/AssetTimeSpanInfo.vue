@@ -14,7 +14,7 @@
       :show="showEditor"
       :asset="asset"
       :timeAllocations="filteredTimeAllocations"
-      :deviceAssignments="deviceAssignments"
+      :deviceAssignments="smoothDeviceAssignments"
       :timeusage="timeusage"
       :cycles="cycles"
       :devices="devices"
@@ -87,7 +87,7 @@ import TimeSpanEditor from './TimeSpanEditor.vue';
 import EditIcon from '../../icons/Edit.vue';
 import ChevronRightIcon from '../../icons/ChevronRight.vue';
 
-import { attributeFromList, uniq } from '../../../code/helpers';
+import { attributeFromList, dedupByMany, uniq } from '../../../code/helpers';
 import { formatSeconds } from '../../../code/time';
 import {
   toDeviceAssignmentSpans,
@@ -229,6 +229,13 @@ export default {
     activeTimeAllocation() {
       return this.timeAllocations.find(ta => !ta.endTime) || {};
     },
+    smoothDeviceAssignments() {
+      if (!this.smoothAssignments) {
+        return this.deviceAssignments;
+      }
+
+      return dedupByMany(this.deviceAssignments, ['assetId', 'deviceId', 'operatorId']);
+    },
     timeSpanColors() {
       return allocationColors();
     },
@@ -277,7 +284,11 @@ export default {
         this.locations,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
-      const DASpans = toDeviceAssignmentSpans(this.deviceAssignments, this.devices, this.operators)
+      const DASpans = toDeviceAssignmentSpans(
+        this.smoothDeviceAssignments,
+        this.devices,
+        this.operators,
+      )
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
