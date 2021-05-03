@@ -328,6 +328,15 @@ defmodule DispatchWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
+  def handle_in("set device track", track, socket) do
+    case TrackAgent.add(parse_device_track(track), :device) do
+      {:ok, track} -> Broadcast.send_track(track)
+      _ -> nil
+    end
+
+    {:noreply, socket}
+  end
+
   def handle_in("haul:" <> _ = topic, payload, socket) do
     HaulTruckTopics.handle_in(topic, payload, socket)
   end
@@ -352,6 +361,35 @@ defmodule DispatchWeb.OperatorChannel do
 
     {:ok, _} = DeviceAssignmentAgent.clear_operators(asset_ids)
     Enum.each(asset_ids, &Broadcast.force_logout(%{asset_id: &1}))
+  end
+
+  defp parse_device_track(nil), do: nil
+
+  defp parse_device_track(track) do
+    pos = track["position"]
+    vel = track["velocity"]
+    acc = track["accuracy"]
+
+    %{
+      asset_id: track["asset_id"],
+      asset_name: track["asset_name"],
+      asset_type: track["asset_type"],
+      description: nil,
+      ignition: track["ignition"],
+      position: %{
+        lat: pos["lat"],
+        lng: pos["lng"],
+        alt: pos["alt"]
+      },
+      accuracy: %{
+        horizontal: acc["horizontal"],
+        vertical: acc["vertical"]
+      },
+      speed_ms: vel["speed"],
+      heading: vel["heading"],
+      timestamp: Helper.to_naive(track["timestamp"]),
+      valid: track["valid"]
+    }
   end
 
   defp get_device_state(asset_id) do

@@ -9,9 +9,18 @@ defmodule Dispatch.TrackAgent do
   @type track :: map
   @type source :: atom
 
+  @allowed_sources [:normal, :mock, :device]
+
   def start_link(_opts) do
-    state = %{mode: :normal, tracks: %{}}
+    state = %{mode: get_mode(), tracks: %{}}
     Agent.start_link(fn -> state end, name: __MODULE__)
+  end
+
+  defp get_mode() do
+    case Application.get_env(:dispatch_web, :track_method, :normal) do
+      :device -> :device
+      _ -> :normal
+    end
   end
 
   @spec all() :: list(track)
@@ -32,25 +41,22 @@ defmodule Dispatch.TrackAgent do
 
   def add(track, source) do
     Agent.get_and_update(__MODULE__, fn state ->
-      case state.mode == source do
-        true ->
-          state = put_in(state, [:tracks, track.asset_id], track)
-          {{:ok, track}, state}
+      existing = state.tracks[track.asset_id]
 
-        false ->
-          {{:error, :ignored}, state}
+      with true <- state.mode == source,
+           true <- track[:asset_id] !== nil,
+           true <- !existing || NaiveDateTime.compare(track.timestamp, existing.timestamp) == :gt do
+        state = put_in(state, [:tracks, track.asset_id], track)
+        {{:ok, track}, state}
+      else
+        _ -> {{:error, :ignored}, state}
       end
     end)
   end
 
-  @spec set_mode(:normal | :mock) :: no_return()
-  def set_mode(:normal) do
-    Logger.warn("[TrackAgent] Mode set to 'normal'")
-    Agent.update(__MODULE__, &Map.put(&1, :mode, :normal))
-  end
-
-  def set_mode(:mock) do
-    Logger.warn("[TrackAgent] Mode set to 'mock'")
-    Agent.update(__MODULE__, &Map.put(&1, :mode, :mock))
+  @spec set_mode(source) :: no_return()
+  def set_mode(mode) when mode in @allowed_sources do
+    Logger.warn("[TrackAgent] Mode set to '#{mode}'")
+    Agent.update(__MODULE__, &Map.put(&1, :mode, mode))
   end
 end
