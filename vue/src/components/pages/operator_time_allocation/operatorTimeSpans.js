@@ -1,3 +1,4 @@
+import { attributeFromList } from '../../../code/helpers';
 import { copyDate } from '../../../code/time';
 import { addDynamicLevels, toTimeSpan } from '../time_allocation/timeSpan';
 
@@ -11,20 +12,28 @@ const COLORS = {
 
 const MISSING_COLOR = 'black';
 
-export function toOperatorTimeSpans(allocations, assetName) {
+export function toOperatorTimeSpans(allocations, assetName, timeCodeGroups) {
   // create a set of basic allocations (all level 0)
-  const spans = allocations.map(alloc => toOperatorTimeSpan(alloc, assetName));
+  const spans = allocations.map(alloc => toOperatorTimeSpan(alloc, assetName, timeCodeGroups));
 
   // determine overlapping elements and update levels
   return addDynamicLevels(spans)[0];
 }
 
-function toOperatorTimeSpan(alloc, assetName) {
+function toOperatorTimeSpan(alloc, assetName, timeCodeGroups = []) {
+  const timeCodeGroupAlias = attributeFromList(
+    timeCodeGroups,
+    'name',
+    alloc.timeCodeGroup,
+    'alias',
+  );
+
   const data = {
     operatorName: alloc.operatorName,
     assetName: alloc.assetName,
     timeCode: alloc.timeCode,
     timeCodeGroup: alloc.timeCodeGroup,
+    timeCodeGroupAlias,
   };
 
   return toTimeSpan(

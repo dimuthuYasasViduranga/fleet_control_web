@@ -42,11 +42,7 @@
 </template>
 
 <script>
-import {
-  formatSeconds,
-  formatDateIn,
-  formatDateRelativeToIn,
-} from '../../../../code/time.js';
+import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
 import { attributeFromList } from '../../../../code/helpers';
 
 import Icon from 'hx-layout/Icon.vue';
@@ -77,11 +73,11 @@ export default {
   },
   computed: {
     title() {
-      const { timeCodeGroup, timeCode } = this.timeSpan.data;
+      const { timeCodeGroup, timeCodeGroupAlias, timeCode } = this.timeSpan.data;
       if (!timeCodeGroup && !timeCode) {
         return 'Unknown';
       }
-      return `${timeCodeGroup} \u2014 ${timeCode}`;
+      return `${timeCodeGroupAlias || timeCodeGroup} \u2014 ${timeCode}`;
     },
     overlapping() {
       if (!this.timeSpan.isOverlapping) {

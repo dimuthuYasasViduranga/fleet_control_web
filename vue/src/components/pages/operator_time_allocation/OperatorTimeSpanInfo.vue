@@ -78,6 +78,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import hxCard from 'hx-layout/Card.vue';
 import TimeSpanChart from '../time_allocation/chart/TimeSpanChart.vue';
@@ -161,9 +162,10 @@ export default {
     };
   },
   computed: {
-    icons() {
-      return this.$store.state.constants.icons;
-    },
+    ...mapState('constants', {
+      icons: state => state.icons,
+      timeCodeGroups: state => state.timeCodeGroups,
+    }),
     summary() {
       const summary = {
         Ready: 0,
@@ -189,7 +191,7 @@ export default {
         return {
           assetName: asset.assetName,
           assetType: asset.assetType,
-          timeSpans: toOperatorTimeSpans(asset.allocations, asset.assetName),
+          timeSpans: toOperatorTimeSpans(asset.allocations, asset.assetName, this.timeCodeGroups),
         };
       });
     },

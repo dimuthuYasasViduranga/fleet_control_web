@@ -22,7 +22,6 @@
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
       :allowedTimeCodeIds="allowedTimeCodeIds"
-      :locations="locations"
       :activeEndTime="activeEndTime"
       :minDatetime="minDatetime"
       :maxDatetime="maxDatetime"
@@ -187,7 +186,6 @@ export default {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     fullTimeCodes: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
     devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: new Date() },
@@ -281,7 +279,6 @@ export default {
         this.filteredTimeAllocations,
         this.timeCodes,
         this.timeCodeGroups,
-        this.locations,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
       const DASpans = toDeviceAssignmentSpans(

@@ -13,7 +13,6 @@
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
       :allowedTimeCodeIds="allowedTimeCodeIds"
-      :locations="locations"
       :activeEndTime="activeEndTime"
       :minDatetime="reportData.shift.startTime"
       :maxDatetime="reportData.shift.endTime"
@@ -242,7 +241,6 @@ export default {
     events: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
     timezone: { type: String, default: 'local' },
     operators: { type: Array, default: () => [] },
     devices: { type: Array, default: () => [] },

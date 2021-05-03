@@ -367,7 +367,6 @@ export default {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
@@ -427,7 +426,6 @@ export default {
         timeAllocations,
         this.timeCodes,
         this.timeCodeGroups,
-        this.locations,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
       const DASpans = toDeviceAssignmentSpans(
@@ -464,7 +462,6 @@ export default {
         this.localTimeAllocations.filter(a => a.deleted !== true),
         this.timeCodes,
         this.timeCodeGroups,
-        this.locations,
       );
     },
     level0AllocationTimeSpans() {
@@ -660,12 +657,7 @@ export default {
         timeCodeId: allocation.timeCodeId,
       };
 
-      const newTimeSpan = toAllocationTimeSpans(
-        [newAlloc],
-        this.timeCodes,
-        this.timeCodeGroups,
-        this.locations,
-      )[0];
+      const newTimeSpan = toAllocationTimeSpans([newAlloc], this.timeCodes, this.timeCodeGroups)[0];
 
       const overlapping = findOverlapping(newTimeSpan, this.nonDeletedAllocationTimeSpans);
       const highestLevel = Math.max(...overlapping.map(ts => ts.level || 0));

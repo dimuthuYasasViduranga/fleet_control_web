@@ -11,17 +11,17 @@ const COLORS = {
 };
 const MISSING_COLOR = 'magenta';
 
-export function toAllocationTimeSpans(allocations, timeCodes, timeCodeGroups, locations) {
+export function toAllocationTimeSpans(allocations, timeCodes, timeCodeGroups) {
   // create a set of basic allocations (all level 0)
   const allocationTimeSpans = allocations.map(alloc =>
-    toAllocationTimeSpan(alloc, timeCodes, timeCodeGroups, locations),
+    toAllocationTimeSpan(alloc, timeCodes, timeCodeGroups),
   );
 
   // determine overlapping elements and update levels
   return addDynamicLevels(allocationTimeSpans)[0];
 }
 
-function toAllocationTimeSpan(allocation, timeCodes, timeCodeGroups, locations) {
+function toAllocationTimeSpan(allocation, timeCodes, timeCodeGroups) {
   const timeCodeId = allocation.timeCodeId;
   const assetId = allocation.assetId;
 
@@ -30,7 +30,12 @@ function toAllocationTimeSpan(allocation, timeCodes, timeCodeGroups, locations) 
     'groupId',
   ]);
 
-  const timeCodeGroup = attributeFromList(timeCodeGroups, 'id', timeCodeGroupId, 'name');
+  const [timeCodeGroup, timeCodeGroupAlias] = attributeFromList(
+    timeCodeGroups,
+    'id',
+    timeCodeGroupId,
+    ['name', 'alias'],
+  );
   const startTime = copyDate(allocation.startTime);
   const endTime = copyDate(allocation.endTime);
   const activeEndTime = endTime ? null : new Date(Math.max(Date.now(), startTime.getTime()));
@@ -42,6 +47,7 @@ function toAllocationTimeSpan(allocation, timeCodes, timeCodeGroups, locations) 
     timeCode,
     timeCodeGroupId,
     timeCodeGroup,
+    timeCodeGroupAlias,
     deleted: allocation.deleted || false,
     lockId: allocation.lockId,
   };

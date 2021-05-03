@@ -15,6 +15,7 @@
 - smoothed operator time allocation segments
   - removed needless reconnect separations
 - added breakdown table to operator time allocation page
+- added time code group alias to all locations
 
 ## 0.10.1
 - fixed ticket modal width
@@ -44,4 +45,4 @@
 
 ## < 0.9.0
 
-Before 0.9.0, phx and were contained within separate repositories. As such, all versions prior to this should reference those
+Before 0.9.0, phx and vue were contained within separate repositories. As such, all versions prior to this should reference those
