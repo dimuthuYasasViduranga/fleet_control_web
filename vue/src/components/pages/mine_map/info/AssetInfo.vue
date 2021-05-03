@@ -21,6 +21,10 @@
         <td class="heading">Speed (km/h)</td>
         <td class="value">{{ speed }}</td>
       </tr>
+      <tr v-if="horizontalAccuracy != null">
+        <td class="heading">GPS Accuracy</td>
+        <td class="value">{{ horizontalAccuracy }}m</td>
+      </tr>
       <tr>
         <td class="heading">Heading</td>
         <td class="value">{{ heading }}&#176;</td>
@@ -82,6 +86,9 @@ export default {
     },
     heading() {
       return this.asset.track.velocity.heading.toFixed(0);
+    },
+    horizontalAccuracy() {
+      return (this.asset.track.accuracy || {}).horizontal;
     },
     ignition() {
       switch (this.asset.track.ignition) {
