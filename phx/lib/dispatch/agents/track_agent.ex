@@ -45,7 +45,7 @@ defmodule Dispatch.TrackAgent do
 
       with true <- state.mode == source,
            true <- track[:asset_id] !== nil,
-           true <- !existing || NaiveDateTime.compare(track.timestamp, existing.timestamp) do
+           true <- !existing || NaiveDateTime.compare(track.timestamp, existing.timestamp) == :gt do
         state = put_in(state, [:tracks, track.asset_id], track)
         {{:ok, track}, state}
       else
