@@ -15,6 +15,7 @@
 - smoothed operator time allocation segments
   - removed needless reconnect separations
 - added breakdown table to operator time allocation page
+- added production summary to simplify readies through the day
 - added time code group alias to all locations
 
 ## 0.10.1

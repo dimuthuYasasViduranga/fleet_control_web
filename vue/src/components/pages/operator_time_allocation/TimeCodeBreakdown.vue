@@ -33,9 +33,10 @@
 
 <script>
 import { attributeFromList, Dictionary } from '@/code/helpers';
-import { formatSeconds } from '@/code/time';
+import { copyDate, formatSeconds } from '@/code/time';
 
 const GROUP_ORDER = ['Ready', 'Process', 'Standby', 'Down'];
+
 export default {
   name: 'TimeCodeBreakdown',
   props: {
@@ -61,6 +62,8 @@ export default {
       return this.data.map(ts => {
         const duration = ts.endTime.getTime() - ts.startTime.getTime();
         return {
+          startTime: ts.startTime,
+          endTime: ts.endTime,
           duration,
           timeCode: ts.data.timeCode,
           timeCodeGroup: ts.data.timeCodeGroup,
@@ -75,7 +78,9 @@ export default {
 
         const groupAlias = this.timeCodeGroupAliases[groupName];
 
-        const allocations = this.groupAllocsBy(group.allocations || [], 'timeCode');
+        const allocations = this.groupAllocsBy(group.allocations || [], 'timeCode').sort((a, b) =>
+          (a.timeCode || '').localeCompare(b.timeCode || ''),
+        );
 
         return {
           groupName,

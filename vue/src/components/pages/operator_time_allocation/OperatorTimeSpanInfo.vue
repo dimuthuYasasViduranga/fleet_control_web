@@ -64,14 +64,27 @@
     </div>
 
     <template v-if="showBreakdown">
+      <div class="selector">
+        <button
+          class="hx-btn"
+          :class="{ selected: mode === 'production' }"
+          @click="setMode('production')"
+        >
+          Production Summary
+        </button>
+        <button class="hx-btn" :class="{ selected: mode === 'all' }" @click="setMode('all')">
+          All Groups
+        </button>
+      </div>
       <hxCard
         class="time-breakdown"
         v-for="asset in timeSpansByAsset.filter(a => a.assetName !== 'No Asset')"
         :key="asset.assetName"
-        :title="`${asset.assetName} | ${formatDuration(sumTimeSpans(asset.timeSpans))}`"
+        :title="`${asset.assetName} | On Asset - ${formatDuration(sumTimeSpans(asset.timeSpans))}`"
         :icon="icons[asset.assetType] || icons.Unknown"
       >
-        <TimeCodeBreakdown :data="asset.timeSpans" />
+        <TimeCodeProductionSummary v-if="mode === 'production'" :data="asset.timeSpans" />
+        <TimeCodeBreakdown v-else :data="asset.timeSpans" />
       </hxCard>
     </template>
   </div>
@@ -84,6 +97,7 @@ import hxCard from 'hx-layout/Card.vue';
 import TimeSpanChart from '../time_allocation/chart/TimeSpanChart.vue';
 import OperatorTimeSpanTooltip from './OperatorTimeSpanTooltip.vue';
 import TimeCodeBreakdown from './TimeCodeBreakdown.vue';
+import TimeCodeProductionSummary from './TimeCodeProductionSummary.vue';
 import { toOperatorTimeSpans, operatorStyler, operatorColors } from './operatorTimeSpans.js';
 
 import UserIcon from '@/components/icons/Man.vue';
@@ -131,6 +145,7 @@ export default {
     TimeSpanChart,
     OperatorTimeSpanTooltip,
     TimeCodeBreakdown,
+    TimeCodeProductionSummary,
   },
   props: {
     operatorId: { type: [String, Number] },
@@ -143,6 +158,7 @@ export default {
   data: () => {
     return {
       userIcon: UserIcon,
+      mode: 'production',
       showBreakdown: false,
       margins: {
         focus: {
@@ -230,6 +246,9 @@ export default {
         return acc + duration;
       }, 0);
     },
+    setMode(mode) {
+      this.mode = mode;
+    },
   },
 };
 </script>
@@ -298,5 +317,27 @@ export default {
 
 .__tooltip-boundary {
   margin: 10px;
+}
+
+.operator-time-span-info .time-breakdown .hxCardHeader {
+  text-transform: unset;
+}
+
+.operator-time-span-info .selector {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.operator-time-span-info .selector button {
+  width: 100%;
+  border-left: 1px solid #364c59;
+  border-right: 1px solid #364c59;
+  text-transform: capitalize;
+}
+
+.operator-time-span-info .selector button.selected {
+  background-color: #2c404c;
+  border: 1px solid #898f94;
 }
 </style>
