@@ -323,7 +323,10 @@ function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
     treeElements.filter(e => e.timeCodeId === timeCode.id).map(e => e.assetTypeId),
   );
   const assetTypeNames = assetTypes.filter(at => assetTypeIds.includes(at.id)).map(at => at.type);
-  const groupName = attributeFromList(timeCodeGroups, 'id', timeCode.groupId, 'name');
+  const [groupName, groupAlias] = attributeFromList(timeCodeGroups, 'id', timeCode.groupId, [
+    'name',
+    'alias',
+  ]);
   const isReady = groupName === 'Ready';
   return {
     id: timeCode.id,
@@ -331,6 +334,7 @@ function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
     name: timeCode.name,
     groupId: timeCode.groupId,
     groupName,
+    groupAlias,
     assetTypeIds,
     assetTypeNames,
     isReady,

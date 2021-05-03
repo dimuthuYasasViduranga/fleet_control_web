@@ -89,6 +89,7 @@ export function toFullAsset(
       name: activeTimeAllocationTC.name,
       groupId: activeTimeAllocationTC.groupId,
       groupName: activeTimeAllocationTC.groupName,
+      groupAlias: activeTimeAllocationTC.groupAlias,
       isReady: activeTimeAllocationTC.isReady,
       startTime: copyDate(activeTimeAllocation.startTime),
       endTime: copyDate(activeTimeAllocation.endTime),
