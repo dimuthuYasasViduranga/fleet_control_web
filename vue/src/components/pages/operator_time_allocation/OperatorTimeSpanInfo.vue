@@ -32,7 +32,11 @@
             <td class="value">{{ formatDuration(summary['Off Asset']) }}</td>
           </tr>
         </table>
-        <button class="hx-btn breakdown-toggle" @click="showBreakdown = !showBreakdown">
+        <button
+          v-if="allocations.length"
+          class="hx-btn breakdown-toggle"
+          @click="showBreakdown = !showBreakdown"
+        >
           {{ showBreakdown ? 'Hide' : 'Show' }} Breakdown
         </button>
       </div>
