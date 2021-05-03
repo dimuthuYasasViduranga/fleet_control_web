@@ -195,6 +195,7 @@ export default {
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
     shiftId: { type: Number, default: null },
+    smoothAssignments: { type: Boolean, default: true },
   },
   data: () => {
     return {

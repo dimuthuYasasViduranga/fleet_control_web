@@ -12,6 +12,9 @@
 - ability to change dig unit location in one operation through DND page
 - fixed haul truck assignment table only allowing EITHER dig_unit or load_id
 - Added other asset types, regardless of tablet assignment
+- smoothed operator time allocation segments
+  - removed needless reconnect separations
+- added breakdown table to operator time allocation page
 
 ## 0.10.1
 - fixed ticket modal width

@@ -31,6 +31,7 @@
             :key="operator.id"
             :operatorId="operator.id"
             :operatorName="operator.name"
+            :assets="assets"
             :allocations="operator.allocations"
             :rangeStart="operator.rangeStart"
             :rangeEnd="operator.rangeEnd"
@@ -119,6 +120,7 @@ export default {
     ...mapState('constants', {
       shifts: state => state.shifts,
       shiftTypes: state => state.shiftTypes,
+      assets: state => state.assets,
     }),
     filteredOperatorData() {
       if (!this.shiftOperatorData) {
