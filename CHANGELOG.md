@@ -17,6 +17,7 @@
 - added breakdown table to operator time allocation page
 - added production summary to simplify readies through the day
 - added time code group alias to all locations
+- allow track points to be sourced from devices
 
 ## 0.10.1
 - fixed ticket modal width

@@ -36,7 +36,7 @@ function createProductionTimeSummary(allocations) {
 
   return dict
     .reduce((acc, timeCode, durations) => {
-      const totalDuration = durations.reduce((acc, duration) => acc + duration, 0);
+      const totalDuration = durations.reduce((total, duration) => total + duration, 0);
       acc.push({ timeCode: timeCode || '', duration: totalDuration });
       return acc;
     }, [])
