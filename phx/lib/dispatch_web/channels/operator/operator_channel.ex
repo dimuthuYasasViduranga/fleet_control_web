@@ -329,8 +329,12 @@ defmodule DispatchWeb.OperatorChannel do
   end
 
   def handle_in("set device track", track, socket) do
-    TrackAgent.add(parse_device_track(track), :device)
-    {:reply, :ok, socket}
+    case TrackAgent.add(parse_device_track(track), :device) do
+      {:ok, track} -> Broadcast.send_track(track)
+      _ -> nil
+    end
+
+    {:noreply, socket}
   end
 
   def handle_in("haul:" <> _ = topic, payload, socket) do
