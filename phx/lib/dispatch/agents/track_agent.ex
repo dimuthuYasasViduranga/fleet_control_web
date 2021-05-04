@@ -31,9 +31,7 @@ defmodule Dispatch.TrackAgent do
   end
 
   @spec get(%{asset_id: integer}) :: track | nil
-  def get(%{asset_id: asset_id}) do
-    Agent.get(__MODULE__, & &1.tracks[asset_id])
-  end
+  def get(%{asset_id: asset_id}), do: Agent.get(__MODULE__, & &1.tracks[asset_id])
 
   @spec add(track, source) :: {:ok, track} | {:error, :ignored}
   def add(track, source \\ :normal)

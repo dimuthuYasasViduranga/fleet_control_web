@@ -24,6 +24,9 @@ const AGENTS = [
   { name: 'Operator Agent', topic: 'operator agent' },
   { name: 'Operator Message Agent', topic: 'operator message agent' },
   { name: 'Time Code Agent', topic: 'time code agent' },
+  { name: 'FleetOps Agent', topic: 'fleetops agent' },
+  { name: 'Pre-Start Agent', topic: 'pre-start agent' },
+  { name: 'Pre-Start Submission Agent', topic: 'pre-start submission agent' },
 ];
 
 export default {

@@ -150,6 +150,10 @@ export default {
           'set pre-start forms',
           data => dispatch('constants/setPreStartForms', data.pre_start_forms),
         ],
+        [
+          'set pre-start categories',
+          data => dispatch('constants/setPreStartControlCategories', data.categories),
+        ],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],

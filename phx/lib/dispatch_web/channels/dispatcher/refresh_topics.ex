@@ -70,5 +70,18 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
     :ok
   end
 
+  def refresh("pre-start agent") do
+    :ok = Dispatch.PreStartAgent.refresh!()
+    Broadcast.send_pre_start_forms_to_all()
+    Broadcast.send_pre_start_control_categories_to_all()
+    :ok
+  end
+
+  def refresh("pre-start submission agent") do
+    :ok = Dispatch.PreStartSubmissionAgent.refresh!()
+    Broadcast.send_pre_start_submissions_to_all()
+    :ok
+  end
+
   def refresh(_), do: {:error, :invalid_refresh}
 end

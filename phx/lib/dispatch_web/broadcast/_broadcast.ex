@@ -366,6 +366,15 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("set pre-start forms", payload)
   end
 
+  def send_pre_start_control_categories_to_all() do
+    payload = %{
+      categories: PreStartAgent.categories()
+    }
+
+    Endpoint.broadcast(@dispatch, "set pre-start categories", payload)
+    broadcast_all_operators("set pre-start categories", payload)
+  end
+
   def send_pre_start_submissions_to_all() do
     current = PreStartSubmissionAgent.current()
     historic = PreStartSubmissionAgent.historic()
