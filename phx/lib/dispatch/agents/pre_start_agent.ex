@@ -153,16 +153,17 @@ defmodule Dispatch.PreStartAgent do
   @spec categories() :: list(category)
   def categories(), do: Agent.get(__MODULE__, & &1[:categories])
 
-  @spec update_categories(list(map)) :: {:ok, list(category)} | {:error, :invalid_ids | term}
+  @spec update_categories(list(map)) ::
+          {:ok, list(category)} | {:error, :invalid_ids | term}
   def update_categories(cats) do
-    new_cats = Enum.filter(cats, &is_nil(&1.id)) |> IO.inspect()
-    updated_cats = Enum.reject(cats, &is_nil(&1.id)) |> IO.inspect()
+    new_cats = Enum.filter(cats, &is_nil(&1[:id]))
+    updated_cats = Enum.reject(cats, &is_nil(&1[:id]))
 
     Agent.get_and_update(__MODULE__, fn state ->
-      pending_ids = Enum.map(updated_cats, & &1.id)
-      given_ids = Enum.map(state.categories, & &1.id)
+      pending_ids = Enum.map(updated_cats, & &1[:id]) |> Enum.sort()
+      given_ids = Enum.map(state.categories, & &1[:id]) |> Enum.sort()
 
-      case Enum.all?(pending_ids, &Enum.member?(given_ids, &1)) do
+      case pending_ids == given_ids do
         true ->
           Multi.new()
           |> Multi.insert_all(:new, PreStart.ControlCategory, new_cats, returning: true)
