@@ -427,7 +427,7 @@ const actions = {
       .then(callback)
       .catch(error => {
         console.error(error);
-        // document.location.href = hostname;
+        document.location.href = hostname;
       });
   },
   fetchRouteWhitelist({ commit }, { hostname }) {

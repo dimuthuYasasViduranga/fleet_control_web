@@ -18,6 +18,7 @@
 - added production summary to simplify readies through the day
 - added time code group alias to all locations
 - allow track points to be sourced from devices
+- added pre-start control category editor
 
 ## 0.10.1
 - fixed ticket modal width
