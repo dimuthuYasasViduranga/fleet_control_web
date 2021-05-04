@@ -153,6 +153,45 @@ defmodule Dispatch.PreStartAgent do
   @spec categories() :: list(category)
   def categories(), do: Agent.get(__MODULE__, & &1[:categories])
 
+  @spec update_categories(list(map)) :: {:ok, list(category)} | {:error, :invalid_ids | term}
+  def update_categories(cats) do
+    new_cats = Enum.filter(cats, &is_nil(&1.id)) |> IO.inspect()
+    updated_cats = Enum.reject(cats, &is_nil(&1.id)) |> IO.inspect()
+
+    Agent.get_and_update(__MODULE__, fn state ->
+      pending_ids = Enum.map(updated_cats, & &1.id)
+      given_ids = Enum.map(state.categories, & &1.id)
+
+      case Enum.all?(pending_ids, &Enum.member?(given_ids, &1)) do
+        true ->
+          Multi.new()
+          |> Multi.insert_all(:new, PreStart.ControlCategory, new_cats, returning: true)
+          |> Multi.insert_all(:updated, PreStart.ControlCategory, updated_cats,
+            on_conflict: {:replace_all_except, [:id]},
+            conflict_target: [:id],
+            returning: true
+          )
+          |> Repo.transaction()
+          |> case do
+            {:ok, %{new: {_, new}, updated: {_, updated}}} ->
+              new_categories =
+                (new ++ updated)
+                |> Enum.map(&PreStart.ControlCategory.to_map/1)
+                |> Enum.sort_by(& &1.order)
+
+              state = Map.put(state, :categories, new_categories)
+              {{:ok, new_categories}, state}
+
+            error ->
+              {error, state}
+          end
+
+        _ ->
+          {{:error, :invalid_ids}, state}
+      end
+    end)
+  end
+
   @spec get(integer) :: form | nil
   def get(asset_type_id) do
     Agent.get(__MODULE__, fn state ->
