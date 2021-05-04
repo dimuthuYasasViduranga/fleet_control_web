@@ -67,9 +67,9 @@ Promise.all(promises).then(() => {
   // configure toasted
   Vue.use(Toasted, {
     position: 'top-right',
+    theme: 'hx-toast',
     duration: 3000,
     keepOnHover: true,
-    className: 'hx-toasted',
     iconPack: 'callback',
     router,
     action: {
