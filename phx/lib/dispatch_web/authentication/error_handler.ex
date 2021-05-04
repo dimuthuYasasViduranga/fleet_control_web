@@ -23,7 +23,7 @@ defmodule DispatchWeb.AuthErrorHandler do
   defp get_cookies(conn) do
     conn
     |> Map.get(:cookies)
-    |> Map.keys
+    |> Map.keys()
   end
 
   defp print_cookies(conn) do

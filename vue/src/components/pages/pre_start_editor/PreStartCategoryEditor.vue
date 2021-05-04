@@ -148,7 +148,6 @@ export default {
       });
     },
     submit(categories) {
-      console.dir(categories);
       const payload = categories.map((c, index) => {
         return {
           id: c.id || null,

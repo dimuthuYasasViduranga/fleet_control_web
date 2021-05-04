@@ -427,7 +427,7 @@ const actions = {
       .then(callback)
       .catch(error => {
         console.error(error);
-        document.location.href = hostname;
+        throw error;
       });
   },
   fetchRouteWhitelist({ commit }, { hostname }) {
@@ -439,6 +439,7 @@ const actions = {
       })
       .catch(error => {
         console.error(error);
+        throw error;
       });
   },
   setShifts({ commit }, shifts = []) {
