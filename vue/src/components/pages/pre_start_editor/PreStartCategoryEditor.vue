@@ -4,7 +4,12 @@
       <button class="hx-btn" @click="onReset()">Reset</button>
       <button class="hx-btn" @click="onSubmit()">Submit</button>
     </div>
-    <div class="notice">The order of dropdowns is based on the order given here</div>
+    <div class="header">
+      <div class="item">
+        <div class="name">Category Name</div>
+        <div class="action">On Fail Action</div>
+      </div>
+    </div>
     <div class="list">
       <Container
         class="category-container"
@@ -25,8 +30,8 @@
         </Draggable>
       </Container>
     </div>
+    <div class="notice">* Dropdowns are ordered as submitted</div>
     <button class="hx-btn" @click="onAddNew()">Add New</button>
-    <pre>{{ localCategories }}</pre>
   </div>
 </template>
 
@@ -166,8 +171,21 @@ export default {
 </script>
 
 <style>
+.pre-start-category-editor {
+  padding-bottom: 1rem;
+}
+
 .pre-start-category-editor .notice {
   font-style: italic;
+  padding-bottom: 0.25rem;
+}
+
+.pre-start-category-editor .header {
+  font-size: 1.25rem;
+  height: 2rem;
+  line-height: 2rem;
+  background-color: #2f404b;
+  text-align: center;
 }
 
 .pre-start-category-editor .item {

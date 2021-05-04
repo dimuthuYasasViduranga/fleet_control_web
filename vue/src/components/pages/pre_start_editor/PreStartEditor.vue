@@ -118,7 +118,7 @@ export default {
       reportIcon: ReportIcon,
       form: null,
       assetTypeId: null,
-      selectedMode: 'categories',
+      selectedMode: 'forms',
     };
   },
   computed: {
