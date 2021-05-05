@@ -244,15 +244,22 @@ export class Dictionary {
     return !!this._entries[this._hasher(keys)];
   }
 
-  forEach(predicate = (ks, v) => null) {
-    Object.values(this._entries).forEach(data => predicate(data.keys, data.value));
+  forEach(predicate = (ks, v, index, arr) => null) {
+    Object.values(this._entries).forEach((data, index, arr) =>
+      predicate(data.keys, data.value, index, arr),
+    );
   }
 
-  map(predicate = (ks, v) => null) {
-    return Object.values(this._entries).map(data => predicate(data.keys, data.value));
+  map(predicate = (ks, v, index, arr) => null) {
+    return Object.values(this._entries).map((data, index, arr) =>
+      predicate(data.keys, data.value, index, arr),
+    );
   }
 
-  reduce(predicate = (acc, ks, v) => null, init) {
-    return Object.values(this._entries).reduce((acc, data) => predicate(acc, data.keys, data.value), init)
+  reduce(predicate = (acc, ks, v, index, arr) => null, init) {
+    return Object.values(this._entries).reduce(
+      (acc, data, index, arr) => predicate(acc, data.keys, data.value, index, arr),
+      init,
+    );
   }
 }
