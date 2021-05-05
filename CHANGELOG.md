@@ -1,24 +1,27 @@
 ## Changelog
 
 ## pending [unreleased]
-- added toast notifications when pre-starts come in
-- added alert for unclosed tickets on the submission page
-- fixed mass messaging not showing dig units as source
-- fixed haul truck dispatch logs not showing all changes
-- fixed time allocation editor not rendering for time_allocation_report shortcut
-- fixed force logout requiring exception
-  - initial set if already in exception (ie not ready)
-- updated toaster again to fit customization
-- ability to change dig unit location in one operation through DND page
-- fixed haul truck assignment table only allowing EITHER dig_unit or load_id
-- Added other asset types, regardless of tablet assignment
-- smoothed operator time allocation segments
-  - removed needless reconnect separations
-- added breakdown table to operator time allocation page
-- added production summary to simplify readies through the day
-- added time code group alias to all locations
-- allow track points to be sourced from devices
-- added pre-start control category editor
+
+## 0.10.2
+- added toast notification when pre-starts come in
+- fixed mass message modal not showing dig location as source
+- fixed haul truck dispatch events in chat log not appearing
+- fixed chart rendering on asset report (would show blank when opened)
+- force logout will initialise to active if it is not ready
+- asset assignment (haul trucks) can only have dig unit or location, not both
+- added smoothing for device assignments
+- added breakdown to operator time allocations
+  - production for simplified ready codes
+  - all groups for breakdown per type
+- all references to time code group use alias where available
+- added :device track mode to allow device locations as source
+- added "ago" to map points and asset tile tooltips
+  - latency easier to determine
+- added update pre-start control categories
+- improved 401 re-routing when auth fails on other than root path
+- added notification when assets change time allocation
+- alert icon when there are unclosed/unresolved pre-starts for the shift
+- added ability to set dig unit location through the DND add route selector
 
 ## 0.10.1
 - fixed ticket modal width
