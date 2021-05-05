@@ -12,6 +12,8 @@
       class="category"
       v-model="data.categoryId"
       :items="categories"
+      label="fullname"
+      selectedLabel="name"
       placeholder="Category"
     />
     <Icon
@@ -53,7 +55,14 @@ export default {
   computed: {
     categories() {
       const cats = this.$store.state.constants.preStartControlCategories;
-      return [{ id: null, name: 'None' }].concat(cats);
+      return [{ id: null, name: 'None' }].concat(cats).map(c => {
+        const fullname = c.action ? `${c.name} (${c.action})` : c.name;
+        return {
+          id: c.id,
+          name: c.name,
+          fullname,
+        };
+      });
     },
   },
   mounted() {

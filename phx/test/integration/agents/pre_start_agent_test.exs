@@ -209,6 +209,96 @@ defmodule Dispatch.PreStartAgentTest do
     end
   end
 
+  describe "update_categories/1 -" do
+    test "valid (all new)" do
+      input = %{name: "A", action: "B", order: 0}
+
+      {:ok, [actual]} = PreStartAgent.update_categories([input])
+
+      # return
+      assert actual.id != nil
+      assert actual.name == input.name
+      assert actual.action == input.action
+      assert actual.order == input.order
+
+      # store
+      assert PreStartAgent.categories() == [actual]
+
+      # database
+      assert_db_contains(PreStart.ControlCategory, actual)
+      assert_db_count(PreStart.ControlCategory, 1)
+    end
+
+    test "valid (no changes)" do
+      {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
+
+      {:ok, [actual]} = PreStartAgent.update_categories([original])
+
+      # return
+      assert actual == original
+
+      # store
+      assert PreStartAgent.categories() == [original]
+
+      # database
+      assert_db_contains(PreStart.ControlCategory, original)
+      assert_db_count(PreStart.ControlCategory, 1)
+    end
+
+    test "valid (update)" do
+      {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
+
+      input = Map.put(original, :name, "Apple")
+      {:ok, [actual]} = PreStartAgent.update_categories([input])
+
+      # return
+      assert actual == input
+
+      # store
+      assert PreStartAgent.categories() == [input]
+
+      # database
+      assert_db_contains(PreStart.ControlCategory, input)
+      assert_db_count(PreStart.ControlCategory, 1)
+    end
+
+    test "invalid (missing elements)" do
+      {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
+
+      input = %{id: -1, name: "B", action: "C", order: -1}
+      error = PreStartAgent.update_categories([input])
+
+      assert error == {:error, :invalid_ids}
+    end
+
+    test "invalid (invalid id for update)" do
+      {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
+
+      input = %{id: -1, name: "B", action: "C", order: -1}
+      error = PreStartAgent.update_categories([input, original])
+
+      assert error == {:error, :invalid_ids}
+    end
+
+    @tag :capture_log
+    test "invalid (malformed category)" do
+      Process.flag(:trap_exit, true)
+      input = %{no_keys: 27}
+
+      pid = Process.whereis(PreStartAgent)
+
+      catch_exit do
+        PreStartAgent.update_categories([input])
+      end
+
+      assert_receive {
+        :EXIT,
+        ^pid,
+        {%ArgumentError{}, _stack}
+      }
+    end
+  end
+
   describe "refresh!/0 -" do
     test "valid", %{type_a: type, dispatcher: disp} do
       section = to_section("Section A", nil, ["C1"])

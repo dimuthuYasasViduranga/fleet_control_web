@@ -140,9 +140,9 @@ defmodule Dispatch.HaulTruckDispatchAgent do
     server_timestamp = NaiveDateTime.utc_now()
 
     base_dispatch = %{
-      dig_unit_id: dispatch.dig_unit_id,
-      load_location_id: dispatch.load_location_id,
-      dump_location_id: dispatch.dump_location_id,
+      dig_unit_id: dispatch[:dig_unit_id],
+      load_location_id: dispatch[:load_location_id],
+      dump_location_id: dispatch[:dump_location_id],
       timestamp: timestamp,
       server_timestamp: server_timestamp
     }

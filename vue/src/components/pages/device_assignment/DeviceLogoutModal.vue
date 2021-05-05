@@ -2,10 +2,10 @@
   <div class="device-logout-modal">
     <h1 class="title">Select Exception</h1>
     <div>
-      <TimeAllocationDropDown v-model="timeCodeId" :allowedTimeCodeIds="allowedTimeCodeIds" />
+      <TimeAllocationDropDown v-model="localTimeCodeId" :allowedTimeCodeIds="allowedTimeCodeIds" />
     </div>
     <div class="actions">
-      <button class="hx-btn ok" :disabled="!timeCodeId" @click="onOk">Logout</button>
+      <button class="hx-btn ok" :disabled="!localTimeCodeId" @click="onOk">Logout</button>
       <button class="hx-btn cancel" @click="onClose()">Cancel</button>
     </div>
   </div>
@@ -22,19 +22,25 @@ export default {
     TimeAllocationDropDown,
   },
   props: {
+    timeCodeId: { type: Number, default: null },
     allowedTimeCodeIds: { type: Array, default: () => [] },
   },
   data: () => {
     return {
-      timeCodeId: null,
+      localTimeCodeId: null,
     };
+  },
+  mounted() {
+    if (this.timeCodeId && this.allowedTimeCodeIds.includes(this.timeCodeId)) {
+      this.localTimeCodeId = this.timeCodeId;
+    }
   },
   methods: {
     onClose(resp) {
       this.$emit('close', resp);
     },
     onOk() {
-      this.onClose({ timeCodeId: this.timeCodeId });
+      this.onClose({ timeCodeId: this.localTimeCodeId });
     },
   },
 };

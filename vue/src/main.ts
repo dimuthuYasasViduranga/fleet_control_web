@@ -14,41 +14,30 @@ import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
-import { Toaster, registerCustomToasts } from './code/toasts.js';
+import { Toaster } from './code/toasts.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
 import * as VueGoogleMaps from 'gmap-vue';
 
-// config
+declare var window: { location: { href: string; origin: string } };
+
 const isDev = process.env.NODE_ENV === 'development';
-let hostname = '';
+let hostname = window.location.origin;
+let uiHost = '';
 if (isDev) {
-  hostname = 'https://hx-dispatch-test.azurewebsites.net';
   hostname = 'http://localhost:4010';
+  uiHost = 'http://localhost:8080';
 }
+
+// in the future this will be required when on the kube
+// hostname += '/fleet-control'
 
 Vue.prototype.$hostname = hostname;
 axios.defaults.withCredentials = true;
 Vue.use(VTooltip);
 Vue.use(VueResizeObserver);
 Vue.use(Vue2TouchEvents);
-
-// configure toasted
-Vue.use(Toasted, {
-  position: 'top-right',
-  duration: 3000,
-  keepOnHover: true,
-  className: 'hx-toasted',
-  iconPack: 'callback',
-  action: {
-    text: 'Clear',
-    onClick: (_, toastObject) => {
-      toastObject.goAway(0);
-    },
-  },
-});
-registerCustomToasts();
 
 // Create an event bug
 Vue.prototype.$eventBus = new Vue();
@@ -64,23 +53,34 @@ const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;
 
 // setup routes
-declare var document: { location: { href: string } };
 
-// fetch whitelist
-const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
+const logout = function() {
+  window.location.href = `${hostname}/auth/logout`;
+};
 
-const promises = [whitelistPromise];
-
-Promise.all(promises).then(() => {
+async function startApp() {
   const whitelist = store.state.constants.whitelist;
   const [routes, router] = setupRouter(whitelist);
 
   // logout function
-  const logout = function() {
-    document.location.href = `${hostname}/auth/logout`;
-  };
 
-  function createApp(data: { map_config: object }) {
+  // configure toasted
+  Vue.use(Toasted, {
+    position: 'top-right',
+    theme: 'hx-toast',
+    duration: 3000,
+    keepOnHover: true,
+    iconPack: 'callback',
+    router,
+    action: {
+      text: 'Clear',
+      onClick: (_, toastObject) => {
+        toastObject.goAway(0);
+      },
+    },
+  });
+
+  function createApp(data: { map_config: { key: string } }) {
     const props = { routes, logout };
     const key = data.map_config.key;
 
@@ -98,4 +98,20 @@ Promise.all(promises).then(() => {
 
   store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
   store.dispatch('trackStore/startPendingInterval');
-});
+}
+
+// fetch whitelist
+const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
+
+const promises = [whitelistPromise];
+
+Promise.all(promises)
+  .then(startApp)
+  .catch(error => {
+    console.error(error);
+    if (isDev) {
+      console.error('While rendering from 8080, ensure that bypass_auth is true');
+    } else {
+      document.location.href = uiHost || hostname;
+    }
+  });

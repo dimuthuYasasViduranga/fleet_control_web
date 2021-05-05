@@ -83,7 +83,7 @@
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import TagIcon from '@/components/icons/Tag.vue';
-import { attributeFromList, uniq } from '@/code/helpers';
+import { attributeFromList, Dictionary, uniq } from '@/code/helpers';
 import { firstBy } from 'thenby';
 import QuickSelectModal from '@/components/modals/QuickSelectModal.vue';
 
@@ -115,45 +115,63 @@ function validateMessage(selectedAssetIds, message, answers = [], maxLength) {
   return '';
 }
 
-function groupHaulTrucks(type, assets, dispatches, locations) {
-  const groupMap = assets.reduce((acc, asset) => {
-    const [loadId, dumpId] = attributeFromList(dispatches, 'assetId', asset.id, [
+function groupHaulTrucks(type, haulTrucks, allAssets, dispatches, activities, locations) {
+  const groupDic = new Dictionary();
+
+  haulTrucks.forEach(ht => {
+    const [loadId, digUnitId, dumpId] = attributeFromList(dispatches, 'assetId', ht.id, [
       'loadId',
+      'digUnitId',
       'dumpId',
     ]);
+    groupDic.append([loadId, digUnitId, dumpId], ht);
+  });
 
-    const id = `${loadId}|${dumpId}`;
-    (acc[id] = acc[id] || []).push(asset);
+  const groups = groupDic.map(([loadId, digUnitId, dumpId], hts) => {
+    const { source, dump } = getDispatchRouteNames(
+      loadId,
+      digUnitId,
+      dumpId,
+      allAssets,
+      locations,
+      activities,
+    );
 
-    return acc;
-  }, {});
-
-  const groups = Object.keys(groupMap).map(key => {
-    const [loadId, dumpId] = key.split('|');
-    const loadName = attributeFromList(locations, 'id', parseInt(loadId, 10), 'name');
-    const dumpName = attributeFromList(locations, 'id', parseInt(dumpId, 10), 'name');
-
-    let name = 'Unassigned';
-
-    if (loadName || dumpName) {
-      name = `${loadName || 'Unassigned'} \n \u27f9 \n ${dumpName || 'Unassigned'}`;
-    }
+    const routeName = `${source || 'No Source'} \n \u27f9 \n ${dump || 'No Dump'}`;
 
     return {
-      name,
-      loadName,
-      dumpName,
-      assets: groupMap[key],
+      name: routeName,
+      source,
+      dump,
+      assets: hts,
     };
   });
 
   groups.sort(
-    firstBy(a => a.loadName && a.dumpName)
-      .thenBy('loadName')
-      .thenBy('dumpName'),
+    firstBy(a => a.source && a.dump)
+      .thenBy('source')
+      .thenBy('dump'),
   );
 
   return { type, groups };
+}
+
+function getDispatchRouteNames(loadId, digUnitId, dumpId, assets, locations, activities) {
+  const dump = attributeFromList(locations, 'id', dumpId, 'name');
+
+  if (digUnitId) {
+    const digUnit = attributeFromList(assets, 'id', digUnitId) || {};
+    const digUnitLocationId = attributeFromList(activities, 'assetId', digUnitId, 'locationId');
+    const digUnitLocation = attributeFromList(locations, 'id', digUnitLocationId, 'name');
+
+    const sourceName = digUnitLocation ? `${digUnit.name} (${digUnitLocation})` : digUnit.name;
+
+    return { source: sourceName, dump };
+  } else {
+    const loadName = attributeFromList(locations, 'id', loadId, 'name');
+
+    return { source: loadName, dump };
+  }
 }
 
 function groupDigUnit(type, assets, activities, locations) {
@@ -199,6 +217,7 @@ export default {
     ...mapState('constants', {
       locations: state => state.locations,
       icons: state => state.icons,
+      allAssets: state => state.assets,
     }),
     ...mapState({
       haulTruckDispatches: state => state.haulTruck.currentDispatches,
@@ -225,7 +244,14 @@ export default {
         assets.sort((a, b) => a.name.localeCompare(b.name));
         switch (type) {
           case 'Haul Truck':
-            return groupHaulTrucks(type, assets, this.haulTruckDispatches, this.locations);
+            return groupHaulTrucks(
+              type,
+              assets,
+              this.allAssets,
+              this.haulTruckDispatches,
+              this.digUnitActivities,
+              this.locations,
+            );
 
           case 'Excavator':
           case 'Loader':

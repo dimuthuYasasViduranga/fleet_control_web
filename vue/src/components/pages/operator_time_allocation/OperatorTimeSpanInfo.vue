@@ -1,69 +1,107 @@
 <template>
   <div class="operator-time-span-info">
-    <div class="info">
-      <div class="operator-icon-wrap">
-        <Icon class="operator-icon" :icon="userIcon" />
+    <div class="top">
+      <div class="info">
+        <div class="operator-icon-wrap">
+          <Icon class="operator-icon" :icon="userIcon" />
+        </div>
+        <div class="operator-name">{{ operatorName }}</div>
+        <table class="summary">
+          <tr>
+            <th class="key">Ready</th>
+            <td class="value">{{ formatDuration(summary.Ready) }}</td>
+          </tr>
+          <tr>
+            <th class="key">Process</th>
+            <td class="value">{{ formatDuration(summary.Process) }}</td>
+          </tr>
+          <tr>
+            <th class="key">Standby</th>
+            <td class="value">{{ formatDuration(summary.Standby) }}</td>
+          </tr>
+          <tr>
+            <th class="key">Down</th>
+            <td class="value">{{ formatDuration(summary.Down) }}</td>
+          </tr>
+          <tr v-if="summary.Unknown">
+            <th class="key">Unknown</th>
+            <td class="value">{{ formatDuration(summary.Unknown) }}</td>
+          </tr>
+          <tr>
+            <th class="key">Off Asset</th>
+            <td class="value">{{ formatDuration(summary['Off Asset']) }}</td>
+          </tr>
+        </table>
+        <button
+          v-if="allocations.length"
+          class="hx-btn breakdown-toggle"
+          @click="showBreakdown = !showBreakdown"
+        >
+          {{ showBreakdown ? 'Hide' : 'Show' }} Breakdown
+        </button>
       </div>
-      <div class="operator-name">{{ operatorName }}</div>
-      <table class="summary">
-        <tr>
-          <th class="key">Ready</th>
-          <td class="value">{{ formatDuration(summary.Ready) }}</td>
-        </tr>
-        <tr>
-          <th class="key">Process</th>
-          <td class="value">{{ formatDuration(summary.Process) }}</td>
-        </tr>
-        <tr>
-          <th class="key">Standby</th>
-          <td class="value">{{ formatDuration(summary.Standby) }}</td>
-        </tr>
-        <tr>
-          <th class="key">Down</th>
-          <td class="value">{{ formatDuration(summary.Down) }}</td>
-        </tr>
-        <tr v-if="summary.Unknown">
-          <th class="key">Unknown</th>
-          <td class="value">{{ formatDuration(summary.Unknown) }}</td>
-        </tr>
-        <tr>
-          <th class="key">Off Asset</th>
-          <td class="value">{{ formatDuration(summary['Off Asset']) }}</td>
-        </tr>
-      </table>
+      <div class="chart-wrapper">
+        <TimeSpanChart
+          v-if="allocations.length"
+          :name="operatorId"
+          :timeSpans="allTimeSpans"
+          :layout="chartLayout"
+          :margins="margins"
+          :colors="timeSpanColors"
+          :styler="timeSpanStyler"
+          :minDatetime="rangeStart"
+          :maxDatetime="rangeEnd"
+          :contextHeight="contextHeight"
+        >
+          <template slot-scope="timeSpan">
+            <div class="__tooltip-boundary">
+              <OperatorTimeSpanTooltip :timeSpan="timeSpan" />
+            </div>
+          </template>
+        </TimeSpanChart>
+        <div v-else class="no-data">-- No Data --</div>
+      </div>
     </div>
-    <div class="chart-wrapper">
-      <TimeSpanChart
-        v-if="allocations.length"
-        :name="operatorId"
-        :timeSpans="allTimeSpans"
-        :layout="chartLayout"
-        :margins="margins"
-        :colors="timeSpanColors"
-        :styler="timeSpanStyler"
-        :minDatetime="rangeStart"
-        :maxDatetime="rangeEnd"
-        :contextHeight="contextHeight"
+
+    <template v-if="showBreakdown">
+      <div class="selector">
+        <button
+          class="hx-btn"
+          :class="{ selected: mode === 'production' }"
+          @click="setMode('production')"
+        >
+          Production Summary
+        </button>
+        <button class="hx-btn" :class="{ selected: mode === 'all' }" @click="setMode('all')">
+          All Groups
+        </button>
+      </div>
+      <hxCard
+        class="time-breakdown"
+        v-for="asset in timeSpansByAsset.filter(a => a.assetName !== 'No Asset')"
+        :key="asset.assetName"
+        :title="`${asset.assetName} | On Asset - ${formatDuration(sumTimeSpans(asset.timeSpans))}`"
+        :icon="icons[asset.assetType] || icons.Unknown"
       >
-        <template slot-scope="timeSpan">
-          <div class="__tooltip-boundary">
-            <OperatorTimeSpanTooltip :timeSpan="timeSpan" />
-          </div>
-        </template>
-      </TimeSpanChart>
-      <div v-else class="no-data">-- No Data --</div>
-    </div>
+        <TimeCodeProductionSummary v-if="mode === 'production'" :data="asset.timeSpans" />
+        <TimeCodeBreakdown v-else :data="asset.timeSpans" />
+      </hxCard>
+    </template>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
+import hxCard from 'hx-layout/Card.vue';
 import TimeSpanChart from '../time_allocation/chart/TimeSpanChart.vue';
 import OperatorTimeSpanTooltip from './OperatorTimeSpanTooltip.vue';
+import TimeCodeBreakdown from './TimeCodeBreakdown.vue';
+import TimeCodeProductionSummary from './TimeCodeProductionSummary.vue';
 import { toOperatorTimeSpans, operatorStyler, operatorColors } from './operatorTimeSpans.js';
 
 import UserIcon from '@/components/icons/Man.vue';
-import { groupBy, uniq } from '@/code/helpers';
+import { attributeFromList, groupBy, uniq } from '@/code/helpers';
 import { firstBy } from 'thenby';
 import { formatSeconds } from '@/code/time';
 
@@ -84,13 +122,15 @@ function getChartLayoutGroups(timeSpansByAsset) {
     .reverse();
 }
 
-function getAllocsByAsset(allocations) {
+function getAllocsByAsset(allocations, assets) {
   return Object.values(groupBy(allocations, 'assetId'))
     .map(allocs => {
       const first = allocs[0];
+      const asset = attributeFromList(assets, 'id', first.assetId) || {};
 
       return {
-        assetName: first.assetName || NO_ASSET,
+        assetName: asset.name || NO_ASSET,
+        assetType: asset.type,
         allocations: allocs,
       };
     })
@@ -100,20 +140,26 @@ function getAllocsByAsset(allocations) {
 export default {
   name: 'OperatorTimeSpanInfo',
   components: {
+    hxCard,
     Icon,
     TimeSpanChart,
     OperatorTimeSpanTooltip,
+    TimeCodeBreakdown,
+    TimeCodeProductionSummary,
   },
   props: {
     operatorId: { type: [String, Number] },
     operatorName: { type: String, default: '' },
     allocations: { type: Array, default: () => [] },
+    assets: { type: Array, default: () => [] },
     rangeStart: { type: Date },
     rangeEnd: { type: Date },
   },
   data: () => {
     return {
       userIcon: UserIcon,
+      mode: 'production',
+      showBreakdown: false,
       margins: {
         focus: {
           top: 15,
@@ -132,6 +178,10 @@ export default {
     };
   },
   computed: {
+    ...mapState('constants', {
+      icons: state => state.icons,
+      timeCodeGroups: state => state.timeCodeGroups,
+    }),
     summary() {
       const summary = {
         Ready: 0,
@@ -153,10 +203,11 @@ export default {
       return operatorColors();
     },
     timeSpansByAsset() {
-      return getAllocsByAsset(this.allocations).map(asset => {
+      return getAllocsByAsset(this.allocations, this.assets).map(asset => {
         return {
           assetName: asset.assetName,
-          timeSpans: toOperatorTimeSpans(asset.allocations, asset.assetName),
+          assetType: asset.assetType,
+          timeSpans: toOperatorTimeSpans(asset.allocations, asset.assetName, this.timeCodeGroups),
         };
       });
     },
@@ -189,17 +240,29 @@ export default {
       }
       return formatSeconds(seconds);
     },
+    sumTimeSpans(timeSpans) {
+      return timeSpans.reduce((acc, ts) => {
+        const duration = ts.endTime.getTime() - ts.startTime.getTime();
+        return acc + duration;
+      }, 0);
+    },
+    setMode(mode) {
+      this.mode = mode;
+    },
   },
 };
 </script>
 
 <style>
 .operator-time-span-info {
-  text-align: center;
-  display: flex;
   width: 100%;
   border-bottom: 0.05rem solid #677e8c;
   margin: 2rem 0;
+}
+
+.operator-time-span-info .top {
+  text-align: center;
+  display: flex;
 }
 
 .operator-time-span-info .info {
@@ -227,6 +290,11 @@ export default {
   margin-bottom: 0.25rem;
 }
 
+.operator-time-span-info .info .breakdown-toggle {
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
 .operator-time-span-info .chart-wrapper {
   transition: width 0.2s, height 0.2s;
   width: 100%;
@@ -249,5 +317,27 @@ export default {
 
 .__tooltip-boundary {
   margin: 10px;
+}
+
+.operator-time-span-info .time-breakdown .hxCardHeader {
+  text-transform: unset;
+}
+
+.operator-time-span-info .selector {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.operator-time-span-info .selector button {
+  width: 100%;
+  border-left: 1px solid #364c59;
+  border-right: 1px solid #364c59;
+  text-transform: capitalize;
+}
+
+.operator-time-span-info .selector button.selected {
+  background-color: #2c404c;
+  border: 1px solid #898f94;
 }
 </style>

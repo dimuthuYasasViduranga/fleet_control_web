@@ -11,7 +11,7 @@ defmodule DispatchWeb.Guardian do
   end
 
   def subject_for_token(_, _) do
-    Logger.error "subject_for_token error"
+    Logger.error("subject_for_token error")
     {:error, :reason_for_error}
   end
 
@@ -20,7 +20,7 @@ defmodule DispatchWeb.Guardian do
   end
 
   def resource_from_claims(claims) do
-    Logger.error inspect claims
+    Logger.error(inspect(claims))
     {:error, :not_implemented}
   end
 end

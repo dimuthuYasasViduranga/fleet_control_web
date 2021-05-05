@@ -1,5 +1,12 @@
 <template>
   <hxCard class="pre-start-report" :icon="icon">
+    <Icon
+      v-if="hasOrphanedTickets"
+      v-tooltip="'Orphaned tickets detected'"
+      class="orphaned-tickets-alert"
+      slot="title-pre"
+      :icon="alertIcon"
+    />
     <div class="title-post" slot="title-post">
       <div class="submission-time">
         {{ asset.name }} ({{ formatTime(latestSubmission.timestamp) }})
@@ -54,6 +61,7 @@ import InfoIcon from '@/components/icons/Info.vue';
 import TickIcon from '@/components/icons/Tick.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
+import AlertIcon from '@/components/icons/Alert.vue';
 
 import { formatDateIn } from '@/code/time';
 import { attributeFromList } from '@/code/helpers';
@@ -66,7 +74,7 @@ function getItemClass(responses, closedStatusTypeId) {
   const failures = responses.filter(r => r.answer === false);
 
   if (failures.length === 0) {
-    return '';
+    return 'pass';
   }
 
   if (failures.filter(r => !r.ticketId).length) {
@@ -96,6 +104,7 @@ export default {
       infoIcon: InfoIcon,
       crossIcon: CrossIcon,
       chevronIcon: ChevronIcon,
+      alertIcon: AlertIcon,
       tickIcon: TickIcon,
       showSubmissions: false,
     };
@@ -131,6 +140,23 @@ export default {
     },
     latestSubmission() {
       return this.allSubmissions[this.allSubmissions.length - 1].submission;
+    },
+    hasOrphanedTickets() {
+      const submissions = this.allSubmissions;
+      if (submissions.length < 2) {
+        return false;
+      }
+
+      const latestTicketIds = submissions[submissions.length - 1].submission.responses
+        .map(r => r.ticketId)
+        .filter(id => id);
+
+      const otherSubmissions = submissions.slice(0, -1);
+
+      return otherSubmissions.some(sub => {
+        const ticketIds = sub.submission.responses.map(r => r.ticketId).filter(id => id);
+        return sub.class !== 'closed' && ticketIds.some(id => !latestTicketIds.includes(id));
+      });
     },
   },
   methods: {
@@ -168,6 +194,14 @@ export default {
 
 .pre-start-report .hxCardHeaderWrapper {
   font-size: 1.5rem;
+}
+
+.pre-start-report .orphaned-tickets-alert {
+  stroke: orange;
+}
+
+.pre-start-report .orphaned-tickets-alert svg {
+  stroke-width: 1.2;
 }
 
 .pre-start-report .title-post {

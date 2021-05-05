@@ -12,7 +12,9 @@
       <div class="toast toast-info">
         <div>Info:</div>
         <input class="typeable" v-model="toasts.info" />
-        <button class="hx-btn" @click="onCreateInfoToast(toasts.info)">Create</button>
+        <button class="hx-btn" @click="onCreateInfoToast(toasts.info, { duration: 1500 })">
+          Create
+        </button>
       </div>
       <div class="toast toast-error">
         <div>Error:</div>

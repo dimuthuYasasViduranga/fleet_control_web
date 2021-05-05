@@ -7,11 +7,15 @@
     </hxCard>
 
     <hxCard style="width: auto" title="Dig Units" :icon="excavatorIcon">
-      <loaded> <DigUnitTable /> </loaded>
+      <loaded>
+        <DigUnitTable />
+      </loaded>
     </hxCard>
 
     <hxCard style="width: auto" title="Other Assets" :icon="tabletIcon">
-      <loaded> <GeneralAssetTable /> </loaded>
+      <loaded>
+        <GeneralAssetTable />
+      </loaded>
     </hxCard>
   </div>
 </template>

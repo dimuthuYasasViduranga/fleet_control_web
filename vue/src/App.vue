@@ -150,6 +150,10 @@ export default {
           'set pre-start forms',
           data => dispatch('constants/setPreStartForms', data.pre_start_forms),
         ],
+        [
+          'set pre-start categories',
+          data => dispatch('constants/setPreStartControlCategories', data.categories),
+        ],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
@@ -163,7 +167,10 @@ export default {
         ['set activity log', data => dispatch('setActivityLog', data.activities)],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
-        ['set pre-start submissions', data => dispatch('setPreStartSubmissions', data.current)],
+        [
+          'set pre-start submissions',
+          data => dispatch('setCurrentPreStartSubmissions', data.current),
+        ],
         ['new track', resp => dispatch('trackStore/addTrack', resp.track)],
         [
           'set time allocations',
@@ -226,7 +233,7 @@ export default {
         ['setCurrentEngineHours', resp.engine_hours.current],
         ['setHistoricEngineHours', resp.engine_hours.historic],
         ['setFleetOpsData', resp.fleetops_data],
-        ['setPreStartSubmissions', resp.pre_start_submissions],
+        ['setCurrentPreStartSubmissions', resp.current_pre_start_submissions],
         ['trackStore/setTracks', resp.tracks],
 
         // haul truck specific

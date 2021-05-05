@@ -181,7 +181,7 @@ export default {
         return 'No tablet assigned!';
       }
       if (alloc.id) {
-        return `${alloc.groupName} - ${alloc.name}`;
+        return `${alloc.groupAlias || alloc.groupName} - ${alloc.name}`;
       }
       if (row.present) {
         return 'Active';

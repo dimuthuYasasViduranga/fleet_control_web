@@ -63,7 +63,7 @@ export default {
   },
   computed: {
     title() {
-      const { assetName, timeCodeGroup, timeCode } = this.timeSpan.data;
+      const { assetName, timeCodeGroup, timeCodeGroupAlias, timeCode } = this.timeSpan.data;
 
       if (!assetName) {
         return 'Off Asset';
@@ -73,7 +73,7 @@ export default {
         return 'Unknown';
       }
 
-      return `${timeCodeGroup} \u2014 ${timeCode}`;
+      return `${timeCodeGroupAlias || timeCodeGroup} \u2014 ${timeCode}`;
     },
     overlapping() {
       if (!this.timeSpan.isOverlapping) {

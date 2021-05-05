@@ -1,17 +1,31 @@
 <template>
   <div class="pre-start-editor">
     <hxCard title="Pre-Start Editor" :icon="reportIcon">
-      <div class="actions">
-        <DropDown
-          placeholder="Select Asset"
-          :value="assetTypeId"
-          :items="assetTypes"
-          label="type"
-          @change="onAssetTypeChange"
-        />
-        <button v-if="assetTypeId" class="hx-btn" @click="onConfirmSubmit">Submit</button>
+      <div class="mode-selector">
+        <button
+          class="hx-btn"
+          v-for="(mode, index) in ['forms', 'categories']"
+          :key="index"
+          :class="{ selected: mode === selectedMode }"
+          @click="setMode(mode)"
+        >
+          {{ mode }}
+        </button>
       </div>
-      <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+      <div v-if="selectedMode === 'forms'" class="form-editor-wrapper">
+        <div class="actions">
+          <DropDown
+            placeholder="Select Asset"
+            :value="assetTypeId"
+            :items="assetTypes"
+            label="type"
+            @change="onAssetTypeChange"
+          />
+          <button v-if="assetTypeId" class="hx-btn" @click="onConfirmSubmit">Submit</button>
+        </div>
+        <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+      </div>
+      <PreStartCategoryEditor v-else />
     </hxCard>
   </div>
 </template>
@@ -20,6 +34,7 @@
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import PreStartFormEditor from './PreStartFormEditor.vue';
+import PreStartCategoryEditor from './PreStartCategoryEditor.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import DropDown from '@/components/dropdown/DropDown.vue';
@@ -96,12 +111,14 @@ export default {
     hxCard,
     PreStartFormEditor,
     DropDown,
+    PreStartCategoryEditor,
   },
   data: () => {
     return {
       reportIcon: ReportIcon,
       form: null,
       assetTypeId: null,
+      selectedMode: 'forms',
     };
   },
   computed: {
@@ -111,6 +128,9 @@ export default {
     }),
   },
   methods: {
+    setMode(mode) {
+      this.selectedMode = mode;
+    },
     onAssetTypeChange(typeId) {
       this.assetTypeId = typeId;
       const preStartForm = this.preStartForms.find(ps => ps.assetTypeId === typeId);
@@ -154,6 +174,22 @@ export default {
 </script>
 
 <style>
+.pre-start-editor .mode-selector {
+  margin-bottom: 1rem;
+}
+
+.pre-start-editor .mode-selector .hx-btn {
+  width: 12rem;
+  border-left: 1px solid #364c59;
+  border-right: 1px solid #364c59;
+  text-transform: capitalize;
+}
+
+.pre-start-editor .mode-selector .hx-btn.selected {
+  background-color: #2c404c;
+  border: 1px solid #898f94;
+}
+
 .pre-start-editor .actions .dropdown-wrapper {
   width: 10rem;
 }

@@ -10,7 +10,8 @@
       <div class="time-info">
         <div v-if="activeAllocation" class="active-time-allocation" :class="timeAllocClass">
           <div class="time-code">
-            {{ activeAllocation.groupName }} | {{ activeAllocation.name }}
+            {{ activeAllocation.groupAlias || activeAllocation.groupName }} |
+            {{ activeAllocation.name }}
           </div>
           <div class="duration">{{ duration }}</div>
         </div>

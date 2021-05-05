@@ -31,6 +31,7 @@
             :key="operator.id"
             :operatorId="operator.id"
             :operatorName="operator.name"
+            :assets="assets"
             :allocations="operator.allocations"
             :rangeStart="operator.rangeStart"
             :rangeEnd="operator.rangeEnd"
@@ -94,6 +95,28 @@ function parseOperatorAllocation(alloc, assets, operators) {
   };
 }
 
+function extendByProcessWherePossible(allocations) {
+  // iterate forward, keeping track of the time code of the previous
+  return allocations
+    .filter(a => a.assetId)
+    .reduce(
+      (acc, alloc) => {
+        const prev = acc.prev;
+        // if current is process, and previous is not process, take type
+        if (prev && alloc.timeCodeGroup === 'Process' && prev.timeCodeGroup !== 'Process') {
+          alloc.timeCodeId = prev.timeCodeId;
+          alloc.timeCode = prev.timeCode;
+          alloc.timeCodeGroup = prev.timeCodeGroup;
+        }
+
+        acc.prev = alloc;
+        acc.completed.push(alloc);
+        return acc;
+      },
+      { prev: null, completed: [] },
+    ).completed;
+}
+
 export default {
   name: 'OperatorTimeAllocation',
   components: {
@@ -119,6 +142,7 @@ export default {
     ...mapState('constants', {
       shifts: state => state.shifts,
       shiftTypes: state => state.shiftTypes,
+      assets: state => state.assets,
     }),
     filteredOperatorData() {
       if (!this.shiftOperatorData) {

@@ -64,10 +64,16 @@
 
         <button class="hx-btn" @click="clearAssetTypeSelection">clear</button>
       </div>
+      <SearchBar placeholder="Search asset name" v-model="search" :showClear="true" />
 
-      <div class="search-bar-wrapper">
-        <SearchBar placeholder="Search asset name" v-model="search" :showClear="true" />
-      </div>
+      <span class="smooth-assingments-option">
+        <input
+          type="checkbox"
+          :checked="smoothAssignments"
+          @change="smoothAssignments = !smoothAssignments"
+        />
+        Smooth assignments
+      </span>
 
       <AssetTimeSpanInfo
         v-for="{
@@ -94,6 +100,7 @@
         :maxDatetime="range.max"
         :timezone="timezone"
         :shiftId="mode === 'shift' && shift ? shift.id : undefined"
+        :smoothAssignments="smoothAssignments"
         @update="refreshIfShift"
         @lock="refreshIfShift"
         @unlock="refreshIfShift"
@@ -161,6 +168,7 @@ export default {
       error: '',
       search: '',
       mode: 'live',
+      smoothAssignments: true,
       now,
       range: getRange({
         now,
@@ -406,7 +414,8 @@ export default {
   border: 1px solid #898f94;
 }
 
-.time-allocation-page .search-bar-wrapper {
+.time-allocation-page .search-bar {
+  display: inline-flex;
   max-width: 12rem;
   margin: 0.5rem 0;
   height: 1.6rem;

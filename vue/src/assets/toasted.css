@@ -1,3 +1,20 @@
+/* theme of the toast */
+.toasted.hx-toast {
+  border-radius: 2px;
+  min-height: 38px;
+  line-height: 1.1em;
+  background-color: #353535;
+  padding: 6px 20px;
+  font-size: 15px;
+  font-weight: 300;
+  color: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 24%);
+}
+
+.toasted.hx-toast .action {
+  color: #a1c2fa;
+}
+
 .toasted-container.top-right {
   top: 8%;
   right: 5%;
@@ -5,14 +22,6 @@
 
 .toasted-container {
   font-family: 'GE Inspira Sans', sans-serif;
-}
-
-.toasted-container .toasted.toasted-primary.error {
-  background-color: rgb(94, 0, 0);
-}
-
-.toasted-container .toasted.toasted-primary.info {
-  background-color: #425866;
 }
 
 .toasted-container .hx-icon {
@@ -25,6 +34,16 @@
   stroke-width: 1.5;
 }
 
-.toasted-container .hx-icon.no-comms svg {
+/* custom toast types */
+.toasted-container .toasted.info {
+  background-color: #425866;
+}
+
+.toasted-container .toasted.error,
+.toasted-container .toasted.no-comms {
+  background-color: #5e0000;
+}
+
+.toasted-container .toasted.no-comms .icon svg {
   stroke: orange;
 }

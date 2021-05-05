@@ -23,8 +23,14 @@
 
       <table-column label cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span :class="presenceIconColor(row)">
-            <Icon v-tooltip="{ content: presenceTooltip(row) }" :icon="getIcon(row)" />
+          <span v-tooltip="{ content: presenceTooltip(row) }">
+            <div :class="presenceIconColor(row)">
+              <NIcon
+                class="asset-icon"
+                :icon="getIcon(row)"
+                :secondaryIcon="getSecondaryIcon(row)"
+              />
+            </div>
           </span>
         </template>
       </table-column>
@@ -46,11 +52,13 @@
 
 <script>
 import { mapState } from 'vuex';
+import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
 import EditIcon from '@/components/icons/Edit.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
 
 const TAKEN_TYPES = ['Haul Truck', 'Excavator', 'Loader'];
 
@@ -58,6 +66,7 @@ export default {
   name: 'GeneralAssetTable',
   components: {
     Icon,
+    NIcon,
     TimeAllocationDropDown,
     TableComponent,
     TableColumn,
@@ -65,6 +74,7 @@ export default {
   data: () => {
     return {
       editIcon: EditIcon,
+      tabletIcon: TabletIcon,
     };
   },
   computed: {
@@ -76,7 +86,7 @@ export default {
     },
     assets() {
       return this.$store.getters.fullAssets
-        .filter(fa => !TAKEN_TYPES.includes(fa.type) && fa.hasDevice)
+        .filter(fa => !TAKEN_TYPES.includes(fa.type))
         .map(asset => {
           return {
             assetId: asset.id,
@@ -86,6 +96,7 @@ export default {
             operator: asset.operator.fullname || '',
             activeTimeAllocation: asset.activeTimeAllocation || {},
             present: asset.present,
+            hasDevice: asset.hasDevice,
           };
         });
     },
@@ -95,7 +106,10 @@ export default {
       this.$eventBus.$emit('asset-assignment-open', row.assetId);
     },
     getIcon(row) {
-      return this.icons[row.assetType];
+      return this.icons[row.assetType || 'Unknown'];
+    },
+    getSecondaryIcon(row) {
+      return row.hasDevice ? undefined : TabletIcon;
     },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
@@ -104,8 +118,11 @@ export default {
     },
     presenceTooltip(row) {
       const alloc = row.activeTimeAllocation;
+      if (!row.hasDevice) {
+        return 'No tablet assigned!';
+      }
       if (alloc.id) {
-        return `${alloc.groupName} - ${alloc.name}`;
+        return `${alloc.groupAlias || alloc.groupName} - ${alloc.name}`;
       }
       if (row.present) {
         return 'Active';
@@ -161,5 +178,14 @@ export default {
 
 .general-asset-table .table-edit-cel .hx-icon:hover {
   stroke: orange;
+}
+
+.general-asset-table .asset-icon {
+  width: 2.5rem;
+}
+
+.general-asset-table .asset-icon .secondary-icon {
+  stroke: orange;
+  stroke-dasharray: 1;
 }
 </style>

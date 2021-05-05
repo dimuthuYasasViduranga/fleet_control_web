@@ -251,4 +251,8 @@ export class Dictionary {
   map(predicate = (ks, v) => null) {
     return Object.values(this._entries).map(data => predicate(data.keys, data.value));
   }
+
+  reduce(predicate = (acc, ks, v) => null, init) {
+    return Object.values(this._entries).reduce((acc, data) => predicate(acc, data.keys, data.value), init)
+  }
 }

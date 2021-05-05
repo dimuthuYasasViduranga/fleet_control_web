@@ -46,6 +46,7 @@ export default {
     placeholder: { type: String, default: 'Select' },
     keyName: { type: String, default: 'id' },
     label: { type: String, default: 'name' },
+    selectedLabel: String,
     items: { type: Array, default: () => [] },
     maxItems: { type: Number, default: Infinity },
     autofocus: { type: Boolean, default: true },
@@ -68,7 +69,7 @@ export default {
       return attributeFromList(this.items, this.keyName, this.value) || {};
     },
     selectedName() {
-      return this.selectedItem[this.label] || this.placeholder;
+      return this.selectedItem[this.selectedLabel || this.label] || this.placeholder;
     },
     noResults() {
       if (this.results !== null && this.results.length === 0) {

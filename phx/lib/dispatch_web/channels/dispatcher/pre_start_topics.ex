@@ -13,6 +13,7 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
   def handle_in(topic, data, socket) do
     case topic do
       "pre-start:add form" -> add_form(topic, data, socket)
+      "pre-start:update control categories" -> update_control_categories(topic, data, socket)
       _ -> handle(topic, data, socket)
     end
   end
@@ -35,6 +36,31 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     Broadcast.send_pre_start_forms_to_all()
 
     {:reply, :ok, socket}
+  end
+
+  @decorate authorized(:can_edit_pre_starts)
+  defp update_control_categories("pre-start:update control categories", controls, socket)
+       when is_list(controls) do
+    controls
+    |> Enum.map(&parse_category/1)
+    |> PreStartAgent.update_categories()
+    |> case do
+      {:ok, _} ->
+        Broadcast.send_pre_start_control_categories_to_all()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  defp parse_category(cat) do
+    %{
+      id: cat["id"],
+      name: cat["name"],
+      action: cat["action"],
+      order: cat["order"] || 0
+    }
   end
 
   defp handle(

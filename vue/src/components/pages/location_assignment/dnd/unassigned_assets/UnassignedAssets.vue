@@ -92,10 +92,8 @@ export default {
 .unassigned-assets .hxCardHeader {
   padding-bottom: 0.5rem;
 }
-</style>
 
-<style scoped>
-.hxCard {
+.unassigned-assets .hxCard {
   padding: 0;
   padding-bottom: 0.75rem;
   border-top: none;
@@ -103,7 +101,7 @@ export default {
 }
 
 /* --- container --- */
-.smooth-dnd-container {
+.unassigned-assets .smooth-dnd-container {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -112,19 +110,19 @@ export default {
   /* overflow: hidden canot be used here as it will break the tooltip container */
 }
 
-.smooth-dnd-draggable-wrapper {
+.unassigned-assets .smooth-dnd-draggable-wrapper {
   cursor: move;
 }
 
 /* ---- caret toggle ----- */
-.hide-caret-wrapper {
+.unassigned-assets .hide-caret-wrapper {
   display: flex;
   padding: 7px;
   width: 2rem;
   cursor: pointer;
 }
 
-.hide-caret-wrapper .caret-down {
+.unassigned-assets .hide-caret-wrapper .caret-down {
   margin-top: 3px;
   width: 0;
   height: 0;
@@ -134,7 +132,7 @@ export default {
   border-top: 6px solid grey;
 }
 
-.hide-caret-wrapper .caret-right {
+.unassigned-assets .hide-caret-wrapper .caret-right {
   width: 0;
   height: 0;
   border-top: 6px solid transparent;

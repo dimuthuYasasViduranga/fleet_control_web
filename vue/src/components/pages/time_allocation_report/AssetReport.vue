@@ -1,24 +1,23 @@
 <template>
   <div class="asset-report">
     <TimeSpanEditor
-      v-if="timeAllocationData"
+      v-if="reportData.show"
       :show="true"
       :asset="asset"
-      :timeAllocations="timeAllocationData.allocations"
-      :deviceAssignments="timeAllocationData.deviceAssignments"
-      :timeusage="timeAllocationData.timeusage"
-      :cycles="timeAllocationData.cycles"
+      :timeAllocations="reportData.allocations"
+      :deviceAssignments="reportData.deviceAssignments"
+      :timeusage="reportData.timeusage"
+      :cycles="reportData.cycles"
       :devices="devices"
       :operators="operators"
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
       :allowedTimeCodeIds="allowedTimeCodeIds"
-      :locations="locations"
       :activeEndTime="activeEndTime"
-      :minDatetime="timeAllocationData.shift.startTime"
-      :maxDatetime="timeAllocationData.shift.endTime"
+      :minDatetime="reportData.shift.startTime"
+      :maxDatetime="reportData.shift.endTime"
       :timezone="timezone"
-      :shiftId="timeAllocationData.shift.id"
+      :shiftId="reportData.shift.id"
       @close="timeAllocationData = null"
       @update="onUpdate()"
     />
@@ -242,7 +241,6 @@ export default {
     events: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
-    locations: { type: Array, default: () => [] },
     timezone: { type: String, default: 'local' },
     operators: { type: Array, default: () => [] },
     devices: { type: Array, default: () => [] },
@@ -344,6 +342,17 @@ export default {
       return this.fullTimeCodes
         .filter(tc => tc.assetTypeIds.includes(this.asset.typeId))
         .map(tc => tc.id);
+    },
+    reportData() {
+      const data = this.timeAllocationData || {};
+      return {
+        show: !!data.shift,
+        shift: data.shift || {},
+        allocations: data.allocations || [],
+        assignments: data.deviceAssignments || [],
+        timeusage: data.timeusage || [],
+        cycles: data.cycles || [],
+      };
     },
   },
   methods: {

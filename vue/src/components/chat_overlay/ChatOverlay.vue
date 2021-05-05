@@ -147,7 +147,7 @@ export default {
       return this.selectedAsset ? '' : 'reduced';
     },
     preStartSubmissions() {
-      return this.$store.state.preStartSubmissions;
+      return this.$store.state.currentPreStartSubmissions;
     },
   },
   watch: {
