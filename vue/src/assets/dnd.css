@@ -1,4 +1,0 @@
-/* fix for globally imported css and scoped css conflict */
-.smooth-dnd-container.horizontal {
-  display: flex;
-}

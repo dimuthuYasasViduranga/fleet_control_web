@@ -101,7 +101,7 @@ export default {
 }
 
 /* --- container --- */
-.unassigned-assets .smooth-dnd-container {
+.unassigned-assets .smooth-dnd-container.horizontal {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
