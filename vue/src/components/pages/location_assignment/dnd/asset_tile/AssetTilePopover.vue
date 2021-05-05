@@ -52,7 +52,10 @@
       </tr>
       <tr>
         <td class="key">Last Seen</td>
-        <td class="value">{{ formatDate(track.timestamp) }}</td>
+        <td v-if="ago.duration != null" class="value" :class="ago.class">
+          {{ formatAgo(ago.duration) }}
+        </td>
+        <td v-else class="value">{{ formatDate(track.timestamp) || '--' }}</td>
       </tr>
     </table>
 
@@ -67,12 +70,20 @@
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 import { attributeFromList } from '@/code/helpers';
-import { formatSeconds, formatDateRelativeToIn, toUtcDate } from '@/code/time';
+import {
+  formatSeconds,
+  formatDateRelativeToIn,
+  toUtcDate,
+  formatSecondsRelative,
+} from '@/code/time';
 
 import AlertIcon from '@/components/icons/Alert.vue';
 
 const NOW_INTERVAL_DURATION = 2000;
 const SECONDS_IN_DAY = 24 * 3600;
+const AGO_SWITCH = 60 * 60 * 1000; // 1 hour
+const AGO_MAX = 2 * 60 * 1000; // 2 minutes
+const AGO_WARN = 30 * 1000; // 30 seconds
 
 function getNested(obj, keys) {
   const result = obj[keys[0]];
@@ -80,6 +91,18 @@ function getNested(obj, keys) {
     return result;
   }
   return getNested(result, keys.slice(1));
+}
+
+function getAgoClass(duration) {
+  if (duration < AGO_WARN) {
+    return 'green-text';
+  }
+
+  if (duration < AGO_MAX) {
+    return 'orange-text';
+  }
+
+  return 'red-text';
 }
 
 export default {
@@ -150,6 +173,20 @@ export default {
       }
       return formatSeconds(duration, '(%HH:%MM:%SS)');
     },
+    ago() {
+      if (!this.track.timestamp) {
+        return { duration: null, class: null };
+      }
+      let ago = this.now - this.track.timestamp.getTime();
+      ago = ago < 0 ? 0 : ago;
+
+      if (ago > AGO_SWITCH) {
+        return { duration: null, class: null };
+      }
+
+      const styleClass = getAgoClass(ago);
+      return { duration: ago, class: styleClass };
+    },
   },
   mounted() {
     this.nowInterval = setInterval(() => (this.now = new Date()), NOW_INTERVAL_DURATION);
@@ -165,6 +202,9 @@ export default {
     formatDate(date) {
       const tz = this.$timely.current.timezone;
       return formatDateRelativeToIn(date, tz);
+    },
+    formatAgo(ago) {
+      return formatSecondsRelative(Math.trunc(ago / 1000));
     },
   },
 };
