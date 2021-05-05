@@ -1,4 +1,5 @@
 defmodule TrackSub.Rest do
+  alias Dispatch.Helper
   @doc """
   Returns a list of latest track points for all assets
   """
@@ -38,7 +39,7 @@ defmodule TrackSub.Rest do
       },
       speed_ms: velocity["groundSpeed"],
       heading: velocity["heading"],
-      timestamp: point["utc"],
+      timestamp: Helper.to_naive(point["utc"]),
       valid: point["valid"]
     }
   end
