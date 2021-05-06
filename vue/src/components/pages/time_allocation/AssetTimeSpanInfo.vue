@@ -228,11 +228,14 @@ export default {
       return this.timeAllocations.find(ta => !ta.endTime) || {};
     },
     smoothDeviceAssignments() {
+      const orderedDeviceAssignments = this.deviceAssignments
+        .slice()
+        .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
       if (!this.smoothAssignments) {
-        return this.deviceAssignments;
+        return orderedDeviceAssignments;
       }
 
-      return dedupByMany(this.deviceAssignments, ['assetId', 'deviceId', 'operatorId']);
+      return dedupByMany(orderedDeviceAssignments, ['assetId', 'deviceId', 'operatorId']);
     },
     timeSpanColors() {
       return allocationColors();
