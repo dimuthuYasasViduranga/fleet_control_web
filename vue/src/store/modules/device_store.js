@@ -1,4 +1,10 @@
-import { toUtcDate } from '../../code/time.js';
+import { Toaster as ToasterClass } from '@/code/toasts';
+
+import { attributeFromList, Dictionary } from '@/code/helpers.js';
+import { toUtcDate } from '@/code/time.js';
+import { formatDeviceUUID } from '../../code/helpers';
+
+const Toaster = new ToasterClass();
 
 export function parseDeviceAssignment(assignment) {
   return {
@@ -18,6 +24,29 @@ function parseDevice(device) {
     authorized: device.authorized,
     details: device.details || {},
   };
+}
+
+function updateClashNotifications(assignments, devices) {
+  const dict = new Dictionary();
+
+  assignments.filter(a => a.deviceId).forEach(a => dict.append(a.deviceId, a.assetId));
+
+  const issue = dict.find((_, assetIds) => assetIds.length > 1);
+
+  const id = 'device-id-conflict';
+
+  if (issue) {
+    const [deviceId, assetIds] = issue;
+
+    const deviceUUID = formatDeviceUUID(attributeFromList(devices, 'id', deviceId, 'uuid'));
+    const msg = `Device '${deviceUUID}' is assigned to ${assetIds.length} assets`;
+
+    const actions = [{ text: 'Fix', push: { path: '/device_assignment', dontClose: true } }];
+
+    Toaster.error(msg, { id, onlyOne: id, duration: 0, closeOnSwipe: false, actions });
+  } else {
+    Toaster.clear(t => t.id === id);
+  }
 }
 
 /* -------------------- module ------------------*/
@@ -56,6 +85,7 @@ const mutations = {
     state.devices = devices;
   },
   setCurrentDeviceAssignments(state, assignments = []) {
+    updateClashNotifications(assignments, state.devices);
     state.currentDeviceAssignments = assignments;
   },
   setHistoricDeviceAssignments(state, assignments = []) {

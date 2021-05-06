@@ -48,14 +48,16 @@ export class Toaster {
 
     if (opts.replace) {
       for (const t of Vue.toasted.toasts) {
-        if (t.type === type && t.text === msg) {
+        if (t.id === opts.replace || (t.type === type && t.text === msg)) {
           t.remove();
         }
       }
     }
 
     if (opts.onlyOne) {
-      const alreadyExists = Vue.toasted.toasts.some(t => t.type === type && t.text === msg);
+      const alreadyExists = Vue.toasted.toasts.some(
+        t => t.id === opts.onlyOne || (t.type === type && t.text === msg),
+      );
 
       if (alreadyExists) {
         console.log('[Toaster] Msg skipped as it already exists');
@@ -71,7 +73,7 @@ function createToast(msg, type, options) {
   const toast = Vue.toasted.show(' ', { ...options, icon: undefined });
 
   toast.type = type;
-  toast.id = getNextId();
+  toast.id = options.id || getNextId();
 
   // create new sections
   const container = toast.el;

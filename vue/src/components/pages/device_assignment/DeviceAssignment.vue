@@ -47,7 +47,7 @@ import DeviceAssignmentTable from './DeviceAssignmentTable.vue';
 import PendingDeviceTable from './PendingDeviceTable.vue';
 
 import TabletIcon from '../../icons/Tablet.vue';
-import { attributeFromList, formatDeviceUUID } from '../../../code/helpers.js';
+import { attributeFromList, formatDeviceUUID } from '@/code/helpers.js';
 
 function getMultipleAssignments(assignments, assets, deviceId) {
   const deviceAssigns = assignments.filter(a => a.deviceId === deviceId);

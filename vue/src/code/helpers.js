@@ -19,7 +19,7 @@ export function copy(obj) {
 }
 
 export function formatDeviceUUID(uuid) {
-  return chunkStr(uuid.toUpperCase(), 4).join('-');
+  return chunkStr((uuid || '').toUpperCase(), 4).join('-');
 }
 
 function chunkStr(str, size) {
@@ -261,5 +261,27 @@ export class Dictionary {
       (acc, data, index, arr) => predicate(acc, data.keys, data.value, index, arr),
       init,
     );
+  }
+
+  filter(predicate = (ks, v, index, arr) => null) {
+    const newDict = new Dictionary();
+    Object.values(this._entries).forEach((data, index, arr) => {
+      if (predicate(data.keys, data.value, index, arr)) {
+        newDict.add(data.keys, data.value);
+      }
+    });
+
+    return newDict;
+  }
+
+  find(predicate = (ks, v, index, obj) => null) {
+    const match = Object.values(this._entries).find((data, index, obj) =>
+      predicate(data.keys, data.value, index, obj),
+    );
+
+    if (match) {
+      return [match.keys, match.value];
+    }
+    return match;
   }
 }

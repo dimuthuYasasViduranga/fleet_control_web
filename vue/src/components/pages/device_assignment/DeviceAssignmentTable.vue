@@ -199,7 +199,7 @@ export default {
       const items = row.multipleAssignmentAssetNames.map(name => `<li>${name}</li>`).join('');
       const assetList = `<ul>${items}</ul>`;
 
-      const content = `Multiple assets assigned to this device\n${assetList}\nPlease unassigned`;
+      const content = `Multiple assets assigned to this device\n${assetList}\nPlease unassign`;
 
       return {
         html: true,
