@@ -2,6 +2,13 @@
 
 ## pending [unreleased]
 
+
+## 0.10.3
+- fixed unassigned assets display (drag and drop)
+  - component css was overriding custom in build version
+- added device gps as supplement to factual source (configuarable)
+- added conflicting assignments toasts that navigates to device assignment
+
 ## 0.10.2
 - added toast notification when pre-starts come in
 - fixed mass message modal not showing dig location as source
