@@ -93,7 +93,7 @@ export default {
   padding-bottom: 0.5rem;
 }
 
-.unassigned-assets .hxCard {
+.unassigned-assets.hxCard {
   padding: 0;
   padding-bottom: 0.75rem;
   border-top: none;
