@@ -329,8 +329,10 @@ defmodule DispatchWeb.OperatorChannel do
   end
 
   def handle_in("set device track", track, socket) do
-    case TrackAgent.add(parse_device_track(track), :device) do
-      {:ok, track} -> Broadcast.send_track(track)
+    with true <- Application.get_env(:dispatch_web, :use_device_gps),
+         {:ok, track} <- TrackAgent.add(parse_device_track(track), :normal) do
+      Broadcast.send_track(track)
+    else
       _ -> nil
     end
 

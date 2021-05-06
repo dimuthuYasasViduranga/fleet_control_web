@@ -9,18 +9,11 @@ defmodule Dispatch.TrackAgent do
   @type track :: map
   @type source :: atom
 
-  @allowed_sources [:normal, :mock, :device]
+  @allowed_sources [:normal, :mock]
 
   def start_link(_opts) do
-    state = %{mode: get_mode(), tracks: %{}}
+    state = %{mode: :normal, tracks: %{}}
     Agent.start_link(fn -> state end, name: __MODULE__)
-  end
-
-  defp get_mode() do
-    case Application.get_env(:dispatch_web, :track_method, :normal) do
-      :device -> :device
-      _ -> :normal
-    end
   end
 
   @spec all() :: list(track)

@@ -30,6 +30,7 @@ config :dispatch_web,
   },
   map_tile_endpoint: nil,
   track_method: :gps_gate,
+  use_device_gps: false,
   bypass_auth: false,
   location_update_interval: 3600,
   secondary_types: %{
