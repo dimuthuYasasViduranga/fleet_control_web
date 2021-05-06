@@ -34,8 +34,6 @@ defmodule DispatchWeb.OperatorChannel do
 
   alias Phoenix.Socket
 
-  @max_clock_lead_s 60
-
   @type topic :: String.t()
 
   @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
@@ -154,8 +152,7 @@ defmodule DispatchWeb.OperatorChannel do
         |> Map.values()
         |> Enum.any?(&is_nil/1)
 
-      in_future =
-        NaiveDateTime.compare(login.timestamp, NaiveDateTime.add(now, @max_clock_lead_s)) == :gt
+      in_future = NaiveDateTime.compare(login.timestamp, now) == :gt
 
       any_nils || in_future
     end)
