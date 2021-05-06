@@ -318,8 +318,14 @@ export default {
       }
 
       const haulTrucks = this.localHaulTrucks.filter(h => {
-        return h.digUnitId === digUnitId && h.loadId === loadId;
+        const d = h.dispatch || {};
+        return d.digUnitId === digUnitId && d.loadId === loadId;
       });
+
+      if (haulTrucks.length === 0) {
+        console.error('[dnd] Cannot clear route as there are no haul trucks to move');
+        return;
+      }
 
       this.structure.removeAllDumpsFor(digUnitId, loadId);
 
@@ -363,8 +369,14 @@ export default {
     },
     clearDump(digUnitId, loadId, dumpId) {
       const haulTrucks = this.localHaulTrucks.filter(h => {
-        return h.digUnitId === digUnitId && h.loadId === loadId && h.dumpId === dumpId;
+        const d = h.dispatch;
+        return d.digUnitId === digUnitId && d.loadId === loadId && d.dumpId === dumpId;
       });
+
+      if (haulTrucks.length === 0) {
+        console.error('[Dnd] Cannot clear dump that has zero assets');
+        return;
+      }
 
       this.structure.remove(digUnitId, loadId, dumpId);
 
