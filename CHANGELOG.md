@@ -2,6 +2,18 @@
 
 ## pending [unreleased]
 
+## 0.10.5
+- fixed "use device GPS" not syncing of init
+- added "min" and "max" inputs to dately selector to make it easier to determine min and max
+- fixed time allocation report not rendering graph
+- fixed haul truck map info window not showing valid location under assignment (when not assigned to dig unit)
+- changed map info window showing "ago" to "Last GPS"
+- fixed mass dispatch event not reducing "No Source => No Dump" to "Unassigned"
+- only 1 pre-start notification at once
+- mass message
+  - fixed dig units not showing their current locations
+  - changed "No source => No Dump" to "Unassigned"
+- fixed get state not returning operator_id when not assigned to an asset
 
 ## 0.10.4
 - fixed unassigned assets (dnd route) left padding
