@@ -98,6 +98,7 @@ defmodule DispatchWeb.DispatcherChannel do
       pre_start_forms: PreStartAgent.all(),
       current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
+      use_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false),
 
       # haul truck
       haul_truck: %{
