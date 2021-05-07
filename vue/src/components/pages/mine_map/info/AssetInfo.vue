@@ -33,14 +33,12 @@
         <td class="heading">Ignition</td>
         <td class="value" :class="ignitionClass">{{ ignition }}</td>
       </tr>
-      <tr v-if="ago < agoSwitch">
-        <td class="heading">Ago</td>
-        <td class="value" :class="agoClass">{{ formatAgo(ago) }}</td>
+      <tr>
+        <td class="heading">Last GPS</td>
+        <td v-if="ago < agoSwitch" class="value" :class="agoClass">{{ formatAgo(ago) }}</td>
+        <td v-else class="value red-text">{{ timestamp }}</td>
       </tr>
-      <tr v-else>
-        <td class="heading">Time</td>
-        <td class="value red-text">{{ timestamp }}</td>
-      </tr>
+
       <tr>
         <td class="heading">
           <div v-if="allocName" class="alloc-color" :class="allocColorClass"></div>
