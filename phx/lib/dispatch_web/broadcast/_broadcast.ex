@@ -417,6 +417,16 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("other track", payload, &(&1.id != track.asset_id))
   end
 
+  def send_use_device_gps_to_all() do
+    payload = %{
+      state: Application.get_env(:dispatch_web, :use_device_gps, false)
+    }
+
+    Endpoint.broadcast(@dispatch, "set use device gps", payload)
+
+    broadcast_all_operators("set send device gps", payload)
+  end
+
   def send_activity(nil, source, activity_type, timestamp) do
     activity = %{
       activity: activity_type,

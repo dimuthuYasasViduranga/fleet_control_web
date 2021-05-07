@@ -13,11 +13,11 @@ defmodule DispatchWeb.DispatcherChannel do
     AuthTopics,
     Report,
     DigUnitTopics,
-    PreStartTopics
+    PreStartTopics,
+    TrackTopics
   }
 
   alias DispatchWeb.Broadcast
-  alias Dispatch.Tracks
 
   alias Dispatch.{
     Helper,
@@ -151,6 +151,10 @@ defmodule DispatchWeb.DispatcherChannel do
 
   def handle_in("pre-start:" <> _ = topic, payload, socket) do
     PreStartTopics.handle_in(topic, payload, socket)
+  end
+
+  def handle_in("track:" <> _ = topic, payload, socket) do
+    TrackTopics.handle_in(topic, payload, socket)
   end
 
   def handle_in("set radio number", payload, socket) do
@@ -548,31 +552,6 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
-  @decorate only_in(:dev)
-  def handle_in("track:set mode", mode, socket) when mode in ["mock", "normal"] do
-    TrackAgent.set_mode(String.to_existing_atom(mode))
-    {:reply, :ok, socket}
-  end
-
-  def handle_in("track:set mode", mode, socket) do
-    Logger.error("Track agent cannot be set to mode '#{mode}'")
-    {:reply, to_error("invalid mode"), socket}
-  end
-
-  @decorate only_in(:dev)
-  def handle_in("track:set track", track, socket) do
-    track
-    |> parse_mock_track()
-    |> Tracks.add_info()
-    |> TrackAgent.add(:mock)
-    |> case do
-      {:ok, new_track} -> Broadcast.send_track(new_track)
-      _ -> Logger.info("Mock track ignored")
-    end
-
-    {:noreply, socket}
-  end
-
   @spec set_assigned_asset(integer, integer) ::
           :ok | {:error, :invalid_device_id | :invalid_asset_id | term}
   def set_assigned_asset(device_id, new_asset_id) do
@@ -653,23 +632,4 @@ defmodule DispatchWeb.DispatcherChannel do
   def to_error({key, {reason, _extra}}), do: to_error("#{key} - #{reason}")
 
   def to_error(reason), do: {:error, %{error: reason}}
-
-  defp parse_mock_track(track) do
-    pos = track["position"]
-
-    %{
-      name: track["name"],
-      user_id: track["user_id"],
-      position: %{
-        lat: pos["lat"],
-        lng: pos["lng"],
-        alt: pos["alt"]
-      },
-      speed_ms: track["speed_ms"],
-      heading: track["heading"],
-      ignition: true,
-      valid: Map.get(track, "valid", true),
-      timestamp: track["timestamp"]
-    }
-  end
 end

@@ -443,7 +443,8 @@ defmodule DispatchWeb.OperatorChannel do
         current: PreStartSubmissionAgent.current(asset_id),
         historic: PreStartSubmissionAgent.historic(asset_id)
       },
-      map_manifest: MapTileAgent.get()
+      map_manifest: MapTileAgent.get(),
+      send_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false)
     }
 
     # get asset type is defined through using Topics

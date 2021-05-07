@@ -179,6 +179,7 @@ export default {
             dispatch('setHistoricTimeAllocations', data.historic);
           },
         ],
+        ['set use device gps', data => dispatch('trackStore/setUseDeviceGPS', data.state)],
       ]);
 
       // haul truck specific calls
@@ -235,6 +236,7 @@ export default {
         ['setFleetOpsData', resp.fleetops_data],
         ['setCurrentPreStartSubmissions', resp.current_pre_start_submissions],
         ['trackStore/setTracks', resp.tracks],
+        ['trackStore/setUseDeviceGPS', resp.use_device_gps],
 
         // haul truck specific
         ['haulTruck/setCurrentDispatches', resp.haul_truck.dispatches.current],

@@ -106,7 +106,7 @@ export default {
       this.$eventBus.$emit('asset-assignment-open', row.assetId);
     },
     getIcon(row) {
-      return this.icons[row.assetType] || this.icon.Unknown;
+      return this.icons[row.assetType] || this.icons.Unknown;
     },
     getSecondaryIcon(row) {
       return row.hasDevice ? undefined : TabletIcon;

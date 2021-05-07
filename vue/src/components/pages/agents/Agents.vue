@@ -1,5 +1,13 @@
 <template>
   <div class="agents-page">
+    <hxCard title="Use device GPS" :icon="locationIcon">
+      <button class="hx-btn" :class="{ selected: useDeviceGPS }" @click="onSetUseGPS(true)">
+        Use
+      </button>
+      <button class="hx-btn" :class="{ selected: !useDeviceGPS }" @click="onSetUseGPS(false)">
+        Ignore
+      </button>
+    </hxCard>
     <hxCard title="Agents" :icon="databaseIcon">
       <div class="agent" v-for="(agent, index) in agents" :key="index">
         <Icon :icon="databaseIcon" />
@@ -11,9 +19,11 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
-import DatabaseIcon from '../../icons/Database.vue';
+import DatabaseIcon from '@/components/icons/Database.vue';
+import LocationIcon from '@/components/icons/Location.vue';
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 
 const AGENTS = [
@@ -38,8 +48,14 @@ export default {
   data: () => {
     return {
       databaseIcon: DatabaseIcon,
+      locationIcon: LocationIcon,
       agents: AGENTS,
     };
+  },
+  computed: {
+    ...mapState('trackStore', {
+      useDeviceGPS: state => state.useDeviceGPS,
+    }),
   },
   methods: {
     onConfirmRefresh(agent) {
@@ -64,11 +80,45 @@ export default {
         .receive('error', error => this.$toaster.error(error.error))
         .receive('timeout', () => this.$toaster.noComms(`Unable to update ${agent.name} `));
     },
+    onSetUseGPS(bool) {
+      if (bool === this.useDeviceGPS) {
+        return;
+      }
+
+      this.$modal
+        .create(ConfirmModal, {
+          title: 'Change GPS Mode',
+          body: 'Are you sure that you want to change the GPS aquisition mode?',
+          ok: 'yes',
+        })
+        .onClose(resp => {
+          if (resp === 'yes') {
+            this.setUseGPS(bool);
+          }
+        });
+    },
+    setUseGPS(bool) {
+      console.log(`[Device GPS] Requesting use device GPS = ${bool}`);
+      this.$channel
+        .push('track:set use device gps', { state: bool })
+        .receive('ok', () => {
+          this.$toaster.info('Device GPS Mode updated');
+        })
+        .receive('error', error => this.$toaster.error(error.error))
+        .receive('timeout', () =>
+          this.$toaster.noComms('Unable to update device GPS mode at this time'),
+        );
+    },
   },
 };
 </script>
 
 <style>
+.agents-page .selected {
+  background-color: #2c404c;
+  border: 1px solid #898f94;
+}
+
 .agents-page .agent {
   padding-bottom: 2rem;
   display: flex;
