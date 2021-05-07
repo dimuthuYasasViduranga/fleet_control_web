@@ -3,6 +3,7 @@ defmodule Dispatch.TrackAgent do
   Stores the most recent track data for each asset as it come in
   """
   use Agent
+  alias Dispatch.Helper
 
   require Logger
 
@@ -31,6 +32,8 @@ defmodule Dispatch.TrackAgent do
   def add(nil, _), do: {:error, :ignored}
 
   def add(track, source) do
+    track = Map.put(track, :timestamp, Helper.to_naive(track.timestamp))
+
     Agent.get_and_update(__MODULE__, fn state ->
       existing = state.tracks[track.asset_id]
 

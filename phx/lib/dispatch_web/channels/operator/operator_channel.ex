@@ -181,10 +181,7 @@ defmodule DispatchWeb.OperatorChannel do
       timestamp = logout["timestamp"]
 
       is_nil(asset_id) || !timestamp ||
-        NaiveDateTime.compare(
-          Helper.to_naive(timestamp),
-          NaiveDateTime.add(now, @max_clock_lead_s)
-        ) == :gt
+        NaiveDateTime.compare(Helper.to_naive(timestamp), now) == :gt
     end)
     |> Enum.each(fn logout ->
       timestamp = logout["timestamp"]
