@@ -48,7 +48,7 @@ export class Toaster {
 
     if (opts.replace) {
       for (const t of Vue.toasted.toasts) {
-        if (t.id === opts.replace || (t.type === type && t.text === msg)) {
+        if ((opts.id && t.id === opts.id) || (t.type === type && t.text === msg)) {
           t.remove();
         }
       }
@@ -56,7 +56,7 @@ export class Toaster {
 
     if (opts.onlyOne) {
       const alreadyExists = Vue.toasted.toasts.some(
-        t => t.id === opts.onlyOne || (t.type === type && t.text === msg),
+        t => (opts.id && t.id === opts.id) || (t.type === type && t.text === msg),
       );
 
       if (alreadyExists) {
