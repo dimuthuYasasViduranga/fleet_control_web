@@ -461,9 +461,6 @@ defmodule DispatchWeb.OperatorChannel do
     asset_type = asset[:secondary_type] || asset[:type]
 
     case asset_type do
-      nil ->
-        nil
-
       "Haul Truck" ->
         {asset_type, HaulTruckTopics.get_asset_type_state(asset, operator_id)}
 
@@ -474,7 +471,6 @@ defmodule DispatchWeb.OperatorChannel do
         {asset_type, WaterCartTopics.get_asset_type_state(asset, operator_id)}
 
       _ ->
-        Logger.error("No state for asset: '#{asset.name}' of type '#{asset.type}'")
         nil
     end
   end
