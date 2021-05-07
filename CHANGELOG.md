@@ -3,6 +3,15 @@
 ## pending [unreleased]
 
 
+## 0.10.4
+- fixed unassigned assets (dnd route) left padding
+- fixed "clear dump" removing visual, but not updating asset
+- fixed smooth assignments not merging correctly
+- load style hidden for dig units
+- added float icon
+- fixed naive compare to string in track agent
+- ability to toggle use device GPS
+
 ## 0.10.3
 - fixed unassigned assets display (drag and drop)
   - component css was overriding custom in build version
