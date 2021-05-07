@@ -43,7 +43,7 @@ function updateClashNotifications(assignments, devices) {
 
     const actions = [{ text: 'Fix', push: { path: '/device_assignment', dontClose: true } }];
 
-    Toaster.error(msg, { id, onlyOne: id, duration: 0, closeOnSwipe: false, actions });
+    Toaster.error(msg, { id, onlyOne: true, duration: 0, closeOnSwipe: false, actions });
   } else {
     Toaster.clear(t => t.id === id);
   }

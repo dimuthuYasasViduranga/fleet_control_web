@@ -263,10 +263,15 @@ function notifyPreStartSubmissionChanges(state, newSubs) {
 
     const status = getPreStartSubmissionStatus(sub, state.constants.preStartTicketStatusTypes);
 
+    const opts = {
+      id: `pre-start-submission-${sub.assetId}`,
+      replace: true,
+    };
+
     if (status === 'Pass') {
-      Toaster.info(`${assetName} - Pre-Start Passed`);
+      Toaster.info(`${assetName} | Pre-Start Passed`, opts);
     } else {
-      Toaster.error(`${assetName} - Pre-Start ${status}`);
+      Toaster.error(`${assetName} | Pre-Start ${status}`, opts);
     }
   });
 }
@@ -299,7 +304,10 @@ function notifyActiveTimeAllocationChanges(state, newAllocs) {
     const groupName = timeCodeGroup.alias || timeCodeGroup.name;
 
     const msg = `${assetName} | ${groupName} - ${timeCodeName}`;
+    const id = `time-allocation-change-${alloc.assetId}`;
     Toaster.custom(msg, 'info', {
+      id,
+      replace: true,
       duration: 5000,
       icon: TimeIcon,
       actions: [

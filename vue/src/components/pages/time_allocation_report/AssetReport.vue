@@ -1,8 +1,7 @@
 <template>
   <div class="asset-report">
     <TimeSpanEditor
-      v-if="reportData.show"
-      :show="true"
+      :show="reportData.show"
       :asset="asset"
       :timeAllocations="reportData.allocations"
       :deviceAssignments="reportData.deviceAssignments"

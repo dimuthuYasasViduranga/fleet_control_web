@@ -137,7 +137,11 @@ function groupHaulTrucks(type, haulTrucks, allAssets, dispatches, activities, lo
       activities,
     );
 
-    const routeName = `${source || 'No Source'} \n \u27f9 \n ${dump || 'No Dump'}`;
+    let routeName = 'Unassigned';
+
+    if (source || dump) {
+      routeName = `${source || 'No Source'} \n \u27f9 \n ${dump || 'No Dump'}`;
+    }
 
     return {
       name: routeName,
@@ -174,19 +178,21 @@ function getDispatchRouteNames(loadId, digUnitId, dumpId, assets, locations, act
   }
 }
 
-function groupDigUnit(type, assets, activities, locations) {
-  const groupMap = assets.reduce((acc, asset) => {
-    const loadId = attributeFromList(activities, 'assetId', asset.id, 'locationId');
-    (acc[loadId] = acc[loadId] || []).push(asset);
-    return acc;
-  }, {});
+function groupDigUnit(type, digUnits, activities, locations) {
+  const dict = new Dictionary();
 
-  const groups = Object.keys(groupMap).map(loadId => {
-    const name = attributeFromList(locations, 'id', loadId, 'name') || 'Unassigned';
-    return { name, assets: groupMap[loadId] };
+  digUnits.forEach(digUnit => {
+    const loadId = attributeFromList(activities, 'assetId', digUnit.id, 'locationId');
+    dict.append(loadId, digUnit);
   });
 
-  groups.sort(firstBy('name'));
+  const groups = dict
+    .map((loadId, assets) => {
+      const loadName = attributeFromList(locations, 'id', loadId, 'name');
+      return { name: loadName, assets };
+    })
+    .sort(firstBy('name'));
+
   return { type, groups };
 }
 

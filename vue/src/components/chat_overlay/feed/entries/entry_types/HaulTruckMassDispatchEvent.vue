@@ -7,7 +7,7 @@
     <div v-if="isUnassigned" class="message">
       <span class="new italics">Unassigned</span>
     </div>
-    <div class="message">
+    <div v-else class="message">
       <span class="new">
         <span :class="{ italics: !sourceName }">
           {{ sourceName || 'No Source' }}

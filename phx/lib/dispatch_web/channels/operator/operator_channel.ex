@@ -91,7 +91,7 @@ defmodule DispatchWeb.OperatorChannel do
 
           Broadcast.send_assignments_to_all()
 
-          get_device_state(asset_id)
+          get_device_state(asset_id, operator_id)
 
         connect_type ->
           Logger.info(
@@ -99,7 +99,7 @@ defmodule DispatchWeb.OperatorChannel do
           )
 
           case assignment[:operator_id] == operator_id do
-            true -> get_device_state(asset_id)
+            true -> get_device_state(asset_id, operator_id)
             _ -> %{logout: "Operator has changed device"}
           end
       end
@@ -388,13 +388,13 @@ defmodule DispatchWeb.OperatorChannel do
     }
   end
 
-  defp get_device_state(asset_id) do
+  defp get_device_state(asset_id, operator_id) do
     assignment = DeviceAssignmentAgent.get(%{asset_id: asset_id}) || %{}
 
     asset = AssetAgent.get_asset(%{id: asset_id})
     asset_type_id = asset[:type_id]
 
-    operator_id = assignment[:operator_id]
+    operator_id = assignment[:operator_id] || operator_id
 
     dispatcher_messages = DispatcherMessageAgent.all(asset_id)
 
