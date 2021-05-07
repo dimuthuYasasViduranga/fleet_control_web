@@ -1,18 +1,18 @@
 import axios from 'axios';
 
-import { toUtcDate } from '../../code/time.js';
+import { toUtcDate } from '@/code/time.js';
+import { attributeFromList, uniq } from '@/code/helpers.js';
 
-import UnknownIcon from '../../components/icons/asset_icons/Unknown.vue';
-import HaulTruckIcon from '../../components/icons/asset_icons/HaulTruck.vue';
-import WaterTruckIcon from '../../components/icons/asset_icons/WaterTruck.vue';
-import ExcavatorIcon from '../../components/icons/asset_icons/Excavator.vue';
-import LoaderIcon from '../../components/icons/asset_icons/Loader.vue';
-import DozerIcon from '../../components/icons/asset_icons/Dozer.vue';
-import ScraperIcon from '../../components/icons/asset_icons/Scraper.vue';
-import DrillIcon from '../../components/icons/asset_icons/Drill.vue';
-import GraderIcon from '../../components/icons/asset_icons/Grader.vue';
-
-import { attributeFromList, uniq } from '../../code/helpers.js';
+import UnknownIcon from '@/components/icons/asset_icons/Unknown.vue';
+import HaulTruckIcon from '@/components/icons/asset_icons/HaulTruck.vue';
+import WaterTruckIcon from '@/components/icons/asset_icons/WaterTruck.vue';
+import ExcavatorIcon from '@/components/icons/asset_icons/Excavator.vue';
+import LoaderIcon from '@/components/icons/asset_icons/Loader.vue';
+import DozerIcon from '@/components/icons/asset_icons/Dozer.vue';
+import ScraperIcon from '@/components/icons/asset_icons/Scraper.vue';
+import DrillIcon from '@/components/icons/asset_icons/Drill.vue';
+import GraderIcon from '@/components/icons/asset_icons/Grader.vue';
+import FloatIcon from '@/components/icons/asset_icons/Float.vue';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['production', 'stockpile', 'waste_stockpile'];
@@ -30,6 +30,7 @@ function getIcons() {
     Drill: DrillIcon,
     Grader: GraderIcon,
     Scratchy: ExcavatorIcon,
+    Float: FloatIcon,
   };
 }
 

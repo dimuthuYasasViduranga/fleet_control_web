@@ -62,6 +62,7 @@ import ScraperMarker from './markers/ScraperTopDownMarker.vue';
 import DrillMarker from './markers/DrillTopDownMarker.vue';
 import DozerMarker from './markers/DozerTopDownMarker.vue';
 import GraderIcon from './markers/GraderTopDownMarker.vue';
+import FloatIcon from './markers/FloatTopDownMarker.vue';
 
 import AlertIcon from '@/components/icons/Alert.vue';
 
@@ -74,6 +75,7 @@ const ICONS = {
   Drill: DrillMarker,
   Dozer: DozerMarker,
   Grader: GraderIcon,
+  Float: FloatIcon,
 };
 
 function createMockTrack(track, position, timestamp = new Date()) {
