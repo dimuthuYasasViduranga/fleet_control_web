@@ -39,7 +39,7 @@
           />
         </td>
       </tr> -->
-      <tr class="row location">
+      <!-- <tr class="row load-style">
         <td class="key">Load Style</td>
         <td class="value">
           <DropDown
@@ -55,7 +55,7 @@
             @click="onClearLoadStyle"
           />
         </td>
-      </tr>
+      </tr> -->
     </table>
     <Separator />
     <ActionButtons @submit="onSubmit" @reset="onReset" @cancel="onCancel" />

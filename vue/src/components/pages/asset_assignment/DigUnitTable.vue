@@ -67,8 +67,8 @@
           />
         </template>
       </table-column> -->
-
-      <table-column label="Dig Style" cell-class="table-cel">
+      
+      <!-- <table-column label="Dig Style" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
             v-model="row.loadStyleId"
@@ -77,7 +77,7 @@
             @change="setActivity(row)"
           />
         </template>
-      </table-column>
+      </table-column> -->
 
       <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
         <template slot-scope="row">
