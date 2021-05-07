@@ -119,11 +119,11 @@
       <input
         v-tooltip="errorTooltip"
         class="time-input"
-        :value="inputTimeString"
         :class="{ invalid: hasErrors }"
-        @change="onInputTimeChange"
+        :value="inputTimeString"
         placeholder="HH:MM:SS"
         :maxLength="8"
+        @change="onInputTimeChange"
       />
       <div v-if="hasErrors" v-tooltip="errorTooltip" class="reset-wrapper" @click="onResetTime()">
         <Icon class="reset-icon" :icon="refreshIcon" />
@@ -136,7 +136,7 @@
 import { DateTime, Info } from 'luxon';
 import Icon from 'hx-layout/Icon.vue';
 import Scrollable from '@/components/Scrollable.vue';
-import { pad, setTimeZone, toUtcDate } from '@/code/time';
+import { copyDate, pad, setTimeZone, toUtcDate } from '@/code/time';
 
 import RefreshIcon from '@/components/icons/Refresh.vue';
 import Bubble from '@/components/Bubble.vue';
@@ -446,6 +446,18 @@ export default {
       this.setInputTime(this.proposedDate);
     },
     onInputTimeChange(event) {
+      const value = event.target.value;
+
+      if (value === 'min' && this.minDatetimeJS) {
+        this.$emit('input', copyDate(this.minDatetimeJS));
+        return;
+      }
+
+      if (value === 'max' && this.maxDatetimeJS) {
+        this.$emit('input', copyDate(this.maxDatetimeJS));
+        return;
+      }
+
       const timeString = extrapolateTimeFromString(event.target.value);
 
       this.inputTimeString = timeString;
