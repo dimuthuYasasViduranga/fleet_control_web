@@ -11,7 +11,11 @@
       </tr>
       <tr>
         <td class="heading">Dig Unit</td>
-        <td class="value">{{ targetDigUnit }}</td>
+        <td class="value">{{ targetDigUnit.name || '--' }}</td>
+      </tr>
+      <tr>
+        <td class="heading">Location</td>
+        <td class="value">{{ targetLocation || targetDigUnit.location || '--' }}</td>
       </tr>
       <tr>
         <td class="heading">Dump</td>
@@ -61,7 +65,13 @@ export default {
         'name',
       );
 
-      return digUnitLocation ? `${digUnitName} (${digUnitLocation})` : digUnitName || '--';
+      return {
+        name: digUnitName,
+        location: digUnitLocation,
+      };
+    },
+    targetLocation() {
+      return attributeFromList(this.locations, 'id', this.dispatch.loadId, 'name');
     },
     dumpLocation() {
       return attributeFromList(this.locations, 'id', this.dispatch.dumpId, 'name');
