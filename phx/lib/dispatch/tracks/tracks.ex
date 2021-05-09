@@ -12,7 +12,7 @@ defmodule Dispatch.Tracks do
   end
 
   defp add_asset(track) do
-    case AssetAgent.get_asset(%{name: track.name}) do
+    case AssetAgent.get_asset(%{name: track[:name]}) do
       nil ->
         track
 

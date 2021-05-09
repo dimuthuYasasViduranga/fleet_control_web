@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.10.6
+- fixed adding asset to track failing when :name is not present
+
 ## 0.10.5
 - fixed "use device GPS" not syncing of init
 - added "min" and "max" inputs to dately selector to make it easier to determine min and max
