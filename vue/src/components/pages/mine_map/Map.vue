@@ -33,8 +33,8 @@
           <div class="g-control asset-selector-control">
             <GMapDropDown
               :value="selectedAssetId"
-              :items="assets"
-              label="name"
+              :items="assetOptions"
+              label="fullname"
               :useScrollLock="true"
               placeholder="Asset"
               direction="down"
@@ -217,6 +217,17 @@ export default {
       }
       return;
     },
+    assetOptions() {
+      return this.assets.map(a => {
+        const fullname = a.type ? `${a.name} (${a.type})` : a.name;
+        return {
+          id: a.id,
+          name: a.name,
+          type: a.type,
+          fullname,
+        };
+      });
+    },
   },
   watch: {
     assets(newAssets) {
@@ -394,7 +405,7 @@ export default {
 }
 
 .asset-selector-control .gmap-dropdown {
-  width: 7rem;
+  width: 20rem;
 }
 
 @media screen and (max-width: 560px) {

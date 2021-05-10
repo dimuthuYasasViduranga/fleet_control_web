@@ -72,6 +72,7 @@ export default {
 .gmap-dropdown .sdd-wrapper .dd-option {
   background-color: whitesmoke;
   color: black;
+  font-size: 1rem;
 }
 
 .gmap-dropdown .sdd-wrapper .dd-option:hover {
