@@ -201,6 +201,11 @@ export default {
 }
 
 .gmap-track .label {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: space-between;
+  justify-content: center;
   z-index: 1010;
   position: absolute;
   top: -0.75rem;
@@ -213,7 +218,6 @@ export default {
   font-size: 1.1rem;
   background-color: rgba(128, 128, 128, 0.719);
   color: white;
-  margin-top: 100%;
-  padding: 0 0.25rem;
+  white-space: nowrap;
 }
 </style>
