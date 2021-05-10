@@ -68,6 +68,9 @@ import DrillMarker from './markers/DrillTopDownMarker.vue';
 import DozerMarker from './markers/DozerTopDownMarker.vue';
 import GraderIcon from './markers/GraderTopDownMarker.vue';
 import FloatIcon from './markers/FloatTopDownMarker.vue';
+import ServiceVehicleIcon from './markers/ServiceVehicleTopDownMarker.vue';
+import LightingPlantIcon from './markers/LightingPlantTopDownMarker.vue';
+import LightVehicleIcon from './markers/LightVehicleTopDownMarker.vue';
 
 import AlertIcon from '@/components/icons/Alert.vue';
 
@@ -77,10 +80,14 @@ const ICONS = {
   Watercart: WaterCartMarker,
   Loader: LoaderMarker,
   Scraper: ScraperMarker,
+  Scratchy: LightVehicleIcon,
   Drill: DrillMarker,
   Dozer: DozerMarker,
   Grader: GraderIcon,
   Float: FloatIcon,
+  'Service Vehicle': ServiceVehicleIcon,
+  'Lighting Plant': LightingPlantIcon,
+  'Light Vehicle': LightVehicleIcon,
 };
 
 function createMockTrack(track, position, timestamp = new Date()) {

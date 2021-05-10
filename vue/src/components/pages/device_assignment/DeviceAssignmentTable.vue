@@ -45,7 +45,7 @@
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
           <span :class="setPresenceIconColor(row.present)">
-            <Icon :icon="icons[row.assetType] || tabletIcon" />
+            <Icon :icon="getIcon(row)" />
           </span>
         </template>
       </table-column>
@@ -148,6 +148,13 @@ export default {
     },
   },
   methods: {
+    getIcon(asset) {
+      if (!asset.assetId) {
+        return this.tabletIcon;
+      }
+
+      return this.icons[asset.assetType] || this.icons.Unknown;
+    },
     setPresenceIconColor(isPresent) {
       if (isPresent) {
         return 'green-icon';

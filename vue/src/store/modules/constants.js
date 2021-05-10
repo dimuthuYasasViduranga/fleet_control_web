@@ -13,6 +13,9 @@ import ScraperIcon from '@/components/icons/asset_icons/Scraper.vue';
 import DrillIcon from '@/components/icons/asset_icons/Drill.vue';
 import GraderIcon from '@/components/icons/asset_icons/Grader.vue';
 import FloatIcon from '@/components/icons/asset_icons/Float.vue';
+import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vue';
+import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
+import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['production', 'stockpile', 'waste_stockpile'];
@@ -31,6 +34,9 @@ function getIcons() {
     Grader: GraderIcon,
     Scratchy: ExcavatorIcon,
     Float: FloatIcon,
+    'Service Vehicle': ServiceVehicleIcon,
+    'Light Vehicle': LightVehicleIcon,
+    'Lighting Plant': LightingPlantIcon,
   };
 }
 
