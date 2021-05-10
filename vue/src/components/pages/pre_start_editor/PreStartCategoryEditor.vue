@@ -5,10 +5,11 @@
       <button class="hx-btn" @click="onSubmit()">Submit</button>
     </div>
     <div class="header">
-      <div class="item">
-        <div class="name">Category Name</div>
-        <div class="action">On Fail Action</div>
-      </div>
+      <table class="item">
+        <td class="name">Category Name</td>
+        <td class="action">Action on Failure</td>
+        <td class="edit"></td>
+      </table>
     </div>
     <div class="list">
       <Container
@@ -20,13 +21,24 @@
         @drop="onDrop"
       >
         <Draggable v-for="(item, index) in localCategories" :key="index">
-          <div class="item">
+          <table class="item">
+            <tr>
+              <td class="name">{{ item.name }}</td>
+              <td class="action" :class="{ italic: !item.action }">
+                {{ item.action || '-- No Action --' }}
+              </td>
+              <td class="edit">
+                <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit(item)" />
+              </td>
+            </tr>
+          </table>
+          <!-- <div class="item">
             <div class="name">{{ item.name }}</div>
             <div class="action" :class="{ italic: !item.action }">
               {{ item.action || '-- No Action --' }}
             </div>
             <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit(item)" />
-          </div>
+          </div> -->
         </Draggable>
       </Container>
     </div>
@@ -150,7 +162,7 @@ export default {
     submit(categories) {
       const payload = categories.map((c, index) => {
         return {
-          id: c.id || null,
+          id: c.id,
           name: c.name,
           action: c.action,
           order: index,
@@ -188,11 +200,18 @@ export default {
 }
 
 .pre-start-category-editor .item {
-  display: grid;
-  grid-template-columns: 10rem auto 2rem;
+  width: 100%;
 }
 
-.pre-start-category-editor .item .edit-icon {
+.pre-start-category-editor .item .name {
+  width: 10rem;
+}
+
+.pre-start-category-editor .item .edit {
+  width: 2rem;
+}
+
+.pre-start-category-editor .item .edit .edit-icon {
   cursor: pointer;
   margin: auto;
   width: 1.25rem;
@@ -214,8 +233,7 @@ export default {
   width: 100%;
   font-size: 1.25rem;
   text-align: center;
-  height: 4rem;
-  line-height: 4rem;
+  min-height: 2rem;
   border-top: 0.001em solid #677e8c;
   border-bottom: 0.001em solid #677e8c;
   margin: 10px 0;
