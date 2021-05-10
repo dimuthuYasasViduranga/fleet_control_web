@@ -229,6 +229,25 @@ defmodule Dispatch.PreStartAgentTest do
       assert_db_count(PreStart.ControlCategory, 1)
     end
 
+    test "valid (nil id treated as no id)" do
+      input = %{id: nil, name: "A", action: "B", order: 1}
+
+      {:ok, [actual]} = PreStartAgent.update_categories([input])
+
+      # return
+      assert actual.id != nil
+      assert actual.name == input.name
+      assert actual.action == input.action
+      assert actual.order == input.order
+
+      # store
+      assert PreStartAgent.categories() == [actual]
+
+      # database
+      assert_db_contains(PreStart.ControlCategory, actual)
+      assert_db_count(PreStart.ControlCategory, 1)
+    end
+
     test "valid (no changes)" do
       {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
 
@@ -263,7 +282,7 @@ defmodule Dispatch.PreStartAgentTest do
     end
 
     test "invalid (missing elements)" do
-      {:ok, [original]} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
+      {:ok, _} = PreStartAgent.update_categories([%{name: "A", action: "B", order: 0}])
 
       input = %{id: -1, name: "B", action: "C", order: -1}
       error = PreStartAgent.update_categories([input])

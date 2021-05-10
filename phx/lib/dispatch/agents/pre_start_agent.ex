@@ -156,7 +156,11 @@ defmodule Dispatch.PreStartAgent do
   @spec update_categories(list(map)) ::
           {:ok, list(category)} | {:error, :invalid_ids | term}
   def update_categories(cats) do
-    new_cats = Enum.filter(cats, &is_nil(&1[:id]))
+    new_cats =
+      cats
+      |> Enum.filter(&is_nil(&1[:id]))
+      |> Enum.map(&Map.drop(&1, [:id]))
+
     updated_cats = Enum.reject(cats, &is_nil(&1[:id]))
 
     Agent.get_and_update(__MODULE__, fn state ->
