@@ -9,6 +9,10 @@
       @keydown="onKeyDown"
     />
     <DropDown
+      v-tooltip="{
+        content: getCategoryAction(data.categoryId),
+        classes: ['__ps_control_category_tooltip'],
+      }"
       class="category"
       v-model="data.categoryId"
       :items="categories"
@@ -33,6 +37,7 @@ import ErrorIcon from 'hx-layout/icons/Error.vue';
 import HamburgerIcon from '@/components/icons/Hamburger.vue';
 import DropDown from '@/components/dropdown/DropDown.vue';
 import CommentIcon from '@/components/icons/Comment.vue';
+import { attributeFromList } from '@/code/helpers';
 
 const ENTER = 13;
 
@@ -60,6 +65,7 @@ export default {
         return {
           id: c.id,
           name: c.name,
+          action: c.action,
           fullname,
         };
       });
@@ -83,6 +89,9 @@ export default {
     onToggleRequiresComment() {
       this.data.requiresComment = !this.data.requiresComment;
     },
+    getCategoryAction(id) {
+      return attributeFromList(this.categories, 'id', id, 'action');
+    },
   },
 };
 </script>
@@ -90,7 +99,7 @@ export default {
 <style>
 .pre-start-control {
   display: grid;
-  grid-template-columns: 3rem auto 7rem 2.5rem 2rem;
+  grid-template-columns: 3rem auto 10rem 2.5rem 2rem;
   margin: 0.25rem;
   padding: 0.5rem;
   background-color: #23343f;
@@ -133,7 +142,12 @@ export default {
   opacity: 0.75;
 }
 
-.pre-start-control .category {
-  width: 7rem;
+.pre-start-form-editor .dropdown-wrapper .fixed-div {
+  width: 14rem !important;
+}
+
+.__ps_control_category_tooltip {
+    max-width: 14rem;
+  text-align: center;
 }
 </style>
