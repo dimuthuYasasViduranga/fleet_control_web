@@ -10,19 +10,25 @@
             class="geofence-control"
             tooltip="right"
             :highlight="!showAllGeofences"
-            @click.native="toggleAllGeofences"
+            @click.native="toggleAllGeofences()"
           />
           <GmapAlertIcon
             class="alert-control"
             tooltip="right"
             :highlight="!showAlerts"
-            @click.native="toggleShowAlerts"
+            @click.native="toggleShowAlerts()"
           />
-          <ClusterIcon
+          <GmapClusterIcon
             class="cluster-control"
             tooltip="right"
             :highlight="!useMapClusters"
-            @click.native="toggleUseMapClusters"
+            @click.native="toggleUseMapClusters()"
+          />
+          <GmapLabelIcon
+            class="label-control"
+            tooltip="right"
+            :highlight="!showLabels"
+            @click.native="toggleShowLabels()"
           />
           <div class="g-control asset-selector-control">
             <GMapDropDown
@@ -57,6 +63,7 @@
             :assets="assets"
             :icons="trackIcons"
             :showAlerts="showAlerts"
+            :showLabel="showLabels"
             :clusterSize="useMapClusters ? trackClusterSize : 0"
             :selectedAssetId="selectedAssetId"
             :draggable="debug"
@@ -99,7 +106,8 @@ import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GmapAlertIcon from '@/components/gmap/GmapAlertIcon.vue';
-import ClusterIcon from '@/components/gmap/ClusterIcon.vue';
+import GmapClusterIcon from '@/components/gmap/GmapClusterIcon.vue';
+import GmapLabelIcon from '@/components/gmap/GmapLabelIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles.js';
@@ -138,7 +146,8 @@ export default {
     ResetZoomIcon,
     PolygonIcon,
     GmapAlertIcon,
-    ClusterIcon,
+    GmapClusterIcon,
+    GmapLabelIcon,
   },
   props: {
     assets: { type: Array, default: () => [] },
@@ -152,6 +161,7 @@ export default {
       showAllGeofences: false,
       showAlerts: true,
       useMapClusters: true,
+      showLabels: true,
       defaults: {
         zoom: 0,
         center: {
@@ -251,6 +261,7 @@ export default {
       attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
       attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
       attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.label-control', 'LEFT_TOP');
       attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
       attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
@@ -293,6 +304,9 @@ export default {
     },
     toggleUseMapClusters() {
       this.useMapClusters = !this.useMapClusters;
+    },
+    toggleShowLabels() {
+      this.showLabels = !this.showLabels;
     },
     onGeofenceClick({ geofence, click }) {
       const selected = this.selected;

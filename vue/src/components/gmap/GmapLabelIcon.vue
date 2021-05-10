@@ -1,20 +1,19 @@
 <template>
   <div class="wrapper">
     <div
-      class="cluster-icon"
+      class="gmap-label-icon"
       :class="{ highlight: highlight }"
       v-tooltip="{
         classes: ['google-tooltip'],
         trigger: 'hover',
-        content: 'Toggle Icon Clustering',
+        content: 'Toggle Labels',
         placement: tooltip,
       }"
     >
-      <svg viewBox="0 0 22 22">
-        <circle cx="11" cy="11" r="6.5" stroke-linejoin="round" />
+      <svg viewBox="0 -2 30 30">
         <path
+          d="M12.78 27.69L.5 15.41 15.38.5h12.31v12.31zM21.99 4a2.19 2.19 0 0 0-2.19 2.19 2.19 2.19 0 0 0 2.19 2.19 2.19 2.19 0 0 0 2.19-2.19A2.19 2.19 0 0 0 21.99 4z"
           stroke-linejoin="round"
-          d="M4 .5H.5V4M.5.5l4 4M18 .5h3.5V4m0-3.5l-4 4M4 21.5H.5V18m0 3.5l4-4m13.5 4h3.5V18m0 3.5l-4-4"
         />
       </svg>
     </div>
@@ -23,7 +22,7 @@
 
 <script>
 export default {
-  name: 'ClusterIcon',
+  name: 'GmapLabelIcon',
   props: {
     highlight: { type: Boolean, default: false },
     tooltip: { type: String, default: 'top' },
@@ -32,24 +31,24 @@ export default {
 </script>
 
 <style>
-.cluster-icon {
+.gmap-label-icon {
   height: 40px;
   width: 40px;
 }
 
-.cluster-icon svg {
+.gmap-label-icon svg {
   padding: 4px;
   cursor: pointer;
   stroke: black;
   fill: transparent;
-  stroke-width: 0.75;
+  stroke-width: 1;
   background-color: white;
   border-radius: 2px;
   height: 100%;
   width: 100%;
 }
 
-.cluster-icon.highlight svg {
+.gmap-label-icon.highlight svg {
   background-color: rgb(189, 189, 189);
 }
 

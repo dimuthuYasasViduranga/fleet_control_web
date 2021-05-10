@@ -6,6 +6,7 @@
           v-for="asset in assetsWithTracks"
           :key="asset.id"
           :class="getMarkerClass(asset)"
+          class="gmap-track"
           :marker="asset.track.position"
           alignment="center"
         >
@@ -23,6 +24,10 @@
               @click.native="onTrackClick(asset, $event)"
             />
           </div>
+          <div v-if="showLabel && asset.name" class="label">
+            <span>{{ asset.name }}</span>
+          </div>
+
           <component
             :is="getMarker(asset)"
             :scale="1"
@@ -120,6 +125,7 @@ export default {
     icons: { type: Object, default: () => ({}) },
     draggable: { type: Boolean, default: false },
     showAlerts: { type: Boolean, default: false },
+    showLabel: { type: Boolean, default: false },
     clusterSize: { type: Number, default: 0 },
     zoomOnClick: { type: Boolean, default: true },
     selectedAssetId: { type: Number, default: null },
@@ -174,10 +180,8 @@ export default {
   color: black;
   padding: 5px 10px 4px;
 }
-</style>
 
-<style scope>
-.alert {
+.gmap-track .alert {
   z-index: 1000;
   position: absolute;
   top: 0;
@@ -185,7 +189,24 @@ export default {
   margin: 7%;
 }
 
-.alert svg {
-  stroke-width: 3;
+.gmap-track .alert svg {
+  stroke-width: 1.5;
+}
+
+.gmap-track .label {
+  z-index: 1010;
+  position: absolute;
+  top: -0.75rem;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+}
+
+.gmap-track .label span {
+  font-size: 1.1rem;
+  background-color: rgba(128, 128, 128, 0.719);
+  color: white;
+  margin-top: 100%;
+  padding: 0 0.25rem;
 }
 </style>
