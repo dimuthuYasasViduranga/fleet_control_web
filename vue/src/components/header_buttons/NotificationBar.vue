@@ -7,6 +7,7 @@
 <script>
 import { formatSecondsRelative } from '@/code/time';
 const NOW_INTERVAL = 2 * 1000;
+const RELOAD_NOTIFICATION_AFTER = 5 * 60; //5 minutes
 
 function timeSince(now, datetime) {
   if (!datetime) {
@@ -18,7 +19,12 @@ function timeSince(now, datetime) {
   if (seconds === 0) {
     return;
   }
-  return formatSecondsRelative(seconds);
+
+  if (seconds < RELOAD_NOTIFICATION_AFTER) {
+    return formatSecondsRelative(seconds);
+  }
+
+  return formatSecondsRelative(seconds) + ' (click to reload)';
 }
 
 export default {
