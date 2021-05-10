@@ -109,6 +109,13 @@ export default {
         ['set pending devices', data => dispatch('deviceStore/setPendingDevices', data)],
 
         // semi-constants
+        [
+          'set asset data',
+          data => {
+            dispatch('constants/setAssetTypes', data.asset_types);
+            dispatch('constants/setAssets', data.assets);
+          },
+        ],
         ['set location data', data => dispatch('constants/setLocationData', data.locations)],
         [
           'set operator message types',

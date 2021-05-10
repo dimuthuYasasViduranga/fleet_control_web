@@ -182,8 +182,12 @@ defmodule DispatchWeb.Broadcast do
   end
 
   def send_asset_data_to_all() do
-    payload = %{assets: AssetAgent.get_assets()}
-    Endpoint.broadcast(@dispatch, "set assets", payload)
+    payload = %{
+      assets: AssetAgent.get_assets(),
+      asset_types: AssetAgent.get_types()
+    }
+
+    Endpoint.broadcast(@dispatch, "set asset data", payload)
   end
 
   def send_calendar_data_to_all() do
