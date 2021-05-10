@@ -152,6 +152,7 @@
       </table>
 
       <button class="hx-btn" @click="onDisconnectChannel()">Disconnect</button>
+      <button class="hx-btn" @click="onErrorChannel()">Trigger error</button>
 
       <div class="message-log">
         Message Log:
@@ -374,6 +375,9 @@ export default {
     },
     onDisconnectChannel() {
       this.$channel.destroy();
+    },
+    onErrorChannel() {
+      this.$channel.push('completely does not exist');
     },
     formatDateString(date) {
       if (!date) {
