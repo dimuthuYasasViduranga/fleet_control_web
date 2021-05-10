@@ -55,7 +55,7 @@
         <td v-if="ago.duration != null" class="value" :class="ago.class">
           {{ formatAgo(ago.duration) }}
         </td>
-        <td v-else class="value">{{ formatDate(track.timestamp) || '--' }}</td>
+        <td v-else class="value red-text">{{ formatDate(track.timestamp) || '--' }}</td>
       </tr>
     </table>
 
