@@ -2,6 +2,13 @@
 
 ## pending [unreleased]
 
+## 0.10.7
+- added overhead labels to map assets (can be toggled on and off)
+- fixed pre-start control categories not accepting new entries
+- increased dropdown size for pre-start category selector
+- added tooltip to pre-start category to show action
+- red text for "Last Seen" in asset tile when using full timestamp format
+
 ## 0.10.6
 - fixed adding asset to track failing when :name is not present
 

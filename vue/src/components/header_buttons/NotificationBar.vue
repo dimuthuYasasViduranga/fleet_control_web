@@ -7,7 +7,7 @@
 <script>
 import { formatSecondsRelative } from '@/code/time';
 const NOW_INTERVAL = 2 * 1000;
-const RELOAD_NOTIFICATION_AFTER = 5 * 60; //5 minutes
+const RELOAD_NOTIFICATION_AFTER = 5 * 60; // 5 minutes
 
 function timeSince(now, datetime) {
   if (!datetime) {
