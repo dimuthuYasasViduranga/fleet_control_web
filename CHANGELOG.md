@@ -2,6 +2,21 @@
 
 ## pending [unreleased]
 
+## 0.10.8
+- increased map asset selector dropdown size (to allow for asset type)
+- fixed "refresh assets" not going to dispatcher
+- centered map asset label. Removed text-wrapping
+- Tile Icons
+  - Service Vehicle
+  - Scratchy (just excavator)
+  - Light Vehicle
+  - Lighting Plant
+- Map Icons
+  - Service Vehicle
+  - Scratchy (just excavator)
+  - Light Vehicle
+  - Lighting Plant
+
 ## 0.10.7
 - added overhead labels to map assets (can be toggled on and off)
 - fixed pre-start control categories not accepting new entries

@@ -80,7 +80,7 @@ const ICONS = {
   Watercart: WaterCartMarker,
   Loader: LoaderMarker,
   Scraper: ScraperMarker,
-  Scratchy: LightVehicleIcon,
+  Scratchy: ExcavatorMarker,
   Drill: DrillMarker,
   Dozer: DozerMarker,
   Grader: GraderIcon,
