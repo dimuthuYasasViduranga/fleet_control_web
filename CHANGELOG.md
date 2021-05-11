@@ -2,6 +2,12 @@
 
 ## pending [unreleased]
 
+## 0.10.9
+- added radio number to map tooltip (if available)
+- added asset filters
+- show all assets on map (regardless of tablet assignment)
+- removed "No Allocation" alert from map
+
 ## 0.10.8
 - increased map asset selector dropdown size (to allow for asset type)
 - fixed "refresh assets" not going to dispatcher
