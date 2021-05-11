@@ -38,7 +38,10 @@
         <td v-if="ago < agoSwitch" class="value" :class="agoClass">{{ formatAgo(ago) }}</td>
         <td v-else class="value red-text">{{ timestamp }}</td>
       </tr>
-
+      <tr>
+        <td class="heading">Radio</td>
+        <td class="value">{{ asset.radioNumber || '--' }}</td>
+      </tr>
       <tr>
         <td class="heading">
           <div v-if="allocName" class="alloc-color" :class="allocColorClass"></div>

@@ -18,8 +18,13 @@ import PlantIcon from '../../icons/Map.vue';
 import Map from './Map.vue';
 
 const STATIC_TYPES = ['parkup', 'maintenance', 'fuel_bay', 'changeover_bay'];
+const CANNOT_ALERT_TYPES = ['Light Vehicle', 'Lighting Plant'];
 
 function calculateAlert(asset, track) {
+  if (CANNOT_ALERT_TYPES.includes(asset.type)) {
+    return;
+  }
+
   const locationType = ((track || {}).location || {}).type;
   const allocation = asset.activeTimeAllocation || {};
 
