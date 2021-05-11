@@ -215,7 +215,7 @@ export default {
       mapType: 'satellite',
       showAllGeofences: false,
       showAlerts: true,
-      useMapClusters: true,
+      useMapClusters: false,
       showAssetFilter: false,
       showLabels: true,
       defaults: {

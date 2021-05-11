@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.10.10
+- map clustering defaults to off
+
 ## 0.10.9
 - added radio number to map tooltip (if available)
 - added asset filters
