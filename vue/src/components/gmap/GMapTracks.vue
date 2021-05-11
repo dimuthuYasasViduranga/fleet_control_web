@@ -2,39 +2,39 @@
   <div class="gmap-tracks">
     <gmap-cluster :gridSize="clusterSize" :zoomOnClick="zoomOnClick">
       <template v-if="!draggable">
-        <gmap-custom-marker
-          v-for="asset in assetsWithTracks"
-          :key="asset.id"
-          :class="getMarkerClass(asset)"
-          class="gmap-track"
-          :marker="asset.track.position"
-          alignment="center"
-        >
-          <div v-if="showAlerts && asset.alert" class="alert">
-            <Icon
-              v-tooltip="{
-                content: asset.alert.text,
-                classes: ['google-tooltip'],
-                delay: { show: 10, hide: 100 },
-              }"
-              :style="`stroke: ${asset.alert.stroke || 'black'}; fill: ${
-                asset.alert.fill || 'orangered'
-              }`"
-              :icon="alertIcon"
+        <div v-for="asset in assetsWithTracks" :key="asset.id">
+          <gmap-custom-marker
+            :class="getMarkerClass(asset)"
+            class="gmap-track"
+            :marker="asset.track.position"
+            alignment="center"
+          >
+            <div v-if="showAlerts && asset.alert" class="alert">
+              <Icon
+                v-tooltip="{
+                  content: asset.alert.text,
+                  classes: ['google-tooltip'],
+                  delay: { show: 10, hide: 100 },
+                }"
+                :style="`stroke: ${asset.alert.stroke || 'black'}; fill: ${
+                  asset.alert.fill || 'orangered'
+                }`"
+                :icon="alertIcon"
+                @click.native="onTrackClick(asset, $event)"
+              />
+            </div>
+            <div v-if="showLabel && asset.name" class="label">
+              <span>{{ asset.name }}</span>
+            </div>
+
+            <component
+              :is="getMarker(asset)"
+              :scale="1"
+              :rotation="asset.track.velocity.heading"
               @click.native="onTrackClick(asset, $event)"
             />
-          </div>
-          <div v-if="showLabel && asset.name" class="label">
-            <span>{{ asset.name }}</span>
-          </div>
-
-          <component
-            :is="getMarker(asset)"
-            :scale="1"
-            :rotation="asset.track.velocity.heading"
-            @click.native="onTrackClick(asset, $event)"
-          />
-        </gmap-custom-marker>
+          </gmap-custom-marker>
+        </div>
       </template>
       <template v-else>
         <gmap-marker
@@ -129,7 +129,6 @@ export default {
   },
   props: {
     assets: { type: Array, default: () => [] },
-    icons: { type: Object, default: () => ({}) },
     draggable: { type: Boolean, default: false },
     showAlerts: { type: Boolean, default: false },
     showLabel: { type: Boolean, default: false },
