@@ -41,6 +41,56 @@
               @change="onFindAsset"
             />
           </div>
+          <div class="g-control asset-type-filter-toggle">
+            <Icon
+              v-tooltip="{
+                classes: ['google-tooltip'],
+                trigger: 'hover',
+                content: `Toggle Asset Filter`,
+                placement: 'top',
+              }"
+              :class="{ highlight: showAssetFilter }"
+              :icon="filterIcon"
+              @click="showAssetFilter = !showAssetFilter"
+            />
+          </div>
+          <div v-show="showAssetFilter" class="g-control asset-type-filter">
+            <Icon
+              v-tooltip="{
+                classes: ['google-tooltip'],
+                trigger: 'hover',
+                content: `Show All`,
+                placement: 'top',
+              }"
+              :icon="tickIcon"
+              @click="showAllAssetTypes()"
+            />
+            <Icon
+              v-tooltip="{
+                classes: ['google-tooltip'],
+                trigger: 'hover',
+                content: `Hide All`,
+                placement: 'top',
+              }"
+              :icon="errorIcon"
+              @click="hideAllAssetTypes()"
+            />
+            <Icon
+              v-for="assetType in assetTypeIcons"
+              :key="assetType.type"
+              v-tooltip="{
+                classes: ['google-tooltip'],
+                trigger: 'hover',
+                content: `Toggle ${assetType.type}`,
+                placement: 'left',
+              }"
+              :class="{
+                highlight: !shownAssetTypes.includes(assetType.type),
+              }"
+              :icon="assetType.icon"
+              @click="onToggleAssetTypeVisibility(assetType.type)"
+            />
+          </div>
           <div class="debug-control" :class="{ show: debug }" @click="onDebugControl"></div>
         </div>
         <!-- GMap Element -->
@@ -61,7 +111,6 @@
 
           <g-map-tracks
             :assets="assets"
-            :icons="trackIcons"
             :showAlerts="showAlerts"
             :showLabel="showLabels"
             :clusterSize="useMapClusters ? trackClusterSize : 0"
@@ -98,7 +147,13 @@
 <script>
 import { gmapApi } from 'gmap-vue';
 import GmapCluster from 'gmap-vue/dist/components/cluster';
+
 import loading from 'hx-layout/Loading.vue';
+import Icon from 'hx-layout/Icon.vue';
+import ErrorIcon from 'hx-layout/icons/Error.vue';
+import TickIcon from '@/components/icons/Tick.vue';
+import FilterIcon from '@/components/icons/Filter.vue';
+
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import GMapTracks from '@/components/gmap/GMapTracks.vue';
 import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
@@ -117,9 +172,6 @@ import HaulTruckInfo from './info/HaulTruckInfo.vue';
 import DigUnitInfo from './info/DigUnitInfo.vue';
 import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
-
-import Icon from 'hx-layout/Icon.vue';
-import ErrorIcon from 'hx-layout/icons/Error.vue';
 
 function fromLatLng(latLng) {
   return {
@@ -151,8 +203,11 @@ export default {
   },
   props: {
     assets: { type: Array, default: () => [] },
+    assetTypes: { type: Array, default: () => [] },
     activeLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
+    icons: { type: Object, default: () => ({}) },
+    shownAssetTypes: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -161,6 +216,7 @@ export default {
       showAllGeofences: false,
       showAlerts: true,
       useMapClusters: true,
+      showAssetFilter: false,
       showLabels: true,
       defaults: {
         zoom: 0,
@@ -189,12 +245,10 @@ export default {
 
       // track properties
       trackClusterSize: 35,
-      trackIcons: {
-        default: undefined,
-      },
-
       debug: false,
       errorIcon: ErrorIcon,
+      tickIcon: TickIcon,
+      filterIcon: FilterIcon,
     };
   },
   computed: {
@@ -216,6 +270,18 @@ export default {
         return this.selected.data.id;
       }
       return;
+    },
+    assetTypeIcons() {
+      const icons = this.$store.state.constants.icons || {};
+
+      return this.assetTypes
+        .map(t => {
+          return {
+            type: t.type,
+            icon: icons[t.type] || icons.Unknown,
+          };
+        })
+        .sort((a, b) => (a.type || '').localeCompare(b.type || ''));
     },
     assetOptions() {
       return this.assets.map(a => {
@@ -274,6 +340,8 @@ export default {
       attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
       attachControl(map, this.google, '.label-control', 'LEFT_TOP');
       attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
+      attachControl(map, this.google, '.asset-type-filter-toggle', 'RIGHT_TOP');
+      attachControl(map, this.google, '.asset-type-filter', 'RIGHT_TOP');
       attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
@@ -368,6 +436,15 @@ export default {
         .receive('error', error => console.error(error))
         .receive('timeout', () => console.error('request timed out'));
     },
+    onToggleAssetTypeVisibility(type) {
+      this.$emit('toggle-asset-type-visibility', type);
+    },
+    showAllAssetTypes() {
+      this.$emit('show-all-asset-types');
+    },
+    hideAllAssetTypes() {
+      this.$emit('hide-all-asset-types');
+    },
   },
 };
 </script>
@@ -406,6 +483,53 @@ export default {
 
 .asset-selector-control .gmap-dropdown {
   width: 20rem;
+}
+
+.asset-type-filter-toggle {
+  width: 42px;
+  margin: -1px;
+  height: 42px;
+}
+
+.asset-type-filter-toggle .hx-icon {
+  width: 100%;
+  height: 42px;
+  width: 42px;
+  padding: 5px 0;
+}
+
+.asset-type-filter-toggle .hx-icon svg {
+  stroke: black;
+}
+
+.asset-type-filter {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: space-between;
+  width: 84px;
+  margin-left: -1px;
+  margin-right: -1px;
+  height: auto;
+}
+
+.asset-type-filter .hx-icon {
+  width: 100%;
+  height: 42px;
+  width: 42px;
+  padding: 5px 0;
+}
+
+.asset-type-filter-toggle .hx-icon:hover,
+.asset-type-filter-toggle .hx-icon.highlight,
+.asset-type-filter .hx-icon:hover,
+.asset-type-filter .hx-icon.highlight {
+  background-color: rgb(189, 189, 189);
+}
+
+.asset-type-filter .hx-icon svg {
+  stroke: black;
 }
 
 @media screen and (max-width: 560px) {

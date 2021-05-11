@@ -2,10 +2,16 @@
   <hxCard :title="title" :icon="icon">
     <Map
       :assets="localAssets"
+      :assetTypes="assetTypes"
       :activeLocations="activeLocations"
       :locations="locations"
+      :icons="icons"
+      :shownAssetTypes="shownAssetTypes"
       @dragstart="onDragStart()"
       @dragend="onDragEnd()"
+      @toggle-asset-type-visibility="onToggleAssetTypeVisibility"
+      @show-all-asset-types="onShowAllAssetTypes()"
+      @hide-all-asset-types="onHideAllAssetTypes()"
     />
   </hxCard>
 </template>
@@ -84,11 +90,18 @@ export default {
       icon: PlantIcon,
       dragging: false,
       localAssets: [],
+      shownAssetTypes: [],
     };
   },
   computed: {
+    icons() {
+      return this.$store.state.constants.icons;
+    },
     locations() {
       return this.$store.state.constants.locations;
+    },
+    assetTypes() {
+      return this.$store.state.constants.assetTypes;
     },
     haulTruckLocations() {
       // returns all the location ids currently being used
@@ -113,27 +126,29 @@ export default {
     },
     assets() {
       const tracks = this.tracks;
-      return this.$store.getters.fullAssets
-        .filter(fa => fa.hasDevice)
-        .map(fa => {
-          const track = tracks.find(t => t.assetId === fa.id);
+      return (
+        this.$store.getters.fullAssets
+          // .filter(fa => fa.hasDevice)
+          .map(fa => {
+            const track = tracks.find(t => t.assetId === fa.id);
 
-          const allocation = fa.activeTimeAllocation || {};
-          const alert = calculateAlert(fa, track);
+            const allocation = fa.activeTimeAllocation || {};
+            const alert = calculateAlert(fa, track);
 
-          return {
-            id: fa.id,
-            name: fa.name,
-            type: fa.type,
-            operatorName: fa.operator.shortname,
-            radioNumber: fa.radioNumber,
-            deviceId: fa.deviceId,
-            deviceUUID: fa.deviceUUID,
-            allocation,
-            alert,
-            track,
-          };
-        });
+            return {
+              id: fa.id,
+              name: fa.name,
+              type: fa.type,
+              operatorName: fa.operator.shortname,
+              radioNumber: fa.radioNumber,
+              deviceId: fa.deviceId,
+              deviceUUID: fa.deviceUUID,
+              allocation,
+              alert,
+              track,
+            };
+          })
+      );
     },
   },
   watch: {
@@ -141,17 +156,45 @@ export default {
       immediate: true,
       handler(assets) {
         if (!this.dragging) {
-          this.localAssets = (this.assets || []).slice();
+          this.updateLocalAssets(this.assets);
+        }
+      },
+    },
+    assetTypes: {
+      immediate: true,
+      handler(assetTypes = []) {
+        if (this.shownAssetTypes.length === 0) {
+          this.shownAssetTypes = assetTypes.map(t => t.type);
         }
       },
     },
   },
   methods: {
+    updateLocalAssets(assets) {
+      this.localAssets = (assets || []).filter(a => this.shownAssetTypes.includes(a.type)).slice();
+    },
     onDragStart() {
       this.dragging = true;
     },
     onDragEnd() {
       this.dragging = false;
+    },
+    onToggleAssetTypeVisibility(type) {
+      if (this.shownAssetTypes.includes(type)) {
+        this.shownAssetTypes = this.shownAssetTypes.filter(t => t !== type);
+      } else {
+        this.shownAssetTypes = this.shownAssetTypes.concat([type]);
+      }
+
+      this.updateLocalAssets(this.assets);
+    },
+    onHideAllAssetTypes() {
+      this.shownAssetTypes = [];
+      this.updateLocalAssets(this.assets);
+    },
+    onShowAllAssetTypes() {
+      this.shownAssetTypes = this.assetTypes.map(a => a.type);
+      this.updateLocalAssets(this.assets);
     },
   },
 };
@@ -161,15 +204,5 @@ export default {
 @import '../../../assets/googleMaps.css';
 .map_wrapper {
   padding-bottom: 2rem;
-}
-
-select {
-  width: 8em;
-  height: 1.55em;
-  color: #0c1419;
-  background-color: #ededed;
-  border-style: none;
-  text-align: center;
-  margin: 0.1em;
 }
 </style>
