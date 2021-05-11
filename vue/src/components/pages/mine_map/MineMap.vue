@@ -35,10 +35,7 @@ function calculateAlert(asset, track) {
   const allocation = asset.activeTimeAllocation || {};
 
   if (!allocation.id) {
-    return {
-      text: 'Allocation not set',
-      fill: 'purple',
-    };
+    return;
   }
 
   if ((allocation.name || '').toLowerCase().includes('emergency')) {

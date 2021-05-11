@@ -47,7 +47,7 @@
                 classes: ['google-tooltip'],
                 trigger: 'hover',
                 content: `Toggle Asset Filter`,
-                placement: 'top',
+                placement: 'left',
               }"
               :class="{ highlight: showAssetFilter }"
               :icon="filterIcon"
