@@ -275,10 +275,16 @@ export default {
         loadLocations: this.loadLocations,
         dumpLocations: this.dumpLocations,
       };
-      this.$modal.create(AddRouteModal, opts).onClose(answer => {
-        if (answer) {
-          this.structure.add(answer.digUnitId, answer.loadId, answer.dumpId);
+      this.$modal.create(AddRouteModal, opts).onClose(resp => {
+        if (!resp) {
+          return;
         }
+
+        if (resp.digUnitId) {
+          this.setDigUnitLocation(resp.digUnitId, resp.digUnitLocationId);
+        }
+
+        this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
       });
     },
     onDragStart(asset) {
