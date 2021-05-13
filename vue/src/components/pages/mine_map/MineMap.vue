@@ -166,8 +166,11 @@ export default {
       },
     },
   },
+  mounted() {
+    this.updateLocalAssets(this.assets);
+  },
   methods: {
-    updateLocalAssets(assets) {
+    updateLocalAssets(assets = []) {
       this.localAssets = (assets || []).filter(a => this.shownAssetTypes.includes(a.type)).slice();
     },
     onDragStart() {
