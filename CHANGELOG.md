@@ -2,6 +2,11 @@
 
 ## pending [unreleased]
 
+## 0.10.11
+- fixed map not loading markers on initial load
+- added +- 1 hour to pre-start submission selection range
+- fixed "Add Route" in location assignment not updating dig unit load location
+
 ## 0.10.10
 - map clustering defaults to off
 
