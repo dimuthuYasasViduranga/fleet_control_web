@@ -31,7 +31,6 @@ export function formatDateRelativeToIn(date, tz, now = new Date()) {
     return null;
   }
 
-
   if (isSameDownTo(date, now, tz, 'day')) {
     return formatDateIn(date, tz, { format: 'HH:mm:ss' });
   }
@@ -66,6 +65,14 @@ export function toUtcDate(validDate) {
 
 export function copyDate(date) {
   return date ? new Date(date) : null;
+}
+
+export function addJsDate(date, durationMs) {
+  if (!date) {
+    return null;
+  }
+
+  return new Date(date.getTime() + durationMs);
 }
 
 export function isDateEqual(a, b) {
