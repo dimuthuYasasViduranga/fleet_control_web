@@ -110,12 +110,20 @@ defmodule Dispatch.OperatorTimeAllocation do
 
   @spec create_operator_allocations(time_data) :: list(map)
   def create_operator_allocations(%{start_time: start_time, end_time: end_time} = data) do
+    device_assignments =
+      data.device_assignments
+      |> Enum.sort_by(& &1.timestamp, {:asc, NaiveDateTime})
+
+    time_allocations =
+      data.time_allocations
+      |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
+
     assignments_with_allocs =
       Enum.map(data.assets, fn asset ->
-        allocs = Enum.filter(data.time_allocations, &(&1.asset_id == asset.id))
+        allocs = Enum.filter(time_allocations, &(&1.asset_id == asset.id))
 
         operator_assignment_spans =
-          data.device_assignments
+          device_assignments
           |> Enum.filter(&(&1.asset_id == asset.id))
           |> Enum.dedup_by(&{&1.asset_id, &1.operator_id})
           |> point_in_time_to_spans(end_time)

@@ -848,5 +848,163 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
 
       assert actual == expected
     end
+
+    test "time allocation longer than log in period" do
+      # Asset 1 (A1)
+      # TA      |     TA1     |                   TA2                   |
+      # Op      |             |      X      |             |     X       |
+      #
+      # ts      A             B             C             D             E
+      #         +0            +1            +2            +3            +4
+      #
+      # Expected
+      #         |  (O, -, -)  |(O, A1, TA2) |  (O, -, -)  | (O, A1, TA2) |
+      asset = %{id: "Asset"}
+      operator = %{id: "Person"}
+
+      a = ~N[2020-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+      d = NaiveDateTime.add(c, 60)
+      e = NaiveDateTime.add(d, 60)
+
+      assignments = [
+        to_assignment(asset, nil, a),
+        to_assignment(asset, operator, b),
+        to_assignment(asset, nil, c),
+        to_assignment(asset, operator, d)
+      ]
+
+      ta1 = to_alloc(asset, a, b, "TA1")
+      ta2 = to_alloc(asset, b, e, "TA2")
+
+      allocations = [ta1, ta2]
+
+      data = %{
+        start_time: a,
+        end_time: e,
+        assets: [asset],
+        operators: [operator],
+        time_allocations: allocations,
+        device_assignments: assignments
+      }
+
+      expected = [
+        %{
+          start_time: a,
+          end_time: b,
+          operator_id: operator.id,
+          asset_id: nil
+        },
+        %{
+          start_time: b,
+          end_time: c,
+          data: ta2.data,
+          operator_id: operator.id,
+          asset_id: asset.id
+        },
+        %{
+          start_time: c,
+          end_time: d,
+          operator_id: operator.id,
+          asset_id: nil
+        },
+        %{
+          start_time: d,
+          end_time: e,
+          data: ta2.data,
+          operator_id: operator.id,
+          asset_id: asset.id
+        }
+      ]
+
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+      assert actual == expected
+    end
+
+    test "logout of asset after login to another" do
+      # This is a case only seen due to a desyn in device clocks that are then submitted to
+      # the server
+
+      # Asset 1
+      # TC        |------TA1------|------TA2------|
+      # O         |   x           |               |
+      #
+      # Asset 2
+      # TC        |--TB1--|------TB2------|--TB3--|
+      # O         |       |       x       |       |
+      #
+
+      # expected
+      # asset     |   1   |       2       |   -   |
+      # TA        |  TA1  |      TB2      |   -   |
+      # O         |   O   |       O       |   -   |
+
+      # TS        A       B       C       D       E
+      #           +0      +1      +2      +3      +4
+
+      asset_1 = %{id: "Asset 1"}
+      asset_2 = %{id: "Asset 2"}
+      operator = %{id: "Person"}
+
+      a = ~N[2020-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+      d = NaiveDateTime.add(c, 60)
+      e = NaiveDateTime.add(d, 60)
+
+      assignments = [
+        to_assignment(asset_1, operator, a),
+        to_assignment(asset_2, operator, b),
+        to_assignment(asset_1, nil, c),
+        to_assignment(asset_2, nil, d)
+      ]
+
+      ta1 = to_alloc(asset_1, a, c, "1 - Dig Ore")
+      ta2 = to_alloc(asset_1, c, e, "1 - Not Required")
+      tb1 = to_alloc(asset_2, a, b, "2 - Not Required")
+      tb2 = to_alloc(asset_2, b, d, "2 - Hauling ore")
+      tb3 = to_alloc(asset_2, d, e, "2 - Not Required")
+
+      allocations = [ta1, ta2, tb1, tb2, tb3]
+
+      data = %{
+        start_time: a,
+        end_time: e,
+        assets: [asset_1, asset_2],
+        operators: [operator],
+        time_allocations: allocations,
+        device_assignments: assignments
+      }
+
+      expected = [
+        %{
+          start_time: a,
+          end_time: b,
+          data: ta1.data,
+          operator_id: operator.id,
+          asset_id: asset_1.id
+        },
+        %{
+          start_time: b,
+          end_time: d,
+          data: tb2.data,
+          operator_id: operator.id,
+          asset_id: asset_2.id
+        },
+        %{
+          start_time: d,
+          end_time: e,
+          data: nil,
+          operator_id: operator.id,
+          asset_id: nil
+        }
+      ]
+
+      actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+      # assert actual == expected
+    end
   end
 end
