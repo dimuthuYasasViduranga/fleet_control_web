@@ -145,6 +145,21 @@ export default {
 
 .asset-assignment .modal-container {
   height: auto;
-  max-width: 32rem;
+  max-width: 38rem;
+}
+
+.asset-assignment table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.asset-assignment .row {
+  height: 3rem;
+}
+
+.asset-assignment .row .key {
+  font-size: 2rem;
+  width: 15rem;
 }
 </style>

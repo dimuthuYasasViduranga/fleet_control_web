@@ -29,6 +29,7 @@ export default {
 .info-header {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .info-header .row {

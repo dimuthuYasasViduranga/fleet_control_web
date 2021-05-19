@@ -64,21 +64,6 @@ export default {
 </script>
 
 <style>
-.assign-time-allocation {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.assign-time-allocation .row {
-  height: 3rem;
-}
-
-.assign-time-allocation .row .key {
-  width: 11rem;
-  font-size: 2rem;
-}
-
 .assign-time-allocation .row .value {
   display: flex;
   font-size: 1.5rem;
@@ -96,7 +81,7 @@ export default {
 }
 
 .assign-time-allocation .row .time-allocation-drop-down {
-  width: calc(100% - 2rem);
+  width: 100%;
 }
 
 .assign-time-allocation .row .dropdown-wrapper {

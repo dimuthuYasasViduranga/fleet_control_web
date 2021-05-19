@@ -94,7 +94,6 @@
         :timeCodes="timeCodes"
         :timeCodeGroups="timeCodeGroups"
         :fullTimeCodes="fullTimeCodes"
-        :locations="locations"
         :activeEndTime="now"
         :minDatetime="range.min"
         :maxDatetime="range.max"
@@ -193,7 +192,6 @@ export default {
       shiftTypes: state => state.shiftTypes,
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
-      locations: state => state.locations,
     }),
     ...mapState('deviceStore', {
       devices: state => state.devices,

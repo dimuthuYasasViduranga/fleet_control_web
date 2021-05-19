@@ -6,7 +6,7 @@
     <Separator />
     <table class="activity">
       <tr class="row location">
-        <td class="key">Location</td>
+        <td class="key">Target Location</td>
         <td class="value">
           <DropDown
             v-model="localActivity.locationId"
@@ -175,21 +175,6 @@ export default {
 
 
 <style>
-.assign-dig-unit .activity {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.assign-dig-unit .activity .row {
-  height: 3rem;
-}
-
-.assign-dig-unit .activity .row .key {
-  width: 11rem;
-  font-size: 2rem;
-}
-
 .assign-dig-unit .activity .row .value {
   display: flex;
   font-size: 1.5rem;
@@ -199,5 +184,11 @@ export default {
 .assign-dig-unit .activity .row .dropdown-wrapper {
   width: 100%;
   height: 2.5rem;
+}
+
+.assign-dig-unit .hx-icon {
+  height: 2.5rem;
+  width: 2.5rem;
+  cursor: pointer;
 }
 </style>

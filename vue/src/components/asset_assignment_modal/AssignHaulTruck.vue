@@ -220,21 +220,6 @@ export default {
 </script>
 
 <style>
-.assign-haul-truck .dispatch {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.assign-haul-truck .dispatch .row {
-  height: 3rem;
-}
-
-.assign-haul-truck .dispatch .row .key {
-  width: 11rem;
-  font-size: 2rem;
-}
-
 .assign-haul-truck .dispatch .row .key .dropdown-wrapper {
   width: 95%;
   height: 2.5rem;
