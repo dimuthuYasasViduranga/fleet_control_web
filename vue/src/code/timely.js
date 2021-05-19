@@ -4,6 +4,9 @@ import LocalZone from 'luxon/src/zones/localZone.js';
 const LOCAL_ZONE = new LocalZone().name;
 
 function isValidTz(tz) {
+  if (!tz) {
+    return false;
+  }
   return DateTime.local().setZone(tz).isValid;
 }
 
