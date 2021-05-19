@@ -64,7 +64,7 @@
 
         <button class="hx-btn" @click="clearAssetTypeSelection">clear</button>
       </div>
-      <SearchBar placeholder="Search asset name" v-model="search" :showClear="true" />
+      <SearchBar v-model="search" placeholder="Search asset name" :showClear="true" />
 
       <span class="smooth-assingments-option">
         <input
@@ -242,7 +242,11 @@ export default {
         return assetData;
       }
 
-      return assetData.filter(ad => isInText(ad.asset.name, this.search));
+      const searchConditionals = this.search.split('|').filter(s => s);
+
+      return assetData.filter(ad =>
+        searchConditionals.some(subString => isInText(ad.asset.name, subString)),
+      );
     },
   },
   watch: {
