@@ -23,6 +23,7 @@ import Debug from '../components/pages/debug/Debug.vue';
 import Agents from '../components/pages/agents/Agents.vue';
 import PreStartEditor from '../components/pages/pre_start_editor/PreStartEditor.vue';
 import PreStartSubmissionsPage from '../components/pages/pre_start_submissions/PreStartSubmissionsPage.vue';
+import AssetOverviewPage from '../components/pages/asset_overview/AssetOverviewPage.vue';
 
 import HaulTruckIcon from '../components/icons/asset_icons/HaulTruck.vue';
 import TabletIcon from '../components/icons/Tablet.vue';
@@ -40,6 +41,7 @@ import BugIcon from '../components/icons/Bug.vue';
 import DatabaseIcon from '../components/icons/Database.vue';
 import ReportIcon from '../components/icons/Report.vue';
 import ChatIcon from '../components/icons/Chat.vue';
+import GridIcon from '../components/icons/Grid.vue';
 
 import Vue from 'vue';
 
@@ -91,6 +93,12 @@ export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
       path: '/location_assignment',
       component: LocationAssignment,
       icon: LocationIcon,
+    },
+    {
+      name: 'Asset Overview',
+      path: '/asset_overview',
+      component: AssetOverviewPage,
+      icon: GridIcon,
     },
     {
       name: 'Mine Map',

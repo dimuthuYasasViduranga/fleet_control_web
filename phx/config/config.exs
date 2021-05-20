@@ -63,7 +63,8 @@ config :dispatch_web,
       "/agents",
       "/route_map",
       "/pre_start_editor",
-      "/pre_start_submissions"
+      "/pre_start_submissions",
+      "/asset_overview",
     ]
   }
 
