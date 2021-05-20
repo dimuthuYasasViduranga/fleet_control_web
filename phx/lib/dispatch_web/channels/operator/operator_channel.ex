@@ -12,6 +12,7 @@ defmodule DispatchWeb.OperatorChannel do
 
   alias Dispatch.{
     Helper,
+    Tracks,
     AssetAgent,
     OperatorAgent,
     OperatorMessageAgent,
@@ -324,7 +325,8 @@ defmodule DispatchWeb.OperatorChannel do
 
   def handle_in("set device track", track, socket) do
     with true <- Application.get_env(:dispatch_web, :use_device_gps),
-         {:ok, track} <- TrackAgent.add(parse_device_track(track), :normal) do
+         %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
+         {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
       Broadcast.send_track(track)
     else
       _ -> nil
