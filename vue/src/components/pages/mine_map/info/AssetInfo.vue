@@ -47,7 +47,10 @@
           <div v-if="allocName" class="alloc-color" :class="allocColorClass"></div>
           <span>Allocation</span>
         </td>
-        <td class="value">{{ allocName || '--' }}</td>
+        <td class="value">
+          <div>{{ allocName || '--' }}</div>
+          <div v-if="allocDuration">{{ allocDuration }}</div>
+        </td>
       </tr>
     </table>
   </div>
@@ -57,10 +60,14 @@
 import Icon from 'hx-layout/Icon.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 import { attributeFromList } from '@/code/helpers';
-import { formatDateRelativeToIn, formatSecondsRelative } from '../../../../code/time';
+import {
+  formatDateRelativeToIn,
+  formatSeconds,
+  formatSecondsRelative,
+} from '../../../../code/time';
 
 const MS_TO_KMH = 3.6;
-const NOW_PERIOD = 1 * 1000;
+const SECONDS_IN_DAY = 24 * 3600;
 const AGO_SWITCH = 60 * 60 * 1000; // 1 hour
 const AGO_MAX = 2 * 60 * 1000; // 2 minutes
 const AGO_WARN = 30 * 1000; // 30 seconds
@@ -76,8 +83,6 @@ export default {
   data: () => {
     return {
       editIcon: EditIcon,
-      now: Date.now(),
-      nowInterval: null,
       agoSwitch: AGO_SWITCH,
     };
   },
@@ -125,6 +130,22 @@ export default {
     allocName() {
       return this.allocation.name;
     },
+    allocDuration() {
+      const startTime = this.allocation.startTime;
+      if (!startTime) {
+        return '';
+      }
+
+      const duration = Math.trunc((this.$everySecond.timestamp - startTime.getTime()) / 1000);
+      const days = Math.trunc(duration / SECONDS_IN_DAY);
+      if (days === 1) {
+        return '(> 1 Day)';
+      }
+      if (days > 1) {
+        return `(> ${days} Days)`;
+      }
+      return formatSeconds(duration, '(%HH:%MM:%SS)');
+    },
     allocColorClass() {
       return (this.allocation.groupName || '').toLowerCase();
     },
@@ -134,7 +155,7 @@ export default {
       return formatDateRelativeToIn(timestamp, tz);
     },
     ago() {
-      const ago = this.now - this.asset.track.timestamp.getTime();
+      const ago = this.$everySecond.timestamp - this.asset.track.timestamp.getTime();
       return ago < 0 ? 0 : ago;
     },
     agoClass() {
@@ -148,12 +169,6 @@ export default {
 
       return 'red-text';
     },
-  },
-  mounted() {
-    clearInterval(this.nowInterval);
-    this.nowInterval = setInterval(() => {
-      this.now = Date.now();
-    }, NOW_PERIOD);
   },
   methods: {
     onEdit() {
