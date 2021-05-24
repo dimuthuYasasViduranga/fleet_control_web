@@ -40,6 +40,8 @@
             @change="onShiftChange"
             @refresh="onRefresh"
           />
+          <button class="hx-btn" @click="onLockAll()">Lock All</button>
+          <button class="hx-btn" @click="onUnlockAll()">Unlock All</button>
         </div>
       </div>
 
@@ -358,6 +360,62 @@ export default {
         .receive('error', onError)
         .receive('timeout', onError);
     },
+    onLockAll() {
+      if (!this.shift || !this.shift.id || !this.shiftAssetData.length) {
+        console.error('[TA] Unable to lock all time allocations');
+        return;
+      }
+
+      const shiftId = this.shift.id;
+      const allocIds = this.shiftAssetData
+        .map(data => data.timeAllocations)
+        .flat()
+        .filter(a => a.id > 0 && !a.lockId)
+        .map(a => a.id);
+
+      const payload = {
+        ids: allocIds,
+        calendar_id: shiftId,
+      };
+
+      this.$channel
+        .push('lock time allocations', payload)
+        .receive('ok', () => {
+          this.$toaster.info('Time Allocations Locked');
+          this.onRefresh();
+        })
+        .receive('error', () => {
+          this.$toaster.error('Could not Lock Allocations');
+        })
+        .receive('timeout', () => {
+          this.$toaster.noComms('Unable to Lock Allocations');
+        });
+    },
+    onUnlockAll() {
+      if (!this.shiftAssetData.length) {
+        console.error('[TA] Unable to unlock all time allocations');
+        return;
+      }
+
+      const allocIds = this.shiftAssetData
+        .map(data => data.timeAllocations)
+        .flat()
+        .filter(a => a.id > 0 && a.lockId)
+        .map(a => a.id);
+
+      this.$channel
+        .push('unlock time allocations', allocIds)
+        .receive('ok', () => {
+          this.$toaster.info('Time Allocations Unlocked');
+          this.onRefresh();
+        })
+        .receive('error', () => {
+          this.$toaster.error('Could not Unlock Allocations');
+        })
+        .receive('timeout', () => {
+          this.$toaster.noComms('Unable to Unlock Allocations');
+        });
+    },
   },
 };
 </script>
@@ -383,13 +441,17 @@ export default {
 }
 
 .time-allocation-page .time-scale-wrapper {
-  height: 4rem;
+  margin-bottom: 1rem;
 }
 
 .time-allocation-page .time-scale-options {
   height: 100%;
   display: flex;
   padding-top: 1rem;
+}
+
+.time-allocation-page .shift-select-options button {
+  margin-right: 0.1rem;
 }
 
 .time-allocation-page .asset-type-selector {
