@@ -159,6 +159,11 @@ export default {
       });
     },
   },
+  watch: {
+    submissions() {
+      this.showSubmissions = false;
+    },
+  },
   methods: {
     toggleShowSubmissions() {
       this.showSubmissions = !this.showSubmissions;
