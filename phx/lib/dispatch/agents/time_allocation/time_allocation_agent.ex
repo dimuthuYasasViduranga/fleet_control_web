@@ -173,7 +173,6 @@ defmodule Dispatch.TimeAllocationAgent do
              | :invalid_dispatcher
              | :deleted_locked_or_active
              | :outside_calendar
-             | :multiple_assets
              | term}
   def lock(ids, calendar_id, dispatcher_id) do
     Agent.get_and_update(__MODULE__, fn state ->
@@ -226,7 +225,7 @@ defmodule Dispatch.TimeAllocationAgent do
 
   @spec unlock(list(integer)) ::
           {:ok, list(unlocked_alloc), list(deleted_alloc)}
-          | {:error, :invalid_ids | :multiple_assets | :not_unlockable | term}
+          | {:error, :invalid_ids | :not_unlockable | term}
   def unlock([]), do: {:ok, [], []}
 
   def unlock(ids) do

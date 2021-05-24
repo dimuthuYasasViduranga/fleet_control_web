@@ -653,38 +653,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert_db_contains(TimeAllocation, initial)
     end
 
-    test "invalid (multiple assets)",
-         %{asset: asset_a, asset_b: asset_b, ready: ready} = context do
-      %{id: cal_id, shift_end: r_end} = context.calendar
-
-      end_time_a = NaiveDateTime.add(r_end, -60)
-      start_time_a = NaiveDateTime.add(end_time_a, -60)
-
-      end_time_b = NaiveDateTime.add(start_time_a, -60)
-      start_time_b = NaiveDateTime.add(end_time_b, -60)
-
-      {:ok, alloc_asset_a} =
-        to_alloc(asset_a.id, ready, start_time_a, end_time_a)
-        |> TimeAllocationAgent.add()
-
-      {:ok, alloc_asset_b} =
-        to_alloc(asset_b.id, ready, start_time_b, end_time_b)
-        |> TimeAllocationAgent.add()
-
-      error =
-        TimeAllocationAgent.lock([alloc_asset_a.id, alloc_asset_b.id], cal_id, context.dispatcher)
-
-      # return
-      assert error == {:error, :multiple_assets}
-
-      # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [alloc_asset_a, alloc_asset_b]
-
-      # database
-      assert_db_contains(TimeAllocation, [alloc_asset_a, alloc_asset_b])
-    end
-
     test "invalid (any id does not fall within calendar)",
          %{asset: asset, ready: ready} = context do
       %{id: cal_id, shift_start: r_start} = context.calendar

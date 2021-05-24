@@ -26,7 +26,6 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
              | :invalid_dispatcher
              | :deleted_locked_or_active
              | :outside_calendar
-             | :multiple_assets
              | term}
   def lock([], _, _), do: {:ok, [], [], [], nil}
 
@@ -46,7 +45,6 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
       calendar == nil -> {:error, :invalid_calendar}
       dispatcher == nil -> {:error, :invalid_dispatcher}
       !all_allocations_lockable?(allocations) -> {:error, :deleted_locked_or_active}
-      !single_asset(allocations) -> {:error, :multiple_assets}
       !all_allocations_within_calendar?(allocations, calendar) -> {:error, :outside_calendar}
       true -> lock_allocations(allocations, calendar, dispatcher_id)
     end
@@ -62,12 +60,6 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
 
   defp all_allocations_lockable?(allocations) do
     Enum.all?(allocations, &(&1.deleted != true && &1.lock_id == nil && &1.end_time != nil))
-  end
-
-  defp single_asset([]), do: true
-
-  defp single_asset([%{asset_id: asset_id} | _] = allocations) do
-    Enum.all?(allocations, &(&1.asset_id == asset_id))
   end
 
   defp all_allocations_within_calendar?(allocations, calendar) do
@@ -181,7 +173,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
 
   @spec unlock(list(integer)) ::
           {:ok, list(unlocked_alloc), list(deleted_alloc)}
-          | {:error, :invalid_ids | :multiple_assets | :not_unlockable | term}
+          | {:error, :invalid_ids | :not_unlockable | term}
   def unlock(ids) do
     ids =
       ids
