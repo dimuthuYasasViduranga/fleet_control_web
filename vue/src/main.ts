@@ -55,19 +55,12 @@ Vue.prototype.$timely = timely;
 
 Vue.prototype.$everySecond = nowTimer(1000);
 
-// setup routes
-
+// Logout function
 const logout = function() {
   window.location.href = `${hostname}/auth/logout`;
 };
 
-async function startApp() {
-  const whitelist = store.state.constants.whitelist;
-  const [routes, router] = setupRouter(whitelist);
-
-  // logout function
-
-  // configure toasted
+const configureToasts = function(router) {
   Vue.use(Toasted, {
     position: 'top-right',
     theme: 'hx-toast',
@@ -82,6 +75,14 @@ async function startApp() {
       },
     },
   });
+};
+
+async function startApp() {
+  const whitelist = store.state.constants.whitelist;
+  const [routes, router] = setupRouter(whitelist);
+
+  // configure toasted
+  configureToasts(router);
 
   function createApp(data: { map_config: { key: string } }) {
     const props = { routes, logout };

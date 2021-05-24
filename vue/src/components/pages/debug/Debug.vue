@@ -8,6 +8,11 @@
         <button class="hx-btn" @click="onCreateLoadingModal">Loading Modal</button>
       </div>
     </hxCard>
+    <hxCard title="Title" :icon="bugIcon">
+      <input class="typeable" v-model="pendingTitleName" />
+      <button class="hx-btn" @click="setTitle(pendingTitleName)">Set</button>
+      <button class="hx-btn" @click="resetTitle(pendingTitleName)">Reset</button>
+    </hxCard>
     <hxCard title="Toasted" :icon="bugIcon">
       <div class="toast toast-info">
         <div>Info:</div>
@@ -219,7 +224,8 @@ import NestedModal from './NestedModal.vue';
 
 import Dately from '@/components/dately/Dately.vue';
 
-import { formatDateIn, toUtcDate } from '../../../code/time.js';
+import { formatDateIn, toUtcDate } from '@/code/time.js';
+import { Titler } from '@/code/titler.js';
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -250,6 +256,7 @@ export default {
       tabletIcon: TabletIcon,
       selectedIcon: ASSET_ICONS[0],
       assetIcons: ASSET_ICONS,
+      pendingTitleName: 'Some Title',
       toasts: {
         info: 'Info',
         error: 'Error',
@@ -327,6 +334,9 @@ export default {
       return this.$store.state.constants.timezone;
     },
   },
+  beforeDestroy() {
+    Titler.reset();
+  },
   methods: {
     formatDate(date) {
       const tz = this.$timely.current.timezone;
@@ -334,6 +344,12 @@ export default {
     },
     setIcon(assetIcon) {
       this.selectedIcon = assetIcon;
+    },
+    setTitle(title) {
+      Titler.change(title);
+    },
+    resetTitle(title) {
+      Titler.reset();
     },
     onCreateInfoToast(msg, opts) {
       this.$toaster.info(msg, opts);
