@@ -22,8 +22,20 @@
   stroke: orange;
 }
 
-.offline-icon .hx-icon {
+.process-icon .hx-icon {
+  stroke: orange;
+}
+
+.standby-icon .hx-icon {
+  stroke: white;
+}
+
+.down-icon .hx-icon {
   stroke: grey;
+}
+
+.offline-icon .hx-icon {
+  stroke: cadetblue;
 }
 
 .ok-icon .hx-icon {

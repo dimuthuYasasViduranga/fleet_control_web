@@ -66,6 +66,7 @@ import { isMissingException } from '@/store/modules/haul_truck';
 import ListIcon from '@/components/icons/List.vue';
 import AlertIcon from '@/components/icons/Alert.vue';
 import TabletIcon from '@/components/icons/Tablet.vue';
+import CrossIcon from 'hx-layout/icons/Error.vue';
 
 const FLASH_DURATION = 10;
 
@@ -110,6 +111,12 @@ export default {
       return !!this.asset.deviceId;
     },
     secondaryIcon() {
+      const activeAllocGroup = this.asset.activeTimeAllocation.groupName;
+
+      if (activeAllocGroup === 'Down') {
+        return CrossIcon;
+      }
+
       if (!this.hasDevice) {
         return TabletIcon;
       }
@@ -158,8 +165,9 @@ export default {
     assetIconClass() {
       const asset = this.asset;
       const alloc = asset.activeTimeAllocation || {};
+
       if (alloc.id && !alloc.isReady) {
-        return 'exception-icon';
+        return `${(alloc.groupName || 'Process').toLowerCase()}-icon`;
       }
 
       if (asset.present) {
@@ -247,6 +255,11 @@ export default {
   stroke-width: 0.5;
   stroke: orange;
   stroke-dasharray: 1;
+}
+
+.asset-tile .asset-icon .secondary-icon #error_icon {
+  stroke-width: 1.5;
+  stroke: red;
 }
 
 /* -- operator/asset names */
