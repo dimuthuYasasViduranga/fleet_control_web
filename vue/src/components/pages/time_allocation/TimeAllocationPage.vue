@@ -98,6 +98,8 @@
         :minDatetime="range.min"
         :maxDatetime="range.max"
         :timezone="timezone"
+        :shifts="shifts"
+        :shiftTypes="shiftTypes"
         :shiftId="mode === 'shift' && shift ? shift.id : undefined"
         :smoothAssignments="smoothAssignments"
         @update="refreshIfShift"

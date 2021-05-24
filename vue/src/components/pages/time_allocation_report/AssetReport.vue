@@ -17,6 +17,8 @@
       :maxDatetime="reportData.shift.endTime"
       :timezone="timezone"
       :shiftId="reportData.shift.id"
+      :shifts="shifts"
+      :shiftTypes="shiftTypes"
       @close="timeAllocationData = null"
       @update="onUpdate()"
     />
@@ -245,6 +247,8 @@ export default {
     devices: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: () => new Date() },
     fullTimeCodes: { type: Array, default: () => [] },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
   },
   data: () => {
     return {

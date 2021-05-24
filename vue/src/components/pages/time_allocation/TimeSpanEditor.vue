@@ -25,6 +25,7 @@
               <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
               <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
               <EventTooltip v-else-if="timeSpan.group === 'event'" :timeSpan="timeSpan" />
+              <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
               <DefaultTooltip v-else :timeSpan="timeSpan" />
             </div>
           </template>
@@ -142,6 +143,7 @@ import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import EventTooltip from './tooltips/EventTimeSpanTooltip.vue';
+import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
 import TimelinePane from './editor_panes/timeline/TimelineTable.vue';
 import ErrorPane from './editor_panes/error/ErrorPane.vue';
@@ -150,8 +152,8 @@ import NewPane from './editor_panes/new/NewPane.vue';
 import TimeIcon from '../../icons/Time.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import { copyDate, isDateEqual, toUtcDate } from '../../../code/time';
-import { uniq, chunkEvery } from '../../../code/helpers';
+import { copyDate, isDateEqual, toUtcDate } from '@/code/time';
+import { uniq, chunkEvery } from '@/code/helpers';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -163,6 +165,7 @@ import {
 } from './timespan_formatters/deviceAssignmentTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
 import {
   addDynamicLevels,
@@ -222,7 +225,10 @@ function updateArrayAt(arr, index, item) {
   return newArr;
 }
 
-function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans], asset) {
+function getChartLayoutGroups(
+  [TASpans, DASpans, TUSpans, cycleSpans, eventSpans, shiftSpans],
+  asset,
+) {
   const allocation = {
     group: 'allocation',
     label: 'Al',
@@ -232,6 +238,12 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans
 
   const otherGroups = [
     {
+      group: 'shift',
+      label: 'S',
+      subgroups: [0],
+      canHide: true,
+    },
+    {
       group: 'device-assignment',
       label: 'Op',
       subgroups: uniq(DASpans.map(ts => ts.level || 0)),
@@ -240,18 +252,21 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans
       group: 'timeusage',
       label: 'TU',
       subgroups: uniq((TUSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
     {
       group: 'cycle',
       label: 'C',
       subgroups: uniq((cycleSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
     {
       group: 'event',
       label: 'Ev',
       subgroups: uniq((eventSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
-  ].filter(g => g.subgroups.length !== 0);
+  ].filter(g => g.canHide && g.subgroups.length !== 0);
 
   const nOtherGroups = otherGroups.length;
   otherGroups.forEach(g => (g.percent = (1 - allocation.percent) / nOtherGroups));
@@ -337,6 +352,16 @@ function toEpoch(date) {
   return date ? date.getTime() : null;
 }
 
+function toShiftSpans(shifts, shiftTypes, timestamps) {
+  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
+
+  const relevantShifts = uniqTimestamps
+    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
+    .filter(s => s);
+
+  return toShiftTimeSpans(relevantShifts, shiftTypes);
+}
+
 export default {
   name: 'TimeSpanEditor',
   components: {
@@ -350,6 +375,7 @@ export default {
     TimeusageTooltip,
     CycleTooltip,
     EventTooltip,
+    ShiftTooltip,
     TimelinePane,
     ErrorPane,
     NewPane,
@@ -370,6 +396,8 @@ export default {
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
   },
   data: () => {
@@ -438,7 +466,7 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .reverse();
 
-      const cycleSpans = toCycleTimeSpans(this.cycles).map(ts =>
+      const CycleSpans = toCycleTimeSpans(this.cycles).map(ts =>
         addActiveEndTime(ts, activeEndTime),
       );
 
@@ -447,7 +475,12 @@ export default {
       );
       const [validEventSpans] = addDynamicLevels(eventSpans);
 
-      return [TASpans, DASpans, TUSpans, cycleSpans, validEventSpans];
+      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+        this.minDatetime,
+        this.maxDatetime,
+      ]);
+
+      return [TASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset);
@@ -580,6 +613,9 @@ export default {
         case 'event':
           style = eventStyle(timeSpan, region);
           break;
+
+        case 'shift':
+          style = shiftStyle(region);
       }
 
       return styleSelected(timeSpan, style, this.selectedAllocationId);

@@ -26,6 +26,8 @@
       :minDatetime="minDatetime"
       :maxDatetime="maxDatetime"
       :timezone="timezone"
+      :shifts="shifts"
+      :shiftTypes="shiftTypes"
       :shiftId="shiftId"
       @close="onEditClose()"
       @update="onEditUpdate()"
@@ -52,6 +54,7 @@
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
+            <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
             <DefaultTooltip v-else :timeSpan="timeSpan" />
           </div>
         </template>
@@ -80,6 +83,7 @@ import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
+import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
 import TimeSpanEditor from './TimeSpanEditor.vue';
 
@@ -97,6 +101,7 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
+import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
@@ -124,6 +129,12 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
   if (asset.type === 'Haul Truck' && isOpen) {
     return [
       {
+        group: 'shift',
+        label: 'S',
+        percent: 0.15,
+        subgroups: [0],
+      },
+      {
         group: 'device-assignment',
         label: 'Op',
         percent: 0.15,
@@ -144,7 +155,7 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
       {
         group: 'allocation',
         label: 'Al',
-        percent: 0.55,
+        percent: 0.4,
         subgroups: uniq(TASpans.map(ts => ts.level || 0)),
       },
     ];
@@ -165,6 +176,16 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
   ];
 }
 
+function toShiftSpans(shifts, shiftTypes, timestamps) {
+  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
+
+  const relevantShifts = uniqTimestamps
+    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
+    .filter(s => s);
+
+  return toShiftTimeSpans(relevantShifts, shiftTypes);
+}
+
 export default {
   name: 'AssetTimeSpanInfo',
   components: {
@@ -175,6 +196,7 @@ export default {
     LoginTooltip,
     TimeusageTooltip,
     CycleTooltip,
+    ShiftTooltip,
     TimeSpanEditor,
   },
   props: {
@@ -192,6 +214,8 @@ export default {
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
     smoothAssignments: { type: Boolean, default: true },
   },
@@ -301,7 +325,12 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
-      return [TASpans, DASpans, TUSpans, CSpans];
+      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+        this.minDatetime,
+        this.maxDatetime,
+      ]);
+
+      return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
@@ -355,6 +384,8 @@ export default {
 
         case 'cycle':
           return cycleStyle(timeSpan, region);
+        case 'shift':
+          return shiftStyle(region);
       }
     },
     formatDuration(totalSeconds) {
