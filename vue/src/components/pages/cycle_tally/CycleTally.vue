@@ -95,8 +95,6 @@ export default {
       mode: 'live',
       shiftCycles: [],
       shiftEngineHours: [],
-      now: new Date(),
-      nowInterval: null,
     };
   },
   computed: {
@@ -146,14 +144,8 @@ export default {
         return true;
       }
 
-      return shift.startTime.getTime() <= this.now.getTime();
+      return shift.startTime.getTime() <= this.$everySecond.timestamp;
     },
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => (this.now = new Date()), 60000);
-  },
-  beforeDestroy() {
-    clearInterval(this.nowInterval);
   },
   methods: {
     onShiftChange(shift) {

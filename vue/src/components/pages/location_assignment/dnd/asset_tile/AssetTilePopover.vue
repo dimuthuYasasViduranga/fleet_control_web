@@ -79,7 +79,6 @@ import {
 
 import AlertIcon from '@/components/icons/Alert.vue';
 
-const NOW_INTERVAL_DURATION = 2000;
 const SECONDS_IN_DAY = 24 * 3600;
 const AGO_SWITCH = 60 * 60 * 1000; // 1 hour
 const AGO_MAX = 2 * 60 * 1000; // 2 minutes
@@ -118,8 +117,6 @@ export default {
   data: () => {
     return {
       alertIcon: AlertIcon,
-      now: Date.now(),
-      nowInterval: null,
     };
   },
   computed: {
@@ -163,7 +160,7 @@ export default {
         return '';
       }
 
-      const duration = Math.trunc((this.now - startTime.getTime()) / 1000);
+      const duration = Math.trunc((this.$everySecond.timestamp - startTime.getTime()) / 1000);
       const days = Math.trunc(duration / SECONDS_IN_DAY);
       if (days === 1) {
         return '(> 1 Day)';
@@ -177,7 +174,7 @@ export default {
       if (!this.track.timestamp) {
         return { duration: null, class: null };
       }
-      let ago = this.now - this.track.timestamp.getTime();
+      let ago = this.$everySecond.timestamp - this.track.timestamp.getTime();
       ago = ago < 0 ? 0 : ago;
 
       if (ago > AGO_SWITCH) {
@@ -187,12 +184,6 @@ export default {
       const styleClass = getAgoClass(ago);
       return { duration: ago, class: styleClass };
     },
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => (this.now = new Date()), NOW_INTERVAL_DURATION);
-  },
-  beforeDestroy() {
-    clearInterval(this.nowInterval);
   },
   methods: {
     getColor(bool, colorOnTrue, colorOnFalse) {

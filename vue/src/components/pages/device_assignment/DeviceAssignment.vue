@@ -76,8 +76,6 @@ export default {
       title: 'Device Assignment',
       tabletIcon: TabletIcon,
       error: '',
-      now: Date.now(),
-      nowInterval: null,
       recentlyAuthorized: [],
     };
   },
@@ -148,7 +146,7 @@ export default {
     },
     timeRemaining() {
       const timeRemaining = this.$store.state.deviceStore.acceptUntil || 0;
-      const now = Math.trunc(this.now / 1000);
+      const now = Math.trunc(this.$everySecond.timestamp / 1000);
 
       const remaining = timeRemaining - now;
       if (remaining <= 0) {
@@ -157,12 +155,6 @@ export default {
 
       return remaining;
     },
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => (this.now = Date.now()), 1000);
-  },
-  beforeDestroy() {
-    clearInterval(this.nowInterval);
   },
   methods: {
     onChange(deviceInput) {

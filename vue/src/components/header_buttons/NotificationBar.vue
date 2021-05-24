@@ -6,7 +6,6 @@
 
 <script>
 import { formatSecondsRelative } from '@/code/time';
-const NOW_INTERVAL = 2 * 1000;
 const RELOAD_NOTIFICATION_AFTER = 5 * 60; // 5 minutes
 
 function timeSince(now, datetime) {
@@ -31,8 +30,6 @@ export default {
   name: 'NotificationBar',
   data: () => {
     return {
-      now: Date.now(),
-      nowInterval: null,
       connectedOnce: false,
     };
   },
@@ -51,7 +48,7 @@ export default {
     },
     state() {
       if (this.offline && this.connectedOnce) {
-        const ago = timeSince(this.now, this.lastDisconnectedAt);
+        const ago = timeSince(this.$everySecond.timestamp, this.lastDisconnectedAt);
         let message = 'You are offline';
 
         if (ago) {
@@ -92,11 +89,6 @@ export default {
         }
       },
     },
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => {
-      this.now = Date.now();
-    }, NOW_INTERVAL);
   },
   methods: {
     sendEvent(event, payload) {

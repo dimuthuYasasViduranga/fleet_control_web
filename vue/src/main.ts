@@ -19,6 +19,7 @@ import { Toaster } from './code/toasts.js';
 import 'vue-datetime/dist/vue-datetime.css';
 
 import * as VueGoogleMaps from 'gmap-vue';
+import { nowTimer } from './code/time.js';
 
 declare var window: { location: { href: string; origin: string } };
 
@@ -51,6 +52,8 @@ Vue.prototype.$toaster = new Toaster();
 
 const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;
+
+Vue.prototype.$everySecond = nowTimer(1000);
 
 // setup routes
 

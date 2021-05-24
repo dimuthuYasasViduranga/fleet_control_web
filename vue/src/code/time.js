@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { DateTime } from 'luxon';
 
 export function formatDateIn(date, tz, opts) {
@@ -210,4 +211,25 @@ export function formatDateUTC(date, format = '%d-%m-%Y %HH:%MM:%SS') {
     .replace('%SS', pad(date.getUTCSeconds()))
     .replace('%S', date.getUTCSeconds())
     .replace('%b', date.toLocaleString('default', { month: 'short', timeZone: 'UTC' }));
+}
+
+export class Now {
+  constructor(period = 1000) {
+    this.timestamp = Date.now();
+    this.start(period);
+  }
+
+  start(period) {
+    this._interval = setInterval(() => {
+      this.timestamp = Date.now();
+    }, period);
+  }
+
+  stop() {
+    this._interval = clearInterval(this._interval);
+  }
+}
+
+export function nowTimer(period) {
+  return Vue.observable(new Now(period));
 }

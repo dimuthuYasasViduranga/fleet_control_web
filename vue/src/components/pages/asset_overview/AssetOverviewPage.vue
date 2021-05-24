@@ -51,6 +51,8 @@ import FullscreenIcon from '@/components/icons/Fullscreen.vue';
 
 import { attributeFromList } from '@/code/helpers';
 
+const TA_UPDATE_PERIOD = 5 * 1000; // 5 seconds
+
 function toLocalFullAsset(asset, dispatches, activities) {
   const localAsset = {
     id: asset.id,
