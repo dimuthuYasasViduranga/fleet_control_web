@@ -46,7 +46,7 @@
         :class="item.class"
         @click="onOpenViewer(item.submission)"
       >
-        {{ item.label }}
+        {{ item[showFullDate ? 'fullLabel' : 'label'] }}
       </button>
     </div>
   </hxCard>
@@ -63,7 +63,7 @@ import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 import AlertIcon from '@/components/icons/Alert.vue';
 
-import { formatDateIn } from '@/code/time';
+import { formatDateIn, isSameDownTo } from '@/code/time';
 import { attributeFromList } from '@/code/helpers';
 
 function getFailCount(responses) {
@@ -133,7 +133,8 @@ export default {
         const itemClass = getItemClass(s.responses, this.closedTicketStatusId);
         return {
           class: itemClass,
-          label: this.formatTime(s.timestamp),
+          label: this.formatTime(s.timestamp, 'HH:mm'),
+          fullLabel: this.formatTime(s.timestamp, '(MMM dd) HH:mm'),
           submission: s,
         };
       });
@@ -158,6 +159,16 @@ export default {
         return sub.class !== 'closed' && ticketIds.some(id => !latestTicketIds.includes(id));
       });
     },
+    showFullDate() {
+      if (!this.submissions.length) {
+        return false;
+      }
+      const first = this.submissions[0].timestamp;
+      const second = this.submissions[this.submissions.length - 1].timestamp;
+
+      const tz = this.$timely.current.timezone;
+      return !isSameDownTo(first, second, tz, 'day');
+    },
   },
   watch: {
     submissions() {
@@ -175,9 +186,9 @@ export default {
         }
       });
     },
-    formatTime(date) {
+    formatTime(date, format = 'HH:mm') {
       const tz = this.$timely.current.timezone;
-      return formatDateIn(date, tz, { format: 'HH:mm' });
+      return formatDateIn(date, tz, { format });
     },
   },
 };
@@ -280,7 +291,6 @@ export default {
 }
 
 .pre-start-report .all-submissions .hx-btn {
-  width: 6rem;
   margin: 0.1rem;
 }
 
