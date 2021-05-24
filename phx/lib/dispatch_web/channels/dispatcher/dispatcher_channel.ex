@@ -158,6 +158,19 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackTopics.handle_in(topic, payload, socket)
   end
 
+  def handle_in("set page visited", payload, socket) do
+    case payload["page"] do
+      nil ->
+        nil
+
+      page ->
+        user_name = socket.assigns[:current_user][:user_name]
+        Appsignal.increment_counter("page_count", 1, %{page: page, user_name: user_name})
+    end
+
+    {:noreply, socket}
+  end
+
   def handle_in("set radio number", payload, socket) do
     %{"asset_id" => asset_id, "radio_number" => radio_number} = payload
     AssetRadioAgent.set(asset_id, radio_number)

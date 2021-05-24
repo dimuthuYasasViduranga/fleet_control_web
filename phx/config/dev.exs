@@ -1,6 +1,6 @@
 use Mix.Config
 
-# config :appsignal, :config, active: true
+config :appsignal, :config, active: false
 
 config :dispatch_web,
   url: "http://localhost:4010",

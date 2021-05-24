@@ -65,6 +65,11 @@ export default {
         this.initialiseChannel();
       }
     },
+    $route(to, from) {
+      if (to && from && to.name !== from.name) {
+        this.$channel.push('set page visited', { page: to.name });
+      }
+    },
   },
   mounted() {
     this.initialiseChannel();
