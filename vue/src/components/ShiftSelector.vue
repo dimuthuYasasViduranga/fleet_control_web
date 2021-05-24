@@ -15,7 +15,7 @@
           :value="shiftDateStr"
           type="datetime"
           zone="local"
-          format="dd MMM yyyy"
+          format="ccc, dd MMM yyyy"
           :flow="['date']"
           :min-datetime="minDatetimeStr"
           :max-datetime="maxDatetimeStr"
@@ -368,6 +368,10 @@ export default {
   border-style: none;
   text-align: center;
   user-select: none;
+}
+
+.shift-selector .vdatetime-input {
+  width: 9rem;
 }
 
 .shift-selector .shift-inc-toggle {
