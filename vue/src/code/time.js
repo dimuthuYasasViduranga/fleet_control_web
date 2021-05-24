@@ -117,7 +117,7 @@ export function todayRelativeFormat(datetime) {
         month: 'short',
         day: '2-digit',
       })
-      .replace(' ', '-');
+      .replaceAll(' ', '-');
 
     return `(${prefix}) ${hhmmss}`;
   }
@@ -135,12 +135,12 @@ export function formatSeconds(totalSeconds, format = '%HH:%MM:%SS') {
   seconds = Math.trunc(seconds);
   // parse the format
   return `${sign}${format}`
-    .replace('%HH', pad(hours))
-    .replace('%H', hours)
-    .replace('%MM', pad(minutes))
-    .replace('%M', minutes)
-    .replace('%SS', pad(seconds))
-    .replace('%S', seconds);
+    .replaceAll('%HH', pad(hours))
+    .replaceAll('%H', hours)
+    .replaceAll('%MM', pad(minutes))
+    .replaceAll('%M', minutes)
+    .replaceAll('%SS', pad(seconds))
+    .replaceAll('%S', seconds);
 }
 
 export function formatSecondsRelative(totalSeconds) {
@@ -182,17 +182,17 @@ export function formatDate(date, format = '%d-%m-%Y %HH:%MM:%SS') {
     return null;
   }
   return format
-    .replace('%d', pad(date.getDate()))
-    .replace('%m', pad(date.getMonth() + 1))
-    .replace('%Y', pad(date.getFullYear()))
-    .replace('%y', `${date.getFullYear()}`.slice(2))
-    .replace('%HH', pad(date.getHours()))
-    .replace('%H', date.getHours())
-    .replace('%MM', pad(date.getMinutes()))
-    .replace('%M', date.getMinutes())
-    .replace('%SS', pad(date.getSeconds()))
-    .replace('%S', date.getSeconds())
-    .replace('%b', date.toLocaleString('default', { month: 'short' }));
+    .replaceAll('%d', pad(date.getDate()))
+    .replaceAll('%m', pad(date.getMonth() + 1))
+    .replaceAll('%Y', pad(date.getFullYear()))
+    .replaceAll('%y', `${date.getFullYear()}`.slice(2))
+    .replaceAll('%HH', pad(date.getHours()))
+    .replaceAll('%H', date.getHours())
+    .replaceAll('%MM', pad(date.getMinutes()))
+    .replaceAll('%M', date.getMinutes())
+    .replaceAll('%SS', pad(date.getSeconds()))
+    .replaceAll('%S', date.getSeconds())
+    .replaceAll('%b', date.toLocaleString('default', { month: 'short' }));
 }
 
 export function formatDateUTC(date, format = '%d-%m-%Y %HH:%MM:%SS') {
@@ -200,17 +200,17 @@ export function formatDateUTC(date, format = '%d-%m-%Y %HH:%MM:%SS') {
     return null;
   }
   return format
-    .replace('%d', pad(date.getUTCDate()))
-    .replace('%m', pad(date.getUTCMonth() + 1))
-    .replace('%Y', pad(date.getUTCFullYear()))
-    .replace('%y', `${date.getUTCFullYear()}`.slice(2))
-    .replace('%HH', pad(date.getUTCHours()))
-    .replace('%H', date.getUTCHours())
-    .replace('%MM', pad(date.getUTCMinutes()))
-    .replace('%M', date.getUTCMinutes())
-    .replace('%SS', pad(date.getUTCSeconds()))
-    .replace('%S', date.getUTCSeconds())
-    .replace('%b', date.toLocaleString('default', { month: 'short', timeZone: 'UTC' }));
+    .replaceAll('%d', pad(date.getUTCDate()))
+    .replaceAll('%m', pad(date.getUTCMonth() + 1))
+    .replaceAll('%Y', pad(date.getUTCFullYear()))
+    .replaceAll('%y', `${date.getUTCFullYear()}`.slice(2))
+    .replaceAll('%HH', pad(date.getUTCHours()))
+    .replaceAll('%H', date.getUTCHours())
+    .replaceAll('%MM', pad(date.getUTCMinutes()))
+    .replaceAll('%M', date.getUTCMinutes())
+    .replaceAll('%SS', pad(date.getUTCSeconds()))
+    .replaceAll('%S', date.getUTCSeconds())
+    .replaceAll('%b', date.toLocaleString('default', { month: 'short', timeZone: 'UTC' }));
 }
 
 export class Now {
