@@ -210,7 +210,10 @@ export default {
   },
   computed: {
     id() {
-      return `time-span-chart-${this.name}`.replace(' ', '_');
+      return `time-span-chart-${this.name}`
+        .replaceAll(' ', '_')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
     },
     chartId() {
       return `${this.id}-chart`;
