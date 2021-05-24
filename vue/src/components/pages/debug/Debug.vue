@@ -226,7 +226,6 @@ import Dately from '@/components/dately/Dately.vue';
 
 import { formatDateIn, toUtcDate } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
-import { PageVisibility } from '@/code/visibility.js';
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -334,18 +333,9 @@ export default {
     timezone() {
       return this.$store.state.constants.timezone;
     },
-    pageHidden() {
-      return PageVisibility.hidden;
-    },
   },
-  watch: {
-    pageHidden(isHidden) {
-      if (isHidden) {
-        Titler.change('FleetControl - Hidden');
-      } else {
-        Titler.reset();
-      }
-    },
+  beforeDestroy() {
+    Titler.reset();
   },
   methods: {
     formatDate(date) {

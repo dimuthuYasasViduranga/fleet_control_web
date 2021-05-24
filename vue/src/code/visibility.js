@@ -14,8 +14,6 @@ class Visibility {
 function addListeners(ctx) {
   const { hiddenTopic, visibilityTopic } = getTopics();
 
-  console.dir(visibilityTopic);
-
   document.addEventListener(
     visibilityTopic,
     () => {
