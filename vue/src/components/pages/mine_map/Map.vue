@@ -62,7 +62,7 @@
                 content: `Show All`,
                 placement: 'top',
               }"
-              :icon="tickIcon"
+              :icon="showIcon"
               @click="showAllAssetTypes()"
             />
             <Icon
@@ -72,7 +72,7 @@
                 content: `Hide All`,
                 placement: 'top',
               }"
-              :icon="errorIcon"
+              :icon="hideIcon"
               @click="hideAllAssetTypes()"
             />
             <Icon
@@ -150,8 +150,8 @@ import GmapCluster from 'gmap-vue/dist/components/cluster';
 
 import loading from 'hx-layout/Loading.vue';
 import Icon from 'hx-layout/Icon.vue';
-import ErrorIcon from 'hx-layout/icons/Error.vue';
-import TickIcon from '@/components/icons/Tick.vue';
+import HideIcon from '@/components/icons/Hide.vue';
+import ShowIcon from '@/components/icons/Show.vue';
 import FilterIcon from '@/components/icons/Filter.vue';
 
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
@@ -246,8 +246,8 @@ export default {
       // track properties
       trackClusterSize: 35,
       debug: false,
-      errorIcon: ErrorIcon,
-      tickIcon: TickIcon,
+      hideIcon: HideIcon,
+      showIcon: ShowIcon,
       filterIcon: FilterIcon,
     };
   },
