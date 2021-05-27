@@ -166,56 +166,42 @@ defmodule Dispatch.TimeAllocationAgent do
   end
 
   @spec lock(list[integer], integer, integer) ::
-          {:ok, list(locked_alloc), list(new_alloc), list(deleted_alloc), lock}
-          | {:error,
-             :invalid_ids
-             | :invalid_calendar
-             | :invalid_dispatcher
-             | :deleted_locked_or_active
-             | :outside_calendar
-             | term}
+          {:ok,
+           %{
+             deleted_ids: list(integer),
+             ignored_ids: list(integer),
+             new: list(allocation),
+             lock: lock()
+           }}
+          | {:error, :invalid_calendar | :invalid_calendar}
   def lock(ids, calendar_id, dispatcher_id) do
     Agent.get_and_update(__MODULE__, fn state ->
-      # if an active element, do an update first to split the element into a lockable chunk
-      {state, ids, additional_deleted, new_active} =
-        state.active
-        |> Map.values()
-        |> Enum.find(&Enum.member?(ids, &1.id))
-        |> case do
-          nil ->
-            {state, ids, [], nil}
-
-          active ->
-            completed_active = Map.put(active, :end_time, DHelper.naive_timestamp())
-
-            {{:ok, deleted, [to_lock], new_active}, state} =
-              Update.update_all([completed_active], state)
-
-            ids = [to_lock.id | Enum.reject(ids, &(&1 == active.id))]
-
-            {state, ids, deleted, new_active}
-        end
-
       case Lock.lock(ids, calendar_id, dispatcher_id) do
-        {:ok, locked, new, deleted, lock} ->
-          deleted_ids = Enum.map(deleted ++ additional_deleted, & &1.id)
+        {:ok, data} ->
+          deleted_ids = data.deleted_ids
+          new_allocs = data.new
+          completed_allocs = Enum.reject(new_allocs, &is_nil(&1.end_time))
+          active_allocs = Enum.filter(new_allocs, &is_nil(&1.end_time))
 
           historic =
             state.historic
-            |> Enum.reject(&(&1.id in deleted_ids))
-            |> Enum.concat(locked)
-            |> Enum.concat(new)
+            |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
+            |> Enum.concat(completed_allocs)
             |> Culling.cull(Data.culling_opts())
 
-          state = Map.put(state, :historic, historic)
+          active_changes =
+            active_allocs
+            |> Enum.map(&{&1.asset_id, &1})
+            |> Enum.into(%{})
 
-          new =
-            case new_active do
-              nil -> new
-              _ -> new ++ [new_active]
-            end
+          active_map = Map.merge(state.active, active_changes)
 
-          {{:ok, locked, new, deleted, lock}, state}
+          state =
+            state
+            |> Map.put(:historic, historic)
+            |> Map.put(:active, active_map)
+
+          {{:ok, data}, state}
 
         error ->
           {error, state}

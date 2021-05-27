@@ -17,8 +17,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
     CalendarAgent.start_link([])
     todays_calendar = CalendarAgent.get_current()
 
-    future_calendar =
-      CalendarAgent.get_at(NaiveDateTime.add(NaiveDateTime.utc_now(), 24 * 3600))
+    future_calendar = CalendarAgent.get_at(NaiveDateTime.add(NaiveDateTime.utc_now(), 24 * 3600))
 
     yesterdays_calendar =
       CalendarAgent.get_at(NaiveDateTime.add(todays_calendar.shift_start, -60))
@@ -279,31 +278,31 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], new, [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      # {:ok, [locked], new, [deleted], lock} =
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
+      [locked] = data.new
 
-      # return
+      # Return
       assert lock.calendar_id == cal_id
       assert lock.dispatcher_id == context.dispatcher
 
-      assert deleted.id == initial.id
-      assert deleted.deleted == true
-
-      assert new == []
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
 
       assert locked.id != initial.id
       assert NaiveDateTime.compare(locked.start_time, initial.start_time)
       assert NaiveDateTime.compare(locked.end_time, initial.end_time)
+      assert locked.lock_id == lock.id
       assert locked.time_code_id == initial.time_code_id
 
-      # store
+      # Store
       assert TimeAllocationAgent.active() == []
       assert TimeAllocationAgent.historic() == [locked]
 
-      # database
-      assert_db_contains(TimeAllocation, [locked, deleted])
-      assert_db_contains(TimeAllocationLock, lock)
-      refute_db_contains(TimeAllocation, initial)
+      # Database
+      assert_db_contains(TimeAllocation, locked)
+      assert_db_count(TimeAllocation, 1, 1, :deleted)
     end
 
     test "valid (no split on start boundary)", %{asset: asset, ready: ready} = context do
