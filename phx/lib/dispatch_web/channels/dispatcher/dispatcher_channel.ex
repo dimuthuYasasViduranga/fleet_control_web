@@ -419,8 +419,7 @@ defmodule DispatchWeb.DispatcherChannel do
   def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
-    TimeAllocationAgent.lock(ids, cal_id, dispatcher_id)
-    |> case do
+    case TimeAllocationAgent.lock(ids, cal_id, dispatcher_id) do
       {:ok, [], _, _, _} ->
         {:reply, :ok, socket}
 

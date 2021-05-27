@@ -31,6 +31,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
     cond do
       calendar == nil -> {:error, :invalid_calendar}
       dispatcher == nil -> {:error, :invalid_dispatcher}
+      length(ids) == 0 -> {:ok, %{deleted_ids: [], ignored_ids: [], new: [], lock: nil}}
       true -> do_lock(ids, calendar, dispatcher)
     end
   end
@@ -50,6 +51,9 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
       calendar_range = %{start_time: calendar.shift_start_utc, end_time: calendar.shift_end_utc}
       allocs = get_allocations(ids, repo)
 
+      found_ids = Enum.map(allocs, & &1.id)
+      missing_ids = ids -- found_ids
+
       # all ignored allocations skip updates
       # all affected allocations are deleted (new versions will be inserted)
       # all before and after elements are inserted as new elements
@@ -63,12 +67,18 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
       {:ok,
        %{
          ignored: ignored,
+         missing_ids: missing_ids,
          to_delete: affected,
          to_lock: during_shift,
          to_insert: before_shift ++ after_shift
        }}
     end)
-    |> Multi.insert(:lock, lock, returning: true)
+    |> Multi.run(:lock, fn repo, %{splits: splits} ->
+      case length(splits.to_delete) do
+        0 -> {:ok, nil}
+        _ -> repo.insert(lock, returning: true)
+      end
+    end)
     |> Multi.run(:alloc_delete, fn repo, %{splits: splits} ->
       splits.to_delete
       |> Enum.map(& &1.id)
@@ -90,7 +100,8 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
       end
     end)
     |> Multi.run(:alloc_lock, fn repo, %{splits: splits, lock: lock} ->
-      to_lock = Enum.map(splits.to_lock, &Map.put(&1, :lock_id, lock.id))
+      lock_id = Map.get(lock || %{}, :id)
+      to_lock = Enum.map(splits.to_lock, &Map.put(&1, :lock_id, lock_id))
       expected_count = length(to_lock)
 
       repo.insert_all(TimeAllocation, to_lock, returning: true)
@@ -112,9 +123,14 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
     |> case do
       {:ok, data} ->
         deleted_ids = data.alloc_delete
-        ignored_ids = Enum.map(data.splits.ignored, & &1.id)
+        ignored_ids = Enum.map(data.splits.ignored, & &1.id) ++ data.splits.missing_ids
         new_allocs = Enum.map(data.alloc_lock ++ data.alloc_insert, &TimeAllocation.to_map/1)
-        lock = TimeAllocationLock.to_map(data.lock)
+
+        lock =
+          case data.lock do
+            nil -> nil
+            lock -> TimeAllocationLock.to_map(lock)
+          end
 
         response = %{
           deleted_ids: deleted_ids,
