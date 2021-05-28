@@ -14,6 +14,7 @@ defmodule DispatchWeb.OperatorChannel do
     Helper,
     Tracks,
     AssetAgent,
+    DeviceAgent,
     OperatorAgent,
     OperatorMessageAgent,
     OperatorMessageTypeAgent,
@@ -74,6 +75,9 @@ defmodule DispatchWeb.OperatorChannel do
 
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
+
+    # update device version (if available)
+    update_device_client_version(device_id, params["details"]["client_version"])
 
     state =
       case get_connect_type(params) do
@@ -474,6 +478,24 @@ defmodule DispatchWeb.OperatorChannel do
 
       _ ->
         nil
+    end
+  end
+
+  defp update_device_client_version(_, nil), do: nil
+
+  defp update_device_client_version(device_id, version) do
+    with device = %{} <- DeviceAgent.get(%{id: device_id}),
+         true <- device.details["client_version"] != version do
+      client_updated_at = Helper.to_unix(NaiveDateTime.utc_now())
+      new_details = %{"client_version" => version, "client_updated_at" => client_updated_at}
+
+      updated_details = Map.merge(device.details, new_details)
+
+      DeviceAgent.update_details(device_id, updated_details)
+
+      Broadcast.send_devices_to_dispatcher()
+    else
+      _ -> nil
     end
   end
 end

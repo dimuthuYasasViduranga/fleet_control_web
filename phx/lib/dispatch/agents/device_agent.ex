@@ -65,20 +65,20 @@ defmodule Dispatch.DeviceAgent do
         |> Repo.insert()
         |> update_devices(devices)
         |> case do
-          {:error, error} -> {error, devices}
-          {device, devices} -> {{:ok, :new, device}, devices}
+          {{:ok, device}, devices} -> {{:ok, :new, device}, devices}
+          error -> error
         end
 
       device ->
-        details = merge_details(device.details, details)
+        details = Map.merge(device.details, details)
 
         device
         |> Device.changeset(%{details: details})
         |> Repo.update()
         |> update_devices(devices)
         |> case do
-          {:error, error} -> {error, devices}
-          {device, devices} -> {{:ok, :exists, device}, devices}
+          {{:ok, device}, devices} -> {{:ok, :exists, device}, devices}
+          error -> error
         end
     end
   end
@@ -93,7 +93,7 @@ defmodule Dispatch.DeviceAgent do
 
   def update_details(_, _), do: {:error, :invalid_details}
 
-  def update_details(devices, device_id, details) do
+  defp update_details(devices, device_id, details) do
     case Helper.get_by_or_nil(Repo, Device, %{id: device_id}) do
       nil ->
         {{:error, :invalid_id}, devices}
@@ -103,10 +103,6 @@ defmodule Dispatch.DeviceAgent do
         |> Device.changeset(%{details: details})
         |> Repo.update()
         |> update_devices(devices)
-        |> case do
-          {:error, error} -> {error, devices}
-          {device, devices} -> {{:ok, device}, devices}
-        end
     end
   end
 
@@ -150,15 +146,7 @@ defmodule Dispatch.DeviceAgent do
         |> Device.changeset(%{not_before: nbf})
         |> Repo.update()
         |> update_devices(devices)
-        |> case do
-          {:error, error} -> {error, devices}
-          {device, devices} -> {{:ok, device}, devices}
-        end
     end
-  end
-
-  defp merge_details(existing, new) do
-    Map.merge(new, existing, fn _, new_val, existing_val -> new_val || existing_val end)
   end
 
   defp update_devices({:ok, %Device{} = device}, devices) do
@@ -169,8 +157,8 @@ defmodule Dispatch.DeviceAgent do
   defp update_devices({:ok, device}, devices) do
     other_devices = Enum.reject(devices, &(&1.id == device.id))
     devices = [device | other_devices]
-    {device, devices}
+    {{:ok, device}, devices}
   end
 
-  defp update_devices(error, _devices), do: {:error, error}
+  defp update_devices(error, devices), do: {{:error, error}, devices}
 end
