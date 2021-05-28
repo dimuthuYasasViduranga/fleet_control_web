@@ -40,6 +40,8 @@
             @change="onShiftChange"
             @refresh="onRefresh"
           />
+          <button class="hx-btn" @click="onLockAll()">Lock All</button>
+          <button class="hx-btn" @click="onUnlockAll()">Unlock All</button>
         </div>
       </div>
 
@@ -124,9 +126,22 @@ import TimeIcon from '../../icons/Time.vue';
 import { isInText } from '../../../code/helpers';
 import { parseTimeAllocation, parseTimeusage, parseCycle } from '../../../store/store.js';
 import { parseDeviceAssignment } from '../../../store/modules/device_store.js';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 const ACTIVE_INTERVAL_MS = 5 * 1000;
 const HOURS_TO_MS = 60 * 60 * 1000;
+
+const LOCK_WARNING = `
+Are you sure you want lock the given allocations?
+
+You may not be able to unlock them
+`;
+
+const UNLOCK_WARNING = `
+Are you sure you want to unlock the given allocations?
+
+Users will be able to edit the given allocations
+`;
 
 function getRange({ now, width = 0, offset = 0 }) {
   return {
@@ -358,6 +373,80 @@ export default {
         .receive('error', onError)
         .receive('timeout', onError);
     },
+    onLockAll() {
+      this.$modal
+        .create(ConfirmModal, { title: 'Lock All Time Allocations', body: LOCK_WARNING })
+        .onClose(answer => {
+          if (answer === 'ok') {
+            this.lockAll();
+          }
+        });
+    },
+    lockAll() {
+      if (!this.shift || !this.shift.id || !this.shiftAssetData.length) {
+        console.error('[TA] Unable to lock all time allocations');
+        return;
+      }
+
+      const shiftId = this.shift.id;
+      const allocIds = this.shiftAssetData
+        .map(data => data.timeAllocations)
+        .flat()
+        .filter(a => a.id > 0 && !a.lockId)
+        .map(a => a.id);
+
+      const payload = {
+        ids: allocIds,
+        calendar_id: shiftId,
+      };
+
+      this.$channel
+        .push('lock time allocations', payload)
+        .receive('ok', () => {
+          this.$toaster.info('Time Allocations Locked');
+          this.onRefresh();
+        })
+        .receive('error', () => {
+          this.$toaster.error('Could not Lock Allocations');
+        })
+        .receive('timeout', () => {
+          this.$toaster.noComms('Unable to Lock Allocations');
+        });
+    },
+    onUnlockAll() {
+      this.$modal
+        .create(ConfirmModal, { title: 'Unlock All Time Allocations', body: UNLOCK_WARNING })
+        .onClose(answer => {
+          if (answer === 'ok') {
+            this.unlockAll();
+          }
+        });
+    },
+    unlockAll() {
+      if (!this.shiftAssetData.length) {
+        console.error('[TA] Unable to unlock all time allocations');
+        return;
+      }
+
+      const allocIds = this.shiftAssetData
+        .map(data => data.timeAllocations)
+        .flat()
+        .filter(a => a.id > 0 && a.lockId)
+        .map(a => a.id);
+
+      this.$channel
+        .push('unlock time allocations', allocIds)
+        .receive('ok', () => {
+          this.$toaster.info('Time Allocations Unlocked');
+          this.onRefresh();
+        })
+        .receive('error', () => {
+          this.$toaster.error('Could not Unlock Allocations');
+        })
+        .receive('timeout', () => {
+          this.$toaster.noComms('Unable to Unlock Allocations');
+        });
+    },
   },
 };
 </script>
@@ -383,13 +472,17 @@ export default {
 }
 
 .time-allocation-page .time-scale-wrapper {
-  height: 4rem;
+  margin-bottom: 1rem;
 }
 
 .time-allocation-page .time-scale-options {
   height: 100%;
   display: flex;
   padding-top: 1rem;
+}
+
+.time-allocation-page .shift-select-options button {
+  margin-right: 0.1rem;
 }
 
 .time-allocation-page .asset-type-selector {

@@ -58,7 +58,7 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
       # |------a------|
       #
       # Expected
-      # |------a------|
+      # |--|-------|--|
 
       a_start = ~N[2020-01-01 00:00:00]
       b_start = NaiveDateTime.add(a_start, 60)
@@ -653,6 +653,143 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
     end
   end
 
+  describe "remove_assignment_overlaps/1" do
+    test "0 elements" do
+      assert OperatorTimeAllocation.remove_assignment_overlaps([]) == []
+    end
+
+    test "1 element" do
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      span = to_span(a, b)
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps([span]) == [span]
+    end
+
+    test "2 elements (no overlap with gap)" do
+      # input     |-------|       |-------|
+      #
+      # expected  |-------|       |-------|
+      #
+      #
+      # TS        A       B       C       D
+      #           +0      +1      +2      +3
+
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+      d = NaiveDateTime.add(c, 60)
+
+      spans = [
+        to_span(a, b),
+        to_span(c, d)
+      ]
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps(spans) == spans
+    end
+
+    test "2 elements (no overlap adjacent)" do
+      # input     |-------|-------|
+      #
+      # expected  |-------|-------|
+      #
+      #
+      # TS        A       B       C
+      #           +0      +1      +2
+
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+
+      spans = [
+        to_span(a, b),
+        to_span(b, c)
+      ]
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps(spans) == spans
+    end
+
+    test "2 elements (completely covered)" do
+      # input     |-----------------------|
+      #                   |-------|
+      #
+      # expected  |-------|-------|
+      #
+      #
+      # TS        A       B       C       D
+      #           +0      +1      +2      +3
+
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+      d = NaiveDateTime.add(c, 60)
+
+      spans = [
+        to_span(a, d),
+        to_span(b, c)
+      ]
+
+      expected = [
+        to_span(a, b),
+        to_span(b, c)
+      ]
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps(spans) == expected
+    end
+
+    test "2 elements (start inside, end outside)" do
+      # input             |---------------|
+      #           |---------------|
+      #
+      # expected  |-------|---------------|
+      #
+      #
+      # TS        A       B       C       D
+      #           +0      +1      +2      +3
+
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+      c = NaiveDateTime.add(b, 60)
+      d = NaiveDateTime.add(c, 60)
+
+      spans = [
+        to_span(a, c),
+        to_span(b, d)
+      ]
+
+      expected = [
+        to_span(a, b),
+        to_span(b, d)
+      ]
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps(spans) == expected
+    end
+
+    test "2 elements (equal)" do
+      # input     |-------|
+      #           |-------|
+      #
+      # expected  |-------|
+      #
+      # TS        A       B
+      #           +0      +1
+
+      a = ~N[2021-01-01 00:00:00]
+      b = NaiveDateTime.add(a, 60)
+
+      spans = [
+        to_span(a, b),
+        to_span(a, b)
+      ]
+
+      expected = [
+        to_span(a, b)
+      ]
+
+      assert OperatorTimeAllocation.remove_assignment_overlaps(spans) == expected
+    end
+  end
+
   describe "create_operator_allocations/1 -" do
     defp to_alloc(asset, start_time, end_time, data) do
       %{
@@ -996,7 +1133,6 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
         %{
           start_time: d,
           end_time: e,
-          data: nil,
           operator_id: operator.id,
           asset_id: nil
         }
@@ -1004,7 +1140,89 @@ defmodule Dispatch.Unit.OperatorTimeAllocationTest do
 
       actual = OperatorTimeAllocation.create_operator_allocations(data)
 
-      # assert actual == expected
+      assert actual == expected
     end
+  end
+
+  test "logout of asset after login to another (old login overing)" do
+    # This is a case only seen due to a desyn in device clocks that are then submitted to
+    # the server
+
+    # Asset 1
+    # TC        |--------------TA1--------------|
+    # O         |               x               |
+    #
+    # Asset 2
+    # TC        |--TB1--|------TB2------|--TB3--|
+    # O         |       |       x       |       |
+    #
+
+    # expected
+    # asset     |   1   |       2       |   -   |
+    # TA        |  TA1  |      TB2      |   -   |
+    # O         |   O   |       O       |   -   |
+
+    # TS        A       B       C       D       E
+    #           +0      +1      +2      +3      +4
+
+    asset_1 = %{id: "Asset 1"}
+    asset_2 = %{id: "Asset 2"}
+    operator = %{id: "Person"}
+
+    a = ~N[2020-01-01 00:00:00]
+    b = NaiveDateTime.add(a, 60)
+    c = NaiveDateTime.add(b, 60)
+    d = NaiveDateTime.add(c, 60)
+    e = NaiveDateTime.add(d, 60)
+
+    assignments = [
+      to_assignment(asset_1, operator, a),
+      to_assignment(asset_2, operator, b),
+      to_assignment(asset_1, nil, e),
+      to_assignment(asset_2, nil, d)
+    ]
+
+    ta1 = to_alloc(asset_1, a, e, "1 - Dig Ore")
+    tb1 = to_alloc(asset_2, a, b, "2 - Not Required")
+    tb2 = to_alloc(asset_2, b, d, "2 - Hauling ore")
+    tb3 = to_alloc(asset_2, d, e, "2 - Not Required")
+
+    allocations = [ta1, tb1, tb2, tb3]
+
+    data = %{
+      start_time: a,
+      end_time: e,
+      assets: [asset_1, asset_2],
+      operators: [operator],
+      time_allocations: allocations,
+      device_assignments: assignments
+    }
+
+    expected = [
+      %{
+        start_time: a,
+        end_time: b,
+        data: ta1.data,
+        operator_id: operator.id,
+        asset_id: asset_1.id
+      },
+      %{
+        start_time: b,
+        end_time: d,
+        data: tb2.data,
+        operator_id: operator.id,
+        asset_id: asset_2.id
+      },
+      %{
+        start_time: d,
+        end_time: e,
+        operator_id: operator.id,
+        asset_id: nil
+      }
+    ]
+
+    actual = OperatorTimeAllocation.create_operator_allocations(data)
+
+    assert actual == expected
   end
 end
