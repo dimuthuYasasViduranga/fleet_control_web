@@ -6,7 +6,7 @@ defmodule Dispatch.TimeAllocationAgent do
 
   alias Dispatch.Helper, as: DHelper
   alias Dispatch.{Culling, AgentHelper}
-  alias __MODULE__.{Data, Update, Lock, Helper}
+  alias __MODULE__.{Data, Update, Lock, Unlock, Helper}
 
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
@@ -210,23 +210,25 @@ defmodule Dispatch.TimeAllocationAgent do
   end
 
   @spec unlock(list(integer)) ::
-          {:ok, list(unlocked_alloc), list(deleted_alloc)}
-          | {:error, :invalid_ids | :not_unlockable | term}
-  def unlock([]), do: {:ok, [], []}
+          {:ok, %{new: list(allocation), deleted_ids: list(integer), ignored_ids: list(integer)}}
+          | {:error, term}
+  def unlock([]), do: {:ok, %{new: [], deleted_ids: [], ignored_ids: []}}
 
   def unlock(ids) do
     Agent.get_and_update(__MODULE__, fn state ->
-      case Lock.unlock(ids) do
-        {:ok, unlocked, deleted} ->
-          deleted_ids = Enum.map(deleted, & &1.id)
+      case Unlock.unlock(ids) do
+        {:ok, data} ->
+          deleted_ids = data.deleted_ids
+          unlocked_allocs = data.new
 
           historic =
             state.historic
-            |> Enum.reject(&(&1.id in deleted_ids))
-            |> Enum.concat(unlocked)
+            |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
+            |> Enum.concat(unlocked_allocs)
+            |> Culling.cull(Data.culling_opts())
 
           state = Map.put(state, :historic, historic)
-          {{:ok, unlocked, deleted}, state}
+          {{:ok, data}, state}
 
         error ->
           {error, state}

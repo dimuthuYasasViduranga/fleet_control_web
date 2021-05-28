@@ -23,7 +23,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
   @type failure :: {:error, :invalid_calendar | :invalid_calendar}
 
   @spec lock(list(integer), integer, integer) :: success | failure
-  def lock(ids, calendar_id, dispatcher_id) do
+  def lock(ids, calendar_id, dispatcher_id) when is_list(ids) do
     ids = Enum.uniq(ids)
     calendar = Helper.get_by_or_nil(Repo, Calendar, %{id: calendar_id})
     dispatcher = Helper.get_by_or_nil(Repo, Dispatcher, %{id: dispatcher_id})
@@ -87,7 +87,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
           {:ok, []}
 
         delete_ids ->
-          updates = [deleted: true, deleted_at: NaiveDateTime.utc_now()]
+          updates = [deleted: true, deleted_at: now]
 
           expected_count = length(delete_ids)
 

@@ -10,8 +10,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
     DispatcherAgent
   }
 
-  alias Dispatch.TimeAllocationAgent.Lock
-  alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeAllocationLock}
+  alias HpsData.Schemas.Dispatch.TimeAllocation
 
   def assert_naive_equal(nil, nil), do: true
 
@@ -27,8 +26,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
           right: expected
     end
   end
-
-  def assert_naive_equal(a, b), do: assert(NaiveDateTime.compare(a, b) == :eq)
 
   setup_all _ do
     CalendarAgent.start_link([])
@@ -66,14 +63,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
     [dispatcher: dispatcher.id]
   end
 
-  defp to_span(start_time, end_time) do
-    %{start_time: start_time, end_time: end_time}
-  end
-
-  defp to_span(id, start_time, end_time) do
-    %{id: id, start_time: start_time, end_time: end_time}
-  end
-
   defp to_alloc(asset_id, time_code_id, start_time, end_time) do
     :timer.sleep(2)
 
@@ -83,205 +72,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
       start_time: start_time,
       end_time: end_time
     }
-  end
-
-  describe "split_allocation/2 -" do
-    test "valid (no split required)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(NaiveDateTime.add(r_start, 60), NaiveDateTime.add(r_end, -60))
-
-      {:unchanged, actual} = Lock.split_allocation(initial, range)
-
-      assert actual == initial
-    end
-
-    test "valid (no split required, exactly covering)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(r_start, r_end)
-
-      {:unchanged, actual} = Lock.split_allocation(initial, range)
-
-      assert actual == initial
-    end
-
-    test "valid (no split required, start on range start)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(r_start, NaiveDateTime.add(r_end, -60))
-
-      {:unchanged, actual} = Lock.split_allocation(initial, range)
-
-      assert actual == initial
-    end
-
-    test "valid (no split required, end on range end)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(NaiveDateTime.add(r_start, 60), r_end)
-
-      {:unchanged, actual} = Lock.split_allocation(initial, range)
-
-      assert actual == initial
-    end
-
-    test "valid (split start time before range)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(NaiveDateTime.add(r_start, -60), NaiveDateTime.add(r_end, -60))
-
-      {:split, right, [left]} = Lock.split_allocation(initial, range)
-
-      assert left.start_time == initial.start_time
-      assert left.end_time == r_start
-
-      assert right.start_time == r_start
-      assert right.end_time == initial.end_time
-    end
-
-    test "valid (split end time after range)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(NaiveDateTime.add(r_start, 60), NaiveDateTime.add(r_end, 60))
-
-      {:split, left, [right]} = Lock.split_allocation(initial, range)
-
-      assert left.start_time == initial.start_time
-      assert left.end_time == r_end
-
-      assert right.start_time == r_end
-      assert right.end_time == initial.end_time
-    end
-
-    test "valid (split element completely covering)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(NaiveDateTime.add(r_start, -60), NaiveDateTime.add(r_end, 60))
-
-      {:split, middle, [left, right]} = Lock.split_allocation(initial, range)
-
-      assert left.start_time == initial.start_time
-      assert left.end_time == r_start
-
-      assert middle.start_time == r_start
-      assert middle.end_time == r_end
-
-      assert right.start_time == r_end
-      assert right.end_time == initial.end_time
-    end
-  end
-
-  describe "split_allocations/2 -" do
-    test "valid (no split required)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, NaiveDateTime.add(r_start, 60), NaiveDateTime.add(r_end, -60))
-
-      {outside_range, inside_range} = Lock.split_allocations([initial], range)
-
-      assert outside_range == []
-      assert inside_range == [initial]
-    end
-
-    test "valid (no split required, exactly covering)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, r_start, r_end)
-
-      {outside_range, inside_range} = Lock.split_allocations([initial], range)
-
-      assert outside_range == []
-      assert inside_range == [initial]
-    end
-
-    test "valid (start on range start, no split)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, r_start, NaiveDateTime.add(r_end, -60))
-
-      {outside_range, inside_range} = Lock.split_allocations([initial], range)
-
-      assert outside_range == []
-      assert inside_range == [initial]
-    end
-
-    test "valid (end on range end, no split)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, NaiveDateTime.add(r_start, 60), r_end)
-
-      {outside_range, inside_range} = Lock.split_allocations([initial], range)
-
-      assert outside_range == []
-      assert inside_range == [initial]
-    end
-
-    test "valid (start time outside, end time inside)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, NaiveDateTime.add(r_start, -60), NaiveDateTime.add(r_end, -60))
-
-      {[new_left], [new_right]} = Lock.split_allocations([initial], range)
-
-      assert new_left.id == initial.id
-      assert new_left.start_time == initial.start_time
-      assert new_left.end_time == r_start
-
-      assert new_right.id == initial.id
-      assert new_right.start_time == r_start
-      assert new_right.end_time == initial.end_time
-    end
-
-    test "valid (start time inside, end time outside)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, NaiveDateTime.add(r_start, 60), NaiveDateTime.add(r_end, 60))
-
-      {[new_right], [new_left]} = Lock.split_allocations([initial], range)
-
-      assert new_left.id == initial.id
-      assert new_left.start_time == initial.start_time
-      assert new_left.end_time == r_end
-
-      assert new_right.id == initial.id
-      assert new_right.start_time == r_end
-      assert new_right.end_time == initial.end_time
-    end
-
-    test "valid (split element completely covering)" do
-      r_start = ~N[2020-01-02 00:00:00]
-      r_end = ~N[2020-01-03 00:00:00]
-      range = to_span(r_start, r_end)
-      initial = to_span(1, NaiveDateTime.add(r_start, -60), NaiveDateTime.add(r_end, 60))
-
-      {[new_left, new_right], [new_middle]} = Lock.split_allocations([initial], range)
-
-      assert new_left.id == initial.id
-      assert new_left.start_time == initial.start_time
-      assert new_left.end_time == r_start
-
-      assert new_middle.id == initial.id
-      assert new_middle.start_time == r_start
-      assert new_middle.end_time == r_end
-
-      assert new_right.id == initial.id
-      assert new_right.start_time == r_end
-      assert new_right.end_time == initial.end_time
-    end
   end
 
   describe "lock/3 complete elements -" do
@@ -556,10 +346,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert_db_count(TimeAllocation, 1, 0, :deleted)
     end
 
-    test "valid (no elements)", %{asset: asset, ready: ready} = context do
-      %{id: cal_id, shift_end: shift_end} = context.calendar
-
-      {:ok, data} = TimeAllocationAgent.lock([], cal_id, context.dispatcher)
+    test "valid (no elements)", context do
+      {:ok, data} = TimeAllocationAgent.lock([], context.calendar.id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -937,7 +725,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
       lock = data.lock
 
       [locked_a, locked_b, active_a, active_b] =
-        egg = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
+        Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
       # Return
       assert lock.calendar_id == cal_id
@@ -976,113 +764,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
       # Database
       assert_db_contains(TimeAllocation, [locked_a, locked_b, active_a, active_b])
       assert_db_count(TimeAllocation, 4, 2, :deleted)
-    end
-  end
-
-  describe "unlock/1 -" do
-    test "valid (all locked)", %{asset: asset, ready: ready} = context do
-      %{id: cal_id, shift_end: r_end} = context.calendar
-
-      end_time = NaiveDateTime.add(r_end, -60)
-      start_time = NaiveDateTime.add(end_time, -60)
-
-      {:ok, initial} =
-        to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
-
-      {:ok, [locked], [], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
-
-      {:ok, [unlocked], [deleted_locked]} = TimeAllocationAgent.unlock([locked.id])
-
-      # return
-      assert locked.id != initial.id
-      assert locked.lock_id == lock.id
-
-      assert deleted.id == initial.id
-      assert deleted.deleted == true
-
-      assert unlocked.id != locked.id
-      assert unlocked.lock_id == nil
-
-      assert deleted_locked.id == locked.id
-      assert deleted_locked.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [unlocked]
-
-      # database
-      assert_db_contains(TimeAllocation, [unlocked, deleted_locked])
-      assert_db_contains(TimeAllocationLock, lock)
-      refute_db_contains(TimeAllocation, [initial, locked, deleted])
-    end
-
-    test "valid (no ids)" do
-      {:ok, unlocked, deleted} = TimeAllocationAgent.unlock([])
-      assert unlocked == []
-      assert deleted == []
-    end
-
-    test "invalid (some ids dont exist)" do
-      error = TimeAllocationAgent.unlock([-1, nil])
-      assert error == {:error, :invalid_ids}
-    end
-
-    test "invalid (some ids not locked)", %{asset: asset, ready: ready} = context do
-      %{shift_end: r_end} = context.calendar
-
-      end_time = NaiveDateTime.add(r_end, -60)
-      start_time = NaiveDateTime.add(end_time, -60)
-
-      {:ok, initial} =
-        to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
-
-      error = TimeAllocationAgent.unlock([initial.id])
-
-      # return
-      assert error == {:error, :not_unlockable}
-
-      # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [initial]
-
-      # database
-      assert_db_contains(TimeAllocation, initial)
-    end
-
-    test "invalid (some ids deleted)", %{asset: asset, ready: ready} = context do
-      %{shift_end: r_end} = context.calendar
-
-      end_time = NaiveDateTime.add(r_end, -60)
-      start_time = NaiveDateTime.add(end_time, -60)
-
-      {:ok, initial} =
-        to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
-
-      {:ok, [deleted], completed, active} =
-        TimeAllocationAgent.update_all([Map.put(initial, :deleted, true)])
-
-      error = TimeAllocationAgent.unlock([deleted.id])
-
-      # return
-      assert error == {:error, :not_unlockable}
-
-      assert completed == []
-      assert active == nil
-
-      assert deleted.id == initial.id
-      assert deleted.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
-
-      # database
-      assert_db_contains(TimeAllocation, deleted)
-      refute_db_contains(TimeAllocation, initial)
     end
   end
 end

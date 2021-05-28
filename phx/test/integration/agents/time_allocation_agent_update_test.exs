@@ -983,8 +983,9 @@ defmodule Dispatch.TimeAllocationAgentUpdateTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], [], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, lock_data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      [locked] = lock_data.new
+      [deleted_id] = lock_data.deleted_ids
 
       error = TimeAllocationAgent.update_all([Map.put(locked, :start_time, r_start)])
 
@@ -992,17 +993,17 @@ defmodule Dispatch.TimeAllocationAgentUpdateTest do
       assert error == {:error, :cannot_change_locked}
 
       assert locked.id != initial.id
-      assert locked.lock_id == lock.id
-      assert deleted.id == initial.id
-      assert deleted.deleted == true
+      assert locked.lock_id == lock_data.lock.id
+      assert deleted_id == initial.id
 
       # store
       assert TimeAllocationAgent.active() == []
       assert TimeAllocationAgent.historic() == [locked]
 
       # database
-      assert_db_contains(TimeAllocation, [locked, deleted])
+      assert_db_contains(TimeAllocation, locked)
       refute_db_contains(TimeAllocation, initial)
+      assert_db_count(TimeAllocation, 1, 1, :deleted)
     end
 
     test "invalid (update element to locked)", %{asset: asset, ready: ready} do
