@@ -420,11 +420,17 @@ defmodule DispatchWeb.DispatcherChannel do
     dispatcher_id = get_dispatcher_id(socket)
 
     case TimeAllocationAgent.lock(ids, cal_id, dispatcher_id) do
-      {:ok, [], _, _, _} ->
+      {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
-      {:ok, [alloc | _], _, _, _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: alloc.asset_id})
+      {:ok, %{new: new_elements}} ->
+        # only send to assets if there is a new active for them
+        new_elements
+        |> Enum.filter(&is_nil(&1.end_time))
+        |> Enum.map(& &1.asset_id)
+        |> Enum.uniq()
+        |> Enum.each(&Broadcast.send_active_allocation_to(%{asset_id: &1}))
+
         Broadcast.send_allocations_to_dispatcher()
         {:reply, :ok, socket}
 
@@ -435,11 +441,10 @@ defmodule DispatchWeb.DispatcherChannel do
 
   def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
     case TimeAllocationAgent.unlock(ids) do
-      {:ok, [], _} ->
+      {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
-      {:ok, [alloc | _], _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: alloc.asset_id})
+      {:ok, _} ->
         Broadcast.send_allocations_to_dispatcher()
         {:reply, :ok, socket}
 
