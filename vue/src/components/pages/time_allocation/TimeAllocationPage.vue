@@ -126,9 +126,22 @@ import TimeIcon from '../../icons/Time.vue';
 import { isInText } from '../../../code/helpers';
 import { parseTimeAllocation, parseTimeusage, parseCycle } from '../../../store/store.js';
 import { parseDeviceAssignment } from '../../../store/modules/device_store.js';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 const ACTIVE_INTERVAL_MS = 5 * 1000;
 const HOURS_TO_MS = 60 * 60 * 1000;
+
+const LOCK_WARNING = `
+Are you sure you want lock the given allocations?
+
+You may not be able to unlock them
+`;
+
+const UNLOCK_WARNING = `
+Are you sure you want to unlock the given allocations?
+
+Users will be able to edit the given allocations
+`;
 
 function getRange({ now, width = 0, offset = 0 }) {
   return {
@@ -361,6 +374,15 @@ export default {
         .receive('timeout', onError);
     },
     onLockAll() {
+      this.$modal
+        .create(ConfirmModal, { title: 'Lock All Time Allocations', body: LOCK_WARNING })
+        .onClose(answer => {
+          if (answer === 'ok') {
+            this.lockAll();
+          }
+        });
+    },
+    lockAll() {
       if (!this.shift || !this.shift.id || !this.shiftAssetData.length) {
         console.error('[TA] Unable to lock all time allocations');
         return;
@@ -392,6 +414,15 @@ export default {
         });
     },
     onUnlockAll() {
+      this.$modal
+        .create(ConfirmModal, { title: 'Unlock All Time Allocations', body: UNLOCK_WARNING })
+        .onClose(answer => {
+          if (answer === 'ok') {
+            this.unlockAll();
+          }
+        });
+    },
+    unlockAll() {
       if (!this.shiftAssetData.length) {
         console.error('[TA] Unable to unlock all time allocations');
         return;
