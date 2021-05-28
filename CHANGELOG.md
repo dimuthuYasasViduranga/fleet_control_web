@@ -1,6 +1,26 @@
 ## Changelog
 
 ## pending [unreleased]
+- fixed undefined timezone being considered valid
+- Changed dig unit "Location" to "Target Location" to differentiate between actual location and desired location
+- ability to search by multiple conditions on time allocation
+- device GPS has geofence location processed
+- added the "asset overview page". Still needs work
+- added time code group based coloring of asset tiles
+- simplified having an active timer for "now - x" calculations
+- better show/hide icons for asset filter
+- show day of week on shift selector (accessibility feature)
+- added title indicator for unread messages
+- added chime for new unread messages
+- fixed pre-start submission report holding dropdown open across shifts
+- Made it more clear what day as pre-start submission belongs to when shift crosses date boundary (night shift)
+- added shift boundary time time allocation views
+- added page counter to multiple routes
+- push page changes to server to allow tracking
+- allow shift based time allocation locking
+- better operator time allocation test (for logout mismatches)
+- fixed time allocation update sending all elements instead of just changes
+- track connecting tablet client version with update time (easier to tell updated during rollout)
 
 ## 0.10.11
 - fixed map not loading markers on initial load
