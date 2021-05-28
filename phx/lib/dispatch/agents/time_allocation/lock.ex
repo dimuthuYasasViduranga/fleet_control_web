@@ -61,7 +61,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
 
       {affected, ignored} = split_on_shift_interaction(allocs, calendar_range, now)
 
-      {before_shift, during_shift, after_shift} =
+      {before_shift, during_shift, after_shift, new_active} =
         split_all_by_shift(affected, calendar_range, now)
 
       {:ok,
@@ -70,7 +70,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
          missing_ids: missing_ids,
          to_delete: affected,
          to_lock: during_shift,
-         to_insert: before_shift ++ after_shift
+         to_insert: before_shift ++ after_shift ++ new_active
        }}
     end)
     |> Multi.run(:lock, fn repo, %{splits: splits} ->
@@ -168,7 +168,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
   defp no_overlap(a, b), do: Helper.coverage(a, b) in [:no_overlap, :unknown]
 
   defp split_all_by_shift(allocs, calendar, active_end_time) when is_list(allocs) do
-    initial = %{before: [], during: [], after: []}
+    initial = %{before: [], during: [], after: [], active: []}
 
     splits =
       Enum.reduce(allocs, initial, fn alloc, acc ->
@@ -178,23 +178,85 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
         Map.merge(acc, results, fn _key, alloc_list, alloc_val -> [alloc_val | alloc_list] end)
       end)
 
-    {splits.before, splits.during, splits.after}
+    {splits.before, splits.during, splits.after, splits.active}
   end
 
   @doc """
   Split the given allocation when it interacts with the calendar range.
   Results are split into 'before', 'during' and 'after'
-  Elements that do not interact with the calendar return an empty map
+  Elements that do not interact with the calendar return an empty map.
+
+  Active elements can be split an additional time if they are within or equal to the shift
   """
   @spec split_by_shift(alloc :: range, calendar :: range, NaiveDateTime.t()) :: %{
           optional(:before) => range,
           optional(:during) => range,
-          optional(:after) => range
+          optional(:after) => range,
+          optional(:active) => range
         }
-  def split_by_shift(alloc, calendar, active_end_time) do
-    alloc_with_end = Map.put(alloc, :end_time, alloc[:end_time] || active_end_time)
+  def split_by_shift(%{end_time: nil} = alloc, calendar, active_end_time) do
+    alloc_with_end = Map.put(alloc, :end_time, active_end_time)
 
     case Helper.coverage(alloc_with_end, calendar) do
+      :unknown ->
+        %{}
+
+      :equals ->
+        alloc_during = alloc_with_end
+        alloc_active = Map.merge(alloc, %{start_time: calendar.start_time})
+        %{during: alloc_during, active: alloc_active}
+
+      :covers ->
+        alloc_before = Map.merge(alloc, %{end_time: calendar.start_time})
+
+        alloc_during =
+          Map.merge(alloc, %{start_time: calendar.start_time, end_time: calendar.end_time})
+
+        alloc_after = Map.merge(alloc_with_end, %{start_time: calendar.end_time})
+
+        alloc_active = Map.merge(alloc, %{start_time: active_end_time})
+
+        %{
+          before: alloc_before,
+          during: alloc_during,
+          after: alloc_after,
+          active: alloc_active
+        }
+
+      :within ->
+        alloc_during = alloc_with_end
+        alloc_active = Map.merge(alloc, %{start_time: active_end_time})
+        %{during: alloc_during, active: alloc_active}
+
+      :end_within ->
+        alloc_before = Map.merge(alloc, %{end_time: calendar.start_time})
+        alloc_during = Map.merge(alloc_with_end, %{start_time: calendar.start_time})
+        alloc_active = Map.merge(alloc, %{start_time: active_end_time})
+        # create a new before and during
+        %{
+          before: alloc_before,
+          during: alloc_during,
+          active: alloc_active
+        }
+
+      :start_within ->
+        alloc_during = Map.merge(alloc, %{end_time: calendar.end_time})
+        alloc_after = Map.merge(alloc_with_end, %{start_time: calendar.end_time})
+        alloc_active = Map.merge(alloc, %{start_time: active_end_time})
+
+        %{
+          during: alloc_during,
+          after: alloc_after,
+          active: alloc_active
+        }
+
+      :no_overlap ->
+        %{}
+    end
+  end
+
+  def split_by_shift(alloc, calendar, _) do
+    case Helper.coverage(alloc, calendar) do
       :unknown ->
         %{}
 

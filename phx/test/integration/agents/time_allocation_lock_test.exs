@@ -663,243 +663,319 @@ defmodule Dispatch.TimeAllocation.LockTest do
     end
   end
 
+  # it is theoretically possible for these tests to fail if you run them 1 second into the start of a shift
   describe "lock/3 active elements -" do
-    test "valid (no split: completely within)" do
-    end
+    test "valid (no split: completely within)", %{asset: asset, ready: ready} = context do
+      %{id: cal_id, shift_start: shift_start} = context.calendar_today
 
-    test "valid (no split: start on boundary, end inside)" do
-    end
-
-    test "valid (no split: start inside, end on boundary)" do
-    end
-
-    test "valid (split: start outside, end inside)" do
-    end
-
-    test "valid (split: start inside, end outside)" do
-    end
-
-    test "valid (split: completely covers)" do
-    end
-
-    test "valid (element completely outside shift)" do
-    end
-
-    test "valid (no elements)" do
-    end
-
-    test "valid (multiple assets)" do
-    end
-
-    test "invalid (no dispatcher id)" do
-    end
-
-    test "invalid (invalid dispatcher)" do
-    end
-
-    test "invalid (no calendar id)" do
-    end
-
-    test "invalid (invalid calendar)" do
-    end
-
-    test "invalid (no allocs found for ids)" do
-    end
-  end
-
-  describe "lock/2 active elements - " do
-    test "valid (active start within calendar, end within calendar)",
-         %{asset: asset, ready: ready} = context do
-      now = NaiveDateTime.utc_now()
-      %{id: cal_id, shift_start: r_start} = context.calendar_today
-
-      start_time = NaiveDateTime.add(r_start, 1)
+      start_time = NaiveDateTime.add(shift_start, 1)
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], [new_active], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
+      [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
-      # return
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
+
       assert locked.id != initial.id
+      assert_naive_equal(locked.start_time, initial.start_time)
+      assert locked.end_time != nil
+      assert_naive_equal(locked.end_time, active.start_time)
+      assert active.end_time == nil
       assert locked.lock_id == lock.id
-      assert NaiveDateTime.compare(locked.start_time, initial.start_time) == :eq
-      assert NaiveDateTime.compare(locked.end_time, now) != :lt
+      assert locked.time_code_id == initial.time_code_id
+      assert active.lock_id == nil
+      assert active.time_code_id == initial.time_code_id
 
-      assert new_active.id != initial.id
-      assert NaiveDateTime.compare(new_active.start_time, locked.end_time) == :eq
-      assert new_active.end_time == nil
-
-      assert deleted.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == [new_active]
+      # Store
+      assert TimeAllocationAgent.active() == [active]
       assert TimeAllocationAgent.historic() == [locked]
 
-      # database
-      assert_db_contains(TimeAllocation, [locked, new_active, deleted])
-      refute_db_contains(TimeAllocation, initial)
-      assert_db_contains(TimeAllocationLock, lock)
+      # Database
+      assert_db_contains(TimeAllocation, [locked, active])
+      assert_db_count(TimeAllocation, 2, 1, :deleted)
     end
 
-    test "valid (active starts outside calendar, end within calendar)",
+    test "valid (no split: start on boundary, end inside)",
          %{asset: asset, ready: ready} = context do
-      now = NaiveDateTime.utc_now()
+      %{id: cal_id, shift_start: shift_start} = context.calendar_today
 
-      %{id: cal_id, shift_start: r_start, shift_end: r_end} = context.calendar_today
-
-      # make sure that now is within todays calendar
-      assert NaiveDateTime.compare(now, r_start) != :lt
-      assert NaiveDateTime.compare(now, r_end) == :lt
-
-      start_time = NaiveDateTime.add(r_start, -60)
+      start_time = shift_start
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], [left_alloc, new_active], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
+      [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
-      # return
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
+
       assert locked.id != initial.id
+      assert_naive_equal(locked.start_time, initial.start_time)
+      assert locked.end_time != nil
+      assert_naive_equal(locked.end_time, active.start_time)
+      assert active.end_time == nil
       assert locked.lock_id == lock.id
-      assert NaiveDateTime.compare(locked.start_time, r_start) == :eq
-      assert NaiveDateTime.compare(locked.end_time, now) != :lt
+      assert locked.time_code_id == initial.time_code_id
+      assert active.lock_id == nil
+      assert active.time_code_id == initial.time_code_id
 
-      assert new_active.id != initial.id
-      assert NaiveDateTime.compare(new_active.start_time, locked.end_time) == :eq
-      assert new_active.end_time == nil
+      # Store
+      assert TimeAllocationAgent.active() == [active]
+      assert TimeAllocationAgent.historic() == [locked]
 
-      assert left_alloc.id != initial.id
-      assert NaiveDateTime.compare(left_alloc.start_time, initial.start_time)
-      assert NaiveDateTime.compare(left_alloc.end_time, r_start)
-
-      assert deleted.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == [new_active]
-      assert TimeAllocationAgent.historic() == [locked, left_alloc]
-
-      # database
-      assert_db_contains(TimeAllocation, [locked, new_active, deleted])
-      refute_db_contains(TimeAllocation, initial)
-      assert_db_contains(TimeAllocationLock, lock)
+      # Database
+      assert_db_contains(TimeAllocation, [locked, active])
+      assert_db_count(TimeAllocation, 2, 1, :deleted)
     end
 
-    test "valid (active starts inside calendar, end outside calendar)",
-         %{asset: asset, ready: ready} = context do
-      now = NaiveDateTime.utc_now()
+    test "valid (split: start outside, end inside)", %{asset: asset, ready: ready} = context do
+      %{id: cal_id, shift_start: shift_start} = context.calendar_today
 
-      %{id: cal_id, shift_end: r_end} = context.calendar
-
-      start_time = NaiveDateTime.add(r_end, -60)
+      start_time = NaiveDateTime.add(shift_start, -60)
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], [right_alloc, new_active], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
+      [before, locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
-      # return
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
+
+      assert before.id != initial.id
+      assert_naive_equal(before.start_time, initial.start_time)
+      assert_naive_equal(before.end_time, shift_start)
+      assert before.lock_id == nil
+      assert before.time_code_id == initial.time_code_id
+
       assert locked.id != initial.id
+      assert_naive_equal(locked.start_time, shift_start)
+      assert_naive_equal(locked.end_time, active.start_time)
       assert locked.lock_id == lock.id
-      assert NaiveDateTime.compare(locked.start_time, initial.start_time) == :eq
-      assert NaiveDateTime.compare(locked.end_time, r_end) == :eq
+      assert locked.time_code_id == initial.time_code_id
 
-      assert right_alloc.id != initial.id
-      assert NaiveDateTime.compare(right_alloc.start_time, r_end)
-      assert NaiveDateTime.compare(right_alloc.end_time, now) != :lt
+      assert active.id != initial.id
+      assert_naive_equal(active.start_time, locked.end_time)
+      assert active.end_time == nil
+      assert active.lock_id == nil
+      assert active.time_code_id == initial.time_code_id
 
-      assert new_active.id != initial.id
-      assert NaiveDateTime.compare(new_active.start_time, right_alloc.end_time) == :eq
-      assert new_active.end_time == nil
+      # Store
+      assert TimeAllocationAgent.active() == [active]
+      assert TimeAllocationAgent.historic() == [locked, before]
 
-      assert deleted.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == [new_active]
-      assert TimeAllocationAgent.historic() == [right_alloc, locked]
-
-      # database
-      assert_db_contains(TimeAllocation, [locked, new_active, right_alloc, deleted])
-      refute_db_contains(TimeAllocation, initial)
-      assert_db_contains(TimeAllocationLock, lock)
+      # Database
+      assert_db_contains(TimeAllocation, [before, locked, active])
+      assert_db_count(TimeAllocation, 3, 1, :deleted)
     end
 
-    test "valid (active starts before calendar, end after calendar)",
-         %{asset: asset, ready: ready} = context do
-      now = NaiveDateTime.utc_now()
+    test "valid (split: start inside, end outside)", %{asset: asset, ready: ready} = context do
+      %{id: cal_id, shift_end: shift_end} = context.calendar
 
-      %{id: cal_id, shift_start: r_start, shift_end: r_end} = context.calendar
-
-      start_time = NaiveDateTime.add(r_start, -60)
+      start_time = NaiveDateTime.add(shift_end, -60)
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      {:ok, [locked], [left_alloc, right_alloc, new_active], [deleted], lock} =
-        TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
 
-      # return
+      [locked, alloc_after, active] =
+        Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
+
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
+
       assert locked.id != initial.id
+      assert_naive_equal(locked.start_time, initial.start_time)
+      assert_naive_equal(locked.end_time, shift_end)
       assert locked.lock_id == lock.id
-      assert NaiveDateTime.compare(locked.start_time, r_start) == :eq
-      assert NaiveDateTime.compare(locked.end_time, r_end) == :eq
+      assert locked.time_code_id == initial.time_code_id
 
-      assert left_alloc.id != initial.id
-      assert NaiveDateTime.compare(left_alloc.start_time, initial.start_time) == :eq
-      assert NaiveDateTime.compare(left_alloc.end_time, r_start) == :eq
+      assert alloc_after.id != initial.id
+      assert_naive_equal(alloc_after.start_time, shift_end)
+      assert_naive_equal(alloc_after.end_time, active.start_time)
 
-      assert right_alloc.id != initial.id
-      assert NaiveDateTime.compare(right_alloc.start_time, r_end)
-      assert NaiveDateTime.compare(right_alloc.end_time, now) != :lt
+      assert active.id != initial.id
+      assert_naive_equal(active.start_time, alloc_after.end_time)
+      assert active.end_time == nil
+      assert active.lock_id == nil
+      assert active.time_code_id == initial.time_code_id
 
-      assert new_active.id != initial.id
-      assert NaiveDateTime.compare(new_active.start_time, right_alloc.end_time) == :eq
-      assert new_active.end_time == nil
+      # Store
+      assert TimeAllocationAgent.active() == [active]
+      assert TimeAllocationAgent.historic() == [alloc_after, locked]
 
-      assert deleted.deleted == true
-
-      # store
-      assert TimeAllocationAgent.active() == [new_active]
-      assert TimeAllocationAgent.historic() == [right_alloc, locked, left_alloc]
-
-      # database
-      assert_db_contains(TimeAllocation, [locked, new_active, left_alloc, right_alloc, deleted])
-      refute_db_contains(TimeAllocation, initial)
-      assert_db_contains(TimeAllocationLock, lock)
+      # Database
+      assert_db_contains(TimeAllocation, [locked, alloc_after, active])
+      assert_db_count(TimeAllocation, 3, 1, :deleted)
     end
 
-    test "invalid (active after calendar to lock on)", %{asset: asset, ready: ready} = context do
-      %{id: cal_id, shift_end: r_end} = context.calendar
+    test "valid (split: completely covers)", %{asset: asset, ready: ready} = context do
+      %{id: cal_id, shift_start: shift_start, shift_end: shift_end} = context.calendar
 
-      start_time = NaiveDateTime.add(r_end, 60)
+      start_time = NaiveDateTime.add(shift_start, -60)
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      error = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      lock = data.lock
 
-      assert error == {:error, :outside_calendar}
+      [alloc_before, locked, alloc_after, active] =
+        Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
+
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial.id]
+      assert data.ignored_ids == []
+
+      assert alloc_before.id != initial.id
+      assert_naive_equal(alloc_before.start_time, initial.start_time)
+      assert_naive_equal(alloc_before.end_time, shift_start)
+      assert alloc_before.lock_id == nil
+      assert alloc_before.time_code_id == initial.time_code_id
+
+      assert locked.id != initial.id
+      assert_naive_equal(locked.start_time, shift_start)
+      assert_naive_equal(locked.end_time, shift_end)
+      assert locked.lock_id == lock.id
+      assert locked.time_code_id == initial.time_code_id
+
+      assert alloc_after.id != initial.id
+      assert_naive_equal(alloc_after.start_time, shift_end)
+      assert_naive_equal(alloc_after.end_time, active.start_time)
+
+      assert active.id != initial.id
+      assert_naive_equal(active.start_time, alloc_after.end_time)
+      assert active.end_time == nil
+      assert active.lock_id == nil
+      assert active.time_code_id == initial.time_code_id
+
+      # Store
+      assert TimeAllocationAgent.active() == [active]
+      assert TimeAllocationAgent.historic() == [alloc_after, locked, alloc_before]
+
+      # Database
+      assert_db_contains(TimeAllocation, [alloc_before, locked, alloc_after, active])
+      assert_db_count(TimeAllocation, 4, 1, :deleted)
     end
 
-    test "invalid (active end before future calendar)", %{asset: asset, ready: ready} = context do
-      start_time = NaiveDateTime.utc_now()
+    test "valid (element completely outside shift)", %{asset: asset, ready: ready} = context do
+      %{id: cal_id, shift_end: shift_end} = context.calendar
+
+      start_time = NaiveDateTime.add(shift_end, 60)
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
         |> TimeAllocationAgent.add()
 
-      error =
-        TimeAllocationAgent.lock([initial.id], context.calendar_future.id, context.dispatcher)
+      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
 
-      assert error == {:error, :outside_calendar}
+      # Return
+      assert data.lock == nil
+      assert data.deleted_ids == []
+      assert data.ignored_ids == [initial.id]
+      assert data.new == []
+
+      # Store
+      assert TimeAllocationAgent.active() == [initial]
+      assert TimeAllocationAgent.historic() == []
+
+      # Database
+      assert_db_contains(TimeAllocation, [initial])
+      assert_db_count(TimeAllocation, 1, 0, :deleted)
+    end
+
+    test "valid (multiple assets)", %{asset: asset_a, asset_b: asset_b, ready: ready} = context do
+      %{id: cal_id, shift_start: shift_start} = context.calendar_today
+
+      start_a = NaiveDateTime.add(shift_start, 1)
+      start_b = NaiveDateTime.add(start_a, 1)
+
+      {:ok, initial_a} =
+        to_alloc(asset_a.id, ready, start_a, nil)
+        |> TimeAllocationAgent.add()
+
+      {:ok, initial_b} =
+        to_alloc(asset_b.id, ready, start_b, nil)
+        |> TimeAllocationAgent.add()
+
+      {:ok, data} =
+        TimeAllocationAgent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
+
+      lock = data.lock
+
+      [locked_a, locked_b, active_a, active_b] =
+        egg = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
+
+      # Return
+      assert lock.calendar_id == cal_id
+      assert lock.dispatcher_id == context.dispatcher
+
+      assert data.deleted_ids == [initial_b.id, initial_a.id]
+      assert data.ignored_ids == []
+
+      assert locked_a.id != initial_a.id
+      assert_naive_equal(locked_a.start_time, initial_a.start_time)
+      assert locked_a.end_time != nil
+      assert locked_a.lock_id == lock.id
+      assert locked_a.time_code_id == initial_a.time_code_id
+
+      assert active_a.lock_id == nil
+      assert_naive_equal(active_a.start_time, locked_a.end_time)
+      assert active_a.end_time == nil
+      assert active_a.time_code_id == initial_a.time_code_id
+
+      assert locked_b.id != initial_b.id
+      assert_naive_equal(locked_b.start_time, initial_b.start_time)
+      assert locked_b.end_time != nil
+      assert locked_b.lock_id == lock.id
+      assert locked_b.time_code_id == initial_b.time_code_id
+
+      assert active_b.lock_id == nil
+      assert_naive_equal(active_b.start_time, locked_b.end_time)
+      assert active_b.end_time == nil
+      assert active_b.time_code_id == initial_b.time_code_id
+
+      # Store
+      assert TimeAllocationAgent.active() == [active_a, active_b]
+
+      assert Enum.sort_by(TimeAllocationAgent.historic(), & &1.asset_id) == [locked_a, locked_b]
+
+      # Database
+      assert_db_contains(TimeAllocation, [locked_a, locked_b, active_a, active_b])
+      assert_db_count(TimeAllocation, 4, 2, :deleted)
     end
   end
 
