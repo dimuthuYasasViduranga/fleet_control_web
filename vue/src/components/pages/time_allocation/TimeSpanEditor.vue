@@ -309,7 +309,7 @@ function getAllocChanges(originalAllocs, newAllocs) {
 
 function isDifferentAlloc(a, b) {
   return (
-    a.deleted !== b.deleted ||
+    (a.deleted || false) !== (b.deleted || false) ||
     a.timeCodeId !== b.timeCodeId ||
     !isDateEqual(a.startTime, b.startTime) ||
     !isDateEqual(a.endTime, b.endTime)
