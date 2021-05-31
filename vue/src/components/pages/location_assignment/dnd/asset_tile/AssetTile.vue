@@ -231,7 +231,7 @@ export default {
               break;
 
             case 'time-allocation':
-              console.dir('---- time allocation viewer not implemented');
+              this.$eventBus.$emit('live-time-allocation-open', this.asset.id);
               break;
           }
         });

@@ -12,6 +12,7 @@
     <ChatButtonFloating />
     <NotificationBar />
     <AssetAssignmentModal />
+    <LiveTimeAllocationModal />
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import HelpButton from './components/header_buttons/HelpButton.vue';
 import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
+import LiveTimeAllocationModal from './components/live_time_allocation_modal/LiveTimeAllocationModal.vue';
 
 export default {
   name: 'app',
@@ -45,6 +47,7 @@ export default {
     ChatButtonFloating,
     NotificationBar,
     AssetAssignmentModal,
+    LiveTimeAllocationModal,
   },
   data: () => {
     return {

@@ -1,5 +1,10 @@
 <template>
-  <modal class="asset-assignment" :show="show" @close="close()">
+  <modal
+    class="asset-assignment"
+    :show="show"
+    @close="close()"
+    @tran-close-end="setSelectedAsset(null)"
+  >
     <div class="asset-assignment-info">
       <component
         :is="componentType"
@@ -71,8 +76,6 @@ export default {
   },
   methods: {
     close() {
-      // breif delay to allow for close animiation
-      setTimeout(() => this.setSelectedAsset(null), 200);
       this.show = false;
     },
     open(assetId) {
