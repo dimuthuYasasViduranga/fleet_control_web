@@ -271,6 +271,7 @@ export default {
 @import './assets/tooltip.css';
 @import './assets/toasted.css';
 @import './assets/toggle.css';
+@import './assets/contextMenu.css';
 
 /* firefox scrollbar color was transparent */
 html {
