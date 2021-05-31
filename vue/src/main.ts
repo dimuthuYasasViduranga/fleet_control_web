@@ -15,6 +15,7 @@ import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
 import { Toaster } from './code/toasts.js';
+import { ContextMenu } from './code/context_menu.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
@@ -49,6 +50,8 @@ Vue.prototype.$channel = new Channel(false ? 'debug' : null);
 Vue.prototype.$modal = new Modal(store);
 
 Vue.prototype.$toaster = new Toaster();
+
+Vue.prototype.$contextMenu = new ContextMenu();
 
 const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;
