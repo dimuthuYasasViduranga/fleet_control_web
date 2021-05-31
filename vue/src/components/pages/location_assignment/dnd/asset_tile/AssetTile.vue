@@ -12,7 +12,7 @@
     @mouseleave.native="hovering = false"
   >
     <!-- Assignment Icon (overlayed) -->
-    <div v-show="hovering" class="assignment-bubble" @click="onOpenAssignment">
+    <div v-show="hovering" class="assignment-bubble" @click="onOpenContext">
       <Icon :icon="listIcon" />
     </div>
 
@@ -204,8 +204,37 @@ export default {
 
       this.$eventBus.$emit('chat-open', opts);
     },
-    onOpenAssignment() {
-      this.$eventBus.$emit('asset-assignment-open', this.asset.id);
+    onOpenContext(mouseEvent) {
+      const items = [
+        { id: 'assignment', name: 'Edit Assignment' },
+        { id: 'time-allocation', name: 'View Time Allocation' },
+      ];
+
+      if (this.hasDevice) {
+        items.splice(1, 0, { id: 'chat', name: 'View Chat Log' });
+      }
+
+      this.$contextMenu
+        .create(`asset-tile-${this.asset.id}`, mouseEvent, items, { toggle: true })
+        .then(resp => {
+          if (!resp) {
+            return;
+          }
+
+          switch (resp.id) {
+            case 'assignment':
+              this.$eventBus.$emit('asset-assignment-open', this.asset.id);
+              break;
+
+            case 'chat':
+              this.onOpenMessages();
+              break;
+
+            case 'time-allocation':
+              this.$eventBus.$emit('live-time-allocation-open', this.asset.id);
+              break;
+          }
+        });
     },
   },
 };

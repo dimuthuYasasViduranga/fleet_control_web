@@ -10,30 +10,6 @@
         <div class="duration">{{ formatDuration(activeTimeAllocationTimeDuration) }}</div>
       </div>
     </div>
-    <TimeSpanEditor
-      :show="showEditor"
-      :asset="asset"
-      :timeAllocations="filteredTimeAllocations"
-      :deviceAssignments="smoothDeviceAssignments"
-      :timeusage="timeusage"
-      :cycles="cycles"
-      :devices="devices"
-      :operators="operators"
-      :timeCodes="timeCodes"
-      :timeCodeGroups="timeCodeGroups"
-      :allowedTimeCodeIds="allowedTimeCodeIds"
-      :activeEndTime="activeEndTime"
-      :minDatetime="minDatetime"
-      :maxDatetime="maxDatetime"
-      :timezone="timezone"
-      :shifts="shifts"
-      :shiftTypes="shiftTypes"
-      :shiftId="shiftId"
-      @close="onEditClose()"
-      @update="onEditUpdate()"
-      @lock="onLock()"
-      @unlock="onUnlock()"
-    />
 
     <div class="chart-wrapper" :class="{ open: isOpen }">
       <TimeSpanChart
@@ -85,8 +61,6 @@ import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
-import TimeSpanEditor from './TimeSpanEditor.vue';
-
 import EditIcon from '../../icons/Edit.vue';
 import ChevronRightIcon from '../../icons/ChevronRight.vue';
 
@@ -105,6 +79,8 @@ import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpa
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+
+import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -197,7 +173,6 @@ export default {
     TimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
-    TimeSpanEditor,
   },
   props: {
     asset: { type: Object, default: () => ({}) },
@@ -211,6 +186,7 @@ export default {
     devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: new Date() },
+    range: { type: Object, default: null },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
@@ -222,7 +198,6 @@ export default {
   data: () => {
     return {
       isOpen: false,
-      showEditor: false,
       editIcon: EditIcon,
       chevronRightIcon: ChevronRightIcon,
       margins: {
@@ -354,19 +329,34 @@ export default {
   },
   methods: {
     onEdit() {
-      this.showEditor = true;
-    },
-    onEditClose() {
-      this.showEditor = false;
-    },
-    onEditUpdate() {
-      this.$emit('update');
-    },
-    onLock() {
-      this.$emit('lock');
-    },
-    onUnlock() {
-      this.$emit('unlock');
+      const range = this.range || {};
+      const minDatetime = this.minDatetime || range.min;
+      const maxDatetime = this.maxDatetime || range.max;
+
+      const opts = {
+        asset: this.asset,
+        allocations: this.filteredTimeAllocations,
+        deviceAssignments: this.deviceAssignments,
+        timeusage: this.timeusage,
+        cycles: this.cycles,
+        devices: this.devices,
+        operators: this.operators,
+        timeCodes: this.timeCodes,
+        timeCodeGroups: this.timeCodeGroups,
+        allowedTimeCodeIds: this.allowedTimeCodeIds,
+        minDatetime,
+        maxDatetime,
+        timezone: this.timezone,
+        shifts: this.shifts,
+        shiftTypes: this.shiftTypes,
+        shiftId: this.shiftId,
+      };
+
+      this.$modal.create(TimeSpanEditorModal, opts).onClose(resp => {
+        if (['update', 'lock', 'unlock'].includes(resp)) {
+          this.$emit(resp);
+        }
+      });
     },
     toggleOpen() {
       this.isOpen = !this.isOpen;
@@ -385,7 +375,7 @@ export default {
         case 'cycle':
           return cycleStyle(timeSpan, region);
         case 'shift':
-          return shiftStyle(region);
+          return shiftStyle(timeSpan, region);
       }
     },
     formatDuration(totalSeconds) {

@@ -13,6 +13,9 @@
       <button class="hx-btn" @click="setTitle(pendingTitleName)">Set</button>
       <button class="hx-btn" @click="resetTitle(pendingTitleName)">Reset</button>
     </hxCard>
+    <hxCard title="Context Menu" :icon="bugIcon">
+      <button class="hx-btn" @click="onOpenContext">Click to open context</button>
+    </hxCard>
     <hxCard title="Toasted" :icon="bugIcon">
       <div class="toast toast-info">
         <div>Info:</div>
@@ -350,6 +353,18 @@ export default {
     },
     resetTitle(title) {
       Titler.reset();
+    },
+    onOpenContext(event) {
+      const items = [
+        { name: 'Apple' },
+        { name: 'Banana' },
+        { name: 'Cappaberra' },
+        { name: 'Apple' },
+        { name: 'Banana' },
+        { name: 'Cappaberra' },
+      ];
+
+      this.$contextMenu.create('debug-context', event, items, { toggle: true });
     },
     onCreateInfoToast(msg, opts) {
       this.$toaster.info(msg, opts);

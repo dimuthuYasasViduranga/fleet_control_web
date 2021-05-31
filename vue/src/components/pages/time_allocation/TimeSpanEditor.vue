@@ -1,9 +1,8 @@
 <template>
-  <modal class="time-span-editor-modal" :show="show" @close="onClose" @tran-open-end="onFullyOpen">
+  <div class="time-span-editor-modal">
     <hxCard :title="title" :icon="timeIcon">
       <div class="chart-area">
         <TimeSpanChart
-          v-if="ready"
           :name="`${this.asset.name}-editor`"
           :timeSpans="timeSpans.flat()"
           :layout="chartLayout"
@@ -125,15 +124,14 @@
         </div>
       </div>
     </hxCard>
-  </modal>
+  </div>
 </template>
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
 import Loading from 'hx-layout/Loading.vue';
-import Modal from '../../modals/Modal.vue';
-import LoadingModal from '../../modals/LoadingModal.vue';
-import ConfirmModal from '../../modals/ConfirmModal.vue';
+import LoadingModal from '@/components/modals/LoadingModal.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import TimeSpanChart from './chart/TimeSpanChart.vue';
 
@@ -266,7 +264,7 @@ function getChartLayoutGroups(
       subgroups: uniq((eventSpans || []).map(ts => ts.level || 0)),
       canHide: true,
     },
-  ].filter(g => g.canHide && g.subgroups.length !== 0);
+  ].filter(g => !g.canHide || g.subgroups.length !== 0);
 
   const nOtherGroups = otherGroups.length;
   otherGroups.forEach(g => (g.percent = (1 - allocation.percent) / nOtherGroups));
@@ -353,7 +351,7 @@ function toEpoch(date) {
 }
 
 function toShiftSpans(shifts, shiftTypes, timestamps) {
-  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
+  const uniqTimestamps = uniq(timestamps.filter(ts => ts).map(ts => ts.getTime()));
 
   const relevantShifts = uniqTimestamps
     .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
@@ -367,7 +365,6 @@ export default {
   components: {
     hxCard,
     Loading,
-    Modal,
     TimeSpanChart,
     DefaultTooltip,
     AllocationTooltip,
@@ -406,7 +403,6 @@ export default {
       timeIcon: TimeIcon,
       addIcon: AddIcon,
       pane: 'timeline',
-      ready: false,
       selectedAllocationId: null,
       localTimeAllocations: [],
       localMinDatetime: null,
@@ -505,16 +501,6 @@ export default {
     },
   },
   watch: {
-    show: {
-      immediate: true,
-      handler(doShow) {
-        this.events = null;
-        if (doShow) {
-          this.pane = 'timeline';
-          this.setLocalTimeAllocations(this.timeAllocations);
-        }
-      },
-    },
     errorAllocationTimeSpans: {
       immediate: true,
       handler(errors = []) {
@@ -522,23 +508,20 @@ export default {
       },
     },
   },
+  mounted() {
+    this.events = null;
+    this.pane = 'timeline';
+    this.setSelect(null);
+    this.setLocalTimeAllocations(this.timeAllocations);
+    this.localMinDatetime = copyDate(this.minDatetime);
+    this.localMaxDatetime = copyDate(this.maxDatetime);
+  },
   methods: {
     syncLocalTimeAllocations() {
       this.setLocalTimeAllocations(this.timeAllocations);
     },
     setLocalTimeAllocations(allocations = []) {
       this.localTimeAllocations = allocations.map(toLocalAllocation);
-    },
-    onClose() {
-      this.ready = false;
-      this.$emit('close');
-    },
-    onFullyOpen() {
-      this.setSelect(null);
-      this.setLocalTimeAllocations(this.timeAllocations);
-      this.localMinDatetime = copyDate(this.minDatetime);
-      this.localMaxDatetime = copyDate(this.maxDatetime);
-      this.ready = true;
     },
     setPane(pane) {
       const timeSpan = this.nonDeletedAllocationTimeSpans.find(
@@ -615,7 +598,7 @@ export default {
           break;
 
         case 'shift':
-          style = shiftStyle(region);
+          style = shiftStyle(timeSpan, region);
       }
 
       return styleSelected(timeSpan, style, this.selectedAllocationId);
@@ -762,17 +745,15 @@ export default {
     },
     onCancel() {
       this.$emit('cancel');
-      this.onClose();
     },
     onReset() {
-      this.$emit('reset');
       this.setSelect(null);
       this.syncLocalTimeAllocations();
     },
     submitChanges(changes = []) {
       if (changes.length === 0) {
         console.log('[TimeAllocEditor] No changes to submit');
-        this.onClose();
+        this.onCancel();
         return;
       }
 
@@ -793,9 +774,15 @@ export default {
         };
       });
 
-      this.pushTopic('edit time allocations', payload, 'Editing Time Allocations', 'update');
+      this.pushTopic(
+        'edit time allocations',
+        payload,
+        'Editing Time Allocations',
+        'update',
+        'Time Allocations Updated',
+      );
     },
-    pushTopic(topic, payload, loadingMsg, emitEvent) {
+    pushTopic(topic, payload, loadingMsg, emitEvent, toast) {
       const loading = this.$modal.create(
         LoadingModal,
         { message: loadingMsg },
@@ -809,8 +796,8 @@ export default {
         .receive('ok', () => {
           this.updateInTransit = false;
           loading.close();
-          this.$emit('update');
-          this.onClose();
+          this.$emit(emitEvent);
+          this.$toaster.info(toast);
         })
         .receive('error', error => {
           this.updateInTransit = false;
@@ -853,7 +840,13 @@ export default {
             calendar_id: this.shiftId,
           };
 
-          this.pushTopic('lock time allocations', payload, 'Locking Time Allocations', 'lock');
+          this.pushTopic(
+            'lock time allocations',
+            payload,
+            'Locking Time Allocations',
+            'lock',
+            'Time Allocations Locked',
+          );
         });
     },
     onConfirmUnlock() {
@@ -876,7 +869,13 @@ export default {
             return;
           }
 
-          this.pushTopic('unlock time allocations', ids, 'Unlocking Time Allocations', 'unlock');
+          this.pushTopic(
+            'unlock time allocations',
+            ids,
+            'Unlocking Time Allocations',
+            'unlock',
+            'Time Allocations Unlocked',
+          );
         });
     },
     onGenerateReport() {
