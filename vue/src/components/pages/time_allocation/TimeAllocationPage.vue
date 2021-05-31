@@ -97,6 +97,7 @@
         :timeCodeGroups="timeCodeGroups"
         :fullTimeCodes="fullTimeCodes"
         :activeEndTime="now"
+        :range="range"
         :minDatetime="range.min"
         :maxDatetime="range.max"
         :timezone="timezone"

@@ -259,9 +259,15 @@ export default {
     timezone() {
       this.updateChart();
     },
+    minDatetime() {
+      this.updateChart();
+    },
+    maxDatetime() {
+      this.updateChart();
+    },
   },
   mounted() {
-    this.updateChart();
+    setTimeout(() => this.updateChart());
   },
   beforeDestroy() {
     removeTooltip(this.tooltip);
