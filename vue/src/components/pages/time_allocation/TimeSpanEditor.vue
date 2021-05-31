@@ -774,9 +774,15 @@ export default {
         };
       });
 
-      this.pushTopic('edit time allocations', payload, 'Editing Time Allocations', 'update');
+      this.pushTopic(
+        'edit time allocations',
+        payload,
+        'Editing Time Allocations',
+        'update',
+        'Time Allocations Updated',
+      );
     },
-    pushTopic(topic, payload, loadingMsg, emitEvent) {
+    pushTopic(topic, payload, loadingMsg, emitEvent, toast) {
       const loading = this.$modal.create(
         LoadingModal,
         { message: loadingMsg },
@@ -791,6 +797,7 @@ export default {
           this.updateInTransit = false;
           loading.close();
           this.$emit(emitEvent);
+          this.$toaster.info(toast);
         })
         .receive('error', error => {
           this.updateInTransit = false;
@@ -833,7 +840,13 @@ export default {
             calendar_id: this.shiftId,
           };
 
-          this.pushTopic('lock time allocations', payload, 'Locking Time Allocations', 'lock');
+          this.pushTopic(
+            'lock time allocations',
+            payload,
+            'Locking Time Allocations',
+            'lock',
+            'Time Allocations Locked',
+          );
         });
     },
     onConfirmUnlock() {
@@ -856,7 +869,13 @@ export default {
             return;
           }
 
-          this.pushTopic('unlock time allocations', ids, 'Unlocking Time Allocations', 'unlock');
+          this.pushTopic(
+            'unlock time allocations',
+            ids,
+            'Unlocking Time Allocations',
+            'unlock',
+            'Time Allocations Unlocked',
+          );
         });
     },
     onGenerateReport() {
