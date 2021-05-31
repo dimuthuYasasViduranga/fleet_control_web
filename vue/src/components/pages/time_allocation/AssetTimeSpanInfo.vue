@@ -385,7 +385,7 @@ export default {
         case 'cycle':
           return cycleStyle(timeSpan, region);
         case 'shift':
-          return shiftStyle(region);
+          return shiftStyle(timeSpan, region);
       }
     },
     formatDuration(totalSeconds) {

@@ -615,7 +615,7 @@ export default {
           break;
 
         case 'shift':
-          style = shiftStyle(region);
+          style = shiftStyle(timeSpan, region);
       }
 
       return styleSelected(timeSpan, style, this.selectedAllocationId);
