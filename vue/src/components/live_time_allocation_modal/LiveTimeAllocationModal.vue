@@ -81,7 +81,12 @@ export default {
       return attributeFromList(this.assets, 'id', this.selectedAssetId);
     },
     allocations() {
-      return this.allTimeAllocations.filter(ta => ta.assetId === this.selectedAssetId);
+      const minEpoch = this.minDatetime ? this.minDatetime.getTime() : 0;
+      return this.allTimeAllocations.filter(
+        ta =>
+          ta.assetId === this.selectedAssetId &&
+          (!ta.endTime || ta.endTime.getTime() > minEpoch),
+      );
     },
     deviceAssignments() {
       return this.allDeviceAssignments.filter(da => da.assetId === this.selectedAssetId);
