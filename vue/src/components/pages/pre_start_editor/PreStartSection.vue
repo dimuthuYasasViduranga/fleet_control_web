@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/no-mutating-props -->
   <div class="pre-start-section">
     <Icon class="drag-handle" :icon="hamburgerIcon" />
     <div>
@@ -32,7 +33,11 @@
           @drop="onDrop"
         >
           <Draggable v-for="(control, index) in data.controls" :key="`control-${index}`">
-            <PreStartControl :data="control" @remove="onRemoveControl(control)" @enter="onEnter(index)" />
+            <PreStartControl
+              :data="control"
+              @remove="onRemoveControl(control)"
+              @enter="onEnter(index)"
+            />
           </Draggable>
         </Container>
         <div class="add-new-control" @click="onAddControl()">Add Criteria</div>

@@ -256,6 +256,7 @@ export default {
       this.$emit('changes', changes);
     },
     onTimeCodeChange(timeCodeId) {
+      // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.timeCodeId = timeCodeId;
       this.emitChanges([this.timeSpan]);
     },
@@ -266,6 +267,7 @@ export default {
       this.$emit('end', this.timeSpan);
     },
     onDelete() {
+      // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.deleted = true;
       this.emitChanges([this.timeSpan]);
     },

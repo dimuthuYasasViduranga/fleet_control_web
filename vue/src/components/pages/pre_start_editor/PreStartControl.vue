@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/no-mutating-props -->
   <div class="pre-start-control">
     <Icon class="drag-handle" :icon="hamburgerIcon" />
     <input
@@ -87,6 +88,7 @@ export default {
       }
     },
     onToggleRequiresComment() {
+      // eslint-disable-next-line vue/no-mutating-props
       this.data.requiresComment = !this.data.requiresComment;
     },
     getCategoryAction(id) {
@@ -147,7 +149,7 @@ export default {
 }
 
 .__ps_control_category_tooltip {
-    max-width: 14rem;
+  max-width: 14rem;
   text-align: center;
 }
 </style>
