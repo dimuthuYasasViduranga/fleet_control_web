@@ -212,10 +212,6 @@ export default {
         { id: 'time-allocation', name: 'View Time Allocation' },
       ];
 
-      if (this.hasDevice) {
-        items.splice(1, 0, { id: 'chat', name: 'View Chat Log' });
-      }
-
       this.$contextMenu
         .create(`asset-tile-${this.asset.id}`, mouseEvent, items, { toggle: true })
         .then(resp => {
