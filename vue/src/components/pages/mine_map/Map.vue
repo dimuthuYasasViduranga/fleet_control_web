@@ -100,7 +100,6 @@
           :center="center"
           :zoom="zoom"
           :options="{
-            streetViewControl: false,
             tilt: 0,
           }"
           @zoom_changed="zoomChanged"
@@ -554,6 +553,6 @@ export default {
 
 /* ------ dim all other assets when one is selected ------- */
 .mine-map .not-selected {
-  opacity: 0.3 !important;
+  opacity: 0.6 !important;
 }
 </style>
