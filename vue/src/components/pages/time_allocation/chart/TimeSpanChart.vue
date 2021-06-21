@@ -175,9 +175,6 @@ function parseLayout(custom = {}) {
 
 export default {
   name: 'TimeSpanChart',
-  components: {
-    SlotWrapper,
-  },
   props: {
     name: { type: [String, Number], default: randChartName() },
     timeSpans: { type: Array, default: () => [] },

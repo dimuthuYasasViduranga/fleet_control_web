@@ -155,9 +155,6 @@ export default {
     onFix(timeSpan) {
       this.$emit('fix', timeSpan);
     },
-    onRowSelect(timeSpan) {
-      this.$emit('rowSelect', timeSpan);
-    },
     onChange(timeSpan) {
       this.$emit('change', timeSpan);
     },

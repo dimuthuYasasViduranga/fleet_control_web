@@ -124,6 +124,8 @@ export default {
       if (this.showAlert) {
         return AlertIcon;
       }
+
+      return null;
     },
     icon() {
       const icons = this.$store.state.constants.icons;

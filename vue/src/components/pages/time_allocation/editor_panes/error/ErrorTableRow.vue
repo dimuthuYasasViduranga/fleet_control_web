@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import { Datetime } from 'vue-datetime';
 import LockableButton from '@/components/LockableButton.vue';
 import Dately from '@/components/dately/Dately.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
@@ -44,7 +43,6 @@ const MISSING_COLOR = 'magenta';
 export default {
   name: 'ErrorTableRow',
   components: {
-    Datetime,
     LockableButton,
     Dately,
     TimeAllocationDropDown,
@@ -79,6 +77,7 @@ export default {
       this.$emit('change', timeSpan);
     },
     onTimeCodeChange(timeCodeId) {
+      // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.timeCodeId = timeCodeId || null;
       this.emitChange(this.timeSpan);
     },
@@ -89,6 +88,7 @@ export default {
       this.$emit('fix');
     },
     onDelete() {
+      // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.deleted = true;
       this.emitChange(this.timeSpan);
     },
