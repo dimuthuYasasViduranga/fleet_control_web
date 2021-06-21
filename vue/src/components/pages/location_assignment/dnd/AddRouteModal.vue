@@ -14,6 +14,7 @@
               label="fullname"
               selectedLabel="name"
               :useScrollLock="false"
+              placeholder="Select Asset"
               @change="onDigUnitChange"
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitId = null" />
@@ -24,6 +25,7 @@
               :items="availableLoads"
               label="name"
               :useScrollLock="false"
+              placeholder="Select Location"
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
           </template>
@@ -37,6 +39,7 @@
             :items="locations"
             label="name"
             :useScrollLock="false"
+            placeholder="Target Location"
           />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitLocationId = null" />
         </td>
@@ -100,7 +103,7 @@ export default {
       localLoadId: null,
       showAllLocations: false,
       source: 'Dig Unit',
-      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Load', text: 'Location' }],
+      sourceOptions: [{ id: 'Dig Unit' }, { id: 'Location' }],
     };
   },
   computed: {
@@ -133,7 +136,7 @@ export default {
     this.localDumpId = this.dumpId;
 
     if (!this.digUnitId && this.loadId) {
-      this.source = 'Load';
+      this.source = 'Location';
     }
   },
   methods: {
