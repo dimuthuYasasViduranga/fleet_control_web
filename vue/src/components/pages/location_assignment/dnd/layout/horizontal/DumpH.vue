@@ -1,6 +1,8 @@
 <template>
   <div class="dump-h" @mouseleave="hovering = false" @mouseenter="hovering = true">
-    <div class="heading">{{ dumpName || 'No Dump' }}</div>
+    <div v-tooltip="'Move Trucks'" class="heading" @click="onMoveTrucks()">
+      {{ dumpName || 'No Dump' }}
+    </div>
     <div class="haul-trucks">
       <div class="actions">
         <template v-if="hovering">
@@ -146,7 +148,11 @@ export default {
   font-size: 1.25rem;
   text-align: center;
   background-color: #23343f;
-  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.heading:hover {
+  opacity: 0.75;
 }
 
 /* --- assets ---- */

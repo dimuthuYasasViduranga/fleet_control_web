@@ -193,6 +193,10 @@ export default {
   background-color: #23343f;
 }
 
+.heading:hover {
+  opacity: 0.75;
+}
+
 .target-load {
   background-color: #111c22;
 }
