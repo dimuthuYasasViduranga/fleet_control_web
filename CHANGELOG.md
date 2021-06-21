@@ -1,25 +1,36 @@
 ## Changelog
 
 ## pending [unreleased]
-- fixed undefined timezone being considered valid
-- Changed dig unit "Location" to "Target Location" to differentiate between actual location and desired location
-- ability to search by multiple conditions on time allocation
-- device GPS has geofence location processed
-- added the "asset overview page". Still needs work
-- added time code group based coloring of asset tiles
-- simplified having an active timer for "now - x" calculations
-- better show/hide icons for asset filter
-- show day of week on shift selector (accessibility feature)
-- added title indicator for unread messages
-- added chime for new unread messages
-- fixed pre-start submission report holding dropdown open across shifts
-- Made it more clear what day as pre-start submission belongs to when shift crosses date boundary (night shift)
-- added shift boundary time time allocation views
-- added page counter to multiple routes
-- push page changes to server to allow tracking
-- allow shift based time allocation locking
-- better operator time allocation test (for logout mismatches)
-- fixed time allocation update sending all elements instead of just changes
+
+## 0.10.12
+- explicit timestamp ordering for operator time allocation calculations
+- fixed undefined being considered a valid timezone
+- Assignment modal width increased
+- Dig Unit Assignment 'location' now called 'target location'
+- Ability to search on multiple criteria on asset time allocation page
+- Added asset overview page for large tv based displays
+- Added time allocation group based coloring
+  - ready + online -> green
+  - ready + offline -> light blue
+  - process -> orange
+  - standby -> white
+  - down -> gray with red cross
+  - not ready + offline -> grey
+- Added allocation duration to map tooltip
+- Added 'eye' icons for asset type filter toggles
+- Added day of week to shift selector
+- Added tab banner notification when unread messages + notification sound
+- Fixed pre-start submission reports staying open after shift change
+- Added shifts to time allocation charts
+- Added ability to lock/unlock entire shifts
+- Fixed oversubmitting of time allocation elements on submit
+- Added context menu to drag and drop asset tiles
+- Added eslint
+- Added toasts to time span editor functions
+- Added "move trucks" functionality when clicking on drag and drop dump name
+- Removed map street control icon to fix panning issue
+- Fixed GPS tracks from tablet not appending current geofence
+- Added appsignal page counter for routes
 - track connecting tablet client version with update time (easier to tell updated during rollout)
 
 ## 0.10.11
