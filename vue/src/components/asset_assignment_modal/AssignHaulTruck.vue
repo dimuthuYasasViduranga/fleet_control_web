@@ -2,7 +2,11 @@
   <div class="assign-haul-truck">
     <InfoHeader :asset="asset" :crossScale="crossScale" />
     <Separator />
-    <AssignTimeAllocation :asset="asset" :crossScale="crossScale" />
+    <AssignTimeAllocation
+      v-model="timeCodeId"
+      :assetTypeId="asset.typeId"
+      :crossScale="crossScale"
+    />
     <Separator />
     <table class="dispatch">
       <tr class="row dig-unit">
@@ -101,6 +105,7 @@ export default {
   },
   data: () => {
     return {
+      timeCodeId: null,
       localDispatch: {},
       showAllLocations: false,
       crossIcon: ErrorIcon,
@@ -162,6 +167,7 @@ export default {
       immediate: true,
       handler(asset = {}) {
         this.setLocalDispatch(asset);
+        this.timeCodeId = asset.activeTimeCodeId;
       },
     },
   },
@@ -201,7 +207,7 @@ export default {
 
       this.$channel.push('haul:set dispatch', dispatch);
 
-      this.$emit('submit');
+      this.$emit('submit', this.timeCodeId);
     },
     onClearDigUnit() {
       this.localDispatch.digUnitId = null;
@@ -220,21 +226,6 @@ export default {
 </script>
 
 <style>
-.assign-haul-truck .dispatch {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.assign-haul-truck .dispatch .row {
-  height: 3rem;
-}
-
-.assign-haul-truck .dispatch .row .key {
-  width: 11rem;
-  font-size: 2rem;
-}
-
 .assign-haul-truck .dispatch .row .key .dropdown-wrapper {
   width: 95%;
   height: 2.5rem;

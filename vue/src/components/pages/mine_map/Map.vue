@@ -62,7 +62,7 @@
                 content: `Show All`,
                 placement: 'top',
               }"
-              :icon="tickIcon"
+              :icon="showIcon"
               @click="showAllAssetTypes()"
             />
             <Icon
@@ -72,7 +72,7 @@
                 content: `Hide All`,
                 placement: 'top',
               }"
-              :icon="errorIcon"
+              :icon="hideIcon"
               @click="hideAllAssetTypes()"
             />
             <Icon
@@ -100,7 +100,6 @@
           :center="center"
           :zoom="zoom"
           :options="{
-            streetViewControl: false,
             tilt: 0,
           }"
           @zoom_changed="zoomChanged"
@@ -146,12 +145,10 @@
 
 <script>
 import { gmapApi } from 'gmap-vue';
-import GmapCluster from 'gmap-vue/dist/components/cluster';
 
-import loading from 'hx-layout/Loading.vue';
 import Icon from 'hx-layout/Icon.vue';
-import ErrorIcon from 'hx-layout/icons/Error.vue';
-import TickIcon from '@/components/icons/Tick.vue';
+import HideIcon from '@/components/icons/Hide.vue';
+import ShowIcon from '@/components/icons/Show.vue';
 import FilterIcon from '@/components/icons/Filter.vue';
 
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
@@ -183,11 +180,8 @@ function fromLatLng(latLng) {
 export default {
   name: 'Map',
   components: {
-    loading,
-    gmapApi,
     Icon,
     GMapDropDown,
-    GmapCluster,
     GMapGeofences,
     GMapTracks,
     AssetInfo,
@@ -246,8 +240,8 @@ export default {
       // track properties
       trackClusterSize: 35,
       debug: false,
-      errorIcon: ErrorIcon,
-      tickIcon: TickIcon,
+      hideIcon: HideIcon,
+      showIcon: ShowIcon,
       filterIcon: FilterIcon,
     };
   },
@@ -269,7 +263,7 @@ export default {
       if (this.selected && this.selected.type === 'asset') {
         return this.selected.data.id;
       }
-      return;
+      return null;
     },
     assetTypeIcons() {
       const icons = this.$store.state.constants.icons || {};
@@ -559,6 +553,6 @@ export default {
 
 /* ------ dim all other assets when one is selected ------- */
 .mine-map .not-selected {
-  opacity: 0.3 !important;
+  opacity: 0.6 !important;
 }
 </style>

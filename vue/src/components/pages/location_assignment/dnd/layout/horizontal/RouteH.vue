@@ -1,7 +1,6 @@
 <template>
   <div class="route-h">
     <div class="target-load">
-      <!-- adding a location edit to here could be good, but also quite complicated -->
       <div v-tooltip="'Change Source'" class="heading" @click="onMoveDumps">
         {{ heading }}
       </div>

@@ -42,22 +42,18 @@ import { copyDate, formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
-import error from 'hx-layout/Error.vue';
-import Icon from 'hx-layout/Icon.vue';
 
 import PlaneEngineIcon from '../../icons/PlaneEngine.vue';
 import { attributeFromList } from '@/code/helpers';
 
-const MAX_TIME_BETWEEN_ENTRIES = 24;
+const MAX_HOURS_BETWEEN_ENTRIES = 24;
 
 export default {
   name: 'EngineHours',
   components: {
     hxCard,
-    error,
     TableColumn,
     TableComponent,
-    Icon,
     Loaded,
   },
   data: () => {
@@ -94,7 +90,7 @@ export default {
       const deltaHours = (Date.now() - time) / (3600 * 1000);
       let color = '';
 
-      if (deltaHours > MAX_TIME_BETWEEN_ENTRIES) {
+      if (deltaHours > MAX_HOURS_BETWEEN_ENTRIES) {
         color = 'red-text';
       }
       return `<span class="${color}">${format}</span>`;

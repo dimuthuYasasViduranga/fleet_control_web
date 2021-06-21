@@ -4,16 +4,17 @@
       <td class="key">Allocation</td>
       <td class="value">
         <TimeAllocationDropDown
-          v-model="asset.activeTimeCodeId"
+          :value="value"
           :allowedTimeCodeIds="allowedTimeCodeIds"
           :useScrollLock="false"
+          @input="update"
         />
         <Icon
           v-if="noTaskTimeCodeId"
           v-tooltip="'Clear'"
           :icon="crossIcon"
           :scale="crossScale"
-          @click="onClearAllocation"
+          @click="update(noTaskTimeCodeId)"
         />
       </td>
     </tr>
@@ -33,7 +34,8 @@ export default {
     Icon,
   },
   props: {
-    asset: { type: Object, default: () => ({}) },
+    value: { type: Number },
+    assetTypeId: { type: Number },
     crossScale: { type: Number, default: 1 },
   },
   data: () => {
@@ -46,7 +48,7 @@ export default {
       timeCodes: state => state.timeCodes,
     }),
     allowedTimeCodeIds() {
-      const assetTypeId = this.asset.typeId;
+      const assetTypeId = this.assetTypeId;
       return this.$store.getters['constants/fullTimeCodes']
         .filter(tc => tc.assetTypeIds.includes(assetTypeId))
         .map(tc => tc.id);
@@ -56,29 +58,14 @@ export default {
     },
   },
   methods: {
-    onClearAllocation() {
-      this.asset.activeTimeCodeId = this.noTaskTimeCodeId;
+    update(value) {
+      this.$emit('input', value);
     },
   },
 };
 </script>
 
 <style>
-.assign-time-allocation {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.assign-time-allocation .row {
-  height: 3rem;
-}
-
-.assign-time-allocation .row .key {
-  width: 11rem;
-  font-size: 2rem;
-}
-
 .assign-time-allocation .row .value {
   display: flex;
   font-size: 1.5rem;
@@ -96,7 +83,7 @@ export default {
 }
 
 .assign-time-allocation .row .time-allocation-drop-down {
-  width: calc(100% - 2rem);
+  width: 100%;
 }
 
 .assign-time-allocation .row .dropdown-wrapper {

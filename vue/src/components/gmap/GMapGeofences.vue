@@ -91,7 +91,7 @@ export default {
     };
   },
   watch: {
-    geofences: (newGeofences, oldGeofences) => {
+    geofences(newGeofences, oldGeofences) {
       if (!this) {
         return;
       }

@@ -6,7 +6,6 @@
 </template>
 
 <script>
-import Modal from './Modal.vue';
 import loading from 'hx-layout/Loading.vue';
 
 export default {
@@ -14,7 +13,6 @@ export default {
   wrapperClass: 'loading-modal',
   components: {
     loading,
-    Modal,
   },
   props: {
     message: { type: String, default: '' },

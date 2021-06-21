@@ -23,6 +23,14 @@
 
       <table-column cell-class="table-cel" show="formattedDeviceName" label="Device" />
 
+      <table-column cell-class="table-cel" label="Version">
+        <template slot-scope="row">
+          <span v-tooltip="`Updated At: ${formatDate(row.clientUpdatedAt)}`">
+            {{ row.clientVersion }}
+          </span>
+        </template>
+      </table-column>
+
       <table-column label="Asset" cell-class="table-cel" show="assetName">
         <template slot-scope="row">
           <div class="asset-selection">
@@ -97,6 +105,7 @@ import TabletIcon from '../../icons/Tablet.vue';
 import InfoIcon from '../../icons/Info.vue';
 import AlertIcon from '../../icons/Alert.vue';
 import { attributeFromList } from '@/code/helpers';
+import { formatDateRelativeToIn } from '@/code/time';
 
 const WARNING = `Revoking a device will prevent it from being able to log into FleetControl.
 
@@ -160,6 +169,13 @@ export default {
         return 'green-icon';
       }
       return 'grey-icon';
+    },
+    formatDate(date) {
+      if (!date) {
+        return '--';
+      }
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(date, tz);
     },
     onChange(row) {
       this.$emit('change', row);

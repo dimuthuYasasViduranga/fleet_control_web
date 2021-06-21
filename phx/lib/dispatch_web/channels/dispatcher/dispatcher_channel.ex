@@ -158,6 +158,19 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackTopics.handle_in(topic, payload, socket)
   end
 
+  def handle_in("set page visited", payload, socket) do
+    case payload["page"] do
+      nil ->
+        nil
+
+      page ->
+        user_name = socket.assigns[:current_user][:user_name]
+        Appsignal.increment_counter("page_count", 1, %{page: page, user_name: user_name})
+    end
+
+    {:noreply, socket}
+  end
+
   def handle_in("set radio number", payload, socket) do
     %{"asset_id" => asset_id, "radio_number" => radio_number} = payload
     AssetRadioAgent.set(asset_id, radio_number)
@@ -406,13 +419,18 @@ defmodule DispatchWeb.DispatcherChannel do
   def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
-    TimeAllocationAgent.lock(ids, cal_id, dispatcher_id)
-    |> case do
-      {:ok, [], _, _, _} ->
+    case TimeAllocationAgent.lock(ids, cal_id, dispatcher_id) do
+      {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
-      {:ok, [alloc | _], _, _, _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: alloc.asset_id})
+      {:ok, %{new: new_elements}} ->
+        # only send to assets if there is a new active for them
+        new_elements
+        |> Enum.filter(&is_nil(&1.end_time))
+        |> Enum.map(& &1.asset_id)
+        |> Enum.uniq()
+        |> Enum.each(&Broadcast.send_active_allocation_to(%{asset_id: &1}))
+
         Broadcast.send_allocations_to_dispatcher()
         {:reply, :ok, socket}
 
@@ -423,11 +441,10 @@ defmodule DispatchWeb.DispatcherChannel do
 
   def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
     case TimeAllocationAgent.unlock(ids) do
-      {:ok, [], _} ->
+      {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
-      {:ok, [alloc | _], _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: alloc.asset_id})
+      {:ok, _} ->
         Broadcast.send_allocations_to_dispatcher()
         {:reply, :ok, socket}
 

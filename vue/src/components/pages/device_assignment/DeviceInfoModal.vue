@@ -13,13 +13,11 @@
 </template>
 
 <script>
-import Modal from '../../modals/Modal.vue';
 import ObjectEditor from './ObjectEditor.vue';
 export default {
   name: 'DeviceInfoModal',
   wrapperClass: 'device-info-modal-wrapper',
   components: {
-    Modal,
     ObjectEditor,
   },
   props: {

@@ -4,7 +4,6 @@
       <template slot="header">
         <TimezoneSelector />
         <ChatButton />
-        <!-- <HelpButton /> -->
       </template>
     </Layout>
     <!-- This is persistent and a fixed overlay -->
@@ -12,6 +11,7 @@
     <ChatButtonFloating />
     <NotificationBar />
     <AssetAssignmentModal />
+    <LiveTimeAllocationModal />
   </div>
 </template>
 
@@ -24,10 +24,10 @@ import axios from 'axios';
 import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
 import ChatButton from './components/header_buttons/ChatButton.vue';
 import ChatButtonFloating from './components/header_buttons/ChatButtonFloating.vue';
-import HelpButton from './components/header_buttons/HelpButton.vue';
 import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
+import LiveTimeAllocationModal from './components/live_time_allocation_modal/LiveTimeAllocationModal.vue';
 
 export default {
   name: 'app',
@@ -40,11 +40,11 @@ export default {
     Layout,
     TimezoneSelector,
     ChatButton,
-    HelpButton,
     ChatOverlay,
     ChatButtonFloating,
     NotificationBar,
     AssetAssignmentModal,
+    LiveTimeAllocationModal,
   },
   data: () => {
     return {
@@ -63,6 +63,11 @@ export default {
       if (oldAlive && !newAlive) {
         console.error('[Channel] The channel has been corrupted, recreating');
         this.initialiseChannel();
+      }
+    },
+    $route(to, from) {
+      if (to && from && to.name !== from.name) {
+        this.$channel.push('set page visited', { page: to.name });
       }
     },
   },
@@ -266,6 +271,7 @@ export default {
 @import './assets/tooltip.css';
 @import './assets/toasted.css';
 @import './assets/toggle.css';
+@import './assets/contextMenu.css';
 
 /* firefox scrollbar color was transparent */
 html {

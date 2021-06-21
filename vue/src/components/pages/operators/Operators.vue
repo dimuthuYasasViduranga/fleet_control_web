@@ -1,11 +1,7 @@
 <template>
   <div class="operators-page">
     <hxCard style="width: auto" :title="title" :icon="manIcon">
-      <EditOperator
-        :show="!!pendingOperator"
-        :operator="pendingOperator"
-        @close="onEditClose"
-      />
+      <EditOperator :show="!!pendingOperator" :operator="pendingOperator" @close="onEditClose" />
       <loaded>
         <div class="heading">
           <button class="hx-btn add-new-btn" @click="onAdd">Add New Operator</button>
@@ -20,8 +16,6 @@
 import axios from 'axios';
 
 import hxCard from 'hx-layout/Card.vue';
-import Error from 'hx-layout/Error.vue';
-import Icon from 'hx-layout/Icon.vue';
 
 import ManIcon from '../../icons/Man.vue';
 import AddIcon from '../../icons/Add.vue';
@@ -34,8 +28,6 @@ export default {
   name: 'Operators',
   components: {
     hxCard,
-    Error,
-    Icon,
     OperatorTable,
     Loaded,
     EditOperator,

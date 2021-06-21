@@ -38,8 +38,6 @@
 </template>
 
 <script>
-import Icon from 'hx-layout/Icon.vue';
-
 import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '@/code/time.js';
 import { attributeFromList } from '@/code/helpers';
 
@@ -55,9 +53,6 @@ function toPlural(value, unit, suffix) {
 
 export default {
   name: 'OperatorTimeSpanTooltip',
-  components: {
-    Icon,
-  },
   props: {
     timeSpan: { type: Object, default: null },
   },

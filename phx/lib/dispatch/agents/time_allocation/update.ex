@@ -249,8 +249,8 @@ defmodule Dispatch.TimeAllocationAgent.Update do
 
     state =
       if active_id == active.id do
-        new_actives = Map.drop(state.active, [active.asset_id])
-        Map.put(state, :active, new_actives)
+        active_map = Map.drop(state.active, [active.asset_id])
+        Map.put(state, :active, active_map)
       else
         state
       end
@@ -259,8 +259,8 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   end
 
   def update_agent({:ok, %{end_time: nil} = active}, state) do
-    new_actives = Map.put(state.active, active.asset_id, active)
-    state = Map.put(state, :active, new_actives)
+    active_map = Map.put(state.active, active.asset_id, active)
+    state = Map.put(state, :active, active_map)
     {{:ok, active}, state}
   end
 

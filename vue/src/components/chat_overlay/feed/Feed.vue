@@ -73,17 +73,7 @@ export default {
       editIcon: EditIcon,
       reportIcon: ReportIcon,
       search: '',
-      now: new Date(),
-      nowInterval: null,
     };
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => {
-      this.now = new Date();
-    }, 1000);
-  },
-  beforeDestroy() {
-    clearInterval(this.nowInterval);
   },
   computed: {
     filteredEvents() {
@@ -107,7 +97,9 @@ export default {
       if (!this.activeAllocation) {
         return null;
       }
-      const seconds = Math.abs(Math.trunc((this.now - this.activeAllocation.startTime) / 1000));
+      const seconds = Math.abs(
+        Math.trunc((this.$everySecond.timestamp - this.activeAllocation.startTime) / 1000),
+      );
 
       const [days, remainder] = divMod(seconds, SECONDS_IN_DAY);
 

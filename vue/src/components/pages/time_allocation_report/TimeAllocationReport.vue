@@ -53,8 +53,9 @@
           :timeCodeGroups="timeCodeGroups"
           :operators="operators"
           :devices="devices"
-          :locations="locations"
           :timezone="timezone"
+          :shifts="shifts"
+          :shiftTypes="shiftTypes"
           :fullTimeCodes="fullTimeCodes"
           @update="onFetchReport(shift)"
         />
@@ -170,7 +171,6 @@ export default {
       assetTypes: state => state.assetTypes,
       operators: state => state.operators,
       devices: state => state.devices,
-      locations: state => state.locations,
     }),
     timezone() {
       return this.$timely.current.timezone;

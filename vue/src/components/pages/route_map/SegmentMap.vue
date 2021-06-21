@@ -9,7 +9,6 @@
           :zoom="zoom"
           @zoom_changed="zoomChanged"
           :options="{
-            streetViewControl: false,
             tilt: 0,
           }"
         >

@@ -282,7 +282,8 @@ export default {
         return 'Select Date';
       }
       const shortMonth = Info.months('short')[date.month - 1];
-      return `${date.year} ${shortMonth} ${date.day}`;
+      const zeroPaddedDate = pad(date.day);
+      return `${date.year} ${shortMonth} ${zeroPaddedDate}`;
     },
     hasErrors() {
       return Object.values(this.errors).some(a => a);

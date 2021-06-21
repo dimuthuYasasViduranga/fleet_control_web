@@ -2,9 +2,17 @@
   <div class="assign-default">
     <InfoHeader :asset="asset" :crossScale="crossScale" />
     <Separator />
-    <AssignTimeAllocation :asset="asset" :crossScale="crossScale"/>
+    <AssignTimeAllocation
+      v-model="timeCodeId"
+      :assetTypeId="asset.typeId"
+      :crossScale="crossScale"
+    />
     <Separator />
-    <ActionButtons @submit="emit('submit')" @reset="emit('reset')" @cancel="emit('cancel')" />
+    <ActionButtons
+      @submit="emit('submit', timeCodeId)"
+      @reset="emit('reset')"
+      @cancel="emit('cancel')"
+    />
   </div>
 </template>
 
@@ -24,11 +32,24 @@ export default {
   },
   props: {
     asset: { type: Object, default: () => ({}) },
-    crossScale: {type: Number, default: 1},
+    crossScale: { type: Number, default: 1 },
+  },
+  data: () => {
+    return {
+      timeCodeId: null,
+    };
+  },
+  watch: {
+    asset: {
+      immediate: true,
+      handler(asset = {}) {
+        this.timeCodeId = asset.activeTimeCodeId;
+      },
+    },
   },
   methods: {
-    emit(event) {
-      this.$emit(event);
+    emit(event, payload) {
+      this.$emit(event, payload);
     },
   },
 };

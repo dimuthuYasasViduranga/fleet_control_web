@@ -1,5 +1,10 @@
 <template>
-  <modal class="asset-assignment" :show="show" @close="close()">
+  <modal
+    class="asset-assignment"
+    :show="show"
+    @close="close()"
+    @tran-close-end="setSelectedAsset(null)"
+  >
     <div class="asset-assignment-info">
       <component
         :is="componentType"
@@ -22,6 +27,9 @@ import AssignHaulTruck from './AssignHaulTruck.vue';
 import AssignDigUnit from './AssignDigUnit.vue';
 
 function toLocalAsset(asset) {
+  if (!asset) {
+    return;
+  }
   return {
     id: asset.id,
     name: asset.name,
@@ -48,7 +56,6 @@ export default {
     return {
       show: false,
       selectedAsset: {},
-      selectedAssetOriginal: {},
     };
   },
   computed: {
@@ -56,7 +63,7 @@ export default {
       return this.$store.getters.fullAssets;
     },
     componentType() {
-      switch (this.selectedAsset.type) {
+      switch ((this.selectedAsset || {}).type) {
         case 'Haul Truck':
           return AssignHaulTruck;
         case 'Excavator':
@@ -71,8 +78,6 @@ export default {
   },
   methods: {
     close() {
-      // breif delay to allow for close animiation
-      setTimeout(() => this.setSelectedAsset(null), 200);
       this.show = false;
     },
     open(assetId) {
@@ -88,33 +93,17 @@ export default {
       this.show = true;
     },
     setSelectedAsset(asset) {
-      if (!asset) {
-        this.selectedAsset = {};
-        this.selectedAssetOriginal = {};
-        return;
-      }
-
       this.selectedAsset = toLocalAsset(asset);
-      this.selectedAssetOriginal = toLocalAsset(asset);
     },
     onReset() {
       this.open((this.selectedAsset || {}).id);
     },
-    onSubmit() {
+    onSubmit(timeCodeId) {
       const asset = this.selectedAsset;
-      const original = this.selectedAssetOriginal;
-      if (!asset.id) {
-        console.error('[AssignModal] Cannot submit without asset id');
-        this.close();
-
-        return;
-      }
-
-      // submit delay change
-      if (changed(original, asset, ['activeTimeCodeId'])) {
+      if (asset && timeCodeId !== asset.activeTimeCodeId) {
         const allocation = {
           asset_id: asset.id,
-          time_code_id: asset.activeTimeCodeId,
+          time_code_id: timeCodeId,
           start_time: Date.now(),
           end_time: null,
           deleted: false,
@@ -145,6 +134,21 @@ export default {
 
 .asset-assignment .modal-container {
   height: auto;
-  max-width: 32rem;
+  max-width: 38rem;
+}
+
+.asset-assignment table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.asset-assignment .row {
+  height: 3rem;
+}
+
+.asset-assignment .row .key {
+  font-size: 2rem;
+  width: 15rem;
 }
 </style>

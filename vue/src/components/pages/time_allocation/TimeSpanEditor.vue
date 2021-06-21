@@ -1,9 +1,8 @@
 <template>
-  <modal class="time-span-editor-modal" :show="show" @close="onClose" @tran-open-end="onFullyOpen">
+  <div class="time-span-editor-modal">
     <hxCard :title="title" :icon="timeIcon">
       <div class="chart-area">
         <TimeSpanChart
-          v-if="ready"
           :name="`${this.asset.name}-editor`"
           :timeSpans="timeSpans.flat()"
           :layout="chartLayout"
@@ -25,6 +24,7 @@
               <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
               <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
               <EventTooltip v-else-if="timeSpan.group === 'event'" :timeSpan="timeSpan" />
+              <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
               <DefaultTooltip v-else :timeSpan="timeSpan" />
             </div>
           </template>
@@ -124,15 +124,14 @@
         </div>
       </div>
     </hxCard>
-  </modal>
+  </div>
 </template>
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
 import Loading from 'hx-layout/Loading.vue';
-import Modal from '../../modals/Modal.vue';
-import LoadingModal from '../../modals/LoadingModal.vue';
-import ConfirmModal from '../../modals/ConfirmModal.vue';
+import LoadingModal from '@/components/modals/LoadingModal.vue';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import TimeSpanChart from './chart/TimeSpanChart.vue';
 
@@ -142,6 +141,7 @@ import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import EventTooltip from './tooltips/EventTimeSpanTooltip.vue';
+import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
 import TimelinePane from './editor_panes/timeline/TimelineTable.vue';
 import ErrorPane from './editor_panes/error/ErrorPane.vue';
@@ -150,8 +150,8 @@ import NewPane from './editor_panes/new/NewPane.vue';
 import TimeIcon from '../../icons/Time.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import { copyDate, isDateEqual, toUtcDate } from '../../../code/time';
-import { uniq, chunkEvery } from '../../../code/helpers';
+import { copyDate, isDateEqual, toUtcDate } from '@/code/time';
+import { uniq, chunkEvery } from '@/code/helpers';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -163,6 +163,7 @@ import {
 } from './timespan_formatters/deviceAssignmentTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
 import {
   addDynamicLevels,
@@ -222,7 +223,10 @@ function updateArrayAt(arr, index, item) {
   return newArr;
 }
 
-function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans], asset) {
+function getChartLayoutGroups(
+  [TASpans, DASpans, TUSpans, cycleSpans, eventSpans, shiftSpans],
+  asset,
+) {
   const allocation = {
     group: 'allocation',
     label: 'Al',
@@ -232,6 +236,12 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans
 
   const otherGroups = [
     {
+      group: 'shift',
+      label: 'S',
+      subgroups: [0],
+      canHide: true,
+    },
+    {
       group: 'device-assignment',
       label: 'Op',
       subgroups: uniq(DASpans.map(ts => ts.level || 0)),
@@ -240,18 +250,21 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans
       group: 'timeusage',
       label: 'TU',
       subgroups: uniq((TUSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
     {
       group: 'cycle',
       label: 'C',
       subgroups: uniq((cycleSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
     {
       group: 'event',
       label: 'Ev',
       subgroups: uniq((eventSpans || []).map(ts => ts.level || 0)),
+      canHide: true,
     },
-  ].filter(g => g.subgroups.length !== 0);
+  ].filter(g => !g.canHide || g.subgroups.length !== 0);
 
   const nOtherGroups = otherGroups.length;
   otherGroups.forEach(g => (g.percent = (1 - allocation.percent) / nOtherGroups));
@@ -294,7 +307,7 @@ function getAllocChanges(originalAllocs, newAllocs) {
 
 function isDifferentAlloc(a, b) {
   return (
-    a.deleted !== b.deleted ||
+    (a.deleted || false) !== (b.deleted || false) ||
     a.timeCodeId !== b.timeCodeId ||
     !isDateEqual(a.startTime, b.startTime) ||
     !isDateEqual(a.endTime, b.endTime)
@@ -337,12 +350,21 @@ function toEpoch(date) {
   return date ? date.getTime() : null;
 }
 
+function toShiftSpans(shifts, shiftTypes, timestamps) {
+  const uniqTimestamps = uniq(timestamps.filter(ts => ts).map(ts => ts.getTime()));
+
+  const relevantShifts = uniqTimestamps
+    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
+    .filter(s => s);
+
+  return toShiftTimeSpans(relevantShifts, shiftTypes);
+}
+
 export default {
   name: 'TimeSpanEditor',
   components: {
     hxCard,
     Loading,
-    Modal,
     TimeSpanChart,
     DefaultTooltip,
     AllocationTooltip,
@@ -350,6 +372,7 @@ export default {
     TimeusageTooltip,
     CycleTooltip,
     EventTooltip,
+    ShiftTooltip,
     TimelinePane,
     ErrorPane,
     NewPane,
@@ -370,6 +393,8 @@ export default {
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
   },
   data: () => {
@@ -378,7 +403,6 @@ export default {
       timeIcon: TimeIcon,
       addIcon: AddIcon,
       pane: 'timeline',
-      ready: false,
       selectedAllocationId: null,
       localTimeAllocations: [],
       localMinDatetime: null,
@@ -438,7 +462,7 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .reverse();
 
-      const cycleSpans = toCycleTimeSpans(this.cycles).map(ts =>
+      const CycleSpans = toCycleTimeSpans(this.cycles).map(ts =>
         addActiveEndTime(ts, activeEndTime),
       );
 
@@ -447,7 +471,12 @@ export default {
       );
       const [validEventSpans] = addDynamicLevels(eventSpans);
 
-      return [TASpans, DASpans, TUSpans, cycleSpans, validEventSpans];
+      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+        this.minDatetime,
+        this.maxDatetime,
+      ]);
+
+      return [TASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset);
@@ -472,16 +501,6 @@ export default {
     },
   },
   watch: {
-    show: {
-      immediate: true,
-      handler(doShow) {
-        this.events = null;
-        if (doShow) {
-          this.pane = 'timeline';
-          this.setLocalTimeAllocations(this.timeAllocations);
-        }
-      },
-    },
     errorAllocationTimeSpans: {
       immediate: true,
       handler(errors = []) {
@@ -489,23 +508,20 @@ export default {
       },
     },
   },
+  mounted() {
+    this.events = null;
+    this.pane = 'timeline';
+    this.setSelect(null);
+    this.setLocalTimeAllocations(this.timeAllocations);
+    this.localMinDatetime = copyDate(this.minDatetime);
+    this.localMaxDatetime = copyDate(this.maxDatetime);
+  },
   methods: {
     syncLocalTimeAllocations() {
       this.setLocalTimeAllocations(this.timeAllocations);
     },
     setLocalTimeAllocations(allocations = []) {
       this.localTimeAllocations = allocations.map(toLocalAllocation);
-    },
-    onClose() {
-      this.ready = false;
-      this.$emit('close');
-    },
-    onFullyOpen() {
-      this.setSelect(null);
-      this.setLocalTimeAllocations(this.timeAllocations);
-      this.localMinDatetime = copyDate(this.minDatetime);
-      this.localMaxDatetime = copyDate(this.maxDatetime);
-      this.ready = true;
     },
     setPane(pane) {
       const timeSpan = this.nonDeletedAllocationTimeSpans.find(
@@ -580,6 +596,9 @@ export default {
         case 'event':
           style = eventStyle(timeSpan, region);
           break;
+
+        case 'shift':
+          style = shiftStyle(timeSpan, region);
       }
 
       return styleSelected(timeSpan, style, this.selectedAllocationId);
@@ -726,17 +745,15 @@ export default {
     },
     onCancel() {
       this.$emit('cancel');
-      this.onClose();
     },
     onReset() {
-      this.$emit('reset');
       this.setSelect(null);
       this.syncLocalTimeAllocations();
     },
     submitChanges(changes = []) {
       if (changes.length === 0) {
         console.log('[TimeAllocEditor] No changes to submit');
-        this.onClose();
+        this.onCancel();
         return;
       }
 
@@ -757,9 +774,15 @@ export default {
         };
       });
 
-      this.pushTopic('edit time allocations', payload, 'Editing Time Allocations', 'update');
+      this.pushTopic(
+        'edit time allocations',
+        payload,
+        'Editing Time Allocations',
+        'update',
+        'Time Allocations Updated',
+      );
     },
-    pushTopic(topic, payload, loadingMsg, emitEvent) {
+    pushTopic(topic, payload, loadingMsg, emitEvent, toast) {
       const loading = this.$modal.create(
         LoadingModal,
         { message: loadingMsg },
@@ -773,8 +796,8 @@ export default {
         .receive('ok', () => {
           this.updateInTransit = false;
           loading.close();
-          this.$emit('update');
-          this.onClose();
+          this.$emit(emitEvent);
+          this.$toaster.info(toast);
         })
         .receive('error', error => {
           this.updateInTransit = false;
@@ -817,7 +840,13 @@ export default {
             calendar_id: this.shiftId,
           };
 
-          this.pushTopic('lock time allocations', payload, 'Locking Time Allocations', 'lock');
+          this.pushTopic(
+            'lock time allocations',
+            payload,
+            'Locking Time Allocations',
+            'lock',
+            'Time Allocations Locked',
+          );
         });
     },
     onConfirmUnlock() {
@@ -840,7 +869,13 @@ export default {
             return;
           }
 
-          this.pushTopic('unlock time allocations', ids, 'Unlocking Time Allocations', 'unlock');
+          this.pushTopic(
+            'unlock time allocations',
+            ids,
+            'Unlocking Time Allocations',
+            'unlock',
+            'Time Allocations Unlocked',
+          );
         });
     },
     onGenerateReport() {

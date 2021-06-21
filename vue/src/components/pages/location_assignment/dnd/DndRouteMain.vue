@@ -47,16 +47,16 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
 import AddRouteModal from './AddRouteModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
-import { RouteStructure } from './routeStructure.js';
 import OtherAssets from './other_assets/OtherAssets.vue';
 import UnassignedAssets from './unassigned_assets/UnassignedAssets.vue';
 import AssignedLayout from './layout/AssignedLayout.vue';
 
 import { attributeFromList } from '@/code/helpers';
+import { RouteStructure } from './routeStructure.js';
 
 function toLocalFullAsset(asset) {
   return {
@@ -100,7 +100,6 @@ export default {
   name: 'DndRouteMain',
   components: {
     Container,
-    Draggable,
     UnassignedAssets,
     OtherAssets,
     AssignedLayout,

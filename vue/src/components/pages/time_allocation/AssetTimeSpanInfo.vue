@@ -10,28 +10,6 @@
         <div class="duration">{{ formatDuration(activeTimeAllocationTimeDuration) }}</div>
       </div>
     </div>
-    <TimeSpanEditor
-      :show="showEditor"
-      :asset="asset"
-      :timeAllocations="filteredTimeAllocations"
-      :deviceAssignments="smoothDeviceAssignments"
-      :timeusage="timeusage"
-      :cycles="cycles"
-      :devices="devices"
-      :operators="operators"
-      :timeCodes="timeCodes"
-      :timeCodeGroups="timeCodeGroups"
-      :allowedTimeCodeIds="allowedTimeCodeIds"
-      :activeEndTime="activeEndTime"
-      :minDatetime="minDatetime"
-      :maxDatetime="maxDatetime"
-      :timezone="timezone"
-      :shiftId="shiftId"
-      @close="onEditClose()"
-      @update="onEditUpdate()"
-      @lock="onLock()"
-      @unlock="onUnlock()"
-    />
 
     <div class="chart-wrapper" :class="{ open: isOpen }">
       <TimeSpanChart
@@ -52,6 +30,7 @@
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
+            <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
             <DefaultTooltip v-else :timeSpan="timeSpan" />
           </div>
         </template>
@@ -80,8 +59,7 @@ import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
-
-import TimeSpanEditor from './TimeSpanEditor.vue';
+import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
 import EditIcon from '../../icons/Edit.vue';
 import ChevronRightIcon from '../../icons/ChevronRight.vue';
@@ -97,9 +75,12 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
+import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+
+import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -124,6 +105,12 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
   if (asset.type === 'Haul Truck' && isOpen) {
     return [
       {
+        group: 'shift',
+        label: 'S',
+        percent: 0.15,
+        subgroups: [0],
+      },
+      {
         group: 'device-assignment',
         label: 'Op',
         percent: 0.15,
@@ -144,7 +131,7 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
       {
         group: 'allocation',
         label: 'Al',
-        percent: 0.55,
+        percent: 0.4,
         subgroups: uniq(TASpans.map(ts => ts.level || 0)),
       },
     ];
@@ -165,6 +152,16 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
   ];
 }
 
+function toShiftSpans(shifts, shiftTypes, timestamps) {
+  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
+
+  const relevantShifts = uniqTimestamps
+    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
+    .filter(s => s);
+
+  return toShiftTimeSpans(relevantShifts, shiftTypes);
+}
+
 export default {
   name: 'AssetTimeSpanInfo',
   components: {
@@ -175,7 +172,7 @@ export default {
     LoginTooltip,
     TimeusageTooltip,
     CycleTooltip,
-    TimeSpanEditor,
+    ShiftTooltip,
   },
   props: {
     asset: { type: Object, default: () => ({}) },
@@ -189,16 +186,18 @@ export default {
     devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: new Date() },
+    range: { type: Object, default: null },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
     smoothAssignments: { type: Boolean, default: true },
   },
   data: () => {
     return {
       isOpen: false,
-      showEditor: false,
       editIcon: EditIcon,
       chevronRightIcon: ChevronRightIcon,
       margins: {
@@ -301,7 +300,12 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
-      return [TASpans, DASpans, TUSpans, CSpans];
+      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+        this.minDatetime,
+        this.maxDatetime,
+      ]);
+
+      return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
@@ -325,19 +329,34 @@ export default {
   },
   methods: {
     onEdit() {
-      this.showEditor = true;
-    },
-    onEditClose() {
-      this.showEditor = false;
-    },
-    onEditUpdate() {
-      this.$emit('update');
-    },
-    onLock() {
-      this.$emit('lock');
-    },
-    onUnlock() {
-      this.$emit('unlock');
+      const range = this.range || {};
+      const minDatetime = this.minDatetime || range.min;
+      const maxDatetime = this.maxDatetime || range.max;
+
+      const opts = {
+        asset: this.asset,
+        allocations: this.filteredTimeAllocations,
+        deviceAssignments: this.deviceAssignments,
+        timeusage: this.timeusage,
+        cycles: this.cycles,
+        devices: this.devices,
+        operators: this.operators,
+        timeCodes: this.timeCodes,
+        timeCodeGroups: this.timeCodeGroups,
+        allowedTimeCodeIds: this.allowedTimeCodeIds,
+        minDatetime,
+        maxDatetime,
+        timezone: this.timezone,
+        shifts: this.shifts,
+        shiftTypes: this.shiftTypes,
+        shiftId: this.shiftId,
+      };
+
+      this.$modal.create(TimeSpanEditorModal, opts).onClose(resp => {
+        if (['update', 'lock', 'unlock'].includes(resp)) {
+          this.$emit(resp);
+        }
+      });
     },
     toggleOpen() {
       this.isOpen = !this.isOpen;
@@ -355,6 +374,8 @@ export default {
 
         case 'cycle':
           return cycleStyle(timeSpan, region);
+        case 'shift':
+          return shiftStyle(timeSpan, region);
       }
     },
     formatDuration(totalSeconds) {

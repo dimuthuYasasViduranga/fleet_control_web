@@ -59,7 +59,6 @@
 import Icon from 'hx-layout/Icon.vue';
 import AssetTile from '../../asset_tile/AssetTile.vue';
 import DumpV from './DumpV.vue';
-import DropDown from '@/components/dropdown/DropDown.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
@@ -75,7 +74,6 @@ export default {
     Icon,
     AssetTile,
     DumpV,
-    DropDown,
   },
   props: {
     digUnitId: { type: [Number, String] },
@@ -193,6 +191,10 @@ export default {
   padding: 0.25rem 1rem;
   text-align: center;
   background-color: #23343f;
+}
+
+.heading:hover {
+  opacity: 0.75;
 }
 
 .target-load {

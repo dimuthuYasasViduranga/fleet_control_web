@@ -15,10 +15,12 @@ import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
 import { Toaster } from './code/toasts.js';
+import { ContextMenu } from './code/context_menu.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
 import * as VueGoogleMaps from 'gmap-vue';
+import { nowTimer } from './code/time.js';
 
 declare var window: { location: { href: string; origin: string } };
 
@@ -49,22 +51,19 @@ Vue.prototype.$modal = new Modal(store);
 
 Vue.prototype.$toaster = new Toaster();
 
+Vue.prototype.$contextMenu = new ContextMenu();
+
 const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;
 
-// setup routes
+Vue.prototype.$everySecond = nowTimer(1000);
 
+// Logout function
 const logout = function() {
   window.location.href = `${hostname}/auth/logout`;
 };
 
-async function startApp() {
-  const whitelist = store.state.constants.whitelist;
-  const [routes, router] = setupRouter(whitelist);
-
-  // logout function
-
-  // configure toasted
+const configureToasts = function(router) {
   Vue.use(Toasted, {
     position: 'top-right',
     theme: 'hx-toast',
@@ -79,6 +78,14 @@ async function startApp() {
       },
     },
   });
+};
+
+async function startApp() {
+  const whitelist = store.state.constants.whitelist;
+  const [routes, router] = setupRouter(whitelist);
+
+  // configure toasted
+  configureToasts(router);
 
   function createApp(data: { map_config: { key: string } }) {
     const props = { routes, logout };

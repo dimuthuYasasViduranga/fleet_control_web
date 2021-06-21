@@ -2,6 +2,37 @@
 
 ## pending [unreleased]
 
+## 0.10.12
+- explicit timestamp ordering for operator time allocation calculations
+- fixed undefined being considered a valid timezone
+- Assignment modal width increased
+- Dig Unit Assignment 'location' now called 'target location'
+- Ability to search on multiple criteria on asset time allocation page
+- Added asset overview page for large tv based displays
+- Added time allocation group based coloring
+  - ready + online -> green
+  - ready + offline -> light blue
+  - process -> orange
+  - standby -> white
+  - down -> gray with red cross
+  - not ready + offline -> grey
+- Added allocation duration to map tooltip
+- Added 'eye' icons for asset type filter toggles
+- Added day of week to shift selector
+- Added tab banner notification when unread messages + notification sound
+- Fixed pre-start submission reports staying open after shift change
+- Added shifts to time allocation charts
+- Added ability to lock/unlock entire shifts
+- Fixed oversubmitting of time allocation elements on submit
+- Added context menu to drag and drop asset tiles
+- Added eslint
+- Added toasts to time span editor functions
+- Added "move trucks" functionality when clicking on drag and drop dump name
+- Removed map street control icon to fix panning issue
+- Fixed GPS tracks from tablet not appending current geofence
+- Added appsignal page counter for routes
+- track connecting tablet client version with update time (easier to tell updated during rollout)
+
 ## 0.10.11
 - fixed map not loading markers on initial load
 - added +- 1 hour to pre-start submission selection range

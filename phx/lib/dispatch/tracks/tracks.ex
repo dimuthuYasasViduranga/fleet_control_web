@@ -24,7 +24,8 @@ defmodule Dispatch.Tracks do
     end
   end
 
-  defp add_location(%{position: pos} = track) do
+  @spec add_location(simple_track) :: extended_track()
+  def add_location(%{position: pos} = track) do
     locations = LocationAgent.active_locations()
 
     case Location.find_location(locations, pos.lat, pos.lng) do

@@ -48,6 +48,7 @@ import PendingDeviceTable from './PendingDeviceTable.vue';
 
 import TabletIcon from '../../icons/Tablet.vue';
 import { attributeFromList, formatDeviceUUID } from '@/code/helpers.js';
+import { toUtcDate } from '@/code/time';
 
 function getMultipleAssignments(assignments, assets, deviceId) {
   const deviceAssigns = assignments.filter(a => a.deviceId === deviceId);
@@ -76,8 +77,6 @@ export default {
       title: 'Device Assignment',
       tabletIcon: TabletIcon,
       error: '',
-      now: Date.now(),
-      nowInterval: null,
       recentlyAuthorized: [],
     };
   },
@@ -124,6 +123,10 @@ export default {
 
           const operatorName = attributeFromList(this.operators, 'id', operatorId, 'name') || '';
 
+          const details = d.details || {};
+          const clientVersion = details.client_version;
+          const clientUpdatedAt = toUtcDate(details.client_updated_at);
+
           return {
             deviceId: d.id,
             deviceUUID: d.uuid,
@@ -136,6 +139,8 @@ export default {
             operatorName,
             hasMultipleAssignments,
             multipleAssignmentAssetNames,
+            clientVersion,
+            clientUpdatedAt,
             deviceDetails: d.details || {},
             present: this.presenceList.includes(d.uuid),
           };
@@ -148,7 +153,7 @@ export default {
     },
     timeRemaining() {
       const timeRemaining = this.$store.state.deviceStore.acceptUntil || 0;
-      const now = Math.trunc(this.now / 1000);
+      const now = Math.trunc(this.$everySecond.timestamp / 1000);
 
       const remaining = timeRemaining - now;
       if (remaining <= 0) {
@@ -157,12 +162,6 @@ export default {
 
       return remaining;
     },
-  },
-  mounted() {
-    this.nowInterval = setInterval(() => (this.now = Date.now()), 1000);
-  },
-  beforeDestroy() {
-    clearInterval(this.nowInterval);
   },
   methods: {
     onChange(deviceInput) {

@@ -175,9 +175,6 @@ function parseLayout(custom = {}) {
 
 export default {
   name: 'TimeSpanChart',
-  components: {
-    SlotWrapper,
-  },
   props: {
     name: { type: [String, Number], default: randChartName() },
     timeSpans: { type: Array, default: () => [] },
@@ -210,7 +207,10 @@ export default {
   },
   computed: {
     id() {
-      return `time-span-chart-${this.name}`.replace(' ', '_');
+      return `time-span-chart-${this.name}`
+        .replaceAll(' ', '_')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
     },
     chartId() {
       return `${this.id}-chart`;
@@ -256,9 +256,15 @@ export default {
     timezone() {
       this.updateChart();
     },
+    minDatetime() {
+      this.updateChart();
+    },
+    maxDatetime() {
+      this.updateChart();
+    },
   },
   mounted() {
-    this.updateChart();
+    setTimeout(() => this.updateChart());
   },
   beforeDestroy() {
     removeTooltip(this.tooltip);

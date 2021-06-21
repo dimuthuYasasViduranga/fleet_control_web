@@ -115,6 +115,7 @@ export default {
     onAddSection() {
       const section = createSection();
       section.setFocus = true;
+      // eslint-disable-next-line vue/no-mutating-props
       this.value.sections.push(section);
     },
     onAddSectionKeyDown({ keyCode }) {
@@ -123,6 +124,7 @@ export default {
       }
     },
     onRemoveSection(section) {
+      // eslint-disable-next-line vue/no-mutating-props
       this.value.sections = this.value.sections.filter(s => s !== section);
     },
     onAddControl(section) {
@@ -135,6 +137,7 @@ export default {
     },
     onSectionDrop({ addedIndex, removedIndex }) {
       if (addedIndex !== null && removedIndex !== null) {
+        // eslint-disable-next-line vue/no-mutating-props
         this.value.sections = changeIndex(this.value.sections, removedIndex, addedIndex);
       }
     },

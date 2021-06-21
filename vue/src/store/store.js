@@ -4,7 +4,11 @@ import Vuex from 'vuex';
 import { Toaster as ToasterClass } from '@/code/toasts';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
-import { toUtcDate, copyDate } from '../code/time.js';
+import { toUtcDate, copyDate } from '@/code/time.js';
+import { Titler } from '@/code/titler.js';
+import { AVPlayer } from '@/code/audio.js';
+import { PageVisibility } from '@/code/visibility.js';
+
 import { parsePreStartForm } from './modules/constants.js';
 
 import TimeIcon from '@/components/icons/Time.vue';
@@ -347,6 +351,21 @@ function getPreStartSubmissionStatus(submission, ticketStatusTypes) {
   return 'Fail';
 }
 
+function notifyUnreadMessages(oldMessages, newMessages) {
+  const oldUnread = oldMessages.filter(m => !m.acknowledged).length;
+  const newUnread = newMessages.filter(m => !m.acknowledged).length;
+
+  if (PageVisibility.hidden && newUnread > oldUnread) {
+    AVPlayer.chime();
+  }
+
+  if (!newUnread) {
+    Titler.reset();
+  } else {
+    Titler.change(`FleetControl | msgs (${newUnread})`);
+  }
+}
+
 const getters = {
   fullAssets: (state, getters) => {
     // info like 'track data' is not included because it updates
@@ -532,6 +551,7 @@ const mutations = {
     state.activityLog = log;
   },
   setOperatorMessages(state, messages = []) {
+    notifyUnreadMessages(state.operatorMessages, messages);
     state.operatorMessages = messages;
   },
   setDispatcherMessages(state, messages = []) {

@@ -110,19 +110,23 @@ defmodule Dispatch.OperatorTimeAllocation do
 
   @spec create_operator_allocations(time_data) :: list(map)
   def create_operator_allocations(%{start_time: start_time, end_time: end_time} = data) do
+    device_assignments =
+      Enum.sort_by(data.device_assignments, & &1.timestamp, {:asc, NaiveDateTime})
+
+    time_allocations = Enum.sort_by(data.time_allocations, & &1.start_time, {:asc, NaiveDateTime})
+
     assignments_with_allocs =
       Enum.map(data.assets, fn asset ->
-        allocs = Enum.filter(data.time_allocations, &(&1.asset_id == asset.id))
+        allocs = Enum.filter(time_allocations, &(&1.asset_id == asset.id))
 
         operator_assignment_spans =
-          data.device_assignments
+          device_assignments
           |> Enum.filter(&(&1.asset_id == asset.id))
           |> Enum.dedup_by(&{&1.asset_id, &1.operator_id})
           |> point_in_time_to_spans(end_time)
           |> Enum.reject(&is_nil(&1.operator_id))
 
-        operator_assignment_spans
-        |> Enum.map(fn assign ->
+        Enum.map(operator_assignment_spans, fn assign ->
           case split_span_by(assign, allocs) do
             [] -> [{assign, %{}}]
             splits -> splits
@@ -141,6 +145,8 @@ defmodule Dispatch.OperatorTimeAllocation do
           []
 
         assigns ->
+          assigns = remove_assignment_overlaps(assigns)
+
           gaps =
             assigns
             |> find_gaps(%{start_time: start_time, end_time: end_time})
@@ -158,6 +164,43 @@ defmodule Dispatch.OperatorTimeAllocation do
     |> List.flatten()
     |> Enum.sort_by(& &1.start_time, {:asc, NaiveDateTime})
   end
+
+  @spec remove_assignment_overlaps(list(span)) :: list(span)
+  def remove_assignment_overlaps(spans) when length(spans) < 2, do: spans
+
+  def remove_assignment_overlaps(spans) do
+    spans
+    |> Enum.uniq_by(&{&1.start_time, &1.end_time})
+    |> Enum.with_index()
+    |> Enum.map(fn {span, index} ->
+      [
+        {index, span, :start_time},
+        {index, span, :end_time}
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.sort_by(fn {_, span, key} -> span[key] end, {:asc, NaiveDateTime})
+    |> Enum.reduce({[], nil}, &remove_assignment_overlaps/2)
+    |> case do
+      {completed, nil} -> completed
+      {completed, {_, partial}} -> [partial | completed]
+    end
+    |> Enum.reverse()
+  end
+
+  defp remove_assignment_overlaps({id, span, :start_time}, {completed, nil}),
+    do: {completed, {id, span}}
+
+  defp remove_assignment_overlaps({id, span, _}, {comp, {p_id, _}}) when id == p_id do
+    {[span | comp], nil}
+  end
+
+  defp remove_assignment_overlaps({id, span, :start_time}, {completed, {_, partial}}) do
+    complete = Map.put(partial, :end_time, span.start_time)
+    {[complete | completed], {id, span}}
+  end
+
+  defp remove_assignment_overlaps({_, _, :end_time}, acc), do: acc
 
   @doc """
   Returns a list of spans, corresponding to any gaps in the given data.

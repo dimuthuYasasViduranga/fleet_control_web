@@ -1,25 +1,5 @@
 <template>
   <div class="asset-report">
-    <TimeSpanEditor
-      :show="reportData.show"
-      :asset="asset"
-      :timeAllocations="reportData.allocations"
-      :deviceAssignments="reportData.deviceAssignments"
-      :timeusage="reportData.timeusage"
-      :cycles="reportData.cycles"
-      :devices="devices"
-      :operators="operators"
-      :timeCodes="timeCodes"
-      :timeCodeGroups="timeCodeGroups"
-      :allowedTimeCodeIds="allowedTimeCodeIds"
-      :activeEndTime="activeEndTime"
-      :minDatetime="reportData.shift.startTime"
-      :maxDatetime="reportData.shift.endTime"
-      :timezone="timezone"
-      :shiftId="reportData.shift.id"
-      @close="timeAllocationData = null"
-      @update="onUpdate()"
-    />
     <hxCard :title="`${asset.name} |`" :icon="icon" :class="[titleClass, show ? 'open' : 'closed']">
       <div class="title-post" slot="title-post">
         <div class="smu">SMU: {{ formatHours(totalEngineHours) }}</div>
@@ -172,7 +152,6 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 
 import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
-import TimeSpanEditor from '../time_allocation/TimeSpanEditor.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
 
 import { attributeFromList, groupBy } from '../../../code/helpers';
@@ -180,8 +159,10 @@ import { formatDateIn, formatSeconds, divMod } from '../../../code/time';
 import { parseCycle, parseTimeAllocation, parseTimeusage } from '@/store/store';
 import { parseDeviceAssignment } from '@/store/modules/device_store';
 
-import ChevronIcon from '../../icons/ChevronRight.vue';
-import EditIcon from '../../icons/Edit.vue';
+import ChevronIcon from '@/components/icons/ChevronRight.vue';
+import EditIcon from '@/components/icons/Edit.vue';
+
+import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 
 const EVENTS = {
   STATIC: 'Exception at static geofence',
@@ -229,7 +210,6 @@ export default {
     hxCard,
     TableComponent,
     TableColumn,
-    TimeSpanEditor,
   },
   props: {
     asset: { type: Object, default: () => ({}) },
@@ -245,6 +225,8 @@ export default {
     devices: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: () => new Date() },
     fullTimeCodes: { type: Array, default: () => [] },
+    shifts: { type: Array, default: () => [] },
+    shiftTypes: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -256,7 +238,6 @@ export default {
         warn: true,
         issues: true,
       },
-      timeAllocationData: null,
     };
   },
   computed: {
@@ -342,17 +323,6 @@ export default {
         .filter(tc => tc.assetTypeIds.includes(this.asset.typeId))
         .map(tc => tc.id);
     },
-    reportData() {
-      const data = this.timeAllocationData || {};
-      return {
-        show: !!data.shift,
-        shift: data.shift || {},
-        allocations: data.allocations || [],
-        assignments: data.deviceAssignments || [],
-        timeusage: data.timeusage || [],
-        cycles: data.cycles || [],
-      };
-    },
   },
   methods: {
     toggleShow() {
@@ -417,18 +387,41 @@ export default {
           }
 
           const assetId = this.asset.id;
-          this.timeAllocationData = {
-            shift,
-            allocations: parseData(data, 'allocations', assetId, parseTimeAllocation),
-            deviceAssignments: parseData(
-              data,
-              'device_assignments',
-              assetId,
-              parseDeviceAssignment,
-            ),
-            timeusage: parseData(data, 'timeusage', assetId, parseTimeusage),
-            cycles: parseData(data, 'cycles', assetId, parseCycle),
+
+          const allocations = parseData(data, 'allocations', assetId, parseTimeAllocation);
+          const deviceAssignments = parseData(
+            data,
+            'device_assignments',
+            assetId,
+            parseDeviceAssignment,
+          );
+          const timeusage = parseData(data, 'timeusage', assetId, parseTimeusage);
+          const cycles = parseData(data, 'cycles', assetId, parseCycle);
+
+          const opts = {
+            asset: this.asset,
+            allocations,
+            deviceAssignments,
+            timeusage,
+            cycles,
+            devices: this.devices,
+            operators: this.operators,
+            timeCodes: this.timeCodes,
+            timeCodeGroups: this.timeCodeGroups,
+            allowedTimeCodeIds: this.allowedTimeCodeIds,
+            minDatetime: shift.startTime,
+            maxDatetime: shift.endTime,
+            timezone: this.timezone,
+            shiftId: shift.id,
+            shifts: this.shifts,
+            shiftTypes: this.shiftTypes,
           };
+
+          this.$modal.create(TimeSpanEditorModal, opts).onClose(resp => {
+            if (['update', 'lock', 'unlock'].includes(resp)) {
+              this.$emit('update');
+            }
+          });
         })
         .receive('error', resp => {
           loading.close();
@@ -438,9 +431,6 @@ export default {
           loading.close();
           this.$toaster.noComms('Unable to load time allocations');
         });
-    },
-    onUpdate() {
-      this.$emit('update');
     },
   },
 };
