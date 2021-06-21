@@ -54,7 +54,6 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
 
 import RouteV from './vertical/RouteV.vue';
@@ -89,8 +88,6 @@ function groupRoutes(routes, digUnits, locations) {
 export default {
   name: 'AssignedLayout',
   components: {
-    Container,
-    Draggable,
     PerfectScrollbar,
     RouteH,
     RouteV,

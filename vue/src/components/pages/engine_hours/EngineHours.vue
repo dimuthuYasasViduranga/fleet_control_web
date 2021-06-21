@@ -42,8 +42,6 @@ import { copyDate, formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
-import error from 'hx-layout/Error.vue';
-import Icon from 'hx-layout/Icon.vue';
 
 import PlaneEngineIcon from '../../icons/PlaneEngine.vue';
 import { attributeFromList } from '@/code/helpers';
@@ -54,10 +52,8 @@ export default {
   name: 'EngineHours',
   components: {
     hxCard,
-    error,
     TableColumn,
     TableComponent,
-    Icon,
     Loaded,
   },
   data: () => {

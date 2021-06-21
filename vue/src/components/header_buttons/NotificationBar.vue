@@ -78,6 +78,7 @@ export default {
       if (this.state.action) {
         return 'clickable';
       }
+      return '';
     },
   },
   watch: {

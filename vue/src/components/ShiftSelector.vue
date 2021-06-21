@@ -134,6 +134,9 @@ export default {
           this.setShift(shift);
         }
 
+        // this is nasty but it is the easiest way to ensure that the component updates correctly
+        // without looping back on itself
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.shiftDateStr = getShiftDateString(shift);
         return shift;
       },

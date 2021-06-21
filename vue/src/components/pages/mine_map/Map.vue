@@ -146,9 +146,7 @@
 
 <script>
 import { gmapApi } from 'gmap-vue';
-import GmapCluster from 'gmap-vue/dist/components/cluster';
 
-import loading from 'hx-layout/Loading.vue';
 import Icon from 'hx-layout/Icon.vue';
 import HideIcon from '@/components/icons/Hide.vue';
 import ShowIcon from '@/components/icons/Show.vue';
@@ -183,11 +181,8 @@ function fromLatLng(latLng) {
 export default {
   name: 'Map',
   components: {
-    loading,
-    gmapApi,
     Icon,
     GMapDropDown,
-    GmapCluster,
     GMapGeofences,
     GMapTracks,
     AssetInfo,
@@ -269,7 +264,7 @@ export default {
       if (this.selected && this.selected.type === 'asset') {
         return this.selected.data.id;
       }
-      return;
+      return null;
     },
     assetTypeIcons() {
       const icons = this.$store.state.constants.icons || {};

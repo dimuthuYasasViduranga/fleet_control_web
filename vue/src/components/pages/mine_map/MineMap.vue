@@ -18,7 +18,6 @@
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
-import loading from 'hx-layout/Loading.vue';
 
 import PlantIcon from '../../icons/Map.vue';
 import Map from './Map.vue';
@@ -78,7 +77,6 @@ export default {
   name: 'MineMap',
   components: {
     hxCard,
-    loading,
     Map,
   },
   data: () => {

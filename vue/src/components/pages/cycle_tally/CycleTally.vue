@@ -203,10 +203,10 @@ export default {
         .push('haul:delete manual cycle', cycle.id)
         .receive('ok', () => this.onRefresh())
         .receive('error', resp => {
-          row.deleted = prevState;
+          cycle.deleted = prevState;
         })
         .receive('timeout', resp => {
-          row.deleted = prevState;
+          cycle.deleted = prevState;
         });
     },
     fetchCyclesByShift(shift) {

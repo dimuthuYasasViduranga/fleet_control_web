@@ -62,7 +62,7 @@ export default {
     asset: { type: Object, default: () => null },
     maxLength: { type: Number, default: 40 },
     maxAnswerLength: { type: Number, default: 10 },
-    quickMessages: { type: Array, default: [] },
+    quickMessages: { type: Array, default: () => [] },
   },
   data: () => {
     return {

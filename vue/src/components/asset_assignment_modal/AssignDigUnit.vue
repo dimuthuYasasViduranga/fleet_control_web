@@ -2,7 +2,11 @@
   <div class="assign-dig-unit">
     <InfoHeader :asset="asset" :crossScale="crossScale" />
     <Separator />
-    <AssignTimeAllocation :asset="asset" :crossScale="crossScale" />
+    <AssignTimeAllocation
+      v-model="timeCodeId"
+      :assetTypeId="asset.typeId"
+      :crossScale="crossScale"
+    />
     <Separator />
     <table class="activity">
       <tr class="row location">
@@ -98,6 +102,7 @@ export default {
   data: () => {
     return {
       localActivity: {},
+      timeCodeId: null,
       crossIcon: ErrorIcon,
     };
   },
@@ -125,6 +130,7 @@ export default {
       immediate: true,
       handler(asset = {}) {
         this.setLocalActivity(asset);
+        this.timeCodeId = asset.activeTimeCodeId;
       },
     },
   },
@@ -158,7 +164,7 @@ export default {
 
       this.$channel.push('dig:set activity', activity);
 
-      this.$emit('submit');
+      this.$emit('submit', this.timeCodeId);
     },
     onClearLocation() {
       this.localActivity.locationId = null;

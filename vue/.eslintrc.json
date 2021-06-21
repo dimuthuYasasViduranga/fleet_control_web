@@ -17,6 +17,5 @@
     "require": "readonly",
     "process": "readonly",
     "google": "readonly"
-  },
-  "ignorePatterns": ["**/*.d.ts", "src/main.ts"]
+  }
 }

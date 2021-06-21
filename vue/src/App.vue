@@ -4,7 +4,6 @@
       <template slot="header">
         <TimezoneSelector />
         <ChatButton />
-        <!-- <HelpButton /> -->
       </template>
     </Layout>
     <!-- This is persistent and a fixed overlay -->
@@ -25,7 +24,6 @@ import axios from 'axios';
 import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
 import ChatButton from './components/header_buttons/ChatButton.vue';
 import ChatButtonFloating from './components/header_buttons/ChatButtonFloating.vue';
-import HelpButton from './components/header_buttons/HelpButton.vue';
 import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
@@ -42,7 +40,6 @@ export default {
     Layout,
     TimezoneSelector,
     ChatButton,
-    HelpButton,
     ChatOverlay,
     ChatButtonFloating,
     NotificationBar,

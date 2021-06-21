@@ -40,13 +40,12 @@
   </div>
 </template>
 
-<script type="text/javascript">
+<script>
 import { TableComponent, TableColumn } from 'vue-table-component';
 
 import hxCard from 'hx-layout/Card.vue';
 import error from 'hx-layout/Error.vue';
 import Loaded from '../../Loaded.vue';
-import Icon from 'hx-layout/Icon.vue';
 
 import BellIcon from '../../icons/Bell.vue';
 
@@ -73,7 +72,6 @@ export default {
     error,
     TableColumn,
     TableComponent,
-    Icon,
     Loaded,
   },
   data: () => {

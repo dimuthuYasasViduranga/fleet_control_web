@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
 import AddRouteModal from './AddRouteModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
@@ -100,7 +100,6 @@ export default {
   name: 'DndRouteMain',
   components: {
     Container,
-    Draggable,
     UnassignedAssets,
     OtherAssets,
     AssignedLayout,
