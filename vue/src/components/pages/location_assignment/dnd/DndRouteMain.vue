@@ -420,11 +420,6 @@ export default {
       }
     },
     onMoveTrucks({ assetIds, digUnitId, loadId, dumpId }) {
-      if (assetIds.length === 0) {
-        console.error('[Dnd] Cannot move 0 trucks');
-        return;
-      }
-
       const opts = {
         title: 'Move Trucks To',
         submitName: 'Submit',
