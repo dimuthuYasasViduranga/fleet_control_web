@@ -33,6 +33,7 @@
         :dumpLocations="dumpLocations"
         @drag-start="onDragStart"
         @drag-end="onDragEnd()"
+        @set-dig-unit="onSetDigUnit"
         @set-haul-truck="onSetHaulTruck"
         @remove-route="onRemoveRoute"
         @clear-route="onConfirmClearRoute"
@@ -295,6 +296,35 @@ export default {
         this.pendingUpdate = false;
         this.updateLocalHaulTrucks(this.fullAssets);
       }
+    },
+    onSetDigUnit({ digUnitId, loadId, dumpIds }) {
+      this.setDigUnitLocation(digUnitId, loadId);
+
+      const affectedRoutes = this.structure.routes.filter(r => {
+        return !r.digUnitId && r.loadId === loadId;
+      });
+
+      const affectedHaulTrucks = this.localHaulTrucks.filter(h => {
+        const d = h.dispatch;
+        return !d.digUnitId && d.loadId === loadId;
+      });
+
+      if (affectedHaulTrucks.length === 0) {
+        return;
+      }
+
+      this.pendingUpdate = true;
+
+      affectedRoutes.forEach(r => {
+        const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
+        if (movedAssets.length) {
+          this.massSetHaulTrucks(movedAssets, digUnitId, null, r.dumpId);
+          this.structure.add(digUnitId, null, r.dumpId);
+        }
+        this.structure.remove(null, loadId, r.dumpId);
+      });
+
+      setTimeout(() => this.onDragEnd(), 200);
     },
     onSetHaulTruck({ asset, digUnitId, loadId, dumpId }) {
       this.setHaulTruck(asset, digUnitId, loadId, dumpId);

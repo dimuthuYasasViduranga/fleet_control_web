@@ -12,7 +12,17 @@
     >
       <div class="dig-unit-tile-wrapper">
         <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
-        <div v-else class="no-dig-unit"></div>
+        <div v-else style="margin: auto">
+          <Container
+            class="dig-unit-container"
+            orientation="horizontal"
+            group-name="draggable"
+            :should-accept-drop="(_src, asset) => shouldAcceptIntoDigUnit(asset)"
+            :drop-placeholder="dropPlaceholderOptions"
+            @drop="onDropIntoDigUnit"
+            @drag-end="onDragEnd"
+          />
+        </div>
       </div>
       <div class="actions">
         <template v-if="hovering">
@@ -57,6 +67,8 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
+import { Container } from 'vue-smooth-dnd';
+
 import AssetTile from '../../asset_tile/AssetTile.vue';
 import DumpV from './DumpV.vue';
 
@@ -74,6 +86,7 @@ export default {
     Icon,
     AssetTile,
     DumpV,
+    Container,
   },
   props: {
     digUnitId: { type: [Number, String] },
@@ -91,6 +104,11 @@ export default {
       trashIcon: TrashIcon,
       crossIcon: CrossIcon,
       hovering: false,
+      dropPlaceholderOptions: {
+        className: 'tile-drop-preview',
+        animationDuration: '150',
+        showOnTop: true,
+      },
     };
   },
   computed: {
@@ -141,6 +159,20 @@ export default {
     },
   },
   methods: {
+    shouldAcceptIntoDigUnit(asset) {
+      return asset && asset.secondaryType === 'Dig Unit';
+    },
+    onDropIntoDigUnit({ addedIndex, removedIndex, payload }) {
+      // is added
+      if (addedIndex !== null && removedIndex === null) {
+        const change = {
+          digUnitId: payload.id,
+          loadId: this.loadId,
+          dumpIds: this.dumpIds,
+        };
+        this.$emit('set-dig-unit', change);
+      }
+    },
     onDragStart(asset) {
       this.$emit('drag-start', asset);
     },
@@ -182,6 +214,15 @@ export default {
 };
 </script>
 
+<style>
+.route-v .dig-unit-tile-wrapper .smooth-dnd-container .tile-drop-preview {
+  border: 1px dashed grey;
+  height: 7rem;
+  width: 7rem;
+  background-color: rgba(150, 150, 200, 0.1);
+}
+</style>
+
 <style scoped>
 .heading {
   cursor: pointer;
@@ -207,9 +248,9 @@ export default {
   height: 8rem;
 }
 
-.target-load .dig-unit-tile-wrapper .no-dig-unit {
-  width: 6rem;
-  height: 6rem;
+.target-load .dig-unit-tile-wrapper .dig-unit-container {
+  width: 7rem;
+  height: 7rem;
   margin: auto;
   border: 1px dashed rgb(66, 66, 66);
 }
