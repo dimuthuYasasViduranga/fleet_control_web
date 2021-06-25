@@ -61,7 +61,7 @@ export function toFullAsset(
   const deviceAssignment = currentDeviceAssignments.find(da => da.assetId === assetId) || {};
   const operator = operators.find(o => o.id === deviceAssignment.operatorId) || {};
   const device = devices.find(d => d.id === deviceAssignment.deviceId) || {};
-  const activeTimeAllocation = activeTimeAllocations.find(a => a.assetId == assetId) || {};
+  const activeTimeAllocation = activeTimeAllocations.find(a => a.assetId === assetId) || {};
   const activeTimeAllocationTC =
     fullTimeCodes.find(tc => tc.id === activeTimeAllocation.timeCodeId) || {};
 
