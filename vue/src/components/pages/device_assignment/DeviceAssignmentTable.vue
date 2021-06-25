@@ -71,7 +71,11 @@
               <lockable-button @click="onForceLogout(row)" :lock="!row.operatorId">
                 Logout
               </lockable-button>
-              <lockable-button @click="onOpenRevokeConfirm(row)" :lock="!!row.assetId">
+              <lockable-button
+                v-tooltip="!row.assetId ? '' : 'Still Assigned to Asset'"
+                @click="onOpenRevokeConfirm(row)"
+                :lock="!!row.assetId"
+              >
                 Revoke
               </lockable-button>
             </div>
