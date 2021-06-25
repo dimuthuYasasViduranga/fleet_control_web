@@ -263,7 +263,7 @@ export default {
       }
 
       if (asset.secondaryType === 'Dig Unit') {
-        console.error('[Dnd] Set unassigned for dig unit is not implemented');
+        this.removeDigUnitFromSource(asset);
       }
     },
     onAddRoute(initials = {}) {
@@ -325,6 +325,15 @@ export default {
       });
 
       setTimeout(() => this.onDragEnd(), 200);
+    },
+    removeDigUnitFromSource(digUnit) {
+      if (!digUnit) {
+        return;
+      }
+
+      // remove dig unit from dumps, keep current location
+      const digUnitLocation = (digUnit.activity || {}).locationId;
+      this.moveDumps({ digUnitId: digUnit.id }, { loadId: digUnitLocation });
     },
     onSetHaulTruck({ asset, digUnitId, loadId, dumpId }) {
       this.setHaulTruck(asset, digUnitId, loadId, dumpId);
@@ -472,63 +481,60 @@ export default {
       };
 
       this.$modal.create(AddRouteModal, opts).onClose(resp => {
-        if (!resp) {
-          return;
+        if (resp) {
+          this.moveDumps({ digUnitId, loadId }, resp);
         }
-
-        if (resp.digUnitId) {
-          this.setDigUnitLocation(resp.digUnitId, resp.digUnitLocationId);
-        }
-
-        // if there is a change
-        if (resp.digUnitId === digUnitId && resp.loadId === loadId) {
-          console.info('[Dnd] No change in route, no dumps moved');
-          return;
-        }
-
-        const affectedRoutes = this.structure.routes.filter(r => {
-          return r.digUnitId === digUnitId && r.loadId === loadId;
-        });
-
-        const affectedHaulTrucks = this.localHaulTrucks.filter(h => {
-          const d = h.dispatch;
-          return d.digUnitId === digUnitId && d.loadId === loadId;
-        });
-
-        if (affectedHaulTrucks.length === 0) {
-          return;
-        }
-
-        this.pendingUpdate = true;
-
-        affectedRoutes.forEach(r => {
-          const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
-          if (movedAssets.length) {
-            this.massSetHaulTrucks(movedAssets, resp.digUnitId, resp.loadId, r.dumpId);
-            this.structure.add(resp.digUnitId, resp.loadId, r.dumpId);
-          }
-          this.structure.remove(digUnitId, loadId, r.dumpId);
-        });
-
-        setTimeout(() => this.onDragEnd(), 200);
       });
     },
-    setDigUnitLocation(digUnitId, locationId) {
-      const activity = attributeFromList(this.digUnitActivities, 'assetId', digUnitId) || {};
+    moveDumps(from, to) {
+      if (to.digUnitId && to.digUnitLocationId !== undefined) {
+        this.setDigUnitLocation(to.digUnitId, to.digUnitLocationId);
+      }
 
-      if (activity.locationId === locationId) {
+      // if there is a change
+      /* eslint-disable-next-line eqeqeq */
+      if (to.digUnitId == from.digUnitId && to.loadId == from.loadId) {
+        console.info('[Dnd] No change in route, no dumps moved');
         return;
       }
 
-      const payload = {
-        asset_id: digUnitId,
-        location_id: locationId,
-        material_type_id: activity.materialTypeId,
-        load_style_id: activity.loadStyleId,
-        timestamp: Date.now(),
-      };
+      const affectedRoutes = this.structure.routes.filter(r => {
+        /* eslint-disable-next-line eqeqeq */
+        return r.digUnitId == from.digUnitId && r.loadId == from.loadId;
+      });
 
-      this.$channel.push('dig:set activity', payload);
+      const affectedHaulTrucks = this.localHaulTrucks.filter(h => {
+        const d = h.dispatch;
+        /* eslint-disable-next-line eqeqeq */
+        return d.digUnitId == from.digUnitId && d.loadId == from.loadId;
+      });
+
+      this.pendingUpdate = true;
+
+      affectedRoutes.forEach(r => {
+        const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
+        if (movedAssets.length) {
+          this.massSetHaulTrucks(movedAssets, to.digUnitId, to.loadId, r.dumpId);
+          this.structure.add(to.digUnitId, to.loadId, r.dumpId);
+        }
+        this.structure.remove(from.digUnitId, from.loadId, r.dumpId);
+      });
+
+      setTimeout(() => this.onDragEnd(), 200);
+    },
+    setDigUnitLocation(digUnitId, locationId = null) {
+      const digUnit = attributeFromList(this.localDigUnits, 'id', digUnitId);
+      const activity = attributeFromList(this.digUnitActivities, 'assetId', digUnitId) || {};
+
+      if (!digUnit || activity.locationId === locationId) {
+        return;
+      }
+
+      digUnit.activity.locationId = locationId;
+      digUnit.synced = false;
+
+      this.localDigUnits = this.localDigUnits.slice();
+      this.$emit('set-dig-unit', { assetId: digUnitId, activity: digUnit.activity });
     },
     onDropNewDigUnit({ addedIndex, removedIndex, payload }) {
       // is added

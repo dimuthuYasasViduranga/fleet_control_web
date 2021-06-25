@@ -26,17 +26,27 @@
           </template>
         </div>
         <div class="dig-unit-tile-wrapper">
-          <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
-          <div v-else style="margin: auto">
-            <Container
-              class="dig-unit-container"
-              orientation="horizontal"
-              group-name="draggable"
-              :should-accept-drop="(_src, asset) => shouldAcceptIntoDigUnit(asset)"
-              :drop-placeholder="dropPlaceholderOptions"
-              @drop="onDropIntoDigUnit"
-              @drag-end="onDragEnd"
-            />
+          <div style="margin: auto">
+            <div class="container-wrapper" :class="{ empty: !this.digUnit || draggingDigUnit }">
+              <Container
+                class="dig-unit-container"
+                orientation="vertical"
+                group-name="draggable"
+                :should-accept-drop="(_src, asset) => shouldAcceptIntoDigUnit(asset)"
+                :drop-placeholder="dropPlaceholderOptions"
+                :get-child-payload="index => getChildPayload(index)"
+                @drop="onDropIntoDigUnit"
+                @drag-end="onDragEnd()"
+              >
+                <Draggable>
+                  <AssetTile
+                    v-if="digUnit && !draggingDigUnit"
+                    class="dig-unit-tile"
+                    :asset="digUnit"
+                  />
+                </Draggable>
+              </Container>
+            </div>
           </div>
         </div>
       </div>
@@ -50,7 +60,7 @@
         :dumpName="dump.name"
         :haulTrucks="assignedHaulTrucks"
         @drag-start="onDragStart"
-        @drag-end="onDragEnd"
+        @drag-end="onDragEnd()"
         @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dump.id, $event)"
         @remove-dump="onRemoveDump(dump.id)"
         @clear-dump="onClearDump(dump.id)"
@@ -62,7 +72,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import { Container } from 'vue-smooth-dnd';
+import { Container, Draggable } from 'vue-smooth-dnd';
 
 import AssetTile from '../../asset_tile/AssetTile.vue';
 import DumpH from './DumpH.vue';
@@ -82,6 +92,7 @@ export default {
     AssetTile,
     DumpH,
     Container,
+    Draggable,
   },
   data: () => {
     return {
@@ -95,6 +106,7 @@ export default {
         animationDuration: '150',
         showOnTop: true,
       },
+      draggingDigUnit: false,
     };
   },
   props: {
@@ -146,8 +158,13 @@ export default {
     },
   },
   methods: {
+    getChildPayload() {
+      this.draggingDigUnit = true;
+      this.$emit('drag-start', this.digUnit);
+      return this.digUnit;
+    },
     shouldAcceptIntoDigUnit(asset) {
-      return asset && asset.secondaryType === 'Dig Unit';
+      return !this.digUnitId && asset && asset.secondaryType === 'Dig Unit';
     },
     onDropIntoDigUnit({ addedIndex, removedIndex, payload }) {
       // is added
@@ -164,6 +181,7 @@ export default {
       this.$emit('drag-start', asset);
     },
     onDragEnd() {
+      this.draggingDigUnit = false;
       this.$emit('drag-end');
     },
     onSetHaulTruck(digUnitId, loadId, dumpId, asset) {
@@ -254,7 +272,14 @@ export default {
   width: 7rem;
   height: 7rem;
   margin: auto;
+}
+
+.dig-unit-region .dig-unit-tile-wrapper .empty .dig-unit-container {
   border: 1px dashed rgb(66, 66, 66);
+}
+
+.dig-unit-region .dig-unit-tile-wrapper .dig-unit-container .asset-tile {
+  cursor: move;
 }
 
 /* actions */
