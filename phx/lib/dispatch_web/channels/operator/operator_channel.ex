@@ -76,8 +76,8 @@ defmodule DispatchWeb.OperatorChannel do
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
 
-    # update device version (if available)
-    update_device_client_version(device_id, params["details"]["client_version"])
+    # update device information (if available)
+    update_device_info(device_id, params["details"])
 
     state =
       case get_connect_type(params) do
@@ -481,21 +481,44 @@ defmodule DispatchWeb.OperatorChannel do
     end
   end
 
-  defp update_device_client_version(_, nil), do: nil
+  defp update_device_info(_, nil), do: nil
 
-  defp update_device_client_version(device_id, version) do
-    with device = %{} <- DeviceAgent.get(%{id: device_id}),
-         true <- device.details["client_version"] != version do
-      client_updated_at = Helper.to_unix(NaiveDateTime.utc_now())
-      new_details = %{"client_version" => version, "client_updated_at" => client_updated_at}
+  defp update_device_info(device_id, params) do
+    case DeviceAgent.get(%{id: device_id}) do
+      %{} = device ->
+        actions = [
+          %{
+            cmp: "client_version",
+            add: %{
+              "client_version" => params["client_version"],
+              "client_updated_at" => NaiveDateTime.utc_now()
+            }
+          },
+          %{
+            cmp: "serial_number",
+            add: %{"serial_number" => params["serial_number"]}
+          }
+        ]
 
-      updated_details = Map.merge(device.details, new_details)
+        old_details = device.details
 
-      DeviceAgent.update_details(device_id, updated_details)
+        new_details =
+          actions
+          |> Enum.reject(fn action ->
+            value = params[action.cmp]
+            is_nil(value) || value == "" || value == old_details[action.cmp]
+          end)
+          |> Enum.reduce(old_details, &Map.merge(&2, &1.add))
 
-      Broadcast.send_devices_to_dispatcher()
-    else
-      _ -> nil
+        if new_details != old_details do
+          device_name = "#{device.id}[#{device.uuid}]"
+          Logger.info("[Details Updated] device: #{device_name}")
+          DeviceAgent.update_details(device_id, new_details)
+          Broadcast.send_devices_to_dispatcher()
+        end
+
+      nil ->
+        nil
     end
   end
 end
