@@ -298,6 +298,9 @@ export default {
       }
     },
     onSetDigUnit({ digUnitId, loadId, dumpIds }) {
+      // ensure that if moving between sources, do not bring other assets hts with them
+      this.removeDigUnitFromSource(attributeFromList(this.localDigUnits, 'id', digUnitId));
+
       this.setDigUnitLocation(digUnitId, loadId);
 
       const affectedRoutes = this.structure.routes.filter(r => {
