@@ -8,6 +8,7 @@
         :asset="report.asset"
         :submissions="report.submissions"
         :icons="icons"
+        :shift="shift"
         @refresh="$emit('refresh', $event)"
       />
     </div>
@@ -26,6 +27,7 @@ export default {
     submissions: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
+    shift: { type: Object },
   },
   computed: {
     reports() {

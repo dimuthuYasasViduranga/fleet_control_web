@@ -26,6 +26,7 @@
         :submissions="localSubmissions"
         :assets="assets"
         :icons="icons"
+        :shift="shift"
         @refresh="onRefresh()"
       />
       <PreStartFailures

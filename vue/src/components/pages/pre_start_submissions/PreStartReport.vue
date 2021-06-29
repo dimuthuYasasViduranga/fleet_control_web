@@ -45,7 +45,8 @@
         class="hx-btn"
         v-for="(item, index) in submissionItems"
         :key="index"
-        :class="item.class"
+        :class="item.classes"
+        v-tooltip="!item.inShift ? 'From another shift' : ''"
         @click="onOpenViewer(item.submission)"
       >
         <div style="display: inline-flex">
@@ -94,6 +95,17 @@ function getItemClass(responses, closedStatusTypeId) {
   return 'open';
 }
 
+function isInShift(submission, shift) {
+  if (!shift) {
+    return true;
+  }
+
+  const shiftStart = shift.startTime.getTime();
+  const shiftEnd = shift.endTime.getTime();
+  const timestamp = submission.timestamp.getTime();
+  return timestamp > shiftStart && timestamp < shiftEnd;
+}
+
 export default {
   name: 'PreStartReport',
   components: {
@@ -104,6 +116,7 @@ export default {
     asset: { type: Object, required: true },
     submissions: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
+    shift: { type: Object, default: null },
   },
   data: () => {
     return {
@@ -139,11 +152,20 @@ export default {
       return subs.map(s => {
         const itemClass = getItemClass(s.responses, this.closedTicketStatusId);
         const hasComments = !!s.comment || (itemClass === 'pass' && this.responsesHaveComments(s));
+        const inShift = isInShift(s, this.shift);
+
+        const classes = [itemClass];
+
+        if (!inShift) {
+          classes.push('out-of-shift');
+        }
+
         return {
-          class: itemClass,
+          classes,
           label: this.formatTime(s.timestamp, 'HH:mm'),
           fullLabel: this.formatTime(s.timestamp, '(MMM dd) HH:mm'),
           hasComments,
+          inShift,
           submission: s,
         };
       });
@@ -165,7 +187,9 @@ export default {
 
       return otherSubmissions.some(sub => {
         const ticketIds = sub.submission.responses.map(r => r.ticketId).filter(id => id);
-        return sub.class !== 'closed' && ticketIds.some(id => !latestTicketIds.includes(id));
+        return (
+          !sub.classes.includes('closed') && ticketIds.some(id => !latestTicketIds.includes(id))
+        );
       });
     },
     showFullDate() {
@@ -304,6 +328,10 @@ export default {
 
 .pre-start-report .all-submissions .hx-btn {
   margin: 0.1rem;
+}
+
+.pre-start-report .all-submissions .out-of-shift {
+  opacity: 0.75;
 }
 
 .pre-start-report .all-submissions .failure {
