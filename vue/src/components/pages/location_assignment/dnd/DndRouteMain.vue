@@ -122,6 +122,7 @@ export default {
       localHaulTrucks: [],
       localDigUnits: [],
       pendingUpdate: false,
+      attemptedWhilePendingUpdate: false,
     };
   },
   computed: {
@@ -191,10 +192,12 @@ export default {
       // if dragging, all updates are suspended to prevent freezing issues
       if (this.draggedAsset || this.pendingUpdate) {
         this.pendingUpdate = true;
+        this.attemptedWhilePendingUpdate = true;
         return;
       }
 
       this.pendingUpdate = false;
+      this.attemptedWhilePendingUpdate = false;
       const currentlyHasAssets = this.localHaulTrucks.length !== 0;
       const newHTs = fullAssets
         .filter(a => a.type === 'Haul Truck' && a.hasDevice)
@@ -242,17 +245,14 @@ export default {
     massSetHaulTrucks(assets, digUnitId = null, loadId = null, dumpId = null) {
       assets.forEach(asset => {
         if (asset && asset.type === 'Haul Truck') {
-          asset.dispatch = {
-            digUnitId,
-            loadId,
-            dumpId,
-          };
+          asset.dispatch.digUnitId = digUnitId;
+          asset.dispatch.loadId = loadId;
+          asset.dispatch.dumpId = dumpId;
 
           asset.synced = false;
         }
       });
 
-      this.localHaulTrucks = this.localHaulTrucks.slice();
       const assetIds = assets.map(a => a.id);
       this.$emit('mass-set-haul-trucks', { assetIds, digUnitId, loadId, dumpId });
     },
@@ -516,14 +516,21 @@ export default {
 
       affectedRoutes.forEach(r => {
         const movedAssets = affectedHaulTrucks.filter(a => a.dispatch.dumpId === r.dumpId);
+
         if (movedAssets.length) {
           this.massSetHaulTrucks(movedAssets, to.digUnitId, to.loadId, r.dumpId);
           this.structure.add(to.digUnitId, to.loadId, r.dumpId);
         }
-        this.structure.remove(from.digUnitId, from.loadId, r.dumpId);
+
+        this.structure.remove(r.digUnitId, r.loadId, r.dumpId);
       });
 
-      setTimeout(() => this.onDragEnd(), 200);
+      setTimeout(() => {
+        this.pendingUpdate = false;
+        if (this.attemptedWhilePendingUpdate) {
+          this.updateLocalHaulTrucks(this.fullAssets);
+        }
+      }, 500);
     },
     setDigUnitLocation(digUnitId, locationId = null) {
       const digUnit = attributeFromList(this.localDigUnits, 'id', digUnitId);
