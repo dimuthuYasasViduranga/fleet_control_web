@@ -70,6 +70,7 @@ import AlertIcon from '@/components/icons/Alert.vue';
 import TabletIcon from '@/components/icons/Tablet.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import NoWifiIcon from '@/components/icons/NoWifi.vue';
+
 import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 const FLASH_DURATION = 10;
@@ -121,16 +122,16 @@ export default {
       const asset = this.asset;
       const activeAllocGroup = asset.activeTimeAllocation.groupName;
 
+      if (!this.hasDevice) {
+        return TabletIcon;
+      }
+
       if (asset.operator.id && !asset.present) {
         return NoWifiIcon;
       }
 
       if (activeAllocGroup === 'Down') {
         return CrossIcon;
-      }
-
-      if (!this.hasDevice) {
-        return TabletIcon;
       }
 
       if (this.showAlert) {

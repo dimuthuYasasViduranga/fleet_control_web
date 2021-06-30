@@ -18,30 +18,6 @@
   stroke: grey;
 }
 
-.exception-icon .hx-icon {
-  stroke: orange;
-}
-
-.process-icon .hx-icon {
-  stroke: orange;
-}
-
-.standby-icon .hx-icon {
-  stroke: white;
-}
-
-.down-icon .hx-icon {
-  stroke: grey;
-}
-
-.offline-icon .hx-icon {
-  stroke: cadetblue;
-}
-
-.ok-icon .hx-icon {
-  stroke: green;
-}
-
 /* asset colors */
 .asset-icon.ready .primary-icon svg,
 .asset-icon.ready > svg {
