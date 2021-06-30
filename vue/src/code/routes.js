@@ -50,35 +50,8 @@ const ASSET_TRUCK_VIEW_BOX = [0, 4, 34, 26];
 
 Vue.use(VueRouter);
 
-interface Route {
-  name: string;
-  path: string;
-  component: object;
-  icon: object;
-}
-
-interface RouteWithIconProps {
-  name: string;
-  path: string;
-  component: object;
-  icon: object;
-  iconProps: object;
-}
-
-interface Redirect {
-  path: string;
-  redirect: string;
-}
-
-interface Gap {
-  path: string;
-  gap: true;
-}
-
-type Routes = Array<Route | RouteWithIconProps | Redirect | Gap>;
-
-export default function setupRouter(whitelist: object[]): [Routes, VueRouter] {
-  let routes: Routes = [
+export default function setupRouter(whitelist) {
+  let routes = [
     {
       name: 'Asset Assignment',
       path: '/asset_assignment',

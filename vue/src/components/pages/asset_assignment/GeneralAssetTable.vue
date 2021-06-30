@@ -23,15 +23,13 @@
 
       <table-column label cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span v-tooltip="{ content: presenceTooltip(row) }">
-            <div :class="presenceIconColor(row)">
-              <NIcon
-                class="asset-icon"
-                :icon="getIcon(row)"
-                :secondaryIcon="getSecondaryIcon(row)"
-              />
-            </div>
-          </span>
+          <NIcon
+            v-tooltip="{ content: presenceTooltip(row) }"
+            class="asset-icon"
+            :class="row.status"
+            :icon="getIcon(row)"
+            :secondaryIcon="getSecondaryIcon(row)"
+          />
         </template>
       </table-column>
 
@@ -59,6 +57,8 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 
 import EditIcon from '@/components/icons/Edit.vue';
 import TabletIcon from '@/components/icons/Tablet.vue';
+import CrossIcon from 'hx-layout/icons/Error.vue';
+import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 const TAKEN_TYPES = ['Haul Truck', 'Excavator', 'Loader'];
 
@@ -96,6 +96,7 @@ export default {
             operator: asset.operator.fullname || '',
             activeTimeAllocation: asset.activeTimeAllocation || {},
             present: asset.present,
+            status: asset.status,
             hasDevice: asset.hasDevice,
           };
         });
@@ -108,8 +109,22 @@ export default {
     getIcon(row) {
       return this.icons[row.assetType] || this.icons.Unknown;
     },
-    getSecondaryIcon(row) {
-      return row.hasDevice ? undefined : TabletIcon;
+    getSecondaryIcon(asset) {
+      const activeAllocGroup = asset.activeTimeAllocation.groupName;
+
+      if (!asset.hasDevice) {
+        return TabletIcon;
+      }
+
+      if (asset.operator.id && !asset.present) {
+        return NoWifiIcon;
+      }
+
+      if (activeAllocGroup === 'Down') {
+        return CrossIcon;
+      }
+
+      return null;
     },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
@@ -128,15 +143,6 @@ export default {
         return 'Active';
       }
       return 'Not Connected';
-    },
-    presenceIconColor(row) {
-      if (row.activeTimeAllocation.id && !row.activeTimeAllocation.isReady) {
-        return ['exception-icon'];
-      }
-      if (row.present === true) {
-        return ['ok-icon'];
-      }
-      return ['offline-icon'];
     },
     setTimeAllocation(row, timeCodeId) {
       const payload = {
@@ -184,8 +190,25 @@ export default {
   width: 2.5rem;
 }
 
-.general-asset-table .asset-icon .secondary-icon {
+/* asset secondary colors */
+.general-asset-table .asset-icon .secondary-icon #alert_icon {
+  stroke-width: 1.5;
+  stroke: orange;
+}
+
+.general-asset-table .asset-icon .secondary-icon #tablet_icon {
+  stroke-width: 0.5;
   stroke: orange;
   stroke-dasharray: 1;
+}
+
+.general-asset-table .asset-icon .secondary-icon #error_icon {
+  stroke-width: 1.5;
+  stroke: red;
+}
+
+.general-asset-table .asset-icon .secondary-icon #no_wifi_icon {
+  stroke-width: 4;
+  stroke: orange;
 }
 </style>

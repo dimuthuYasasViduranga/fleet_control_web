@@ -71,7 +71,11 @@
               <lockable-button @click="onForceLogout(row)" :lock="!row.operatorId">
                 Logout
               </lockable-button>
-              <lockable-button @click="onOpenRevokeConfirm(row)" :lock="!!row.assetId">
+              <lockable-button
+                v-tooltip="!row.assetId ? '' : 'Still Assigned to Asset'"
+                @click="onOpenRevokeConfirm(row)"
+                :lock="!!row.assetId"
+              >
                 Revoke
               </lockable-button>
             </div>
@@ -96,7 +100,7 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 import DeviceInfoModal from './DeviceInfoModal.vue';
-import DeviceLogoutModal from './DeviceLogoutModal.vue';
+import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 import LockableButton from '../../LockableButton.vue';
 import DropDown from '../../dropdown/DropDown.vue';

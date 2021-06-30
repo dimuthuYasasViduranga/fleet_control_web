@@ -1,6 +1,25 @@
 <template>
   <div class="dnd-settings-modal">
-    <div class="orientation">
+    <div class="heading">Asset Ordering</div>
+    <div class="radio">
+      <button
+        class="hx-btn"
+        :class="{ highlight: localSettings.assetOrdering === 'normal' }"
+        @click="setAssetOrdering('normal')"
+      >
+        Alphabetically
+      </button>
+      <button
+        class="hx-btn"
+        :class="{ highlight: localSettings.assetOrdering === 'status' }"
+        @click="setAssetOrdering('status')"
+      >
+        Status
+      </button>
+    </div>
+    <div class="separator"></div>
+    <div class="heading">Route Settings</div>
+    <div class="radio">
       <button
         class="hx-btn"
         :class="{ highlight: localSettings.orientation === 'horizontal' }"
@@ -51,7 +70,9 @@
         </td>
       </tr>
     </table>
-    <button class="hx-btn close" @click="onSubmit()">Close</button>
+    <div class="separator"></div>
+
+    <button class="hx-btn close" @click="onSubmit()">Apply</button>
   </div>
 </template>
 
@@ -73,6 +94,7 @@ export default {
   data: () => {
     return {
       localSettings: {
+        assetOrdering: 'normal',
         vertical: {},
         horizontal: {},
       },
@@ -91,6 +113,9 @@ export default {
     },
     setOrientation(mode) {
       this.localSettings.orientation = mode;
+    },
+    setAssetOrdering(mode) {
+      this.localSettings.assetOrdering = mode;
     },
     onSubmit() {
       const settings = JSON.parse(JSON.stringify(this.localSettings));
@@ -122,18 +147,30 @@ export default {
   width: 32rem;
 }
 
-/* orientation selection */
-.dnd-settings-modal-wrapper .orientation {
+.dnd-settings-modal-wrapper .separator {
+  height: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #677e8c;
+}
+
+.dnd-settings-modal-wrapper .heading {
+  font-size: 1.5rem;
+  text-align: center;
+  line-height: 3rem;
+}
+
+/* radio button selection */
+.dnd-settings-modal-wrapper .radio {
   display: flex;
   width: 100%;
 }
 
-.dnd-settings-modal-wrapper .orientation .hx-btn {
+.dnd-settings-modal-wrapper .radio .hx-btn {
   width: 100%;
   border: 1px solid grey;
 }
 
-.dnd-settings-modal-wrapper .orientation .hx-btn.highlight {
+.dnd-settings-modal-wrapper .radio .hx-btn.highlight {
   border-color: white;
 }
 
@@ -154,7 +191,6 @@ export default {
 }
 
 .dnd-settings-modal-wrapper .close {
-  margin-top: 2rem;
   width: 100%;
 }
 </style>

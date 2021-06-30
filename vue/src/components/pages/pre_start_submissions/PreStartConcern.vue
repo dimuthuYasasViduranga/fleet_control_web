@@ -1,5 +1,5 @@
 <template>
-  <hxCard class="pre-start-failure" :icon="icon">
+  <hxCard class="pre-start-concern" :icon="icon">
     <div class="title-post" slot="title-post">
       <div class="heading">{{ assetName }} ({{ breakdown }})</div>
       <Icon
@@ -26,26 +26,23 @@
           />
         </div>
 
+        <div v-if="submission.comments" class="overall-comments">
+          {{ submission.comments }}
+        </div>
+
         <div
           class="control"
           v-for="(control, cIndex) in submission.controls"
           :key="cIndex"
-          :class="{
-            closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
-            open: control.ticketId && control.ticket.activeStatus.statusTypeId !== closedStatusId,
-          }"
+          :class="control.status"
         >
           <div class="outline">
             <div class="label">{{ control.label }}</div>
             <div class="answer">
-              <div v-if="!control.ticketId" class="fail-answer">
-                <span class="red-text">Fail</span>
-              </div>
-              <div v-else class="ticket-status">
-                <div class="status">
-                  {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
-                </div>
-              </div>
+              <div v-if="control.status === 'pass'" class="pass-answer">Pass</div>
+              <div v-else-if="control.status === 'na'" class="na-answer">N/A</div>
+              <div v-else-if="control.status === 'fail'" class="fail-answer">Fail</div>
+              <div v-else class="ticket-status" :class="control.status">{{ control.status }}</div>
             </div>
           </div>
           <div v-if="control.comment" class="comment">• {{ control.comment }}</div>
@@ -74,24 +71,21 @@ function statusChanged(a, b) {
 }
 
 function breakdownText(counts) {
-  const text = [];
-  if (counts.failuresWithoutTickets) {
-    text.push(`Failures: ${counts.failuresWithoutTickets}`);
-  }
+  const order = ['pass', 'na', 'fail', 'closed', 'pending-verification', 'planned', 'raised'];
 
-  if (counts.closed) {
-    text.push(`Closed: ${counts.closed}`);
-  }
+  return order
+    .reduce((acc, key) => {
+      if (counts[key]) {
+        acc.push(`${key}: ${counts[key]}`);
+      }
 
-  if (counts.open) {
-    text.push(`Open: ${counts.open}`);
-  }
-
-  return text.join(' | ');
+      return acc;
+    }, [])
+    .join(' | ');
 }
 
 export default {
-  name: 'PreStartFailure',
+  name: 'PreStartConcern',
   components: {
     hxCard,
     Icon,
@@ -111,22 +105,13 @@ export default {
   computed: {
     breakdown() {
       const counts = this.submissions
-        .map(s => s.submission.responseCounts)
-        .reduce(
-          (acc, responseCount = {}) => {
-            Object.entries(responseCount).forEach(([key, count]) => (acc[key] += count));
-            return acc;
-          },
-          { closed: 0, failures: 0, failuresWithoutTickets: 0, open: 0 },
-        );
-
+        .map(s => s.controls)
+        .flat()
+        .reduce((acc, c) => {
+          acc[c.status] = (acc[c.status] || 0) + 1;
+          return acc;
+        }, {});
       return breakdownText(counts);
-    },
-    ticketStatusTypes() {
-      return this.$store.state.constants.preStartTicketStatusTypes;
-    },
-    closedStatusId() {
-      return attributeFromList(this.ticketStatusTypes, 'name', 'closed', 'id');
     },
   },
   methods: {
@@ -144,32 +129,29 @@ export default {
         }
       });
     },
-    getTicketStatus(statusId) {
-      return attributeFromList(this.ticketStatusTypes, 'id', statusId, 'name');
-    },
   },
 };
 </script>
 
 <style>
 /* hxCard styling */
-.pre-start-failure.hxCardIcon {
+.pre-start-concern.hxCardIcon {
   height: 2.5rem;
 }
 
-.pre-start-failure.hxCard {
+.pre-start-concern.hxCard {
   border-left: 2px solid transparent;
 }
 
-.pre-start-failure .hxCardIcon {
+.pre-start-concern .hxCardIcon {
   height: 2.5rem;
 }
 
-.pre-start-failure .hxCardHeaderWrapper {
+.pre-start-concern .hxCardHeaderWrapper {
   font-size: 1.5rem;
 }
 
-.pre-start-failure .title-post {
+.pre-start-concern .title-post {
   text-transform: capitalize;
   display: flex;
   margin-left: 1rem;
@@ -177,7 +159,7 @@ export default {
   line-height: 2rem;
 }
 
-.pre-start-failure .title-post .chevron-icon {
+.pre-start-concern .title-post .chevron-icon {
   margin-left: 1rem;
   margin-top: 0.25rem;
   height: 1.5rem;
@@ -187,11 +169,11 @@ export default {
 }
 
 /* submissions */
-.pre-start-failure .submission {
+.pre-start-concern .submission {
   margin-bottom: 0.75rem;
 }
 
-.pre-start-failure .submission .identifier {
+.pre-start-concern .submission .identifier {
   display: flex;
   justify-content: space-around;
   padding: 0.25rem;
@@ -200,45 +182,71 @@ export default {
   color: #c4d1da;
 }
 
-.pre-start-failure .submission .identifier .info-icon {
+.pre-start-concern .submission .identifier .info-icon {
   height: 1.25rem;
   cursor: pointer;
 }
 
-.pre-start-failure .submission .identifier .info-icon:hover {
+.pre-start-concern .submission .identifier .info-icon:hover {
   opacity: 0.5;
 }
 
+.pre-start-concern .submission .overall-comments {
+  border-top: 1px solid #364c59;
+  background-color: #344652;
+  line-height: 1.5rem;
+  padding-left: 2rem;
+}
+
 /* controls */
-.pre-start-failure .submission .control {
+.pre-start-concern .submission .control {
   padding-left: 0.5rem;
-  background-color: rgba(139, 0, 0, 0.281);
   min-height: 2.5rem;
   line-height: 2.5rem;
   border-bottom: 1px solid #677e8c;
+  background-color: #16232b;
 }
 
-.pre-start-failure .control.closed {
+.pre-start-concern .control.fail {
+  background-color: rgba(139, 0, 0, 0.281);
+}
+
+.pre-start-concern .control.closed {
   background-color: rgba(88, 88, 88, 0.281);
 }
 
-.pre-start-failure .control.open {
+.pre-start-concern .control.raised,
+.pre-start-concern .control.planned,
+.pre-start-concern .control.pending {
   background-color: rgba(139, 67, 0, 0.281);
 }
 
-.pre-start-failure .submission .control .outline {
+.pre-start-concern .submission .control .outline {
   display: grid;
   grid-template-columns: auto auto;
 }
 
-.pre-start-failure .submission .control .comment {
+.pre-start-concern .submission .control .comment {
   margin-left: 2rem;
 }
 
-.pre-start-failure .submission .control .answer {
+.pre-start-concern .submission .control .answer {
   font-weight: bold;
   font-size: 1.25rem;
   justify-self: right;
   padding-right: 1rem;
+  text-transform: capitalize;
+}
+
+.pre-start-concern .submission .control .answer .fail-answer {
+  color: red;
+}
+
+.pre-start-concern .submission .control .answer .pass-answer {
+  color: green;
+}
+
+.pre-start-concern .submission .control .answer .na-answer {
+  color: #737171;
 }
 </style>

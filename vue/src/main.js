@@ -22,8 +22,6 @@ import 'vue-datetime/dist/vue-datetime.css';
 import * as VueGoogleMaps from 'gmap-vue';
 import { nowTimer } from './code/time.js';
 
-declare var window: { location: { href: string; origin: string } };
-
 const isDev = process.env.NODE_ENV === 'development';
 let hostname = window.location.origin;
 let uiHost = '';
@@ -87,7 +85,7 @@ async function startApp() {
   // configure toasted
   configureToasts(router);
 
-  function createApp(data: { map_config: { key: string } }) {
+  function createApp(data) {
     const props = { routes, logout };
     const key = data.map_config.key;
 

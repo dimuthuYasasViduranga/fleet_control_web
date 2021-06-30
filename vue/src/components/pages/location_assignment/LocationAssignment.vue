@@ -10,6 +10,7 @@
       </div>
       <DndRouteMain
         :orientation="dndSettings.orientation"
+        :assetOrdering="dndSettings.assetOrdering"
         :layoutSettings="dndSettings"
         :fullAssets="fullAssets"
         :locations="locations"
@@ -19,6 +20,7 @@
         :haulTruckDispatches="haulTruckDispatches"
         @set-haul-truck="onUpdateHaulTruck"
         @mass-set-haul-trucks="onMassUpdateHaulTrucks"
+        @set-dig-unit="onSetDigUnit"
       />
     </loaded>
   </hxCard>
@@ -100,6 +102,20 @@ export default {
         .push('haul:set mass dispatch', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to update mass dispatch'));
+    },
+    onSetDigUnit({ assetId, activity }) {
+      const payload = {
+        asset_id: assetId,
+        location_id: activity.locationId,
+        material_type_id: activity.materialTypeId,
+        load_style_id: activity.loadStyleId,
+        timestamp: Date.now(),
+      };
+
+      this.$channel
+        .push('dig:set activity', payload)
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to update dig unit activity'));
     },
   },
 };

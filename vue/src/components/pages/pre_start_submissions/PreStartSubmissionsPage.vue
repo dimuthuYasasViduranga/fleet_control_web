@@ -26,10 +26,11 @@
         :submissions="localSubmissions"
         :assets="assets"
         :icons="icons"
+        :shift="shift"
         @refresh="onRefresh()"
       />
-      <PreStartFailures
-        v-else-if="selectedModeId === 'failures'"
+      <PreStartConcerns
+        v-else-if="selectedModeId === 'concerns'"
         :submissions="localSubmissions"
         :assets="assets"
         :operators="operators"
@@ -45,7 +46,7 @@ import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import ShiftSelector from '@/components/ShiftSelector.vue';
 import PreStartReports from './PreStartReports.vue';
-import PreStartFailures from './PreStartFailures.vue';
+import PreStartConcerns from './PreStartConcerns.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
 
@@ -86,12 +87,12 @@ export default {
     hxCard,
     ShiftSelector,
     PreStartReports,
-    PreStartFailures,
+    PreStartConcerns,
   },
   data: () => {
     const modes = [
       { id: 'submissions', name: 'All Submissions' },
-      { id: 'failures', name: 'Failures' },
+      { id: 'concerns', name: 'Concerns' },
     ];
     return {
       reportIcon: ReportIcon,

@@ -288,7 +288,7 @@ export function mergeAll(
     .map(mergee => {
       const mergeeC = copyTimeSpan(mergee);
 
-      if (mergerC.deleted == true) {
+      if (mergerC.deleted === true) {
         return [mergeeC];
       }
 

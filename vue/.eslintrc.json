@@ -10,7 +10,8 @@
   },
   "plugins": ["vue"],
   "rules": {
-    "no-undef": "error"
+    "no-undef": "error",
+    "eqeqeq": ["error", "smart"]
   },
   "globals": {
     "module": "readonly",

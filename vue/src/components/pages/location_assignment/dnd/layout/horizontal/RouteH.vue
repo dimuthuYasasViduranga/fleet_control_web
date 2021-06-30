@@ -26,8 +26,28 @@
           </template>
         </div>
         <div class="dig-unit-tile-wrapper">
-          <AssetTile v-if="digUnit" class="dig-unit-tile" :asset="digUnit" />
-          <div v-else class="no-dig-unit"></div>
+          <div style="margin: auto">
+            <div class="container-wrapper" :class="{ empty: !this.digUnit || draggingDigUnit }">
+              <Container
+                class="dig-unit-container"
+                orientation="vertical"
+                group-name="draggable"
+                :should-accept-drop="(_src, asset) => shouldAcceptIntoDigUnit(asset)"
+                :drop-placeholder="dropPlaceholderOptions"
+                :get-child-payload="index => getChildPayload(index)"
+                @drop="onDropIntoDigUnit"
+                @drag-end="onDragEnd()"
+              >
+                <Draggable>
+                  <AssetTile
+                    v-if="digUnit && !draggingDigUnit"
+                    class="dig-unit-tile"
+                    :asset="digUnit"
+                  />
+                </Draggable>
+              </Container>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -40,7 +60,7 @@
         :dumpName="dump.name"
         :haulTrucks="assignedHaulTrucks"
         @drag-start="onDragStart"
-        @drag-end="onDragEnd"
+        @drag-end="onDragEnd()"
         @set-haul-truck="onSetHaulTruck(digUnitId, loadId, dump.id, $event)"
         @remove-dump="onRemoveDump(dump.id)"
         @clear-dump="onClearDump(dump.id)"
@@ -52,6 +72,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
+import { Container, Draggable } from 'vue-smooth-dnd';
 
 import AssetTile from '../../asset_tile/AssetTile.vue';
 import DumpH from './DumpH.vue';
@@ -70,6 +91,8 @@ export default {
     Icon,
     AssetTile,
     DumpH,
+    Container,
+    Draggable,
   },
   data: () => {
     return {
@@ -78,6 +101,12 @@ export default {
       crossIcon: CrossIcon,
       addIcon: AddIcon,
       hovering: false,
+      dropPlaceholderOptions: {
+        className: 'tile-drop-preview',
+        animationDuration: '150',
+        showOnTop: true,
+      },
+      draggingDigUnit: false,
     };
   },
   props: {
@@ -129,10 +158,30 @@ export default {
     },
   },
   methods: {
+    getChildPayload() {
+      this.draggingDigUnit = true;
+      this.$emit('drag-start', this.digUnit);
+      return this.digUnit;
+    },
+    shouldAcceptIntoDigUnit(asset) {
+      return !this.digUnitId && asset && asset.secondaryType === 'Dig Unit';
+    },
+    onDropIntoDigUnit({ addedIndex, removedIndex, payload }) {
+      // is added
+      if (addedIndex !== null && removedIndex === null) {
+        const change = {
+          digUnitId: payload.id,
+          loadId: this.loadId,
+          dumpIds: this.dumpIds,
+        };
+        this.$emit('set-dig-unit', change);
+      }
+    },
     onDragStart(asset) {
       this.$emit('drag-start', asset);
     },
     onDragEnd() {
+      this.draggingDigUnit = false;
       this.$emit('drag-end');
     },
     onSetHaulTruck(digUnitId, loadId, dumpId, asset) {
@@ -169,6 +218,15 @@ export default {
   },
 };
 </script>
+
+<style>
+.route-h .dig-unit-region .dig-unit-tile-wrapper .smooth-dnd-container .tile-drop-preview {
+  border: 1px dashed grey;
+  height: 7rem;
+  width: 7rem;
+  background-color: rgba(150, 150, 200, 0.1);
+}
+</style>
 
 <style scoped>
 .route-h {
@@ -210,11 +268,18 @@ export default {
   margin: auto;
 }
 
-.dig-unit-region .dig-unit-tile-wrapper .no-dig-unit {
-  width: 6rem;
-  height: 6rem;
+.dig-unit-region .dig-unit-tile-wrapper .dig-unit-container {
+  width: 7rem;
+  height: 7rem;
   margin: auto;
+}
+
+.dig-unit-region .dig-unit-tile-wrapper .empty .dig-unit-container {
   border: 1px dashed rgb(66, 66, 66);
+}
+
+.dig-unit-region .dig-unit-tile-wrapper .dig-unit-container .asset-tile {
+  cursor: move;
 }
 
 /* actions */
@@ -241,23 +306,5 @@ export default {
 
 .dig-unit-region .actions .clear:hover {
   stroke: red;
-}
-
-/* --- dumps ---- */
-
-.add-dump-icon {
-  font-size: 1.5rem;
-  line-height: 2.2rem;
-  height: 2rem;
-  width: 2rem;
-  margin-top: 0.25rem;
-  margin-right: 0.25rem;
-  min-width: 0;
-  padding: 0;
-}
-
-.add-dump-icon.wide {
-  width: 100%;
-  margin-left: 0.25rem;
 }
 </style>

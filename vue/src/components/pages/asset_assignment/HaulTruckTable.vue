@@ -23,20 +23,20 @@
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
           <span :class="acknowledgeIconColor(row)">
-            <span v-tooltip="acknowledgeTooltip(row)">
-              <Icon :icon="manIcon" />
-            </span>
+            <Icon v-tooltip="acknowledgeTooltip(row)" :icon="manIcon" />
           </span>
         </template>
       </table-column>
 
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span v-tooltip="{ content: presenceTooltip(row) }">
-            <span :class="presenceIconColor(row)">
-              <Icon :icon="truckIcon" />
-            </span>
-          </span>
+          <NIcon
+            v-tooltip="{ content: presenceTooltip(row) }"
+            class="asset-icon"
+            :class="row.status"
+            :icon="truckIcon"
+            :secondaryIcon="getSecondaryIcon(row)"
+          />
         </template>
       </table-column>
 
@@ -97,6 +97,7 @@
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import DropDown from '../../dropdown/DropDown.vue';
+import NIcon from '@/components/NIcon.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 import { toFullName, attributeFromList } from '../../../code/helpers';
@@ -104,6 +105,11 @@ import { toFullName, attributeFromList } from '../../../code/helpers';
 import ManIcon from '../../icons/Man.vue';
 import EditIcon from '../../icons/Edit.vue';
 import TruckIcon from '../../icons/asset_icons/HaulTruck.vue';
+
+import AlertIcon from '@/components/icons/Alert.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
+import CrossIcon from 'hx-layout/icons/Error.vue';
+import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 function noneLocation() {
   return {
@@ -116,6 +122,7 @@ export default {
   name: 'HaulTruckTable',
   components: {
     Icon,
+    NIcon,
     DropDown,
     TimeAllocationDropDown,
     TableComponent,
@@ -162,6 +169,8 @@ export default {
             acknowledged: dispatch.acknowledged,
             activeTimeAllocation: asset.activeTimeAllocation || {},
             present: asset.present,
+            status: asset.status,
+            hasDevice: asset.hasDevice,
           };
         });
     },
@@ -197,6 +206,23 @@ export default {
     },
   },
   methods: {
+    getSecondaryIcon(asset) {
+      const activeAllocGroup = asset.activeTimeAllocation.groupName;
+
+      if (!asset.hasDevice) {
+        return TabletIcon;
+      }
+
+      if (asset.operator.id && !asset.present) {
+        return NoWifiIcon;
+      }
+
+      if (activeAllocGroup === 'Down') {
+        return CrossIcon;
+      }
+
+      return null;
+    },
     onEdit(row) {
       this.$eventBus.$emit('asset-assignment-open', row.assetId);
     },
@@ -223,15 +249,6 @@ export default {
         return 'Active';
       }
       return 'Not Connected';
-    },
-    presenceIconColor(row) {
-      if (row.activeTimeAllocation.id && !row.activeTimeAllocation.isReady) {
-        return ['exception-icon'];
-      }
-      if (row.present === true) {
-        return ['ok-icon'];
-      }
-      return ['offline-icon'];
     },
     acknowledgeTooltip(row) {
       if (row.acknowledged === true) {
@@ -307,6 +324,32 @@ export default {
 }
 
 .haul-truck-table .table-edit-cel .hx-icon:hover {
+  stroke: orange;
+}
+
+.haul-truck-table .asset-icon {
+  width: 2.5rem;
+}
+
+/* asset secondary colors */
+.haul-truck-table .asset-icon .secondary-icon #alert_icon {
+  stroke-width: 1.5;
+  stroke: orange;
+}
+
+.haul-truck-table .asset-icon .secondary-icon #tablet_icon {
+  stroke-width: 0.5;
+  stroke: orange;
+  stroke-dasharray: 1;
+}
+
+.haul-truck-table .asset-icon .secondary-icon #error_icon {
+  stroke-width: 1.5;
+  stroke: red;
+}
+
+.haul-truck-table .asset-icon .secondary-icon #no_wifi_icon {
+  stroke-width: 4;
   stroke: orange;
 }
 </style>

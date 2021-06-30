@@ -61,11 +61,13 @@ export function toFullAsset(
   const deviceAssignment = currentDeviceAssignments.find(da => da.assetId === assetId) || {};
   const operator = operators.find(o => o.id === deviceAssignment.operatorId) || {};
   const device = devices.find(d => d.id === deviceAssignment.deviceId) || {};
-  const activeTimeAllocation = activeTimeAllocations.find(a => a.assetId == assetId) || {};
+  const activeTimeAllocation = activeTimeAllocations.find(a => a.assetId === assetId) || {};
   const activeTimeAllocationTC =
     fullTimeCodes.find(tc => tc.id === activeTimeAllocation.timeCodeId) || {};
 
   const present = !!presence.find(p => p === device.uuid);
+
+  const status = getAssetStatus(activeTimeAllocationTC.groupName, !!operator.id);
 
   return {
     id: asset.id,
@@ -97,8 +99,21 @@ export function toFullAsset(
     radioNumber,
     hasDevice: !!device.id,
     present,
+    status,
     deviceAssignedAt: copyDate(deviceAssignment.timestamp),
   };
+}
+
+function getAssetStatus(timeCodeGroup, hasOperator) {
+  if (!timeCodeGroup) {
+    return null;
+  }
+
+  if (timeCodeGroup === 'Ready' && !hasOperator) {
+    return 'requires-update';
+  }
+
+  return timeCodeGroup.toLowerCase();
 }
 
 export function fromGMapsGeofences(geofences) {

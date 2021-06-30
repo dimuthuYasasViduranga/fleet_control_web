@@ -18,26 +18,28 @@
   stroke: grey;
 }
 
-.exception-icon .hx-icon {
+/* asset colors */
+.asset-icon.ready .primary-icon svg,
+.asset-icon.ready > svg {
+  stroke: green;
+}
+
+.asset-icon.process .primary-icon svg,
+.asset-icon.process > svg {
   stroke: orange;
 }
 
-.process-icon .hx-icon {
-  stroke: orange;
-}
-
-.standby-icon .hx-icon {
+.asset-icon.standby .primary-icon svg,
+.asset-icon.standby > svg {
   stroke: white;
 }
 
-.down-icon .hx-icon {
-  stroke: grey;
+.asset-icon.down .primary-icon svg,
+.asset-icon.down > svg {
+  stroke: gray;
 }
 
-.offline-icon .hx-icon {
+.asset-icon.requires-update .primary-icon svg,
+.asset-icon.requires-update > svg {
   stroke: cadetblue;
-}
-
-.ok-icon .hx-icon {
-  stroke: green;
 }

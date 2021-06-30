@@ -1,6 +1,17 @@
 ## Changelog
 
 ## pending [unreleased]
+- added ability to move dig unit from/to empty source square
+- move trucks works for empty dumps
+- added tooltip for locked "revoke" to give reason for inaccessibility
+- asset tile context menu moved to right click
+- added "has comments" to submissions that have additional comments
+  - report buttons show comment icon if there are comments
+- added "from another shift" to pre-starts that are pulled in over the boundary
+- Renamed "failures" to "concerns" for the pre-start submissions page
+  - passing comments and overall comments are now displayed
+- ability to sort dnd assets by status or alphabetically
+- ability to logout asset from asset tiles
 
 ## 0.10.12
 - explicit timestamp ordering for operator time allocation calculations

@@ -13,12 +13,14 @@
       </div>
       <div class="status gap-left">
         <div v-if="latestSubmission.responseCounts.failuresWithoutTickets" class="failure">
-          Fail
+          Fail {{ latestSubmission.comment ? '- has Comments' : '' }}
         </div>
         <div v-else-if="latestSubmission.responseCounts.open" class="open">Open Tickets</div>
 
         <div v-else-if="latestSubmission.responseCounts.closed" class="closed">Rectified</div>
-        <div v-else class="pass">Pass</div>
+        <div v-else class="pass">
+          Pass {{ responsesHaveComments(latestSubmission) ? '- has Comments' : '' }}
+        </div>
       </div>
       <Icon
         v-if="latestSubmission"
@@ -41,12 +43,16 @@
     <div v-if="showSubmissions" class="all-submissions">
       <button
         class="hx-btn"
-        v-for="(item, index) in allSubmissions"
+        v-for="(item, index) in submissionItems"
         :key="index"
-        :class="item.class"
+        :class="item.classes"
+        v-tooltip="!item.inShift ? 'From another shift' : ''"
         @click="onOpenViewer(item.submission)"
       >
-        {{ item[showFullDate ? 'fullLabel' : 'label'] }}
+        <div style="display: inline-flex">
+          {{ item[showFullDate ? 'fullLabel' : 'label'] }}
+          <Icon v-if="item.hasComments" class="has-comments-icon" :icon="commentIcon" />
+        </div>
       </button>
     </div>
   </hxCard>
@@ -62,6 +68,7 @@ import TickIcon from '@/components/icons/Tick.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 import AlertIcon from '@/components/icons/Alert.vue';
+import CommentIcon from '@/components/icons/Comment.vue';
 
 import { formatDateIn, isSameDownTo } from '@/code/time';
 import { attributeFromList } from '@/code/helpers';
@@ -88,6 +95,17 @@ function getItemClass(responses, closedStatusTypeId) {
   return 'open';
 }
 
+function isInShift(submission, shift) {
+  if (!shift) {
+    return true;
+  }
+
+  const shiftStart = shift.startTime.getTime();
+  const shiftEnd = shift.endTime.getTime();
+  const timestamp = submission.timestamp.getTime();
+  return timestamp > shiftStart && timestamp < shiftEnd;
+}
+
 export default {
   name: 'PreStartReport',
   components: {
@@ -98,6 +116,7 @@ export default {
     asset: { type: Object, required: true },
     submissions: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
+    shift: { type: Object, default: null },
   },
   data: () => {
     return {
@@ -106,6 +125,7 @@ export default {
       chevronIcon: ChevronIcon,
       alertIcon: AlertIcon,
       tickIcon: TickIcon,
+      commentIcon: CommentIcon,
       showSubmissions: false,
     };
   },
@@ -124,26 +144,37 @@ export default {
     failCount() {
       return getFailCount(this.latestSubmission.responses);
     },
-    allSubmissions() {
+    submissionItems() {
       const subs = this.submissions.slice();
 
       subs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
       return subs.map(s => {
         const itemClass = getItemClass(s.responses, this.closedTicketStatusId);
+        const hasComments = !!s.comment || (itemClass === 'pass' && this.responsesHaveComments(s));
+        const inShift = isInShift(s, this.shift);
+
+        const classes = [itemClass];
+
+        if (!inShift) {
+          classes.push('out-of-shift');
+        }
+
         return {
-          class: itemClass,
+          classes,
           label: this.formatTime(s.timestamp, 'HH:mm'),
           fullLabel: this.formatTime(s.timestamp, '(MMM dd) HH:mm'),
+          hasComments,
+          inShift,
           submission: s,
         };
       });
     },
     latestSubmission() {
-      return this.allSubmissions[this.allSubmissions.length - 1].submission;
+      return this.submissionItems[this.submissionItems.length - 1].submission;
     },
     hasOrphanedTickets() {
-      const submissions = this.allSubmissions;
+      const submissions = this.submissionItems;
       if (submissions.length < 2) {
         return false;
       }
@@ -156,7 +187,9 @@ export default {
 
       return otherSubmissions.some(sub => {
         const ticketIds = sub.submission.responses.map(r => r.ticketId).filter(id => id);
-        return sub.class !== 'closed' && ticketIds.some(id => !latestTicketIds.includes(id));
+        return (
+          !sub.classes.includes('closed') && ticketIds.some(id => !latestTicketIds.includes(id))
+        );
       });
     },
     showFullDate() {
@@ -189,6 +222,9 @@ export default {
     formatTime(date, format = 'HH:mm') {
       const tz = this.$timely.current.timezone;
       return formatDateIn(date, tz, { format });
+    },
+    responsesHaveComments(submission) {
+      return submission.responses.some(r => r.comment);
     },
   },
 };
@@ -294,6 +330,10 @@ export default {
   margin: 0.1rem;
 }
 
+.pre-start-report .all-submissions .out-of-shift {
+  opacity: 0.75;
+}
+
 .pre-start-report .all-submissions .failure {
   background-color: rgba(139, 0, 0, 0.644);
 }
@@ -304,5 +344,14 @@ export default {
 
 .pre-start-report .all-submissions .open {
   background-color: rgba(139, 74, 0, 0.644);
+}
+
+.pre-start-report .all-submissions .has-comments-icon {
+  width: 1rem;
+  margin-left: 0.5rem;
+}
+
+.pre-start-report .all-submissions .has-comments-icon svg {
+  stroke-width: 2.5;
 }
 </style>
