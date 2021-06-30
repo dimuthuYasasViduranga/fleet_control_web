@@ -1,5 +1,5 @@
 <template>
-  <g id="no_wifi">
+  <g id="no_wifi_icon">
     <ellipse ry="5.4258099" rx="5.8462882" cy="94.770172" cx="63.527172" />
     <path d="M 38.100001,85.666671 A 29.658138,29.603474 0 0 1 56.409024,71.79498" />
     <path d="M 19.049996,70.85 A 52.006046,51.910187 0 0 1 71.056644,45.362969" />
@@ -22,7 +22,7 @@ export default {
 </script>
 
 <style scoped>
-#no_wifi {
+#no_wifi_icon {
   stroke-width: 7;
 }
 </style>

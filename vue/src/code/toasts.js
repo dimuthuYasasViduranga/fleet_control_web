@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import Icon from 'hx-layout/Icon.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
-import NoWifi from './../components/icons/noWifi.vue';
+import NoWifi from './../components/icons/NoWifi.vue';
 
 let NEXT_ID = 0;
 
