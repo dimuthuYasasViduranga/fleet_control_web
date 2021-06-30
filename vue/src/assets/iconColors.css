@@ -41,3 +41,29 @@
 .ok-icon .hx-icon {
   stroke: green;
 }
+
+/* asset colors */
+.asset-icon.ready .primary-icon svg,
+.asset-icon.ready > svg {
+  stroke: green;
+}
+
+.asset-icon.process .primary-icon svg,
+.asset-icon.process > svg {
+  stroke: orange;
+}
+
+.asset-icon.standby .primary-icon svg,
+.asset-icon.standby > svg {
+  stroke: white;
+}
+
+.asset-icon.down .primary-icon svg,
+.asset-icon.down > svg {
+  stroke: gray;
+}
+
+.asset-icon.requires-update .primary-icon svg,
+.asset-icon.requires-update > svg {
+  stroke: cadetblue;
+}

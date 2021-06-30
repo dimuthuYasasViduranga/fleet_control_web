@@ -289,25 +289,9 @@ export default {
   stroke: red;
 }
 
-/* status colors */
-.asset-tile .asset-icon.ready .primary-icon svg {
-  stroke: green;
-}
-
-.asset-tile .asset-icon.process .primary-icon svg {
+.asset-tile .asset-icon .secondary-icon #no_wifi_icon {
+  stroke-width: 4;
   stroke: orange;
-}
-
-.asset-tile .asset-icon.standby .primary-icon svg {
-  stroke: white;
-}
-
-.asset-tile .asset-icon.down .primary-icon svg {
-  stroke: gray;
-}
-
-.asset-tile .asset-icon.requires-update .primary-icon svg {
-  stroke: cadetblue;
 }
 
 /* -- operator/asset names */
