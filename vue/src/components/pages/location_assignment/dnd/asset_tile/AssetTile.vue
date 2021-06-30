@@ -68,6 +68,7 @@ import ListIcon from '@/components/icons/List.vue';
 import AlertIcon from '@/components/icons/Alert.vue';
 import TabletIcon from '@/components/icons/Tablet.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
+import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 const FLASH_DURATION = 10;
 
@@ -112,10 +113,15 @@ export default {
       return !!this.asset.deviceId;
     },
     secondaryIcon() {
-      const activeAllocGroup = this.asset.activeTimeAllocation.groupName;
+      const asset = this.asset;
+      const activeAllocGroup = asset.activeTimeAllocation.groupName;
 
       if (activeAllocGroup === 'Down') {
         return CrossIcon;
+      }
+
+      if (activeAllocGroup === 'Ready' && asset.operator.id && !asset.present) {
+        return NoWifiIcon;
       }
 
       if (!this.hasDevice) {
