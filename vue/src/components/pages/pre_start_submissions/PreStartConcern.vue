@@ -1,5 +1,5 @@
 <template>
-  <hxCard class="pre-start-failure" :icon="icon">
+  <hxCard class="pre-start-concern" :icon="icon">
     <div class="title-post" slot="title-post">
       <div class="heading">{{ assetName }} ({{ breakdown }})</div>
       <Icon
@@ -85,7 +85,7 @@ function breakdownText(counts) {
 }
 
 export default {
-  name: 'PreStartFailure',
+  name: 'PreStartConcern',
   components: {
     hxCard,
     Icon,
@@ -135,23 +135,23 @@ export default {
 
 <style>
 /* hxCard styling */
-.pre-start-failure.hxCardIcon {
+.pre-start-concern.hxCardIcon {
   height: 2.5rem;
 }
 
-.pre-start-failure.hxCard {
+.pre-start-concern.hxCard {
   border-left: 2px solid transparent;
 }
 
-.pre-start-failure .hxCardIcon {
+.pre-start-concern .hxCardIcon {
   height: 2.5rem;
 }
 
-.pre-start-failure .hxCardHeaderWrapper {
+.pre-start-concern .hxCardHeaderWrapper {
   font-size: 1.5rem;
 }
 
-.pre-start-failure .title-post {
+.pre-start-concern .title-post {
   text-transform: capitalize;
   display: flex;
   margin-left: 1rem;
@@ -159,7 +159,7 @@ export default {
   line-height: 2rem;
 }
 
-.pre-start-failure .title-post .chevron-icon {
+.pre-start-concern .title-post .chevron-icon {
   margin-left: 1rem;
   margin-top: 0.25rem;
   height: 1.5rem;
@@ -169,11 +169,11 @@ export default {
 }
 
 /* submissions */
-.pre-start-failure .submission {
+.pre-start-concern .submission {
   margin-bottom: 0.75rem;
 }
 
-.pre-start-failure .submission .identifier {
+.pre-start-concern .submission .identifier {
   display: flex;
   justify-content: space-around;
   padding: 0.25rem;
@@ -182,16 +182,16 @@ export default {
   color: #c4d1da;
 }
 
-.pre-start-failure .submission .identifier .info-icon {
+.pre-start-concern .submission .identifier .info-icon {
   height: 1.25rem;
   cursor: pointer;
 }
 
-.pre-start-failure .submission .identifier .info-icon:hover {
+.pre-start-concern .submission .identifier .info-icon:hover {
   opacity: 0.5;
 }
 
-.pre-start-failure .submission .overall-comments {
+.pre-start-concern .submission .overall-comments {
   border-top: 1px solid #364c59;
   background-color: #344652;
   line-height: 1.5rem;
@@ -199,7 +199,7 @@ export default {
 }
 
 /* controls */
-.pre-start-failure .submission .control {
+.pre-start-concern .submission .control {
   padding-left: 0.5rem;
   min-height: 2.5rem;
   line-height: 2.5rem;
@@ -207,30 +207,30 @@ export default {
   background-color: #16232b;
 }
 
-.pre-start-failure .control.fail {
+.pre-start-concern .control.fail {
   background-color: rgba(139, 0, 0, 0.281);
 }
 
-.pre-start-failure .control.closed {
+.pre-start-concern .control.closed {
   background-color: rgba(88, 88, 88, 0.281);
 }
 
-.pre-start-failure .control.raised,
-.pre-start-failure .control.planned,
-.pre-start-failure .control.pending {
+.pre-start-concern .control.raised,
+.pre-start-concern .control.planned,
+.pre-start-concern .control.pending {
   background-color: rgba(139, 67, 0, 0.281);
 }
 
-.pre-start-failure .submission .control .outline {
+.pre-start-concern .submission .control .outline {
   display: grid;
   grid-template-columns: auto auto;
 }
 
-.pre-start-failure .submission .control .comment {
+.pre-start-concern .submission .control .comment {
   margin-left: 2rem;
 }
 
-.pre-start-failure .submission .control .answer {
+.pre-start-concern .submission .control .answer {
   font-weight: bold;
   font-size: 1.25rem;
   justify-self: right;
@@ -238,15 +238,15 @@ export default {
   text-transform: capitalize;
 }
 
-.pre-start-failure .submission .control .answer .fail-answer {
+.pre-start-concern .submission .control .answer .fail-answer {
   color: red;
 }
 
-.pre-start-failure .submission .control .answer .pass-answer {
+.pre-start-concern .submission .control .answer .pass-answer {
   color: green;
 }
 
-.pre-start-failure .submission .control .answer .na-answer {
+.pre-start-concern .submission .control .answer .na-answer {
   color: #737171;
 }
 </style>

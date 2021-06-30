@@ -1,14 +1,14 @@
 <template>
-  <div class="pre-start-failures">
-    <input type="checkbox" v-model="showLatestOnly" />Latest Only
+  <div class="pre-start-concerns">
+    <div><input type="checkbox" v-model="showLatestOnly" />Latest Only</div>
 
-    <div v-if="assetFailures.length === 0" class="no-failures">
-      No {{ showLatestOnly ? 'recent' : ' ' }}failures to report
+    <div v-if="assetConcerns.length === 0" class="no-concerns">
+      No {{ showLatestOnly ? 'recent' : ' ' }}concerns to report
     </div>
 
-    <div v-else class="failures">
-      <PreStartFailure
-        v-for="(asset, index) in assetFailures"
+    <div v-else class="concerns">
+      <PreStartConcern
+        v-for="(asset, index) in assetConcerns"
         :key="index"
         :assetName="asset.name"
         :icon="icons[asset.type]"
@@ -22,7 +22,7 @@
 <script>
 import { attributeFromList, groupBy } from '@/code/helpers';
 
-import PreStartFailure from './PreStartFailure.vue';
+import PreStartConcern from './PreStartConcern.vue';
 
 function getControls(form) {
   return form.sections.map(s => s.controls).flat();
@@ -78,13 +78,7 @@ function getResponseStatus(r, ticketStatusTypes) {
   return 'fail';
 }
 
-function getAssetFailures(
-  submissions,
-  assets,
-  operators,
-  ticketStatusTypes,
-  assetSubFilter = subs => subs,
-) {
+function getAssetConcerns(submissions, assets, operators, ticketStatusTypes, opts) {
   const orderedSubmissions = submissions
     .slice()
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -94,13 +88,16 @@ function getAssetFailures(
     .map(([assetIdStr, subs]) => {
       const assetId = parseInt(assetIdStr, 10);
       const asset = attributeFromList(assets, 'id', assetId) || {};
-      return createAssetFailure(asset, assetSubFilter(subs), operators, ticketStatusTypes);
+
+      const filteredSubs = opts.latestOnly ? [subs[0]] : subs;
+
+      return createAssetConcern(asset, filteredSubs, operators, ticketStatusTypes);
     })
     .filter(a => a.failedSubmissions.length)
     .sort((a, b) => (a.assetName || '').localeCompare(b.assetName || ''));
 }
 
-function createAssetFailure(asset, subs, operators, ticketStatusTypes) {
+function createAssetConcern(asset, subs, operators, ticketStatusTypes) {
   const failedSubmissions = subs
     .map(s => {
       const responses = controlsWithResponses(getControls(s.form), s.responses, ticketStatusTypes);
@@ -126,13 +123,13 @@ function createAssetFailure(asset, subs, operators, ticketStatusTypes) {
 }
 
 export default {
-  name: 'PreStartFailures',
+  name: 'PreStartConcerns',
   components: {
-    PreStartFailure,
+    PreStartConcern,
   },
   data: () => {
     return {
-      showLatestOnly: false,
+      showLatestOnly: true,
     };
   },
   props: {
@@ -145,14 +142,16 @@ export default {
     ticketStatusTypes() {
       return this.$store.state.constants.preStartTicketStatusTypes;
     },
-    assetFailures() {
-      const filter = this.showLatestOnly ? s => [s[0]] : s => s;
-      return getAssetFailures(
+    assetConcerns() {
+      const opts = {
+        latestOnly: this.showLatestOnly,
+      };
+      return getAssetConcerns(
         this.submissions,
         this.assets,
         this.operators,
         this.ticketStatusTypes,
-        filter,
+        opts,
       );
     },
   },
@@ -160,19 +159,23 @@ export default {
 </script>
 
 <style>
-.pre-start-failures {
+.pre-start-concerns {
   padding-bottom: 1rem;
 }
 
-.pre-start-failures .no-failures {
+.pre-start-concerns .no-concerns {
   padding: 2rem 0;
   font-size: 1.5rem;
   font-style: italic;
   text-align: center;
 }
 
-.pre-start-failures .pre-start-failure .submissions {
+.pre-start-concerns .pre-start-concern .submissions {
   max-width: 70rem;
   margin: auto;
+}
+
+.pre-start-concerns input[type='checkbox'] {
+  cursor: pointer;
 }
 </style>
