@@ -61,6 +61,7 @@ import Icon from 'hx-layout/Icon.vue';
 import NIcon from '@/components/NIcon.vue';
 import Bubble from '@/components/Bubble.vue';
 import AssetTilePopover from './AssetTilePopover.vue';
+
 import { attributeFromList } from '@/code/helpers';
 import { isMissingException } from '@/store/modules/haul_truck';
 
@@ -69,6 +70,7 @@ import AlertIcon from '@/components/icons/Alert.vue';
 import TabletIcon from '@/components/icons/Tablet.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import NoWifiIcon from '@/components/icons/NoWifi.vue';
+import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 const FLASH_DURATION = 10;
 
@@ -105,6 +107,9 @@ export default {
     };
   },
   computed: {
+    fullTimeCodes() {
+      return this.$store.getters['constants/fullTimeCodes'];
+    },
     hasDevice() {
       if (this.asset.hasDevice !== undefined) {
         return this.asset.hasDevice;
@@ -116,12 +121,12 @@ export default {
       const asset = this.asset;
       const activeAllocGroup = asset.activeTimeAllocation.groupName;
 
-      if (activeAllocGroup === 'Down') {
-        return CrossIcon;
+      if (asset.operator.id && !asset.present) {
+        return NoWifiIcon;
       }
 
-      if (activeAllocGroup === 'Ready' && asset.operator.id && !asset.present) {
-        return NoWifiIcon;
+      if (activeAllocGroup === 'Down') {
+        return CrossIcon;
       }
 
       if (!this.hasDevice) {
@@ -212,6 +217,10 @@ export default {
         items.splice(1, 0, { id: 'chat', name: 'View Chat Log' });
       }
 
+      if (this.asset.operator && this.asset.operator.id && this.asset.deviceId) {
+        items.push({ id: 'logout', name: 'Force Logout' });
+      }
+
       this.$contextMenu
         .create(`asset-tile-${this.asset.id}`, mouseEvent, items, { toggle: true })
         .then(resp => {
@@ -231,8 +240,42 @@ export default {
             case 'time-allocation':
               this.$eventBus.$emit('live-time-allocation-open', this.asset.id);
               break;
+
+            case 'logout':
+              this.promptLogout();
+              break;
           }
         });
+    },
+    promptLogout() {
+      const asset = this.asset;
+
+      if (!asset) {
+        this.$toaster.error('Unable to logout asset at this time');
+        return;
+      }
+
+      const allowedTimeCodeIds = this.fullTimeCodes
+        .filter(tc => !tc.isReady && tc.assetTypeIds.includes(asset.typeId))
+        .map(tc => tc.id);
+
+      const activeTimeCodeId = (this.asset.activeTimeAllocation || {}).timeCodeId;
+
+      this.$modal
+        .create(DeviceLogoutModal, { timeCodeId: activeTimeCodeId, allowedTimeCodeIds })
+        .onClose(answer => {
+          if (answer && answer.timeCodeId) {
+            this.logout(asset.deviceId, answer.timeCodeId);
+          }
+        });
+    },
+    logout(deviceId, timeCodeId) {
+      const payload = {
+        device_id: deviceId,
+        time_code_id: timeCodeId,
+      };
+
+      this.$channel.push('force logout device', payload);
     },
   },
 };
@@ -274,7 +317,7 @@ export default {
 }
 
 .asset-tile .asset-icon .secondary-icon #alert_icon {
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke: orange;
 }
 

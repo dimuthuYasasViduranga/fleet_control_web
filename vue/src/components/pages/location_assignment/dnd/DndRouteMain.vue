@@ -76,6 +76,7 @@ function toLocalFullAsset(asset) {
     type: asset.type,
     typeId: asset.typeId,
     secondaryType: asset.secondaryType,
+    deviceId: asset.deviceId,
     operator: asset.operator,
     activeTimeAllocation: asset.activeTimeAllocation,
     radioNumber: asset.radioNumber,

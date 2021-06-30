@@ -100,7 +100,7 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 import DeviceInfoModal from './DeviceInfoModal.vue';
-import DeviceLogoutModal from './DeviceLogoutModal.vue';
+import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 import LockableButton from '../../LockableButton.vue';
 import DropDown from '../../dropdown/DropDown.vue';
