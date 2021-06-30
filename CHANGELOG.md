@@ -1,6 +1,8 @@
 ## Changelog
 
 ## pending [unreleased]
+
+## 0.10.13
 - added ability to move dig unit from/to empty source square
 - move trucks works for empty dumps
 - added tooltip for locked "revoke" to give reason for inaccessibility
