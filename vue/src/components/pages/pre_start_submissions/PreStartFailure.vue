@@ -26,26 +26,23 @@
           />
         </div>
 
+        <div v-if="submission.comments" class="overall-comments">
+          {{ submission.comments }}
+        </div>
+
         <div
           class="control"
           v-for="(control, cIndex) in submission.controls"
           :key="cIndex"
-          :class="{
-            closed: control.ticketId && control.ticket.activeStatus.statusTypeId === closedStatusId,
-            open: control.ticketId && control.ticket.activeStatus.statusTypeId !== closedStatusId,
-          }"
+          :class="control.status"
         >
           <div class="outline">
             <div class="label">{{ control.label }}</div>
             <div class="answer">
-              <div v-if="!control.ticketId" class="fail-answer">
-                <span class="red-text">Fail</span>
-              </div>
-              <div v-else class="ticket-status">
-                <div class="status">
-                  {{ getTicketStatus(control.ticket.activeStatus.statusTypeId) }}
-                </div>
-              </div>
+              <div v-if="control.status === 'pass'" class="pass-answer">Pass</div>
+              <div v-else-if="control.status === 'na'" class="na-answer">N/A</div>
+              <div v-else-if="control.status === 'fail'" class="fail-answer">Fail</div>
+              <div v-else class="ticket-status" :class="control.status">{{ control.status }}</div>
             </div>
           </div>
           <div v-if="control.comment" class="comment">• {{ control.comment }}</div>
@@ -74,20 +71,17 @@ function statusChanged(a, b) {
 }
 
 function breakdownText(counts) {
-  const text = [];
-  if (counts.failuresWithoutTickets) {
-    text.push(`Failures: ${counts.failuresWithoutTickets}`);
-  }
+  const order = ['pass', 'na', 'fail', 'closed', 'pending-verification', 'planned', 'raised'];
 
-  if (counts.closed) {
-    text.push(`Closed: ${counts.closed}`);
-  }
+  return order
+    .reduce((acc, key) => {
+      if (counts[key]) {
+        acc.push(`${key}: ${counts[key]}`);
+      }
 
-  if (counts.open) {
-    text.push(`Open: ${counts.open}`);
-  }
-
-  return text.join(' | ');
+      return acc;
+    }, [])
+    .join(' | ');
 }
 
 export default {
@@ -111,22 +105,13 @@ export default {
   computed: {
     breakdown() {
       const counts = this.submissions
-        .map(s => s.submission.responseCounts)
-        .reduce(
-          (acc, responseCount = {}) => {
-            Object.entries(responseCount).forEach(([key, count]) => (acc[key] += count));
-            return acc;
-          },
-          { closed: 0, failures: 0, failuresWithoutTickets: 0, open: 0 },
-        );
-
+        .map(s => s.controls)
+        .flat()
+        .reduce((acc, c) => {
+          acc[c.status] = (acc[c.status] || 0) + 1;
+          return acc;
+        }, {});
       return breakdownText(counts);
-    },
-    ticketStatusTypes() {
-      return this.$store.state.constants.preStartTicketStatusTypes;
-    },
-    closedStatusId() {
-      return attributeFromList(this.ticketStatusTypes, 'name', 'closed', 'id');
     },
   },
   methods: {
@@ -143,9 +128,6 @@ export default {
           this.$emit('refresh');
         }
       });
-    },
-    getTicketStatus(statusId) {
-      return attributeFromList(this.ticketStatusTypes, 'id', statusId, 'name');
     },
   },
 };
@@ -209,20 +191,33 @@ export default {
   opacity: 0.5;
 }
 
+.pre-start-failure .submission .overall-comments {
+  border-top: 1px solid #364c59;
+  background-color: #344652;
+  line-height: 1.5rem;
+  padding-left: 2rem;
+}
+
 /* controls */
 .pre-start-failure .submission .control {
   padding-left: 0.5rem;
-  background-color: rgba(139, 0, 0, 0.281);
   min-height: 2.5rem;
   line-height: 2.5rem;
   border-bottom: 1px solid #677e8c;
+  background-color: #16232b;
+}
+
+.pre-start-failure .control.fail {
+  background-color: rgba(139, 0, 0, 0.281);
 }
 
 .pre-start-failure .control.closed {
   background-color: rgba(88, 88, 88, 0.281);
 }
 
-.pre-start-failure .control.open {
+.pre-start-failure .control.raised,
+.pre-start-failure .control.planned,
+.pre-start-failure .control.pending {
   background-color: rgba(139, 67, 0, 0.281);
 }
 
@@ -240,5 +235,18 @@ export default {
   font-size: 1.25rem;
   justify-self: right;
   padding-right: 1rem;
+  text-transform: capitalize;
+}
+
+.pre-start-failure .submission .control .answer .fail-answer {
+  color: red;
+}
+
+.pre-start-failure .submission .control .answer .pass-answer {
+  color: green;
+}
+
+.pre-start-failure .submission .control .answer .na-answer {
+  color: #737171;
 }
 </style>

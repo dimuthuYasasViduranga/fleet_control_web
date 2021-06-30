@@ -1,8 +1,9 @@
 <template>
   <div class="pre-start-failures">
-    Show All Failures <input type="checkbox" v-model="showAllFailures" />
+    <input type="checkbox" v-model="showLatestOnly" />Latest Only
+
     <div v-if="assetFailures.length === 0" class="no-failures">
-      No {{ showAllFailures ? '' : 'recent ' }}failures to report
+      No {{ showLatestOnly ? 'recent' : ' ' }}failures to report
     </div>
 
     <div v-else class="failures">
@@ -35,9 +36,11 @@ function getOperator(operators, operatorId, employeeId) {
   );
 }
 
-function controlsWithResponses(controls, responses) {
+function controlsWithResponses(controls, responses, ticketStatusTypes) {
   return controls.map(c => {
     const r = attributeFromList(responses, 'controlId', c.id) || {};
+
+    const status = getResponseStatus(r, ticketStatusTypes);
     return {
       id: c.id,
       sectionId: c.id,
@@ -48,11 +51,40 @@ function controlsWithResponses(controls, responses) {
       comment: r.comment,
       ticketId: r.ticketId,
       ticket: r.ticket,
+      status,
     };
   });
 }
 
-function getAssetFailures(submissions, assets, operators, assetSubFilter = subs => subs) {
+function getResponseStatus(r, ticketStatusTypes) {
+  if (r.answer === true) {
+    return 'pass';
+  }
+
+  if (r.answer !== false) {
+    return 'na';
+  }
+
+  if (r.ticket && r.ticket.activeStatus) {
+    const status = attributeFromList(
+      ticketStatusTypes,
+      'id',
+      r.ticket.activeStatus.statusTypeId,
+      'name',
+    );
+    return (status || '').toLowerCase().replaceAll(' ', '-');
+  }
+
+  return 'fail';
+}
+
+function getAssetFailures(
+  submissions,
+  assets,
+  operators,
+  ticketStatusTypes,
+  assetSubFilter = subs => subs,
+) {
   const orderedSubmissions = submissions
     .slice()
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -62,28 +94,29 @@ function getAssetFailures(submissions, assets, operators, assetSubFilter = subs 
     .map(([assetIdStr, subs]) => {
       const assetId = parseInt(assetIdStr, 10);
       const asset = attributeFromList(assets, 'id', assetId) || {};
-      return createAssetFailure(asset, assetSubFilter(subs), operators);
+      return createAssetFailure(asset, assetSubFilter(subs), operators, ticketStatusTypes);
     })
     .filter(a => a.failedSubmissions.length)
     .sort((a, b) => (a.assetName || '').localeCompare(b.assetName || ''));
 }
 
-function createAssetFailure(asset, subs, operators) {
+function createAssetFailure(asset, subs, operators, ticketStatusTypes) {
   const failedSubmissions = subs
     .map(s => {
-      const failedControls = controlsWithResponses(getControls(s.form), s.responses).filter(
-        c => c.answer === false,
-      );
+      const responses = controlsWithResponses(getControls(s.form), s.responses, ticketStatusTypes);
+      const failedControls = responses.filter(c => c.answer === false);
+      const controlsWithComments = responses.filter(c => c.answer !== false && c.comment);
       return {
         id: s.id,
         submission: s,
         timestamp: s.timestamp,
-        controls: failedControls,
+        controls: failedControls.concat(controlsWithComments),
+        comments: s.comment,
         operator: getOperator(operators, s.operatorId, s.employeeId),
         employeeId: s.employeeId,
       };
     })
-    .filter(s => s.controls.length);
+    .filter(s => s.controls.length || !!s.comments);
 
   return {
     name: asset.name,
@@ -99,7 +132,7 @@ export default {
   },
   data: () => {
     return {
-      showAllFailures: false,
+      showLatestOnly: false,
     };
   },
   props: {
@@ -109,9 +142,18 @@ export default {
     icons: { type: Object, default: () => ({}) },
   },
   computed: {
+    ticketStatusTypes() {
+      return this.$store.state.constants.preStartTicketStatusTypes;
+    },
     assetFailures() {
-      const filter = this.showAllFailures ? s => s : s => [s[0]];
-      return getAssetFailures(this.submissions, this.assets, this.operators, filter);
+      const filter = this.showLatestOnly ? s => [s[0]] : s => s;
+      return getAssetFailures(
+        this.submissions,
+        this.assets,
+        this.operators,
+        this.ticketStatusTypes,
+        filter,
+      );
     },
   },
 };
