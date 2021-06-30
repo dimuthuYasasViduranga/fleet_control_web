@@ -58,6 +58,16 @@ import AssignedLayout from './layout/AssignedLayout.vue';
 
 import { attributeFromList } from '@/code/helpers';
 import { RouteStructure } from './routeStructure.js';
+import { firstBy } from 'thenby';
+
+const STATUS_ORDER = {
+  ready: 0,
+  process: 1,
+  standby: 2,
+  down: 4,
+  'requires-update': 5,
+  null: 6,
+};
 
 function toLocalFullAsset(asset) {
   return {
@@ -73,6 +83,8 @@ function toLocalFullAsset(asset) {
     present: asset.present,
     synced: true,
     updatedExternally: false,
+    status: asset.status,
+    statusOrder: STATUS_ORDER[asset.status],
   };
 }
 
@@ -97,6 +109,12 @@ function haulTruckDispatchEqual(a, b) {
   return a.digUnitId === b.digUnitId && a.loadId === b.loadId && a.dumpId === b.dumpId;
 }
 
+function orderAssets(assets, assetOrdering) {
+  if (assetOrdering === 'status') {
+    assets.sort(firstBy('statusOrder').thenBy('name'));
+  }
+}
+
 export default {
   name: 'DndRouteMain',
   components: {
@@ -107,6 +125,7 @@ export default {
   },
   props: {
     orientation: { type: String, default: 'horizontal' },
+    assetOrdering: { type: String, default: 'normal' },
     layoutSettings: { type: Object, default: () => ({ vertical: {}, horizontal: {} }) },
     fullAssets: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
@@ -147,9 +166,13 @@ export default {
         });
     },
     otherAssets() {
-      return this.fullAssets
+      const assets = this.fullAssets
         .filter(a => a.type !== 'Haul Truck' && a.secondaryType !== 'Dig Unit')
         .map(toLocalFullAsset);
+
+      orderAssets(assets, this.assetOrdering);
+
+      return assets;
     },
     unassignedAssets() {
       const routes = this.structure.routes;
@@ -186,6 +209,13 @@ export default {
         this.updateStructure();
       },
     },
+    assetOrdering(newV, oldV) {
+      if (newV !== oldV) {
+        this.updateLocalHaulTrucks(this.fullAssets);
+        this.updateLocalDigUnits(this.fullAssets);
+        this.updateStructure();
+      }
+    },
   },
   methods: {
     updateLocalHaulTrucks(fullAssets) {
@@ -215,14 +245,20 @@ export default {
           return ht;
         });
 
+      orderAssets(newHTs, this.assetOrdering);
+
       this.localHaulTrucks = newHTs;
     },
     updateLocalDigUnits(assets) {
-      this.localDigUnits = assets
+      const digUnits = assets
         .filter(a => a.secondaryType === 'Dig Unit')
         .map(a => {
           return addDigUnitInfo(toLocalFullAsset(a), this.digUnitActivities);
         });
+
+      orderAssets(digUnits, this.assetOrdering);
+
+      this.localDigUnits = digUnits;
     },
     updateStructure() {
       this.localHaulTrucks.forEach(ht => {

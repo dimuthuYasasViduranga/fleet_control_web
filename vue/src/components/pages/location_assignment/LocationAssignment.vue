@@ -10,6 +10,7 @@
       </div>
       <DndRouteMain
         :orientation="dndSettings.orientation"
+        :assetOrdering="dndSettings.assetOrdering"
         :layoutSettings="dndSettings"
         :fullAssets="fullAssets"
         :locations="locations"

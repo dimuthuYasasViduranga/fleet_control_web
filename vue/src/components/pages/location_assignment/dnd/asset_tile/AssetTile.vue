@@ -28,8 +28,8 @@
       {{ nUnreadMsgs }}
     </Bubble>
 
-    <div class="asset-icon-wrapper" :class="assetIconClass">
-      <NIcon class="asset-icon" :icon="icon" :secondaryIcon="secondaryIcon" />
+    <div class="asset-icon-wrapper">
+      <NIcon class="asset-icon" :class="asset.status" :icon="icon" :secondaryIcon="secondaryIcon" />
     </div>
 
     <!-- location if available -->
@@ -165,20 +165,6 @@ export default {
     tileClasses() {
       return [getDesyncedClass(this.asset), getAndResolveExternalUpdateClass(this.asset)];
     },
-    assetIconClass() {
-      const asset = this.asset;
-      const alloc = asset.activeTimeAllocation || {};
-
-      if (alloc.id && !alloc.isReady) {
-        return `${(alloc.groupName || 'Process').toLowerCase()}-icon`;
-      }
-
-      if (asset.present) {
-        return 'ok-icon';
-      }
-
-      return 'offline-icon';
-    },
     locationName() {
       const activity = this.asset.activity || {};
       return attributeFromList(this.locations, 'id', activity.locationId, 'name');
@@ -295,6 +281,27 @@ export default {
 .asset-tile .asset-icon .secondary-icon #error_icon {
   stroke-width: 1.5;
   stroke: red;
+}
+
+/* status colors */
+.asset-tile .asset-icon.ready .primary-icon svg {
+  stroke: green;
+}
+
+.asset-tile .asset-icon.process .primary-icon svg {
+  stroke: orange;
+}
+
+.asset-tile .asset-icon.standby .primary-icon svg {
+  stroke: white;
+}
+
+.asset-tile .asset-icon.down .primary-icon svg {
+  stroke: gray;
+}
+
+.asset-tile .asset-icon.requires-update .primary-icon svg {
+  stroke: cadetblue;
 }
 
 /* -- operator/asset names */

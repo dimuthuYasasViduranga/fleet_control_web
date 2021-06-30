@@ -186,6 +186,7 @@ const state = {
   currentPreStartSubmissions: Array(),
   dndSettings: {
     orientation: 'horizontal',
+    assetOrdering: 'normal',
     vertical: {
       orderBy: 'location',
       columns: 2,

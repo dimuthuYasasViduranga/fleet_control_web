@@ -67,6 +67,8 @@ export function toFullAsset(
 
   const present = !!presence.find(p => p === device.uuid);
 
+  const status = getAssetStatus(activeTimeAllocationTC.groupName, !!operator.id);
+
   return {
     id: asset.id,
     name: asset.name,
@@ -97,8 +99,21 @@ export function toFullAsset(
     radioNumber,
     hasDevice: !!device.id,
     present,
+    status,
     deviceAssignedAt: copyDate(deviceAssignment.timestamp),
   };
+}
+
+function getAssetStatus(timeCodeGroup, hasOperator) {
+  if (!timeCodeGroup) {
+    return null;
+  }
+
+  if (timeCodeGroup === 'Ready' && !hasOperator) {
+    return 'requires-update';
+  }
+
+  return timeCodeGroup.toLowerCase();
 }
 
 export function fromGMapsGeofences(geofences) {
