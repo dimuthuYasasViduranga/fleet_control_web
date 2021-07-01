@@ -19,7 +19,12 @@
 
         <div v-else-if="latestSubmission.responseCounts.closed" class="closed">Rectified</div>
         <div v-else class="pass">
-          Pass {{ responsesHaveComments(latestSubmission) ? '- has Comments' : '' }}
+          Pass
+          {{
+            responsesHaveComments(latestSubmission) || latestSubmission.comment
+              ? '- has Comments'
+              : ''
+          }}
         </div>
       </div>
       <Icon
