@@ -417,7 +417,14 @@ export default {
         this.massSetHaulTrucks(haulTrucks, null, null, null);
       }
     },
-    onRequestAddDump({ digUnitId, loadId }) {
+    onRequestAddDump({ digUnitId = null, loadId = null }) {
+      // do not allow dumps if they are already present
+      const ignoredDumpIds = this.structure.routes
+        .filter(r => r.digUnitId === digUnitId && r.loadId === loadId)
+        .map(r => r.dumpId);
+
+      const dumpLocations = this.dumpLocations.filter(l => !ignoredDumpIds.includes(l.id));
+
       const opts = {
         title: 'Add Dump',
         digUnitId,
@@ -425,7 +432,7 @@ export default {
         digUnits: this.digUnitOptions,
         locations: this.locations,
         loadLocations: this.loadLocations,
-        dumpLocations: this.dumpLocations,
+        dumpLocations,
       };
 
       this.$modal.create(AddRouteModal, opts).onClose(resp => {
