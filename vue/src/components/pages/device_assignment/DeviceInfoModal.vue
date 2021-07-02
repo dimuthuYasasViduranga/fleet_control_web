@@ -13,6 +13,7 @@
 </template>
 
 <script>
+import LoadingModal from '../../modals/LoadingModal.vue';
 import ObjectEditor from './ObjectEditor.vue';
 export default {
   name: 'DeviceInfoModal',
@@ -65,15 +66,27 @@ export default {
         details: this.details || {},
       };
 
-      const onError = () => {
-        console.error('[DeviceInfo] Cannot update details');
-      };
+      const loading = this.$modal.create(
+        LoadingModal,
+        { message: 'Updating device details' },
+        { clickOutsideClose: false },
+      );
 
       this.$channel
         .push('set device details', payload)
-        .receive('ok', () => this.onClose())
-        .receive('error', () => onError())
-        .receive('timeout', () => onError());
+        .receive('ok', () => {
+          loading.close();
+          this.$toaster.info('Device details updated');
+          this.onClose();
+        })
+        .receive('error', resp => {
+          loading.close();
+          this.$toaster.error(resp.error || 'Unable to update device details');
+        })
+        .receive('timeout', () => {
+          loading.close();
+          this.$toaster.noComms('Unable to update device details');
+        });
     },
   },
 };
