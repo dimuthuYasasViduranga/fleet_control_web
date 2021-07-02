@@ -34,10 +34,17 @@
       />
 
       <div class="buttons">
-        <button v-if="!localOperator.id" class="hx-btn" @click="onAdd" :disabled="!hasChanged">
+        <button
+          v-if="!localOperator.id"
+          class="hx-btn"
+          :disabled="!hasChanged || !validEntry"
+          @click="onAdd"
+        >
           Create
         </button>
-        <button v-else class="hx-btn" @click="onUpdate" :disabled="!hasChanged">Update</button>
+        <button v-else class="hx-btn" :disabled="!hasChanged || !validEntry" @click="onUpdate">
+          Update
+        </button>
         <button class="hx-btn" @click="reset">Reset</button>
         <button class="hx-btn" @click="onClose">Close</button>
       </div>
@@ -80,6 +87,9 @@ export default {
       const a = this.operator || {};
       const b = this.localOperator || {};
       return ['id', 'name', 'nickname', 'employeeId'].some(key => a[key] !== b[key]);
+    },
+    validEntry() {
+      return this.localOperator.name && this.localOperator.employeeId;
     },
   },
   watch: {
