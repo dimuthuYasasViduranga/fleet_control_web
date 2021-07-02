@@ -107,7 +107,10 @@ function addHaulTruckInfo(haulTruck, dispatches) {
 }
 
 function haulTruckDispatchEqual(a, b) {
-  return a.digUnitId === b.digUnitId && a.loadId === b.loadId && a.dumpId === b.dumpId;
+  if ((!a && b) || (a && !b)) {
+    return false;
+  }
+  return a === b || (a.digUnitId === b.digUnitId && a.loadId === b.loadId && a.dumpId === b.dumpId);
 }
 
 function orderAssets(assets, assetOrdering) {
