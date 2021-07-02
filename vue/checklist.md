@@ -3,19 +3,18 @@
 
 # Device Assignment
 - [ ] Cannot revoke while assigned to asset
-- [ ] Can logout if operators but no connection
-  - [ ] this should log user out on reconnect
-- [ ] Logout works on connected tablet
+- [ ] Can logout operator while connected
+  - [ ] must enter allocation
+- [ ] Can logout operator with no connection
+  - [ ] this should log tablet out on reconnect
 - [ ] Icon equal to asset type/tablet
-- [ ] Remove tablet
-  - [ ] Warning message appears
-- [ ] Assign to asset with no UI
+- [ ] Assign to "Not Assigned"
 - [ ] Assign asset (from no asset)
 - [ ] Change asset while logged in
-- [ ] Send logout
-  - [ ] Prompted to enter exception
 - [ ] Revoke tablet
+  - [ ] Warning message appears
 - [ ] Accept new device
+  - [ ] new device should have orange indicator
 - [ ] Reject new device
 - [ ] Accept existing device
 - [ ] Ability to set device details
@@ -28,13 +27,17 @@
   - [ ] green - acknowledged
   - [ ] orange - unacknowledged
 - asset icon
-  - [ ] green - connected and no exception
-  - [ ] orange - exception active
-  - [ ] grey - offline with no exception
+  - [ ] green - operator and ready code
+  - [ ] orange - process
+  - [ ] white - standby
+  - [ ] gray with x - down
+  - [ ] No wifi symbol - disconnected
+  - [ ] blue - no operator and ready code
 - [ ] change allocation
-- [ ] Change load location
+- [ ] Change source 
+  - [ ] set dig unit. Location should clear
+  - [ ] Location. Dig unit should clear
 - [ ] Change dump location
-- [ ] Change next location
 - [ ] Clear assignment
 
 #### Dig Units
@@ -45,33 +48,35 @@
   - [ ] grey - offline with no exception
 - [ ] Change allocation
 - [ ] Change location
-- [ ] Change load style
 - [ ] Clear row
 
 #### Other assetes
 - [ ] Active operator present
 - asset icon
-  - [ ] green - connected and no exception
-  - [ ] orange - exception active
-  - [ ] grey - offline with no exception
+  - [ ] green - operator and ready code
+  - [ ] orange - process
+  - [ ] white - standby
+  - [ ] gray with x - down
+  - [ ] No wifi symbol - disconnected
+  - [ ] blue - no operator and ready code
 - [ ] change allocation
 
 # Location Assignment
-- [ ] Ancillary closeable
-- [ ] Ancillary not movable, and no move cursor
+- [ ] Other asssets closeable
+- [ ] Other asset not movable, and no move cursor
 - [ ] Unassigned closeable
 - [ ] Check multiline of assets holds shape (ie does not stretch or break boundary)
-- [ ] No popovers while dragging
-- [ ] Scroll when dragging to bottom of page (must have enough routes)
-- [ ] X -> unassigned (with asset) and X -> Y (with asset) has both showing
-- [ ] X -> unassigned shown if dig unit and no haul trucks
-- [ ] X -> unassigned (dig unit and no haul truck) and X - y (dig unit, haul truck) does not show unassigned
-- [ ] Warning icon when in static geofence but no exception
-- Truck icon
-  - [ ] green - connected and no exception
-  - [ ] orange - exception active
-  - [ ] grey - offline with no exception
-- Asset name bar
+- [ ] No popover from dragged icon
+- [ ] valid source with no dump location
+- [ ] no source with valid dump location
+- Asset Icon
+  - [ ] green - operator and ready code
+  - [ ] orange - process
+  - [ ] white - standby
+  - [ ] gray with x - down
+  - [ ] No wifi symbol - disconnected
+  - [ ] blue - no operator and ready code
+- Asset name bar (haul truck)
   - [ ] clear - asset offline and no operator
   - [ ] green - online and acknowledged
   - [ ] orange - online and not acknowledged
@@ -79,6 +84,11 @@
 - [ ] Unassigned route shown while no assets in it
 - [ ] Unassigned route minimise
 - [ ] ability to delete route if no assets present
+- [ ] context menu
+  - [ ] can change assignment
+  - [ ] can operator time allocations
+  - [ ] can operator chat (if assigned to tablet)
+  - [ ] can logout operator
 
 ### Create route
 - [ ] create route with load and dump
@@ -95,27 +105,26 @@
 
 ### Mass dispatch
 All the following are done within the edit modal
-- [ ] clear should have confirm prompt
-- [ ] clear should move "apply to" assets to unassigned
-- [ ] accept should invoke change
-- [ ] Mass change of load, no jumping and old route should be deleted
-- [ ] Mass change of dump, no jumping and old route should be deleted
-- [ ] Mass change of load and dump, no jumping and old route should be deleted
-- [ ] Use 'show all locations' and make a change to an unusual dump and load location
+- [ ] move trucks (click dump heading)
+- [ ] clear an entire dump
+- [ ] move a source
+- [ ] clear source
+
+### Settings
+- [ ] sort by status
+- [ ] change route orientation
 
 
-### Popover
+### Asset Tile Popover
 includes the following info
-- [ ] location
+- [ ] GPS location
 - [ ] operator
+- [ ] radio number
 - [ ] connection
 - haul trucks:
   - [ ] acknowledged
-- excavators:
-  - [ ] load style
 - [ ] allocation
 - [ ] last seen
-- [ ] warning message (when warning icon shown)
 
 
 # Mine Map
@@ -134,7 +143,7 @@ includes the following info
   - [ ] Down (grey)
   - [ ] Emergency (orange)
   - [ ] NO allocation (purple. Only occurs on new assets)
-  - [ ] toggle visibility
+  - [ ] toggle alert visibility
 - [ ] Clusters toggleable
 - [ ] Asset selectable from dropdown
 - [ ] Asset editable from popover (and that the details update)
@@ -142,7 +151,6 @@ includes the following info
 
 ### Info window - general
 - [ ] Click to show info 
-- [ ] Click to show route path (if cluster avaiable for the area)
 - popover shows
   - [ ] Asset name (type)
   - [ ] Operator
@@ -150,25 +158,10 @@ includes the following info
   - [ ] Speed
   - [ ] Heading
   - [ ] Ignition
-  - [ ] Time
-  - [ ] Allocation
+  - [ ] Last GPS
+  - [ ] radio
+  - [ ] Allocation (with duration)
 - [ ] Ability to change assignment
-
-# Asset progress
-- [ ] Asset direction (left and right)
-- [ ] Other assets shown at bottom
-- [ ] Assets that cannot find route shown at bottom
-- [ ] warning when asset with route is in static geofence without exception
-- icon
-  - [ ] green - connected no exception
-  - [ ] orange - active exception
-  - [ ] grey - offline no exception
-- popover
-  - [ ] Location
-  - [ ] Allocation
-  - [ ] Load
-  - [ ] Dump
-  - [ ] Last seen
 
 
 # Operators
@@ -182,7 +175,7 @@ includes the following info
 # Time Code Editor
 ### Time codes
 - [ ] ability to change name
-- [ ] create new error on duplicate code
+- [ ] tooltip if code has already been taken
 - [ ] cannot edit "No task"
 
 ### Time code groups
@@ -195,7 +188,7 @@ includes the following info
 - [ ] ability to drag time code
 - [ ] ability to drag group
 - [ ] ability to delete elements
-- [ ] ability to have empty groups
+- [ ] empty groups automatically removed
 - [ ] removal of empty time code entries
 
 ### Time code tree matrix
@@ -218,6 +211,30 @@ includes the following info
 - [ ] ticks for use
 - [ ] hover to see asset type in box
 
+
+# Pre-start Editor
+### Forms
+- [ ] Can change section order
+- [ ] Can edit section heading
+- [ ] Cannot submit empty control
+  - [ ] toast with reason
+- [ ] Cannot submit empty sections
+  - [ ] toast with reason
+- [ ] Ability to submit with zero sections
+- [ ] Can set category
+  - [ ] dropdown should show the actions for each element
+  - [ ] set cateogry should show tooltip on hover
+- [ ] Ability to set "comment required"
+- [ ] Can change order of control
+  - [ ] can move into another section
+
+### Editor
+- [ ] Ability to create category
+- [ ] update name
+- [ ] update action
+- [ ] Ability to change order
+
+
 # Asset Status
 - [ ] Check that ignition and last seen updates
 - [ ] Edit radio number during update (to see if the radio number is reverted)
@@ -229,6 +246,10 @@ includes the following info
 - [ ] See engine hours update
 - [ ] Ensure entered by appears
 - [ ] Entered at > 24 hours ago appears red
+- [ ] Correct ordering by
+  - [ ] engine hours (not alphabetically)
+  - [ ] Entered at (timestamp not alphabetically)
+  - [ ] Entered by does not produce 'undefined'
 
 # Time Allocation
 ### Asset Info Row
@@ -239,6 +260,8 @@ includes the following info
   - [ ] see cycles (if available)
   - [ ] see timeusage (if available)
   - [ ] see operator logins
+  - [ ] see shifts
+- [ ] add report
 
 ### Editor - create
 - [ ] click on cycle element to create span
@@ -264,11 +287,20 @@ includes the following info
 - [ ] locked element should cut at shift boundary
 - [ ] can lock overlapping elements
 - [ ] cannot update locked elements
+- [ ] can insert new elements ontop of locked elements
+- [ ] cannot merge new with locked elements
 - [ ] unlock element
+- [ ] lock entire shift
+- [ ] unlock entire shift
 
+# Operator Time Allocation
+- [ ] black color used if logged in with no allocation
+- [ ] Y axis ordered by assets alphabetically
+- [ ] show breakdown production summary
+  - [ ] Only productive elements by asset
+- [ ] all groups
+  - [ ] ability to step into groups
 
-### Add report
-- [ ] test that the report can be added
 
 # Time Allocation report
 - [ ] Compliant - green
@@ -285,6 +317,7 @@ includes the following info
 - [ ] Can send a mass question
   - [ ] And see all responses (hover over to get all assets)
 - [ ] Cannot send question without 2 answers
+- [ ] can use quick message
 - [ ] Always shows top date separator
 - [ ] Date separators always have something between them
 - Contact shows
@@ -292,8 +325,14 @@ includes the following info
   - [ ] Asset icon
   - [ ] Operator
   - [ ] current time allocation
-  - [ ] Green, orange, offline icon colors (good, exception, offline)
-- [ ] Can see active allocation at the bottom of the screen
+  - [ ] asset colors
+    - [ ] green - operator and ready code
+    - [ ] orange - process
+    - [ ] white - standby
+    - [ ] gray with x - down
+    - [ ] No wifi symbol - disconnected
+    - [ ] blue - no operator and ready code
+- [ ] Can see active allocation at the bottom of the feed
 - [ ] Can edit an exception (bottom edit icon)
 - [ ] Show radio number on message bar (if set)
 - [ ] Dispatcher message outline when not acknowledged
@@ -301,7 +340,4 @@ includes the following info
 - [ ] Searchable contact fields
 - [ ] Searchable feed
 - [ ] Operator message shows operator name
-
-# Other conditions
-- [ ] Ensure that you can acknowledge initial device assignment
-
+- [ ] "call me" message shows radio number in chat log
