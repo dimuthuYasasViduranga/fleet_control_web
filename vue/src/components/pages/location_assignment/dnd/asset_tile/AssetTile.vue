@@ -51,7 +51,7 @@
 
     <!-- tooltip area -->
     <div class="__asset-tile-popover" slot="popover" @mouseenter="showPopover = false">
-      <AssetTilePopover :asset="asset" :track="track" :showAlert="showAlert" />
+      <AssetTilePopover :asset="asset" :track="track" />
     </div>
   </v-popover>
 </template>
@@ -158,20 +158,6 @@ export default {
     locationName() {
       const activity = this.asset.activity || {};
       return attributeFromList(this.locations, 'id', activity.locationId, 'name');
-    },
-    showAlert() {
-      const hasAsset = this.asset && this.asset.id;
-      const hasTrack = this.track && this.track.assetId;
-      return (
-        hasAsset &&
-        hasTrack &&
-        this.asset.type === 'Haul Truck' &&
-        isMissingException(
-          this.asset.activeTimeAllocation,
-          (this.track.location || {}).type,
-          this.track.timestamp,
-        )
-      );
     },
   },
   methods: {

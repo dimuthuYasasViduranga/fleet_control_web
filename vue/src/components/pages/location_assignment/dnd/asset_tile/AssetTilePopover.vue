@@ -59,9 +59,9 @@
       </tr>
     </table>
 
-    <div v-if="showAlert" class="alert-info">
+    <div v-if="asset.status === 'requires-update'" class="alert-info">
       <Icon class="alert-icon" :icon="alertIcon" />
-      <div class="alert-text">Location suggests exception</div>
+      <div class="alert-text">In Ready code without operator</div>
     </div>
   </div>
 </template>
@@ -112,7 +112,6 @@ export default {
   props: {
     asset: { type: Object, default: () => ({}) },
     track: { type: Object, default: () => ({}) },
-    showAlert: { type: Boolean, default: false },
   },
   data: () => {
     return {
