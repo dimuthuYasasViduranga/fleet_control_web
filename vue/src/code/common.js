@@ -9,7 +9,11 @@ export function getAssetTileSecondaryIcon(asset) {
     return TabletIcon;
   }
 
-  if (asset.operator.id && !asset.present) {
+  // if the operator is a non-empty string, or if the operator has an id
+  if (
+    (typeof asset.operator === 'string' && asset.operator) ||
+    (asset.operator.id && !asset.present)
+  ) {
     return NoWifiIcon;
   }
 

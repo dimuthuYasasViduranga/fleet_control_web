@@ -40,7 +40,7 @@
         </template>
       </table-column>
 
-      <table-column cell-class="table-cel" label="Operator" show="operator" />
+      <table-column cell-class="table-cel" label="Operator" show="operatorName" />
 
       <table-column label="Allocation" cell-class="table-cel">
         <template slot-scope="row">
@@ -157,7 +157,8 @@ export default {
           return {
             assetId: asset.id,
             assetName: asset.name,
-            operator: asset.operator.fullname || '',
+            operator: asset.operator,
+            operatorName: asset.operator.fullname || '',
             digUnitId: dispatch.digUnitId,
             loadId: dispatch.loadId,
             dumpId: dispatch.dumpId,
@@ -311,27 +312,5 @@ export default {
 
 .haul-truck-table .asset-icon {
   width: 2.5rem;
-}
-
-/* asset secondary colors */
-.haul-truck-table .asset-icon .secondary-icon #alert_icon {
-  stroke-width: 1.5;
-  stroke: orange;
-}
-
-.haul-truck-table .asset-icon .secondary-icon #tablet_icon {
-  stroke-width: 0.5;
-  stroke: orange;
-  stroke-dasharray: 1;
-}
-
-.haul-truck-table .asset-icon .secondary-icon #error_icon {
-  stroke-width: 1.5;
-  stroke: red;
-}
-
-.haul-truck-table .asset-icon .secondary-icon #no_wifi_icon {
-  stroke-width: 4;
-  stroke: orange;
 }
 </style>

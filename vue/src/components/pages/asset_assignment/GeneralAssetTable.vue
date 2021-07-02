@@ -33,7 +33,7 @@
         </template>
       </table-column>
 
-      <table-column cell-class="table-cel" label="Operator" show="operator" />
+      <table-column cell-class="table-cel" label="Operator" show="operatorName" />
 
       <table-column label="Allocation" cell-class="table-cel">
         <template slot-scope="row">
@@ -90,7 +90,8 @@ export default {
             assetName: asset.name,
             assetType: asset.type,
             assetTypeId: asset.typeId,
-            operator: asset.operator.fullname || '',
+            operator: asset.operator,
+            operatorName: asset.operator.fullname || '',
             activeTimeAllocation: asset.activeTimeAllocation || {},
             present: asset.present,
             status: asset.status,
@@ -170,27 +171,5 @@ export default {
 
 .general-asset-table .asset-icon {
   width: 2.5rem;
-}
-
-/* asset secondary colors */
-.general-asset-table .asset-icon .secondary-icon #alert_icon {
-  stroke-width: 1.5;
-  stroke: orange;
-}
-
-.general-asset-table .asset-icon .secondary-icon #tablet_icon {
-  stroke-width: 0.5;
-  stroke: orange;
-  stroke-dasharray: 1;
-}
-
-.general-asset-table .asset-icon .secondary-icon #error_icon {
-  stroke-width: 1.5;
-  stroke: red;
-}
-
-.general-asset-table .asset-icon .secondary-icon #no_wifi_icon {
-  stroke-width: 4;
-  stroke: orange;
 }
 </style>
