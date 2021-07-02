@@ -21,7 +21,10 @@
             label="type"
             @change="onAssetTypeChange"
           />
-          <button v-if="assetTypeId" class="hx-btn" @click="onConfirmSubmit">Submit</button>
+          <template v-if="assetTypeId">
+            <button class="hx-btn" @click="onConfirmSubmit()">Submit</button>
+            <button class="hx-btn" @click="onReset()">Reset</button>
+          </template>
         </div>
         <PreStartFormEditor v-if="assetTypeId" v-model="form" />
       </div>
@@ -135,6 +138,9 @@ export default {
       this.assetTypeId = typeId;
       const preStartForm = this.preStartForms.find(ps => ps.assetTypeId === typeId);
       this.form = toForm(preStartForm);
+    },
+    onReset() {
+      this.onAssetTypeChange(this.assetTypeId);
     },
     onConfirmSubmit() {
       this.$modal
