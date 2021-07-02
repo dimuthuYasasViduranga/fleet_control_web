@@ -32,13 +32,6 @@
               </td>
             </tr>
           </table>
-          <!-- <div class="item">
-            <div class="name">{{ item.name }}</div>
-            <div class="action" :class="{ italic: !item.action }">
-              {{ item.action || '-- No Action --' }}
-            </div>
-            <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit(item)" />
-          </div> -->
         </Draggable>
       </Container>
     </div>
@@ -133,14 +126,17 @@ export default {
       this.setLocalCategories(this.categories);
     },
     onEdit(item) {
-      this.$modal.create(CategoryEditorModal, { category: item }).onClose(resp => {
+      const existingNames = this.localCategories.filter(c => c.id !== item.id).map(c => c.name);
+      this.$modal.create(CategoryEditorModal, { category: item, existingNames }).onClose(resp => {
         if (resp) {
           Object.assign(item, resp);
         }
       });
     },
     onAddNew() {
-      this.$modal.create(CategoryEditorModal).onClose(resp => {
+      const existingNames = this.localCategories.map(c => c.name);
+
+      this.$modal.create(CategoryEditorModal, { existingNames }).onClose(resp => {
         if (resp) {
           this.localCategories.push(resp);
         }
@@ -171,7 +167,10 @@ export default {
 
       this.$channel
         .push('pre-start:update control categories', payload)
-        .receive('ok', () => this.$toaster.info('Categories updated'))
+        .receive('ok', () => {
+          this.onReset();
+          this.$toaster.info('Categories updated');
+        })
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', resp =>
           this.$toaster.noComms('Unable to update categories at this time'),

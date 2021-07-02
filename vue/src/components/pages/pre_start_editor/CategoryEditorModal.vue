@@ -5,6 +5,11 @@
         <td class="key">Name</td>
         <td class="value">
           <input
+            v-tooltip="{
+              trigger: 'manual',
+              show: nameTaken,
+              content: 'Name already exists',
+            }"
             class="typeable"
             v-model="localCat.name"
             placeholder="Name"
@@ -27,7 +32,9 @@
       </tr>
     </table>
     <div class="actions">
-      <button class="hx-btn" @click="onUpdate()">Update</button>
+      <button class="hx-btn" :disabled="!localCat.name || nameTaken" @click="onUpdate()">
+        Update
+      </button>
       <button class="hx-btn" @click="reset()">Reset</button>
       <button class="hx-btn" @click="close()">Cancel</button>
     </div>
@@ -48,11 +55,17 @@ export default {
   wrapperClass: 'category-editor-modal-wrapper',
   props: {
     category: { type: Object, default: () => emptyCategory() },
+    existingNames: { type: Array, default: () => [] },
   },
   data: () => {
     return {
       localCat: emptyCategory(),
     };
+  },
+  computed: {
+    nameTaken() {
+      return this.existingNames.includes(this.localCat.name);
+    },
   },
   mounted() {
     this.reset();
@@ -67,6 +80,11 @@ export default {
     onUpdate() {
       if (!this.localCat.name) {
         this.$toaster.error('Category requires a name');
+        return;
+      }
+
+      if (this.nameTaken) {
+        this.$toaster.error('Name already exists');
         return;
       }
 
@@ -120,5 +138,14 @@ export default {
 .category-editor-modal .actions .hx-btn {
   width: 100%;
   margin: 0 0.1rem;
+}
+
+.category-editor-modal .hx-btn[disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.category-editor-modal .hx-btn[disabled]:hover {
+  background-color: #425866;
 }
 </style>
