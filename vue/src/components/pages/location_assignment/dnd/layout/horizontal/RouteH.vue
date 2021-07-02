@@ -164,7 +164,13 @@ export default {
       return this.digUnit;
     },
     shouldAcceptIntoDigUnit(asset) {
-      return !this.digUnitId && asset && asset.secondaryType === 'Dig Unit';
+      const doesNotHaveDigUnit = !this.digUnitId;
+      const isDigUnit = asset && asset.secondaryType === 'Dig Unit';
+      const assignedHaulTruckCount = this.haulTrucks.filter(
+        h => (h.dispatch || {}).digUnitId === asset.id,
+      ).length;
+
+      return doesNotHaveDigUnit && isDigUnit && assignedHaulTruckCount === 0;
     },
     onDropIntoDigUnit({ addedIndex, removedIndex, payload }) {
       // is added
