@@ -21,7 +21,7 @@
 import ContactHeader from './header/ContactHeader.vue';
 import ContactList from './contacts/ContactList.vue';
 import { firstBy } from 'thenby';
-import { isInText } from '../../../code/helpers';
+import { isInText } from '@/code/helpers';
 
 function filterBySearch(assets, text) {
   if (text === '') {
@@ -34,7 +34,9 @@ function filterBySearch(assets, text) {
     return (
       isInText(a.name, text) ||
       isInText(a.operator.fullname || 'No Operator', text) ||
-      isInText(present, text)
+      isInText(present, text) ||
+      isInText(a.type, text) ||
+      isInText(a.secondaryType, text)
     );
   });
 }
