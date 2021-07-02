@@ -140,11 +140,11 @@ export default {
     },
     assetBarClass() {
       const asset = this.asset;
-      if (asset.type === 'Haul Truck' && asset.operator.id) {
-        return asset.dispatch.acknowledged ? 'asset-bar-green' : 'asset-bar-orange';
+      if (asset.type === 'Haul Truck' && asset.operator.id && !asset.dispatch.acknowledged) {
+        return 'asset-bar-orange';
       }
 
-      return '';
+      return asset.operator.id ? 'asset-bar-green' : '';
     },
     bubbleColor() {
       return this.nUnreadMsgs ? 'yellow' : 'grey';
