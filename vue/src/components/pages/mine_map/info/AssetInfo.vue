@@ -27,7 +27,7 @@
       </tr>
       <tr>
         <td class="heading">Heading</td>
-        <td class="value">{{ heading }}&#176;</td>
+        <td class="value">{{ heading }}&#176; ({{ headingToCompass(heading) }})</td>
       </tr>
       <tr>
         <td class="heading">Ignition</td>
@@ -71,6 +71,22 @@ const SECONDS_IN_DAY = 24 * 3600;
 const AGO_SWITCH = 60 * 60 * 1000; // 1 hour
 const AGO_MAX = 2 * 60 * 1000; // 2 minutes
 const AGO_WARN = 30 * 1000; // 30 seconds
+
+const COMPASS_COORDS = [
+  [0, 22.5, 'N'],
+  [22.5, 67.5, 'NE'],
+  [67.5, 112.5, 'E'],
+  [112.5, 157.5, 'SE'],
+  [157.5, 202.5, 'S'],
+  [202.5, 247.5, 'SW'],
+  [247.5, 292.5, 'W'],
+  [292.5, 337.5, 'NW'],
+  [337.5, 360, 'N'],
+];
+
+function bearingToCompass(bearing) {
+  return (COMPASS_COORDS.find(([min, max]) => bearing >= min && bearing <= max) || [])[2];
+}
 
 export default {
   name: 'HaulTruckInfo',
@@ -176,6 +192,9 @@ export default {
     },
     formatAgo(ago) {
       return formatSecondsRelative(Math.trunc(ago / 1000));
+    },
+    headingToCompass(bearing) {
+      return bearingToCompass(bearing);
     },
   },
 };
