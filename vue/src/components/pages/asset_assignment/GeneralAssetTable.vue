@@ -50,15 +50,13 @@
 
 <script>
 import { mapState } from 'vuex';
+import { TableComponent, TableColumn } from 'vue-table-component';
 import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
-import { TableComponent, TableColumn } from 'vue-table-component';
+import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import EditIcon from '@/components/icons/Edit.vue';
-import TabletIcon from '@/components/icons/Tablet.vue';
-import CrossIcon from 'hx-layout/icons/Error.vue';
-import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 const TAKEN_TYPES = ['Haul Truck', 'Excavator', 'Loader'];
 
@@ -74,7 +72,6 @@ export default {
   data: () => {
     return {
       editIcon: EditIcon,
-      tabletIcon: TabletIcon,
     };
   },
   computed: {
@@ -110,21 +107,7 @@ export default {
       return this.icons[row.assetType] || this.icons.Unknown;
     },
     getSecondaryIcon(asset) {
-      const activeAllocGroup = asset.activeTimeAllocation.groupName;
-
-      if (!asset.hasDevice) {
-        return TabletIcon;
-      }
-
-      if (asset.operator.id && !asset.present) {
-        return NoWifiIcon;
-      }
-
-      if (activeAllocGroup === 'Down') {
-        return CrossIcon;
-      }
-
-      return null;
+      return getAssetTileSecondaryIcon(asset);
     },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
@@ -133,11 +116,11 @@ export default {
     },
     presenceTooltip(row) {
       const alloc = row.activeTimeAllocation;
-      if (!row.hasDevice) {
-        return 'No tablet assigned!';
-      }
       if (alloc.id) {
         return `${alloc.groupAlias || alloc.groupName} - ${alloc.name}`;
+      }
+      if (!row.hasDevice) {
+        return 'No tablet assigned!';
       }
       if (row.present) {
         return 'Active';

@@ -2,8 +2,13 @@
   <div class="contact" :class="highlightClass" @click="emitSelect">
     <table class="contact-layout">
       <tr class="first-row">
-        <td class="truck-icon-wrapper" :class="truckColor">
-          <Icon class="truck-icon" :icon="icon" />
+        <td class="icon-wrapper">
+          <NIcon
+            class="asset-icon"
+            :class="asset.status"
+            :icon="icon"
+            :secondaryIcon="secondaryIcon"
+          />
         </td>
         <td class="asset-name">
           {{ asset.name }}
@@ -27,13 +32,15 @@
 </template>
 
 <script>
-import Icon from 'hx-layout/Icon.vue';
-import Bubble from '../../../Bubble.vue';
+import NIcon from '@/components/NIcon.vue';
+import Bubble from '@/components/Bubble.vue';
+
+import { getAssetTileSecondaryIcon } from '@/code/common';
 
 export default {
   name: 'Contact',
   components: {
-    Icon,
+    NIcon,
     Bubble,
   },
   props: {
@@ -52,6 +59,9 @@ export default {
     },
     activeTimeCodeName() {
       return this.activeTimeAllocation.name;
+    },
+    secondaryIcon() {
+      return getAssetTileSecondaryIcon(this.asset);
     },
     truckColor() {
       const asset = this.asset;
@@ -111,18 +121,10 @@ export default {
   text-align: center;
 }
 
-.contact .truck-icon {
+.contact .asset-icon {
   height: 3rem;
   width: auto;
   padding: 0.5rem;
-}
-
-.contact .truck-icon svg {
-  stroke-width: 0.09rem;
-}
-
-.contact .truck-icon .icon-wrapper {
-  stroke-width: 10px;
 }
 
 .contact .bubble-wrapper {

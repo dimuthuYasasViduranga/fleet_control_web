@@ -100,16 +100,12 @@ import DropDown from '../../dropdown/DropDown.vue';
 import NIcon from '@/components/NIcon.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { toFullName, attributeFromList } from '../../../code/helpers';
+import { toFullName, attributeFromList } from '@/code/helpers';
+import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import ManIcon from '../../icons/Man.vue';
 import EditIcon from '../../icons/Edit.vue';
 import TruckIcon from '../../icons/asset_icons/HaulTruck.vue';
-
-import AlertIcon from '@/components/icons/Alert.vue';
-import TabletIcon from '@/components/icons/Tablet.vue';
-import CrossIcon from 'hx-layout/icons/Error.vue';
-import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 function noneLocation() {
   return {
@@ -207,21 +203,7 @@ export default {
   },
   methods: {
     getSecondaryIcon(asset) {
-      const activeAllocGroup = asset.activeTimeAllocation.groupName;
-
-      if (!asset.hasDevice) {
-        return TabletIcon;
-      }
-
-      if (asset.operator.id && !asset.present) {
-        return NoWifiIcon;
-      }
-
-      if (activeAllocGroup === 'Down') {
-        return CrossIcon;
-      }
-
-      return null;
+      return getAssetTileSecondaryIcon(asset);
     },
     onEdit(row) {
       this.$eventBus.$emit('asset-assignment-open', row.assetId);

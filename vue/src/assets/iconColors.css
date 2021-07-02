@@ -43,3 +43,25 @@
 .asset-icon.requires-update > svg {
   stroke: cadetblue;
 }
+
+/* secondary icon colors */
+.asset-icon .secondary-icon #alert_icon {
+  stroke-width: 1.5;
+  stroke: orange;
+}
+
+.asset-icon .secondary-icon #tablet_icon {
+  stroke-width: 0.5;
+  stroke: orange;
+  stroke-dasharray: 1;
+}
+
+.asset-icon .secondary-icon #error_icon {
+  stroke-width: 1.5;
+  stroke: red;
+}
+
+.asset-icon .secondary-icon #no_wifi_icon {
+  stroke-width: 4;
+  stroke: orange;
+}

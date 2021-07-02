@@ -96,11 +96,9 @@ import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
 import { attributeFromList } from '@/code/helpers';
+import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import EditIcon from '@/components/icons/Edit.vue';
-import TabletIcon from '@/components/icons/Tablet.vue';
-import CrossIcon from 'hx-layout/icons/Error.vue';
-import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 export default {
   name: 'DigUnitTable',
@@ -115,7 +113,6 @@ export default {
   data: () => {
     return {
       editIcon: EditIcon,
-      tabletIcon: TabletIcon,
     };
   },
   computed: {
@@ -169,21 +166,7 @@ export default {
       return this.icons[row.assetType];
     },
     getSecondaryIcon(asset) {
-      const activeAllocGroup = asset.activeTimeAllocation.groupName;
-
-      if (!asset.hasDevice) {
-        return TabletIcon;
-      }
-
-      if (asset.operator.id && !asset.present) {
-        return NoWifiIcon;
-      }
-
-      if (activeAllocGroup === 'Down') {
-        return CrossIcon;
-      }
-
-      return null;
+      return getAssetTileSecondaryIcon(asset);
     },
     getAllowedTimeCodeIds(assetTypeId) {
       return this.fullTimeCodes
@@ -192,11 +175,11 @@ export default {
     },
     presenceTooltip(row) {
       const alloc = row.activeTimeAllocation;
-      if (!row.hasDevice) {
-        return 'No tablet assigned!';
-      }
       if (alloc.id) {
         return `${alloc.groupAlias || alloc.groupName} - ${alloc.name}`;
+      }
+      if (!row.hasDevice) {
+        return 'No tablet assigned!';
       }
       if (row.present) {
         return 'Active';
@@ -266,27 +249,5 @@ export default {
 
 .dig-unit-table .asset-icon {
   width: 2.5rem;
-}
-
-/* asset secondary colors */
-.dig-unit-table .asset-icon .secondary-icon #alert_icon {
-  stroke-width: 1.5;
-  stroke: orange;
-}
-
-.dig-unit-table .asset-icon .secondary-icon #tablet_icon {
-  stroke-width: 0.5;
-  stroke: orange;
-  stroke-dasharray: 1;
-}
-
-.dig-unit-table .asset-icon .secondary-icon #error_icon {
-  stroke-width: 1.5;
-  stroke: red;
-}
-
-.dig-unit-table .asset-icon .secondary-icon #no_wifi_icon {
-  stroke-width: 4;
-  stroke: orange;
 }
 </style>

@@ -64,12 +64,9 @@ import AssetTilePopover from './AssetTilePopover.vue';
 
 import { attributeFromList } from '@/code/helpers';
 import { isMissingException } from '@/store/modules/haul_truck';
+import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import ListIcon from '@/components/icons/List.vue';
-import AlertIcon from '@/components/icons/Alert.vue';
-import TabletIcon from '@/components/icons/Tablet.vue';
-import CrossIcon from 'hx-layout/icons/Error.vue';
-import NoWifiIcon from '@/components/icons/NoWifi.vue';
 
 import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
@@ -119,26 +116,7 @@ export default {
       return !!this.asset.deviceId;
     },
     secondaryIcon() {
-      const asset = this.asset;
-      const activeAllocGroup = asset.activeTimeAllocation.groupName;
-
-      if (!this.hasDevice) {
-        return TabletIcon;
-      }
-
-      if (asset.operator.id && !asset.present) {
-        return NoWifiIcon;
-      }
-
-      if (activeAllocGroup === 'Down') {
-        return CrossIcon;
-      }
-
-      if (this.showAlert) {
-        return AlertIcon;
-      }
-
-      return null;
+      return getAssetTileSecondaryIcon(this.asset);
     },
     icon() {
       const icons = this.$store.state.constants.icons;
@@ -311,31 +289,6 @@ export default {
   padding-top: 0.75rem;
   height: 4.75rem;
   width: 100%;
-}
-
-.asset-tile .asset-icon .asset-icon-svg {
-  stroke-width: 1;
-}
-
-.asset-tile .asset-icon .secondary-icon #alert_icon {
-  stroke-width: 1.5;
-  stroke: orange;
-}
-
-.asset-tile .asset-icon .secondary-icon #tablet_icon {
-  stroke-width: 0.5;
-  stroke: orange;
-  stroke-dasharray: 1;
-}
-
-.asset-tile .asset-icon .secondary-icon #error_icon {
-  stroke-width: 1.5;
-  stroke: red;
-}
-
-.asset-tile .asset-icon .secondary-icon #no_wifi_icon {
-  stroke-width: 4;
-  stroke: orange;
 }
 
 /* -- operator/asset names */
