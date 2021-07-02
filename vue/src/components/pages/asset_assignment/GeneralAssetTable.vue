@@ -147,8 +147,7 @@ export default {
 
 <style>
 .general-asset-table .dropdown-wrapper {
-  min-width: 15rem;
-  max-width: 30rem;
+  width: 100%;
   height: 2rem;
 }
 
