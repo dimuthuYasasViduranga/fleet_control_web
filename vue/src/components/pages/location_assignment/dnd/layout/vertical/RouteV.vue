@@ -268,7 +268,7 @@ export default {
 
 .target-load .dig-unit-tile-wrapper .dig-unit-container {
   width: 7rem;
-  height: 7rem;
+  min-height: 8rem;
   margin: auto;
 }
 

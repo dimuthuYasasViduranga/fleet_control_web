@@ -261,7 +261,7 @@ export default {
 
 .dig-unit-region .dig-unit-tile-wrapper {
   display: flex;
-  height: calc(100% - 4rem);
+  min-height: calc(100% - 4rem);
 }
 
 .dig-unit-region .dig-unit-tile-wrapper .dig-unit-tile {
@@ -270,7 +270,7 @@ export default {
 
 .dig-unit-region .dig-unit-tile-wrapper .dig-unit-container {
   width: 7rem;
-  height: 7rem;
+  min-height: 7rem;
   margin: auto;
 }
 
