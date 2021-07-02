@@ -35,7 +35,11 @@ export function formatDateRelativeToIn(date, tz, now = new Date()) {
   if (isSameDownTo(date, now, tz, 'day')) {
     return formatDateIn(date, tz, { format: 'HH:mm:ss' });
   }
-  return formatDateIn(date, tz, { format: '(LLL-dd) HH:mm:ss' });
+  if (isSameDownTo(date, now, tz, 'year')) {
+    return formatDateIn(date, tz, { format: '(LLL-dd) HH:mm:ss' });
+  }
+
+  return formatDateIn(date, tz, { format: '(yyyy LLL-dd) HH:mm:ss' });
 }
 
 export function isSameDownTo(date1, date2, timezone, unit) {
