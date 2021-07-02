@@ -17,17 +17,21 @@
             cell-class="table-cel"
             label="Engine Hours"
             show="hours"
+            data-type="numeric"
             :formatter="thousands"
           />
           <table-column
             cell-class="table-cel"
             label="Entered At"
             show="timestamp"
+            data-type="date"
             :formatter="formatTime"
           />
           <table-column :sortable="false" :filterable="false" cell-class="table-btn-cel request">
             <template slot-scope="row">
-              <a :id="`${row.id}`" @click="onRequestHours(row)">Request Hours</a>
+              <LockableButton @click="onRequestHours(row)" :lock="locked.includes(row.id)"
+                >Request Hours
+              </LockableButton>
             </template>
           </table-column>
         </table-component>
@@ -42,9 +46,11 @@ import { copyDate, formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
+import LockableButton from '@/components/LockableButton.vue';
 
 import PlaneEngineIcon from '../../icons/PlaneEngine.vue';
 import { attributeFromList } from '@/code/helpers';
+import { uniq } from '../../../code/helpers';
 
 const MAX_HOURS_BETWEEN_ENTRIES = 24;
 
@@ -55,11 +61,13 @@ export default {
     TableColumn,
     TableComponent,
     Loaded,
+    LockableButton,
   },
   data: () => {
     return {
       title: 'Engine Hours',
       icon: PlaneEngineIcon,
+      locked: [],
     };
   },
   computed: {
@@ -72,9 +80,9 @@ export default {
 
         return {
           id: a.id,
-          assetName: a.name,
+          assetName: a.name || '',
           hours: engineHrs.hours,
-          enteredBy: engineHrs.operatorFullname,
+          enteredBy: engineHrs.operatorFullname || '',
           timestamp: copyDate(engineHrs.timestamp),
         };
       });
@@ -102,6 +110,13 @@ export default {
 
       return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     },
+    setLocked(id, bool) {
+      if (bool === true) {
+        this.locked = uniq(this.locked.concat([id]));
+      } else {
+        this.locked = this.locked.filter(id => id !== id);
+      }
+    },
     onRequestHours(row) {
       const payload = {
         message: 'Please enter engine hours when safe',
@@ -109,7 +124,25 @@ export default {
         timestamp: Date.now(),
       };
 
-      this.$channel.push('add dispatcher message', payload);
+      this.setLocked(row.id, true);
+
+      this.$channel
+        .push('add dispatcher message', payload)
+        .receive('ok', () => {
+          this.setLocked(row.id, false);
+
+          this.$toaster.info(`${row.assetName} | Engine Hours request sent`, { onlyOne: true });
+        })
+        .receive('error', resp => {
+          this.setLocked(row.id, false);
+
+          this.$toaster.error(resp.error || `${row.assetName} | Unable to send request`);
+        })
+        .receive('timeout', () => {
+          this.setLocked(row.id, false);
+
+          this.$toaster.noComms(`${row.assetName} | Unable to send request`);
+        });
     },
   },
 };
