@@ -60,7 +60,13 @@
     </table>
 
     <div class="actions">
-      <button class="hx-btn" @click="onConfirm">{{ confirmName }}</button>
+      <button
+        class="hx-btn"
+        @click="onConfirm"
+        :disabled="validationErrors.length > 0 || takenBy.id"
+      >
+        {{ confirmName }}
+      </button>
       <button class="hx-btn" @click="onReset">Reset</button>
       <button class="hx-btn" @click="close">Cancel</button>
     </div>
@@ -250,6 +256,15 @@ export default {
 .time-code-editor-modal .actions .hx-btn {
   width: 100%;
   margin: 0 0.1rem;
+}
+
+.time-code-editor-modal .actions .hx-btn[disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.time-code-editor-modal .actions .hx-btn[disabled]:hover {
+  background-color: #425866;
 }
 
 /* ----- validation highlighting ----- */
