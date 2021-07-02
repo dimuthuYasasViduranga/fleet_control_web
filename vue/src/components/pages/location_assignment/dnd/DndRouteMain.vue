@@ -334,12 +334,7 @@ export default {
         this.updateLocalHaulTrucks(this.fullAssets);
       }
     },
-    onSetDigUnit({ digUnitId, loadId, dumpIds }) {
-      // ensure that if moving between sources, do not bring other assets hts with them
-      this.removeDigUnitFromSource(attributeFromList(this.localDigUnits, 'id', digUnitId));
-
-      this.setDigUnitLocation(digUnitId, loadId);
-
+    onSetDigUnit({ digUnitId = null, loadId = null, dumpIds = null }) {
       const affectedRoutes = this.structure.routes.filter(r => {
         return !r.digUnitId && r.loadId === loadId;
       });
@@ -352,6 +347,9 @@ export default {
       if (affectedHaulTrucks.length === 0) {
         return;
       }
+
+      this.removeDigUnitFromSource(attributeFromList(this.localDigUnits, 'id', digUnitId));
+      this.setDigUnitLocation(digUnitId, loadId);
 
       this.pendingUpdate = true;
 

@@ -10,10 +10,8 @@ export function getAssetTileSecondaryIcon(asset) {
   }
 
   // if the operator is a non-empty string, or if the operator has an id
-  if (
-    (typeof asset.operator === 'string' && asset.operator) ||
-    (asset.operator.id && !asset.present)
-  ) {
+  const hasOperator = asset.operator && (typeof asset.operator === 'string' || asset.operator.id);
+  if (hasOperator && !asset.present) {
     return NoWifiIcon;
   }
 
