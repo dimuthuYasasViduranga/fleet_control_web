@@ -32,7 +32,7 @@ defmodule DispatchWeb.Endpoint do
     at: "/",
     from: {:dispatch_web, "priv/static"},
     gzip: false,
-    only: ~w(css fonts images index.html js favicon.ico robots.txt),
+    only: ~w(css fonts images index.html js media favicon.ico robots.txt),
     headers: secure_headers
 
   # Code reloading can be explicitly enabled under the
