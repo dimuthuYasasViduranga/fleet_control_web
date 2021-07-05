@@ -9,9 +9,12 @@
       </div>
     </hxCard>
     <hxCard title="Title" :icon="bugIcon">
-      <input class="typeable" v-model="pendingTitleName" />
-      <button class="hx-btn" @click="setTitle(pendingTitleName)">Set</button>
-      <button class="hx-btn" @click="resetTitle(pendingTitleName)">Reset</button>
+      <div>
+        <input class="typeable" v-model="pendingTitleName" />
+        <button class="hx-btn" @click="setTitle(pendingTitleName)">Set</button>
+        <button class="hx-btn" @click="resetTitle(pendingTitleName)">Reset</button>
+      </div>
+      <button class="hx-btn" @click="playSound()">Play Sound</button>
     </hxCard>
     <hxCard title="Context Menu" :icon="bugIcon">
       <button class="hx-btn" @click="onOpenContext">Click to open context</button>
@@ -229,6 +232,7 @@ import Dately from '@/components/dately/Dately.vue';
 
 import { formatDateIn, toUtcDate } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
+import { AVPlayer } from '@/code/audio.js';
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -353,6 +357,9 @@ export default {
     },
     resetTitle(title) {
       Titler.reset();
+    },
+    playSound() {
+      AVPlayer.chime();
     },
     onOpenContext(event) {
       const items = [

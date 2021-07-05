@@ -1,4 +1,4 @@
-const CHIME = process.env.BASE_URL + 'audio/chime.mp3';
+const CHIME = require('@/assets/audio/chime.mp3');
 
 class AVPlayerClass {
   constructor() {
@@ -6,6 +6,7 @@ class AVPlayerClass {
   }
 
   chime() {
+    console.dir(CHIME);
     this._chime.play();
   }
 }
