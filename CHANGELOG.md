@@ -2,6 +2,7 @@
 
 ## pending [unreleased]
 
+## 0.10.14
 - fixed "pass - has comments" not appearing for submissions with general comments only
 - toast on updating device details (also has loading modal)
 - refactored the secondary asset tile icon
