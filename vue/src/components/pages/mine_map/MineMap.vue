@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 
 import PlantIcon from '../../icons/Map.vue';
@@ -89,15 +90,11 @@ export default {
     };
   },
   computed: {
-    icons() {
-      return this.$store.state.constants.icons;
-    },
-    locations() {
-      return this.$store.state.constants.locations;
-    },
-    assetTypes() {
-      return this.$store.state.constants.assetTypes;
-    },
+    ...mapState('constants', {
+      icons: state => state.icons,
+      locations: state => state.locations,
+      assetTypes: state => state.assetTypes,
+    }),
     haulTruckLocations() {
       // returns all the location ids currently being used
       const ids = this.$store.state.haulTruck.currentDispatches

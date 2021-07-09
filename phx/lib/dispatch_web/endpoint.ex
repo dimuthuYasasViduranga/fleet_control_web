@@ -88,7 +88,5 @@ defmodule DispatchWeb.Endpoint do
 
   plug DispatchWeb.Router
 
-  def init(_key, config) do
-    {:ok, config}
-  end
+  def init(_key, config), do: {:ok, config}
 end

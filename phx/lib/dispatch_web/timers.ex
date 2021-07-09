@@ -1,8 +1,6 @@
 defmodule DispatchWeb.Timers do
   @moduledoc false
 
-  require Logger
-
   alias DispatchWeb.DispatcherChannel.RefreshTopics
 
   @default_calendar_interval 24 * 3600 * 1000

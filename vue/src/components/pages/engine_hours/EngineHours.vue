@@ -29,8 +29,8 @@
           />
           <table-column :sortable="false" :filterable="false" cell-class="table-btn-cel request">
             <template slot-scope="row">
-              <LockableButton @click="onRequestHours(row)" :lock="locked.includes(row.id)"
-                >Request Hours
+              <LockableButton @click="onRequestHours(row)" :lock="locked.includes(row.id)">
+                Request Hours
               </LockableButton>
             </template>
           </table-column>

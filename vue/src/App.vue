@@ -31,11 +31,6 @@ import LiveTimeAllocationModal from './components/live_time_allocation_modal/Liv
 
 export default {
   name: 'app',
-  props: {
-    routes: Array,
-    logout: Function,
-    login: Function,
-  },
   components: {
     Layout,
     TimezoneSelector,
@@ -46,9 +41,13 @@ export default {
     AssetAssignmentModal,
     LiveTimeAllocationModal,
   },
+  props: {
+    routes: Array,
+    logout: Function,
+    login: Function,
+  },
   data: () => {
     return {
-      title: 'Dispatch',
       username: '',
     };
   },
@@ -259,9 +258,6 @@ export default {
         ['digUnit/setCurrentActivities', resp.dig_unit.activities.current],
         ['digUnit/setHistoricActivities', resp.dig_unit.activities.historic],
       ].map(([path, data]) => dispatch(path, data));
-    },
-    setStoreData(setter, data) {
-      this.$store.dispatch(setter, Object.values(data));
     },
   },
 };

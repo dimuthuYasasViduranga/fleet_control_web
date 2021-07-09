@@ -1,4 +1,4 @@
-import { toUtcDate } from '../../code/time';
+import { toUtcDate } from '@/code/time';
 
 const PENDING_TRACK_MERGE_PERIOD = 10 * 1000;
 

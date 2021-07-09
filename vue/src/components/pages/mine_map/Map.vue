@@ -247,9 +247,6 @@ export default {
   },
   computed: {
     google: gmapApi,
-    isLoading() {
-      return !this.$store.state.connection.isAlive;
-    },
     mapManifest() {
       return this.$store.state.constants.mapManifest;
     },
