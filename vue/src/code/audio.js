@@ -6,7 +6,6 @@ class AVPlayerClass {
   }
 
   chime() {
-    console.dir(CHIME);
     this._chime.play();
   }
 }

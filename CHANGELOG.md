@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.10.15
+- moved pre-start submission comments to top of viewer (easier to find/read)
+
 ## 0.10.14
 - fixed "pass - has comments" not appearing for submissions with general comments only
 - toast on updating device details (also has loading modal)
