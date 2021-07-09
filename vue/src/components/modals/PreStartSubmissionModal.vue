@@ -12,6 +12,10 @@
       </div>
       <div class="timestamp">{{ formatTime(submission.timestamp) }}</div>
     </div>
+    <div v-if="submission.comment" class="submission-comment">
+      <div class="title">Comments</div>
+      <div class="comment">{{ submission.comment }}</div>
+    </div>
     <div class="sections">
       <div class="section" v-for="(section, sIndex) in submission.form.sections" :key="sIndex">
         <div class="section-header">
@@ -60,10 +64,6 @@
           <div v-if="control.comment" class="comment">• {{ control.comment }}</div>
         </div>
       </div>
-    </div>
-    <div v-if="submission.comment" class="submission-comment">
-      <div class="title">Comments</div>
-      <div class="comment">{{ submission.comment }}</div>
     </div>
   </div>
 </template>
