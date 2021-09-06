@@ -43,9 +43,12 @@
 #### Dig Units
 - [ ] Active operator present
 - asset icon
-  - [ ] green - connected and no exception
-  - [ ] orange - exception active
-  - [ ] grey - offline with no exception
+  - [ ] green - operator and ready code
+  - [ ] orange - process
+  - [ ] white - standby
+  - [ ] gray with x - down
+  - [ ] No wifi symbol - disconnected
+  - [ ] blue - no operator and ready code
 - [ ] Change allocation
 - [ ] Change location
 - [ ] Clear row
@@ -80,14 +83,17 @@
   - [ ] clear - asset offline and no operator
   - [ ] green - online and acknowledged
   - [ ] orange - online and not acknowledged
+- Asset name bar (other assets)
+  - [ ] clear - no operator
+  - [ ] green - operator
 - [ ] Operator name on tile
 - [ ] Unassigned route shown while no assets in it
 - [ ] Unassigned route minimise
 - [ ] ability to delete route if no assets present
 - [ ] context menu
   - [ ] can change assignment
-  - [ ] can operator time allocations
-  - [ ] can operator chat (if assigned to tablet)
+  - [ ] can view time allocations
+  - [ ] can open chat (if assigned to tablet)
   - [ ] can logout operator
 
 ### Create route
@@ -103,12 +109,13 @@
 - [ ] Drag to change blue flash on second tab
 
 
-### Mass dispatch
-All the following are done within the edit modal
-- [ ] move trucks (click dump heading)
-- [ ] clear an entire dump
-- [ ] move a source
-- [ ] clear source
+### Mass dispatch - Move Trucks
+- [ ] can move a row of trucks
+- [ ] can clear trucks from dump
+
+### Mass dispatch - Change source
+- [ ] able to change source location for multiple dumps
+
 
 ### Settings
 - [ ] sort by status
@@ -119,8 +126,8 @@ All the following are done within the edit modal
 includes the following info
 - [ ] GPS location
 - [ ] operator
-- [ ] radio number
 - [ ] connection
+- [ ] radio number
 - haul trucks:
   - [ ] acknowledged
 - [ ] allocation
@@ -138,15 +145,16 @@ includes the following info
 - [ ] Selected asset dims other assets
 - [ ] Operator name shown in popup
 - Alerts per type
+  - [ ] no alert (ready)
   - [ ] Process (yellow)
   - [ ] Standby (white)
   - [ ] Down (grey)
   - [ ] Emergency (orange)
-  - [ ] NO allocation (purple. Only occurs on new assets)
   - [ ] toggle alert visibility
 - [ ] Clusters toggleable
 - [ ] Asset selectable from dropdown
 - [ ] Asset editable from popover (and that the details update)
+- [ ] Jumping to asset far off-screen does not tear map
 
 
 ### Info window - general
@@ -156,7 +164,7 @@ includes the following info
   - [ ] Operator
   - [ ] Location
   - [ ] Speed
-  - [ ] Heading
+  - [ ] Heading (compass direction)
   - [ ] Ignition
   - [ ] Last GPS
   - [ ] radio
@@ -220,7 +228,7 @@ includes the following info
   - [ ] toast with reason
 - [ ] Cannot submit empty sections
   - [ ] toast with reason
-- [ ] Ability to submit with zero sections
+- [ ] Cannot submit with zero sections
 - [ ] Can set category
   - [ ] dropdown should show the actions for each element
   - [ ] set cateogry should show tooltip on hover
@@ -243,6 +251,7 @@ includes the following info
 
 # Engine Hours
 - [ ] Request engine hours
+  - [ ] toast shown
 - [ ] See engine hours update
 - [ ] Ensure entered by appears
 - [ ] Entered at > 24 hours ago appears red
@@ -289,7 +298,7 @@ includes the following info
 - [ ] cannot update locked elements
 - [ ] can insert new elements ontop of locked elements
 - [ ] cannot merge new with locked elements
-- [ ] unlock element
+- [ ] unlock elements
 - [ ] lock entire shift
 - [ ] unlock entire shift
 
@@ -306,7 +315,6 @@ includes the following info
 - [ ] Compliant - green
 - [ ] Warn - orange
 - [ ] issues - red
-- [ ] No filter if there are no events
 
 # Chat 
 - [ ] test all filters (top of feed)

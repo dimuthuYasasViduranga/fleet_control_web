@@ -1,6 +1,4 @@
 defmodule Dispatch.Helper do
-  require Logger
-
   @type valid_datetime :: integer | String.t() | NaiveDateTime.t()
   @type range :: %{start_time: valid_datetime, end_time: valid_datetime}
 

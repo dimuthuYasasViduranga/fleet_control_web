@@ -120,24 +120,38 @@ export function deconstructDate(date, timezone = 'local') {
   return setTimeZone(date, timezone).toObject();
 }
 
-export function dayLessThan(day, date, timezone) {
-  if (!date) {
+export function dayLessThan(target, boundary, timezone) {
+  if (!boundary) {
     return false;
   }
 
-  const dateAsObj = setTimeZone(date, timezone).toObject();
+  const boundaryAsObj = setTimeZone(boundary, timezone).toObject();
 
-  return day.year <= dateAsObj.year && day.month <= dateAsObj.month && day.day < dateAsObj.day;
+  const boundaryEpoch = new Date(
+    boundaryAsObj.year,
+    boundaryAsObj.month - 1,
+    boundaryAsObj.day,
+  ).getTime();
+  const targetEpoch = new Date(target.year, target.month - 1, target.day).getTime();
+
+  return targetEpoch < boundaryEpoch;
 }
 
-export function dayGreaterThan(day, date, timezone) {
-  if (!date) {
+export function dayGreaterThan(target, boundary, timezone) {
+  if (!boundary) {
     return false;
   }
 
-  const dateAsObj = setTimeZone(date, timezone);
+  const boundaryAsObj = setTimeZone(boundary, timezone).toObject();
 
-  return day.year >= dateAsObj.year && day.month >= dateAsObj.month && day.day > dateAsObj.day;
+  const boundaryEpoch = new Date(
+    boundaryAsObj.year,
+    boundaryAsObj.month - 1,
+    boundaryAsObj.day,
+  ).getTime();
+  const targetEpoch = new Date(target.year, target.month - 1, target.day).getTime();
+
+  return targetEpoch > boundaryEpoch;
 }
 
 export function dateInRange(minDate, maxDate, timezone) {
