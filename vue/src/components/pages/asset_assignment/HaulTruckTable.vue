@@ -100,7 +100,7 @@ import DropDown from '../../dropdown/DropDown.vue';
 import NIcon from '@/components/NIcon.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { toFullName, attributeFromList } from '@/code/helpers';
+import { attributeFromList } from '@/code/helpers';
 import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import ManIcon from '../../icons/Man.vue';
@@ -257,7 +257,7 @@ export default {
       this.$channel
         .push('set allocation', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
-        .receive('timeout', resp => this.$toaster.noComms('Unable to update allocation'));
+        .receive('timeout', () => this.$toaster.noComms('Unable to update allocation'));
     },
     setDigUnitId(row, assetId) {
       row.loadId = null;

@@ -38,11 +38,10 @@
 </template>
 
 <script>
+import { formatSeconds, formatDateRelativeToIn } from '@/code/time.js';
+
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
-
-import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
-import { attributeFromList, uniq } from '../../../../code/helpers';
 
 function toPlural(value, unit, suffix) {
   if (value === 1) {

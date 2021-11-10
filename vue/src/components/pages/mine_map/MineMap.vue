@@ -106,8 +106,6 @@ export default {
       return this.locations.filter(l => uniqIds.includes(l.id));
     },
     activeLocations() {
-      const locations = this.locations;
-
       const staticLocations = this.locations.filter(l => STATIC_TYPES.includes(l.type));
       const haulLocations = this.haulTruckLocations;
 
@@ -146,7 +144,7 @@ export default {
   watch: {
     assets: {
       immediate: true,
-      handler(assets) {
+      handler() {
         if (!this.dragging) {
           this.updateLocalAssets(this.assets);
         }

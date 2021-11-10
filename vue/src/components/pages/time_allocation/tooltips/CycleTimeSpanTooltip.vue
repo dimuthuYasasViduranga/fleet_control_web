@@ -42,8 +42,7 @@
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
 
-import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
-import { attributeFromList } from '../../../../code/helpers';
+import { formatSeconds, formatDateRelativeToIn } from '@/code/time.js';
 
 function toPlural(value, unit, suffix) {
   if (value === 1) {

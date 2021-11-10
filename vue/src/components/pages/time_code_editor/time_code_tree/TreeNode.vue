@@ -125,8 +125,6 @@ import AddIcon from '@/components/icons/Add.vue';
 import FolderClosedIcon from '@/components/icons/FolderClosed.vue';
 import TrashIcon from '@/components/icons/Trash.vue';
 import HyphenIcon from '@/components/icons/Hyphen.vue';
-import ArrowUpIcon from '@/components/icons/ArrowUp.vue';
-import ArrowDownIcon from '@/components/icons/ArrowDown.vue';
 
 const ENTER = 13;
 

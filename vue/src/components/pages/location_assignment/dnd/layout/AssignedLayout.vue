@@ -61,8 +61,6 @@ import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
 import RouteV from './vertical/RouteV.vue';
 import RouteH from './horizontal/RouteH.vue';
 
-import AddRouteModal from '../AddRouteModal.vue';
-import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import { attributeFromList, Dictionary } from '@/code/helpers';
 import { firstBy } from 'thenby';
 

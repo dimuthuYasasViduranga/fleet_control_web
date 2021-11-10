@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script type="text/javascript">
+<script>
 import { TableComponent, TableColumn } from 'vue-table-component';
 
 import hxCard from 'hx-layout/Card.vue';
@@ -38,8 +38,8 @@ import Loaded from '../../Loaded.vue';
 
 import BellIcon from '../../icons/Bell.vue';
 
-import { formatDateRelativeToIn, toUtcDate } from '../../../code/time';
-import { attributeFromList } from '../../../code/helpers';
+import { formatDateRelativeToIn } from '@/code/time';
+import { attributeFromList } from '@/code/helpers';
 
 export default {
   name: 'DispatchHistory',

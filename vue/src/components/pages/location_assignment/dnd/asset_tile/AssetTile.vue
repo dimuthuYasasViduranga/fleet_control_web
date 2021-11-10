@@ -63,7 +63,6 @@ import Bubble from '@/components/Bubble.vue';
 import AssetTilePopover from './AssetTilePopover.vue';
 
 import { attributeFromList } from '@/code/helpers';
-import { isMissingException } from '@/store/modules/haul_truck';
 import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import ListIcon from '@/components/icons/List.vue';

@@ -214,7 +214,7 @@ export default MapElementFactory({
   mappedProps: {},
   events: [],
   ctr: () => Capture,
-  ctrArgs: (opts, props) => [opts.map, google],
+  ctrArgs: (opts, _props) => [opts.map, google],
   afterCreate({ map, google }) {
     this.init(map, google);
   },
@@ -342,7 +342,7 @@ export default MapElementFactory({
 
       this.$emit(action, payload);
     },
-    onDelete(shape, shapes) {
+    onDelete(shape) {
       shape.deleted = true;
     },
     onUpdateMarker(marker, event) {
@@ -440,7 +440,7 @@ export default MapElementFactory({
     onPolyRightClick(poly, polyList, event, minVertices) {
       if (event.vertex !== undefined) {
         if (poly.path.length > minVertices) {
-          const path = poly.path.splice(event.vertex, 1);
+          poly.path.splice(event.vertex, 1);
         } else {
           poly.deleted = true;
         }

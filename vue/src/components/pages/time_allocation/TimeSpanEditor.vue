@@ -165,13 +165,7 @@ import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/time
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
 import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
-import {
-  addDynamicLevels,
-  overrideAll,
-  findOverlapping,
-  copyTimeSpan,
-  isOverlapping,
-} from './timeSpan';
+import { addDynamicLevels, overrideAll, findOverlapping, copyTimeSpan } from './timeSpan';
 
 const LOCK_WARNING = `
 Are you sure you want lock the given allocations?
@@ -223,10 +217,7 @@ function updateArrayAt(arr, index, item) {
   return newArr;
 }
 
-function getChartLayoutGroups(
-  [TASpans, DASpans, TUSpans, cycleSpans, eventSpans, shiftSpans],
-  asset,
-) {
+function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans]) {
   const allocation = {
     group: 'allocation',
     label: 'Al',
@@ -479,7 +470,7 @@ export default {
       return [TASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
-      const groups = getChartLayoutGroups(this.timeSpans, this.asset);
+      const groups = getChartLayoutGroups(this.timeSpans);
 
       return {
         groups,

@@ -216,7 +216,7 @@ export class Dictionary {
     return (this._entries[this._hasher(keys)] || {}).value;
   }
 
-  add(keys, value, onConflict = (n, o) => n) {
+  add(keys, value, onConflict = (n, _o) => n) {
     const accessor = this._hasher(keys);
     const existing = this._entries[accessor];
     if (existing) {
@@ -244,26 +244,26 @@ export class Dictionary {
     return !!this._entries[this._hasher(keys)];
   }
 
-  forEach(predicate = (ks, v, index, arr) => null) {
+  forEach(predicate = (_ks, _v, _index, _arr) => null) {
     Object.values(this._entries).forEach((data, index, arr) =>
       predicate(data.keys, data.value, index, arr),
     );
   }
 
-  map(predicate = (ks, v, index, arr) => null) {
+  map(predicate = (_ks, _v, _index, _arr) => null) {
     return Object.values(this._entries).map((data, index, arr) =>
       predicate(data.keys, data.value, index, arr),
     );
   }
 
-  reduce(predicate = (acc, ks, v, index, arr) => null, init) {
+  reduce(predicate = (_acc, _ks, _v, _index, _arr) => null, init) {
     return Object.values(this._entries).reduce(
       (acc, data, index, arr) => predicate(acc, data.keys, data.value, index, arr),
       init,
     );
   }
 
-  filter(predicate = (ks, v, index, arr) => null) {
+  filter(predicate = (_ks, _v, _index, _arr) => null) {
     const newDict = new Dictionary();
     Object.values(this._entries).forEach((data, index, arr) => {
       if (predicate(data.keys, data.value, index, arr)) {
@@ -274,7 +274,7 @@ export class Dictionary {
     return newDict;
   }
 
-  find(predicate = (ks, v, index, obj) => null) {
+  find(predicate = (_ks, _v, _index, _obj) => null) {
     const match = Object.values(this._entries).find((data, index, obj) =>
       predicate(data.keys, data.value, index, obj),
     );

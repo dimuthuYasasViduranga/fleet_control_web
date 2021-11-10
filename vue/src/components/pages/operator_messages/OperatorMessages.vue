@@ -49,21 +49,7 @@ import Loaded from '../../Loaded.vue';
 
 import BellIcon from '../../icons/Bell.vue';
 
-import { formatDateRelativeToIn } from './../../../code/time';
-import { attributeFromList } from '../../../code/helpers';
-
-function getItemBtId(id, list) {
-  const [item] = list.filter(i => i.id === id);
-  return item;
-}
-
-function getNameById(id, list) {
-  const item = getItemBtId(id, list);
-  if (item === undefined) {
-    return '';
-  }
-  return item.name;
-}
+import { formatDateRelativeToIn } from '@/code/time';
 
 export default {
   name: 'OperatorMessages',

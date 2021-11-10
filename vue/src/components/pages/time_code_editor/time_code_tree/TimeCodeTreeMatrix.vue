@@ -17,7 +17,7 @@
       >
         <template slot-scope="row">
           <Icon
-            v-tooltip="{ content: type.type, delay: {show: 300, hide: 10} }"
+            v-tooltip="{ content: type.type, delay: { show: 300, hide: 10 } }"
             :icon="row[type.type] ? tickIcon : null"
           />
         </template>
@@ -61,7 +61,7 @@ export default {
 
       const rows = this.timeCodes.map(tc => {
         const row = { name: `${tc.code} - ${tc.name}` };
-        const assetTypeIds = this.timeCodeTreeElements
+        this.timeCodeTreeElements
           .filter(e => e.timeCodeId === tc.id)
           .forEach(e => (row[assetLookup[e.assetTypeId]] = true));
         return row;

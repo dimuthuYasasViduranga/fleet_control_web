@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import DropDown from '@/components/dropdown/DropDown.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
 
 export default {

@@ -8,7 +8,7 @@
       </thead>
       <tbody>
         <tr v-if="timeSpan.activeEndTime">
-          <th colspan="2" style="color: green;">Active</th>
+          <th colspan="2" style="color: green">Active</th>
         </tr>
         <tr v-if="timeSpan.data.operatorId">
           <th>Operator</th>
@@ -34,11 +34,10 @@
 </template>
 
 <script>
+import { formatSeconds, formatDateRelativeToIn } from '@/code/time.js';
+
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
-
-import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
-import { attributeFromList } from '../../../../code/helpers';
 
 function toPlural(value, unit, suffix) {
   if (value === 1) {

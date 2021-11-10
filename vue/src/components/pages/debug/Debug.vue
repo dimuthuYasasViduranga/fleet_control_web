@@ -230,7 +230,7 @@ import NestedModal from './NestedModal.vue';
 
 import Dately from '@/components/dately/Dately.vue';
 
-import { formatDateIn, toUtcDate } from '@/code/time.js';
+import { formatDateIn } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
 import { AVPlayer } from '@/code/audio.js';
 
@@ -355,7 +355,7 @@ export default {
     setTitle(title) {
       Titler.change(title);
     },
-    resetTitle(title) {
+    resetTitle() {
       Titler.reset();
     },
     playSound() {

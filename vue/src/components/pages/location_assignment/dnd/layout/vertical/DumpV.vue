@@ -55,8 +55,6 @@ import TrashIcon from '@/components/icons/Trash.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 
-import { attributeFromList } from '@/code/helpers';
-
 export default {
   name: 'DumpV',
   components: {

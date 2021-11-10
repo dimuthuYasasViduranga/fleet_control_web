@@ -36,11 +36,8 @@
 
 <script>
 import TreeView from './TreeView.vue';
-import { locateChild } from './treeView.js';
 import TimeAllocationDropDown from '../../../TimeAllocationDropDown.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
-import { firstBy } from 'thenby';
-import { attributeFromList } from '@/code/helpers';
 
 function toLocalTreeElement(element) {
   const isLeaf = element.timeCodeId !== null;

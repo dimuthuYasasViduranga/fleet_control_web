@@ -69,10 +69,8 @@
 <script>
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
-import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { getUniqPaths, getClosestVertex, dijkstra, dijkstraToVertices } from './graph';
-import { chunkEvery } from '@/code/helpers';
 
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
@@ -160,7 +158,6 @@ export default {
     },
     route() {
       const vertexMap = this.graph.vertices;
-      const vertexList = this.graph.getVerticesList();
       const adjacency = this.graph.adjacency;
 
       const startVertex = this.markerStartVertex;
@@ -189,7 +186,7 @@ export default {
   watch: {
     graph: {
       immediate: true,
-      handler(graph) {
+      handler() {
         this.refreshRoutePolylines();
       },
     },

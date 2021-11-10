@@ -136,7 +136,7 @@
 import { DateTime, Info } from 'luxon';
 import Icon from 'hx-layout/Icon.vue';
 import Scrollable from '@/components/Scrollable.vue';
-import { copyDate, pad, setTimeZone, toUtcDate } from '@/code/time';
+import { copyDate, pad, setTimeZone } from '@/code/time';
 
 import RefreshIcon from '@/components/icons/Refresh.vue';
 import Bubble from '@/components/Bubble.vue';
@@ -250,7 +250,6 @@ export default {
         .map((name, index) => {
           const month = index + 1;
           const selected = index + 1 === this.navigator.month;
-          const disabled = false;
 
           const givenYear = this.navigator.year;
           const beforeMin = givenYear <= min.year && month < min.month;

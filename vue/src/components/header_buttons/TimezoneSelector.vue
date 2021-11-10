@@ -8,7 +8,7 @@ import { zones } from 'tzdata';
 import SelectModal from '@/components/modals/SelectModal.vue';
 
 const VALID_TIMEZONES = Object.entries(zones)
-  .filter(([zoneName, value]) => Array.isArray(value))
+  .filter(([_zoneName, value]) => Array.isArray(value))
   .map(([zoneName]) => zoneName)
   .filter(isValidTz)
   .sort((a, b) => a.localeCompare(b));

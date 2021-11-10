@@ -16,12 +16,9 @@
 import Vue from 'vue';
 import * as d3 from 'd3';
 
-import { toTimeSpan } from '../timeSpan.js';
 import { createChart, drawTimeline, defaultStyle, parseFill } from './timeSpanChart';
 import SlotWrapper from './SlotWrapper.vue';
-import { IrregularScaleBand } from './irregularScaleBand.js';
 import { setTooltipPosition, getTooltipPosition } from './timeSpanChartTooltip.js';
-import { attributeFromList } from '../../../../code/helpers';
 
 const TOOLTIP_LIFE = 5 * 1000;
 const DEFAULT_Y_AXIS = {
@@ -237,7 +234,7 @@ export default {
     },
     timeSpans: {
       deep: true,
-      handler(newTimeSpans) {
+      handler() {
         this.updateChart();
       },
     },

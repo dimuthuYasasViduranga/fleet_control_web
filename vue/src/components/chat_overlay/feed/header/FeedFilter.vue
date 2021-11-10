@@ -26,7 +26,6 @@ import HaulTruckIcon from '../../../icons/asset_icons/HaulTruck.vue';
 import TimeIcon from '../../../icons/Time.vue';
 import ChatIcon from '../../../icons/Chat.vue';
 import TabletIcon from '../../../icons/Tablet.vue';
-import ListIcon from '../../../icons/List.vue';
 
 export default {
   name: 'FeedFilter',

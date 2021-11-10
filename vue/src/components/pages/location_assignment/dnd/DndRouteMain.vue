@@ -337,7 +337,7 @@ export default {
         this.updateLocalHaulTrucks(this.fullAssets);
       }
     },
-    onSetDigUnit({ digUnitId = null, loadId = null, dumpIds = null }) {
+    onSetDigUnit({ digUnitId = null, loadId = null }) {
       const affectedRoutes = this.structure.routes.filter(r => {
         return !r.digUnitId && r.loadId === loadId;
       });
@@ -386,8 +386,7 @@ export default {
       const ok = 'yes';
       const opts = {
         title: 'Clear Dig Unit',
-        body:
-          'All assets assigned to this route will be removed.\n\nAre you sure you want to continue?',
+        body: 'All assets assigned to this route will be removed.\n\nAre you sure you want to continue?',
         ok,
       };
 

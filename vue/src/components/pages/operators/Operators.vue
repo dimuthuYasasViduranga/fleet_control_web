@@ -12,9 +12,7 @@
   </div>
 </template>
 
-<script type="text/javascript">
-import axios from 'axios';
-
+<script >
 import hxCard from 'hx-layout/Card.vue';
 
 import ManIcon from '../../icons/Man.vue';

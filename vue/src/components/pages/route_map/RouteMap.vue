@@ -53,11 +53,10 @@
 <script>
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
-import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
-import { chunkEvery, hasOrderedSubArray } from '@/code/helpers.js';
+import { hasOrderedSubArray } from '@/code/helpers.js';
 import { getUniqPaths } from './graph';
 import { pixelsToMeters } from '@/code/distance';
 
@@ -66,7 +65,6 @@ const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 10;
 
 function graphToPolylines(graph) {
-  const visitedVertices = {};
   const adjacency = graph.adjacency;
   const vertices = graph.vertices;
 
@@ -161,7 +159,7 @@ export default {
   watch: {
     graph: {
       immediate: true,
-      handler(graph) {
+      handler() {
         this.refreshGraphPolylines();
       },
     },

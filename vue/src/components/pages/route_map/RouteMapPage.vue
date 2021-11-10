@@ -26,13 +26,12 @@
 </template>
 
 <script>
-import Vue from 'vue';
 import hxCard from 'hx-layout/Card.vue';
 import LineIcon from '@/components/icons/Line.vue';
 import RouteMap from './RouteMap.vue';
 import TraversalMap from './TraversalMap.vue';
 import SegmentMap from './SegmentMap.vue';
-import { fromGraph, Graph } from './graph';
+import { Graph } from './graph';
 import { haversineDistanceM, pixelsToMeters } from '@/code/distance';
 import { chunkEvery } from '@/code/helpers';
 import { createTempGraph } from './graphData';

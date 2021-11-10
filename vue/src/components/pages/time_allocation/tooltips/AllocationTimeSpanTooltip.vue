@@ -42,11 +42,10 @@
 </template>
 
 <script>
-import { formatSeconds, formatDateIn, formatDateRelativeToIn } from '../../../../code/time.js';
-import { attributeFromList } from '../../../../code/helpers';
-
 import Icon from 'hx-layout/Icon.vue';
 import LockIcon from '../../../icons/Lock.vue';
+
+import { formatSeconds, formatDateRelativeToIn } from '@/code/time.js';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;

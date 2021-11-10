@@ -58,17 +58,10 @@ import Icon from 'hx-layout/Icon.vue';
 
 import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
 
-import { formatDateIn, toUtcDate } from '@/code/time';
+import { formatDateIn } from '@/code/time';
 
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 import InfoIcon from '@/components/icons/Info.vue';
-import { attributeFromList } from '@/code/helpers';
-
-function statusChanged(a, b) {
-  return (
-    a.reference !== b.reference || a.details !== b.details || a.statusTypeId !== b.statusTypeId
-  );
-}
 
 function breakdownText(counts) {
   const order = ['pass', 'na', 'fail', 'closed', 'pending-verification', 'planned', 'raised'];

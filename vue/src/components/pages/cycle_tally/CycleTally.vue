@@ -202,10 +202,10 @@ export default {
       this.$channel
         .push('haul:delete manual cycle', cycle.id)
         .receive('ok', () => this.onRefresh())
-        .receive('error', resp => {
+        .receive('error', () => {
           cycle.deleted = prevState;
         })
-        .receive('timeout', resp => {
+        .receive('timeout', () => {
           cycle.deleted = prevState;
         });
     },

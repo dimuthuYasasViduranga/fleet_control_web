@@ -247,7 +247,7 @@ export default {
   watch: {
     indexedShifts: {
       immediate: true,
-      handler(shifts) {
+      handler() {
         if (!this.shift) {
           this.shift = this.getCurrentShift();
         }

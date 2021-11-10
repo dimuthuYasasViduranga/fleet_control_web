@@ -42,19 +42,6 @@ import BellIcon from '../../icons/Bell.vue';
 
 import { todayRelativeFormat } from './../../../code/time';
 
-function getItemBtId(id, list) {
-  const [item] = list.filter(i => i.id === id);
-  return item;
-}
-
-function getNameById(id, list) {
-  const item = getItemBtId(id, list);
-  if (item === undefined) {
-    return '';
-  }
-  return item.name;
-}
-
 function toDate(validDate) {
   if (!validDate) {
     return null;
