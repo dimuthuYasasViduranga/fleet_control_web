@@ -47,7 +47,7 @@
 
 <script>
 import { attributeFromList } from '../../code/helpers';
-import fuzzysort from 'fuzzysort';
+import { orderedFuzzySort } from '@/code/sort.js';
 
 function toPx(val) {
   return `${val}px`;
@@ -157,9 +157,10 @@ export default {
       if (!this.search) {
         this.results = this.items.slice(0, this.maxItems);
       } else {
-        this.results = fuzzysort
-          .go(this.search, this.items, { limit: this.maxItems, key: this.label })
-          .map(r => r.obj);
+        this.results = orderedFuzzySort(this.search, this.items, {
+          limit: this.maxItems,
+          key: this.label,
+        });
       }
     },
     selectOption(option) {

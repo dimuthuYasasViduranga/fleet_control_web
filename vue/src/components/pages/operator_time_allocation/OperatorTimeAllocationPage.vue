@@ -55,9 +55,8 @@ import OperatorTimeSpanInfo from './OperatorTimeSpanInfo.vue';
 import ClockIcon from '@/components/icons/Time.vue';
 import { parseAsset, parseOperator } from '@/store/modules/constants';
 import { toUtcDate } from '@/code/time';
-import { attributeFromList, groupBy, isInText } from '@/code/helpers';
-
-import fuzzysort from 'fuzzysort';
+import { attributeFromList, groupBy } from '@/code/helpers';
+import { orderedFuzzySort } from '@/code/sort.js';
 
 function parseOperatorData(data) {
   const assets = data.assets.map(parseAsset);
@@ -170,7 +169,7 @@ export default {
       }
 
       if (this.search) {
-        operatorData = fuzzysort.go(this.search, operatorData, { key: 'name' }).map(r => r.obj);
+        operatorData = orderedFuzzySort(this.search, operatorData, { key: 'name' });
       }
 
       return operatorData;
