@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "serve-mobile": "sh ./../release/serve-mobile.sh",
     "build": "vue-cli-service build",
     "lint": "eslint src/**/*.js src/**/*.vue",
     "test:unit": "vue-cli-service test:unit"
