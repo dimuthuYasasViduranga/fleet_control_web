@@ -53,7 +53,7 @@ defmodule DispatchWeb.Endpoint do
       ]
     else
       [
-        ~r{^http://localhost:},
+        ~r{^http://},
         "https://login.microsoftonline.com"
       ]
     end
