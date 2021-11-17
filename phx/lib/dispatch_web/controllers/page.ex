@@ -62,7 +62,7 @@ defmodule DispatchWeb.PageController do
 
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
-    token = get_token(conn)
+    {conn, token} = get_token(conn)
 
     static_data =
       Dispatch.StaticData.fetch()
@@ -75,11 +75,16 @@ defmodule DispatchWeb.PageController do
   end
 
   defp get_token(conn) do
-    user =
-      conn
-      |> get_session(:current_user)
-      |> Map.take([:id, :user_id])
+    {conn, user} = get_user(conn)
 
-    Phoenix.Token.sign(conn, "user socket", user)
+    case user do
+      nil ->
+        {conn, nil}
+
+      data ->
+        user = Map.take(data, [:id, :user_id])
+        token = Phoenix.Token.sign(conn, "user socket", user)
+        {conn, token}
+    end
   end
 end
