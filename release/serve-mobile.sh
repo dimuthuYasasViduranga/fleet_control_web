@@ -20,4 +20,4 @@ adb reverse tcp:8080 tcp:8080
 echo "Connect to localhost:8080 on your phone"
 echo "Open chrome to 'chrome://inspect/#devices' to inspect your device"
 echo
-yarn serve
+yarn serve --host localhost --port 8080

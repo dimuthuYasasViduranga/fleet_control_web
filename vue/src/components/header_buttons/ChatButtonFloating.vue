@@ -61,4 +61,17 @@ export default {
   font-weight: bold;
 }
 
+@media screen and (max-width: 820px) {
+  .chat-button-floating {
+    height: 50px;
+    width: 50px;
+    bottom: 25px;
+    right: 25px;
+  }
+
+  .chat-button-floating .hx-icon {
+    height: 1rem;
+    width: 1rem;
+  }
+}
 </style>

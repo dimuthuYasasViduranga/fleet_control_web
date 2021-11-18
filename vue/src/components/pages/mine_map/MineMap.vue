@@ -160,14 +160,6 @@ export default {
     },
   },
   mounted() {
-    this.$geolocation
-      .get()
-      .then(resp => {
-        console.dir(resp);
-      })
-      .catch(e => {
-        console.dir(e);
-      });
     this.updateLocalAssets(this.assets);
   },
   methods: {
