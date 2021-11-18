@@ -26,7 +26,7 @@ export function getDatesOfMonth(year, month) {
 }
 
 export function alignDatesOfMonth(dates) {
-  const startingOffset = dates[0].dayOfWeek;
+  const startingOffset = dates[0].dayOfWeek - 1;
   const endingOffset = 42 - startingOffset - dates.length;
   const alignedDates = filledArry(startingOffset, {})
     .concat(dates)
