@@ -54,8 +54,6 @@ import { parsePreStartSubmission } from '@/store/store';
 import { attributeFromList } from '@/code/helpers';
 import { addJsDate } from '@/code/time';
 
-const SHIFT_CROSSOVER_DURATION = 1 * 3600 * 1000; // 1 hour in ms
-
 function toLocalSubmission(rawSub, closedStatusTypeId) {
   const submission = parsePreStartSubmission(rawSub);
 
@@ -148,8 +146,8 @@ export default {
 
       const payload = {
         ref_id: shift.id,
-        start_time: addJsDate(shift.startTime, -SHIFT_CROSSOVER_DURATION),
-        end_time: addJsDate(shift.endTime, SHIFT_CROSSOVER_DURATION),
+        start_time: shift.startTime,
+        end_time: shift.endTime,
       };
 
       this.$channel
