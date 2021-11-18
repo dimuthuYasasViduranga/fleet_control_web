@@ -1,7 +1,20 @@
 <template>
   <div class="pre-start-submissions-page">
     <hxCard title="Submissions" :icon="reportIcon">
+      <div class="modes">
+        <button
+          v-for="mode in timeModes"
+          :key="mode.id"
+          class="hx-btn"
+          :class="{ highlight: mode.id === selectedTimeModeId }"
+          @click="setTimeMode(mode.id)"
+        >
+          {{ mode.name }}
+        </button>
+      </div>
+
       <ShiftSelector
+        v-if="selectedTimeModeId === 'shift'"
         :value="shift"
         :shifts="shifts"
         :shiftTypes="shiftTypes"
@@ -9,6 +22,7 @@
         @change="onShiftChange"
         @refresh="onRefresh"
       />
+
       <div class="modes">
         <button
           v-for="mode in modes"
@@ -23,7 +37,7 @@
 
       <PreStartReports
         v-if="selectedModeId === 'submissions'"
-        :submissions="localSubmissions"
+        :submissions="submissions"
         :assets="assets"
         :icons="icons"
         :shift="shift"
@@ -31,7 +45,7 @@
       />
       <PreStartConcerns
         v-else-if="selectedModeId === 'concerns'"
-        :submissions="localSubmissions"
+        :submissions="submissions"
         :assets="assets"
         :operators="operators"
         :icons="icons"
@@ -52,11 +66,8 @@ import ReportIcon from '@/components/icons/Report.vue';
 
 import { parsePreStartSubmission } from '@/store/store';
 import { attributeFromList } from '@/code/helpers';
-import { addJsDate } from '@/code/time';
 
-function toLocalSubmission(rawSub, closedStatusTypeId) {
-  const submission = parsePreStartSubmission(rawSub);
-
+function toLocalSubmission(submission, closedStatusTypeId) {
   const failures = submission.responses.filter(r => r.answer === false);
 
   const failuresWithoutTickets = failures.filter(r => !r.ticketId);
@@ -69,14 +80,15 @@ function toLocalSubmission(rawSub, closedStatusTypeId) {
     r => r.ticket && r.ticket.activeStatus.statusTypeId !== closedStatusTypeId,
   );
 
-  submission.responseCounts = {
-    failures: failures.length,
-    failuresWithoutTickets: failuresWithoutTickets.length,
-    closed: closedTickets.length,
-    open: openTickets.length,
+  return {
+    ...submission,
+    responseCounts: {
+      failures: failures.length,
+      failuresWithoutTickets: failuresWithoutTickets.length,
+      closed: closedTickets.length,
+      open: openTickets.length,
+    },
   };
-
-  return submission;
 }
 
 export default {
@@ -88,17 +100,24 @@ export default {
     PreStartConcerns,
   },
   data: () => {
+    const timeModes = [
+      { id: 'latest', name: 'Latest' },
+      { id: 'shift', name: 'By Shift' },
+    ];
+
     const modes = [
       { id: 'submissions', name: 'All Submissions' },
       { id: 'concerns', name: 'Concerns' },
     ];
     return {
       reportIcon: ReportIcon,
+      timeModes,
+      selectedTimeModeId: timeModes[0].id,
       modes,
       selectedModeId: modes[0].id,
       shift: null,
       fetchingData: false,
-      localSubmissions: [],
+      shiftSubmissions: [],
     };
   },
   computed: {
@@ -117,8 +136,19 @@ export default {
         'id',
       );
     },
+    liveSubmissions() {
+      return this.$store.state.currentPreStartSubmissions.map(s =>
+        toLocalSubmission(s, this.closedStatusTypeId),
+      );
+    },
+    submissions() {
+      return this.selectedTimeModeId === 'latest' ? this.liveSubmissions : this.shiftSubmissions;
+    },
   },
   methods: {
+    setTimeMode(modeId) {
+      this.selectedTimeModeId = modeId;
+    },
     setMode(modeId) {
       this.selectedModeId = modeId;
     },
@@ -140,7 +170,7 @@ export default {
 
       const onError = (type, msg) => {
         this.fetchingData = false;
-        this.localSubmissions = [];
+        this.shiftSubmissions = [];
         this.$toaster[type](msg);
       };
 
@@ -160,8 +190,8 @@ export default {
             return;
           }
 
-          this.localSubmissions = data.submissions.map(s =>
-            toLocalSubmission(s, this.closedStatusTypeId),
+          this.shiftSubmissions = data.submissions.map(s =>
+            toLocalSubmission(parsePreStartSubmission(s), this.closedStatusTypeId),
           );
         })
         .receive('error', resp => onError('error', resp.error))
@@ -173,12 +203,11 @@ export default {
 
 <style scoped>
 .modes {
-  display: flex;
-  width: 100%;
+  margin-bottom: 1rem;
 }
-
 .modes .hx-btn {
-  width: 100%;
+  min-width: 8rem;
+  width: auto;
   margin-left: 0.05rem;
   border: 1px solid transparent;
 }
