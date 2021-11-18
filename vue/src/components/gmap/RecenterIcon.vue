@@ -4,7 +4,7 @@
     v-tooltip="{
       classes: ['google-tooltip'],
       trigger: 'hover',
-      content: 'Re-Center',
+      content: label,
       placement: tooltip,
     }"
   >
@@ -27,6 +27,7 @@
 export default {
   name: 'RecenterIcon',
   props: {
+    label: {type: String, default: 'Re-Center'},
     tooltip: { type: String, default: 'top' },
   },
 };
