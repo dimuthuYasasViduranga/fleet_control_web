@@ -15,7 +15,7 @@
     "d3": "^5.15.0",
     "fuzzysort": "^1.1.4",
     "gmap-vue": "^1.5.0",
-    "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#0.2.1",
+    "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#peer-deps",
     "jspdf": "^2.4.0",
     "luxon": "^1.26.0",
     "moment": "^2.29.0",
@@ -33,11 +33,10 @@
     "vue-smooth-dnd": "^0.8.1",
     "vue-table-component": "git+https://git@github.com/jonHaultrax/vue-table-component.git#remove_moment",
     "vue-toasted": "^1.1.28",
-    "vue2-gmap-custom-marker": "^6.0.1",
+    "vue2-gmap-custom-marker": "git+https://git@github.com/jonHaultrax/vue2-gmap-custom-marker.git#peer-deps",
     "vue2-perfect-scrollbar": "^1.5.0",
     "vue2-touch-events": "^3.2.0",
-    "vuex": "^3.6.0",
-    "weekstart": "^1.0.0"
+    "vuex": "^3.6.0"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
