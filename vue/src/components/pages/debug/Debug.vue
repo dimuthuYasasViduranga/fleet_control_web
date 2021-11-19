@@ -260,47 +260,55 @@ function getOperatorName(operatorId, employeeId, operators) {
   return operator.fullname || employeeId;
 }
 
-function submissionToPDFFormat(submission, assets, operators, timezone) {
+function submissionToPDFFormat(submission, assets, operators, ticketTypes) {
   const [assetName, assetType] = attributeFromList(assets, 'id', submission.assetId, [
     'name',
     'type',
   ]);
   const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
   const operatorName = getOperatorName(submission.operatorId, submission.employeeId, operators);
-  const formattedTimestamp = formatDateIn(submission.timestamp, timezone, {
-    format: '(yyyy-MM-dd) HH:mm:ss',
-  });
 
-  let sections = submission.form.sections.map(s => formatSection(s, submission.responses));
+  let sections = submission.form.sections.map(s =>
+    formatSection(s, submission.responses, ticketTypes),
+  );
 
-  [1, 2, 3].forEach(() => sections = sections.concat(sections))
+  [1, 2, 3].forEach(() => (sections = sections.concat(sections)));
 
   return {
     heading: {
       asset: assetFullname,
       operator: operatorName,
-      timestamp: formattedTimestamp,
+      timestamp: submission.timestamp,
     },
     comments: submission.comment.split('\n'),
-    sections: sections.concat(sections).concat(sections),
+    sections: sections,
   };
 }
 
-function formatSection(section, responses) {
+function formatSection(section, responses, ticketTypes) {
   return {
     title: section.title,
     details: section.details,
-    controls: section.controls.map(c => formatControl(c, responses)),
+    controls: section.controls.map(c => formatControl(c, responses, ticketTypes)),
   };
 }
 
-function formatControl(control, responses) {
+function formatControl(control, responses, ticketTypes) {
   const resp = attributeFromList(responses, 'controlId', control.id) || {};
+  const ticket = resp.ticket || {};
+  const activeStatus = ticket.activeStatus || {};
+  const ticketStatus = getTicketStatus(ticket, ticketTypes);
   const status = getStatus(resp);
   return {
     label: control.label,
     status,
     comment: resp.comment,
+    ticket: {
+      status: ticketStatus,
+      reference: activeStatus.reference,
+      details: activeStatus.details,
+      timestamp: ticket.timestamp,
+    },
   };
 }
 
@@ -313,6 +321,18 @@ function getStatus(resp) {
     default:
       return 'N/A';
   }
+}
+
+function getTicketStatus(ticket, ticketTypes) {
+  if (!ticket || !ticket.activeStatus) {
+    return;
+  }
+
+  const [name, alias] = attributeFromList(ticketTypes, 'id', ticket.activeStatus.statusTypeId, [
+    'name',
+    'alias',
+  ]);
+  return alias || name;
 }
 
 export default {
@@ -422,8 +442,9 @@ export default {
 
         const assets = this.$store.state.constants.assets;
         const operators = this.$store.state.constants.operators;
-        const data = submissionToPDFFormat(sub, assets, operators, this.$timely.current.timezone);
-        createPDF('pdf-iframe', data);
+        const ticketTypes = this.$store.state.constants.preStartTicketStatusTypes;
+        const data = submissionToPDFFormat(sub, assets, operators, ticketTypes);
+        createPDF('pdf-iframe', data, this.$timely.current.timezone);
       },
     },
   },

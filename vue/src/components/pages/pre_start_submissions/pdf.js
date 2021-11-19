@@ -1,18 +1,20 @@
+import { formatDateIn } from '@/code/time';
 import { jsPDF } from 'jspdf';
 
-export function createPDF(id, submission) {
+export function createPDF(id, submission, timezone) {
   const doc = new jsPDF();
   const yMargin = 5;
-  doc.props = {
+  doc.$ = {
     fromY: yMargin,
+    timezone,
     yMargin,
     xMargin: 5,
     width: doc.internal.pageSize.getWidth(),
     height: doc.internal.pageSize.getHeight(),
     maybeNewPage: () => {
-      if (doc.props.fromY > doc.props.height - 20) {
+      if (doc.$.fromY > doc.$.height - 20) {
         doc.addPage();
-        doc.props.fromY = doc.props.yMargin;
+        doc.$.fromY = doc.$.yMargin;
       }
     },
   };
@@ -29,24 +31,27 @@ export function createPDF(id, submission) {
 
 function createBanner(doc, heading) {
   doc.setFontSize(6);
-  doc.text(`File Generated: ${new Date().toISOString()}`, doc.props.xMargin, doc.props.fromY);
-  doc.props.fromY += 2;
+  doc.text(`File Generated: ${new Date().toISOString()}`, doc.$.xMargin, doc.$.fromY);
+  doc.$.fromY += 2;
 
   doc.setFontSize(14);
   const bannerHeight = doc.getFontSize();
 
-  const halfSpacing = doc.props.width / 6;
+  const halfSpacing = doc.$.width / 6;
   doc.setTextColor('white');
   doc.setFillColor('#314452');
-  doc.rect(0, doc.props.fromY, doc.props.width, bannerHeight, 'F');
+  doc.rect(0, doc.$.fromY, doc.$.width, bannerHeight, 'F');
 
-  const textY = doc.props.fromY + bannerHeight / 2;
+  const textY = doc.$.fromY + bannerHeight / 2;
   const textOpts = { align: 'center', baseline: 'middle' };
   doc.text(heading.asset, halfSpacing, textY, textOpts);
   doc.text(heading.operator, 3 * halfSpacing, textY, textOpts);
-  doc.text(heading.timestamp, 5 * halfSpacing, textY, textOpts);
+  const formattedTimestamp = formatDateIn(heading.timestamp, doc.$.timezone, {
+    format: '(yyyy-MM-dd) HH:mm:ss',
+  });
+  doc.text(formattedTimestamp, 5 * halfSpacing, textY, textOpts);
 
-  doc.props.fromY += bannerHeight;
+  doc.$.fromY += bannerHeight;
 }
 
 function createHeading(doc, opts = {}) {
@@ -64,15 +69,15 @@ function createHeading(doc, opts = {}) {
   if (opts.textColor) {
     doc.setTextColor(opts.textColor);
   }
-  doc.rect(0, doc.props.fromY, doc.props.width, height, rectActions);
-  doc.text(opts.text, doc.props.xMargin, doc.props.fromY + height / 2, {
+  doc.rect(0, doc.$.fromY, doc.$.width, height, rectActions);
+  doc.text(opts.text, doc.$.xMargin, doc.$.fromY + height / 2, {
     align: opts.align || 'left',
     baseline: 'middle',
     maxWidth: opts.maxWidth,
   });
 
   doc.setTextColor('black');
-  doc.props.fromY += height;
+  doc.$.fromY += height;
 }
 
 function createComments(doc, comments) {
@@ -81,7 +86,7 @@ function createComments(doc, comments) {
   }
 
   // add some margin
-  doc.props.fromY += 10;
+  doc.$.fromY += 10;
 
   createHeading(doc, {
     text: 'Comments',
@@ -91,20 +96,14 @@ function createComments(doc, comments) {
     textColor: 'white',
   });
 
-  doc.props.fromY += 5;
+  doc.$.fromY += 5;
 
   doc.setFontSize(10);
-  const lineHeight = doc.getTextDimensions('a').h * 1.5;
-  const xOffset = doc.props.xMargin + 5;
+  const lineHeight = getTextHeight(doc) * 1.5;
+  const xOffset = doc.$.xMargin + 5;
   for (const c in comments) {
-    const nLines = createWrappedLine(
-      doc,
-      `- ${c}`,
-      xOffset,
-      doc.props.fromY,
-      doc.props.width - xOffset,
-    );
-    doc.props.fromY += lineHeight * nLines;
+    const nLines = createWrappedLine(doc, `- ${c}`, xOffset, doc.$.fromY, doc.$.width - xOffset);
+    doc.$.fromY += lineHeight * nLines;
   }
 }
 
@@ -129,25 +128,24 @@ function createSection(doc, section) {
     });
   }
 
-  doc.props.maybeNewPage();
-  doc.props.fromY -= 4;
+  doc.$.maybeNewPage();
+  doc.$.fromY -= 4;
   section.controls.forEach(c => createControl(doc, c));
-  doc.props.fromY += 20;
-  doc.props.maybeNewPage();
+  doc.$.fromY += 20;
+  doc.$.maybeNewPage();
 }
 
 function createControl(doc, control) {
-  doc.props.fromY += 5;
   const fontSize = 12;
   doc.setFontSize(fontSize);
-  const fontHeight = doc.getTextDimensions('a').h;
+  const fontHeight = getTextHeight(doc);
 
   const nLines = createWrappedLine(
     doc,
     control.label,
-    doc.props.xMargin,
-    doc.props.fromY + doc.getFontSize(),
-    doc.props.width * 0.75,
+    doc.$.xMargin,
+    doc.$.fromY + doc.getFontSize(),
+    doc.$.width * 0.75,
   );
 
   let textColor = 'gray';
@@ -162,32 +160,67 @@ function createControl(doc, control) {
   doc.setTextColor(textColor);
   doc.text(
     control.status.toUpperCase(),
-    doc.props.xMargin + doc.props.width - 10,
-    doc.props.fromY + doc.getFontSize(),
+    doc.$.xMargin + doc.$.width - 10,
+    doc.$.fromY + doc.getFontSize(),
     {
       align: 'right',
     },
   );
   doc.setTextColor('black');
-  doc.props.fromY += nLines * fontHeight;
+  doc.$.fromY += nLines * fontHeight;
 
   if (control.comment) {
-    doc.props.fromY += 2;
+    doc.$.fromY += 2;
     const commentLines = createWrappedLine(
       doc,
       `- ${control.comment}`,
-      doc.props.xMargin + 5,
-      doc.props.fromY + doc.getFontSize(),
+      doc.$.xMargin + 5,
+      doc.$.fromY + doc.getFontSize(),
     );
-    doc.props.fromY += fontHeight * commentLines;
+    doc.$.fromY += fontHeight * commentLines;
   }
 
-  doc.props.maybeNewPage();
+  doc.$.fromY += fontHeight;
+
+  doc.$.maybeNewPage();
+
+  createTicket(doc, control.ticket);
+}
+
+function createTicket(doc, ticket) {
+  if (!ticket.status) {
+    return;
+  }
+
+  doc.$.fromY += 5;
+
+  const text = `${ticket.status} (Ref: ${ticket.reference || '# not given #'}) - ${ticket.details ||
+    'No details given'}`;
+
+  doc.setFillColor('#fef6c9');
+  const maxWidth = doc.$.width - doc.$.xMargin;
+  const lines = doc.splitTextToSize(text, maxWidth).length;
+
+  // return;
+  doc.rect(
+    doc.$.xMargin,
+    doc.$.fromY,
+    doc.$.width - 2 * doc.$.xMargin,
+    (lines + 0.75) * getTextHeight(doc) * doc.getLineHeightFactor(),
+    'F',
+  );
+  doc.text(text, doc.$.xMargin * 2, doc.$.fromY + 5, { maxWidth });
+  doc.$.fromY += (lines + 1) * getTextHeight(doc);
+  doc.$.maybeNewPage();
 }
 
 function createWrappedLine(doc, text, x, y, maxWidth, opts = {}) {
   const lines = doc.splitTextToSize(text, maxWidth);
-  doc.text(text, x, y, { ...opts, maxWidth });
-  doc.props.maybeNewPage();
+  doc.text(text || '', x, y, { ...opts, maxWidth });
+  doc.$.maybeNewPage();
   return lines.length;
+}
+
+function getTextHeight(doc) {
+  return doc.getTextDimensions('a').h;
 }
