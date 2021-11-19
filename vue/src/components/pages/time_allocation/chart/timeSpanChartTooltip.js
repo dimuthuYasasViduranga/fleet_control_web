@@ -1,4 +1,5 @@
-import * as d3 from 'd3';
+import d3 from '@/code/d3';
+
 
 export function getTooltipPosition(tooltip, selectedContext, chartSvg, dimensions) {
   const chartAbsOrigin = getAbsCoordOrigin(chartSvg);

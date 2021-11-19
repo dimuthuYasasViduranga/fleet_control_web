@@ -12,7 +12,11 @@
   "dependencies": {
     "@types/phoenix": "^0.0.4",
     "axios": "^0.21.0",
-    "d3": "^5.15.0",
+    "d3-axis": "2.1.0",
+    "d3-brush": "2.1.0",
+    "d3-drag": "2.0.0",
+    "d3-scale": "2.2.2",
+    "d3-selection": "2.0.0",
     "fuzzysort": "^1.1.4",
     "gmap-vue": "^1.5.0",
     "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#peer-deps",
@@ -36,7 +40,8 @@
     "vue2-gmap-custom-marker": "git+https://git@github.com/jonHaultrax/vue2-gmap-custom-marker.git#peer-deps",
     "vue2-perfect-scrollbar": "^1.5.0",
     "vue2-touch-events": "^3.2.0",
-    "vuex": "^3.6.0"
+    "vuex": "^3.6.0",
+    "weekstart": "^1.1.0"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
