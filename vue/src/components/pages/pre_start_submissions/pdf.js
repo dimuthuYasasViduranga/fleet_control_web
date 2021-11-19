@@ -1,7 +1,7 @@
 import { formatDateIn } from '@/code/time';
 import { jsPDF } from 'jspdf';
 
-export function createPDF(id, submission, timezone) {
+export function createPDF(submissionOrSubmissions, timezone, opts = {}) {
   const doc = new jsPDF();
   const yMargin = 5;
   doc.$ = {
@@ -12,20 +12,45 @@ export function createPDF(id, submission, timezone) {
     width: doc.internal.pageSize.getWidth(),
     height: doc.internal.pageSize.getHeight(),
     maybeNewPage: () => {
-      if (doc.$.fromY > doc.$.height - 20) {
+      if (doc.$.fromY > doc.$.height - 30) {
         doc.addPage();
         doc.$.fromY = doc.$.yMargin;
       }
     },
   };
 
+  if (!Array.isArray(submissionOrSubmissions)) {
+    submissionOrSubmissions = [submissionOrSubmissions];
+  }
+
+  createSubmissions(doc, submissionOrSubmissions);
+
+  if (opts.iframe) {
+    const id = opts.iframe;
+    document.getElementById(id).setAttribute('src', null);
+    setTimeout(() => {
+      document.getElementById(id).setAttribute('src', doc.output('bloburl'));
+    });
+  }
+
+  if (opts.filename) {
+    doc.save(opts.filename);
+  }
+}
+
+function createSubmission(doc, submission) {
   createBanner(doc, submission.heading);
   createComments(doc, submission.comments);
   submission.sections.forEach(s => createSection(doc, s));
+}
 
-  document.getElementById(id).setAttribute('src', null);
-  setTimeout(() => {
-    document.getElementById(id).setAttribute('src', doc.output('bloburl'));
+function createSubmissions(doc, submissions) {
+  submissions.forEach((sub, index) => {
+    if (index !== 0) {
+      doc.$.fromY = 0;
+      doc.addPage();
+    }
+    createSubmission(doc, sub);
   });
 }
 

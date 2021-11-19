@@ -444,7 +444,7 @@ export default {
         const operators = this.$store.state.constants.operators;
         const ticketTypes = this.$store.state.constants.preStartTicketStatusTypes;
         const data = submissionToPDFFormat(sub, assets, operators, ticketTypes);
-        createPDF('pdf-iframe', data, this.$timely.current.timezone);
+        createPDF(data, this.$timely.current.timezone, { iframe: 'pdf-iframe' });
       },
     },
   },
