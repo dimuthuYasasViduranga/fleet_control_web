@@ -261,7 +261,6 @@ function getOperatorName(operatorId, employeeId, operators) {
 }
 
 function submissionToPDFFormat(submission, assets, operators, timezone) {
-  console.dir(submission);
   const [assetName, assetType] = attributeFromList(assets, 'id', submission.assetId, [
     'name',
     'type',
@@ -272,7 +271,9 @@ function submissionToPDFFormat(submission, assets, operators, timezone) {
     format: '(yyyy-MM-dd) HH:mm:ss',
   });
 
-  const sections = submission.form.sections.map(s => formatSection(s, submission.responses));
+  let sections = submission.form.sections.map(s => formatSection(s, submission.responses));
+
+  [1, 2, 3].forEach(() => sections = sections.concat(sections))
 
   return {
     heading: {
@@ -281,7 +282,7 @@ function submissionToPDFFormat(submission, assets, operators, timezone) {
       timestamp: formattedTimestamp,
     },
     comments: submission.comment.split('\n'),
-    sections,
+    sections: sections.concat(sections).concat(sections),
   };
 }
 
@@ -295,11 +296,23 @@ function formatSection(section, responses) {
 
 function formatControl(control, responses) {
   const resp = attributeFromList(responses, 'controlId', control.id) || {};
+  const status = getStatus(resp);
   return {
     label: control.label,
-    answer: resp.answer,
+    status,
     comment: resp.comment,
   };
+}
+
+function getStatus(resp) {
+  switch (resp.answer) {
+    case true:
+      return 'Pass';
+    case false:
+      return 'Fail';
+    default:
+      return 'N/A';
+  }
 }
 
 export default {
