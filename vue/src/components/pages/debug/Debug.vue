@@ -1,5 +1,11 @@
 <template>
   <div class="debug-page">
+    <hxCard title="PDF" :icon="bugIcon">
+      <iframe
+        id="pdf-iframe"
+        style="width: 100%; height: 50rem; top: 0; left: 0; z-index: 2; border: 1px solid orange"
+      />
+    </hxCard>
     <hxCard title="Modals" :icon="bugIcon">
       <div class="modal-list">
         <button class="hx-btn" @click="onOpenModal">Open Modal</button>
@@ -233,6 +239,8 @@ import Dately from '@/components/dately/Dately.vue';
 import { formatDateIn } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
 import { AVPlayer } from '@/code/audio.js';
+import { createPDF } from '../pre_start_submissions/pdf';
+import { attributeFromList } from '@/code/helpers';
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -246,6 +254,53 @@ const ASSET_ICONS = [
   LVIcon,
   undefined,
 ];
+
+function getOperatorName(operatorId, employeeId, operators) {
+  const operator = operators.find(o => o.id === operatorId || o.employeeId === employeeId) || {};
+  return operator.fullname || employeeId;
+}
+
+function submissionToPDFFormat(submission, assets, operators, timezone) {
+  console.dir(submission);
+  const [assetName, assetType] = attributeFromList(assets, 'id', submission.assetId, [
+    'name',
+    'type',
+  ]);
+  const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
+  const operatorName = getOperatorName(submission.operatorId, submission.employeeId, operators);
+  const formattedTimestamp = formatDateIn(submission.timestamp, timezone, {
+    format: '(yyyy-MM-dd) HH:mm:ss',
+  });
+
+  const sections = submission.form.sections.map(s => formatSection(s, submission.responses));
+
+  return {
+    heading: {
+      asset: assetFullname,
+      operator: operatorName,
+      timestamp: formattedTimestamp,
+    },
+    comments: submission.comment.split('\n'),
+    sections,
+  };
+}
+
+function formatSection(section, responses) {
+  return {
+    title: section.title,
+    details: section.details,
+    controls: section.controls.map(c => formatControl(c, responses)),
+  };
+}
+
+function formatControl(control, responses) {
+  const resp = attributeFromList(responses, 'controlId', control.id) || {};
+  return {
+    label: control.label,
+    answer: resp.answer,
+    comment: resp.comment,
+  };
+}
 
 export default {
   name: 'DebugPage',
@@ -339,6 +394,24 @@ export default {
     }),
     timezone() {
       return this.$store.state.constants.timezone;
+    },
+    submission() {
+      return (this.$store.state.currentPreStartSubmissions || [])[0];
+    },
+  },
+  watch: {
+    submission: {
+      immediate: true,
+      handler(sub) {
+        if (!sub) {
+          return;
+        }
+
+        const assets = this.$store.state.constants.assets;
+        const operators = this.$store.state.constants.operators;
+        const data = submissionToPDFFormat(sub, assets, operators, this.$timely.current.timezone);
+        createPDF('pdf-iframe', data);
+      },
     },
   },
   beforeDestroy() {
