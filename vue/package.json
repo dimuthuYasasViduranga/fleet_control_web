@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "analyze": "cross-env NODE_ENV=node_modules vue-cli-service serve",
     "serve": "vue-cli-service serve",
     "serve-mobile": "sh ./../release/serve-mobile.sh",
     "build": "vue-cli-service build",
@@ -51,6 +52,7 @@
     "@vue/cli-service": "^3.1.0",
     "@vue/test-utils": "^1.0.0-beta.20",
     "babel-core": "7.0.0-bridge.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.30.0",
     "eslint-plugin-vue": "^7.13.0",
     "ts-jest": "^23.0.0",
