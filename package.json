@@ -2,7 +2,7 @@
   "name": "hx-layout",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
+  "peerDependencies": {
     "vue": "^2.5.17",
     "vue-router": "^3.0.1"
   },
