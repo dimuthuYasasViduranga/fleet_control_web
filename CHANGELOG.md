@@ -1,6 +1,8 @@
 ## Changelog
 
 ## pending [unreleased]
+
+## 0.10.16
 - 🚸 sorting algorithm has better ordering (especially for dropdowns)
 - 🚸 removed crossover range in pre-starts (was too confusing)
 - 🚸 device assignment table searchable by asset type and version
