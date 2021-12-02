@@ -1,6 +1,14 @@
 ## Changelog
 
 ## pending [unreleased]
+- 🚸 sorting algorithm has better ordering (especially for dropdowns)
+- 🚸 removed crossover range in pre-starts (was too confusing)
+- 🚸 device assignment table searchable by asset type and version
+- 💄 fixed pre-start comments not going over mulitple lines
+- ✨ can now access location on map (accuracy varies)
+- 🐛 fixed date selector day off by 1
+- ✨ added ability to download pre-start submissions as pdf
+- 📦 updated/change/culled packages to reduce overall bundle size
 
 ## 0.10.15
 - moved pre-start submission comments to top of viewer (easier to find/read)
