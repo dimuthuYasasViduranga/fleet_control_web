@@ -48,8 +48,8 @@ import Loaded from '../../Loaded.vue';
 
 import TruckIcon from '../../icons/asset_icons/HaulTruck.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { formatDateRelativeToIn } from './../../../code/time';
-import { attributeFromList, copy } from '../../../code/helpers';
+import { formatDateRelativeToIn } from '@/code/time';
+import { attributeFromList } from '@/code/helpers';
 
 function getLastSeen(track) {
   if (!track) {

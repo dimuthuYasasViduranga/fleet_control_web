@@ -33,7 +33,7 @@
 
 <script>
 import { attributeFromList, Dictionary } from '@/code/helpers';
-import { copyDate, formatSeconds } from '@/code/time';
+import { formatSeconds } from '@/code/time';
 
 const GROUP_ORDER = ['Ready', 'Process', 'Standby', 'Down'];
 

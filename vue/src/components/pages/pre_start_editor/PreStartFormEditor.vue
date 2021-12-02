@@ -70,8 +70,6 @@ function changeIndex(sourceArr, fromIndex, toIndex) {
   const arr = sourceArr.slice();
   const item = arr[fromIndex];
 
-  const targetIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
-
   arr.splice(fromIndex, 1);
   arr.splice(toIndex, 0, item);
   return arr;

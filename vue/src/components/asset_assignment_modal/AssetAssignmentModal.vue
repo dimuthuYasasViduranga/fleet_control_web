@@ -19,7 +19,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import Modal from '../modals/Modal.vue';
 
 import AssignDefault from './AssignDefault.vue';
@@ -38,10 +37,6 @@ function toLocalAsset(asset) {
     operator: { ...asset.operator },
     activeTimeCodeId: asset.activeTimeAllocation.timeCodeId,
   };
-}
-
-function changed(a, b, keys) {
-  return keys.some(key => a[key] !== b[key]);
 }
 
 export default {

@@ -30,8 +30,8 @@ import Modal from '../modals/Modal.vue';
 import MessageBox from './message_box/MessageBox.vue';
 import Pane from './pane/Pane.vue';
 import Feed from './feed/Feed.vue';
-import { attributeFromList, chunkEvery } from '../../code/helpers';
-import { copyDate } from '../../code/time';
+import { chunkEvery } from '@/code/helpers';
+import { copyDate } from '@/code/time';
 
 function filterOnAsset(events, asset) {
   if (!asset) {

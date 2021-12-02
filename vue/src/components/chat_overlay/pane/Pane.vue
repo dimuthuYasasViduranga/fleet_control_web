@@ -57,10 +57,6 @@ function getPriorityNumber(asset) {
   return 3;
 }
 
-function getNUnreadMsgs(device) {
-  return device.operatorMessages.filter(m => !m.acknowledge_id).length;
-}
-
 export default {
   name: 'Pane',
   components: {

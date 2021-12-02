@@ -32,11 +32,10 @@
 <script>
 import Scrollable from '../../../../Scrollable.vue';
 import ErrorTableRow from './ErrorTableRow.vue';
-import { chunkEvery } from '../../../../../code/helpers.js';
 
 function scrollbarProxy(references) {
   return new Proxy(references, {
-    get(refs, name, receiver) {
+    get(refs, name, _receiver) {
       const scrollbar = refs.scrollable;
       if (scrollbar) {
         return scrollbar[name];

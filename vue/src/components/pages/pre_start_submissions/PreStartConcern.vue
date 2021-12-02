@@ -58,17 +58,10 @@ import Icon from 'hx-layout/Icon.vue';
 
 import PreStartSubmissionModal from '@/components/modals/PreStartSubmissionModal.vue';
 
-import { formatDateIn, toUtcDate } from '@/code/time';
+import { formatDateIn, isSameDownTo } from '@/code/time';
 
 import ChevronIcon from '@/components/icons/ChevronRight.vue';
 import InfoIcon from '@/components/icons/Info.vue';
-import { attributeFromList } from '@/code/helpers';
-
-function statusChanged(a, b) {
-  return (
-    a.reference !== b.reference || a.details !== b.details || a.statusTypeId !== b.statusTypeId
-  );
-}
 
 function breakdownText(counts) {
   const order = ['pass', 'na', 'fail', 'closed', 'pending-verification', 'planned', 'raised'];
@@ -94,6 +87,7 @@ export default {
     assetName: { type: String, required: true },
     icon: { type: Object, default: null },
     submissions: { type: Array, default: () => [] },
+    useFullTimestamp: { type: Boolean, default: false },
   },
   data: () => {
     return {
@@ -119,8 +113,19 @@ export default {
       this.show = !this.show;
     },
     formatTime(date) {
+      const now = new Date();
       const tz = this.$timely.current.timezone;
-      return formatDateIn(date, tz, { format: 'HH:mm:ss' });
+      const isToday = isSameDownTo(date, now, tz, 'day');
+      if (isToday || !this.useFullTimestamp) {
+        return formatDateIn(date, tz, { format: 'HH:mm' });
+      }
+
+      const isSameYear = isSameDownTo(date, now, tz, 'year');
+      if (isSameYear) {
+        return formatDateIn(date, tz, { format: 'LLL-dd HH:mm' });
+      }
+
+      return formatDateIn(date, tz, { format: 'yyyy LLL-dd HH:mm' });
     },
     onOpenViewer(submission) {
       this.$modal.create(PreStartSubmissionModal, { submission }).onClose(resp => {
@@ -194,8 +199,9 @@ export default {
 .pre-start-concern .submission .overall-comments {
   border-top: 1px solid #364c59;
   background-color: #344652;
-  line-height: 1.5rem;
   padding-left: 2rem;
+  white-space: pre-line;
+  padding-bottom: 1rem;
 }
 
 /* controls */

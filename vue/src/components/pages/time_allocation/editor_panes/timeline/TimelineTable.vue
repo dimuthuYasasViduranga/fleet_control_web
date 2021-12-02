@@ -43,7 +43,7 @@ import { chunkEvery } from '../../../../../code/helpers';
 
 function scrollbarProxy(references) {
   return new Proxy(references, {
-    get(refs, name, receiver) {
+    get(refs, name, _receiver) {
       const scrollbar = refs.scrollable;
       if (scrollbar) {
         return scrollbar[name];

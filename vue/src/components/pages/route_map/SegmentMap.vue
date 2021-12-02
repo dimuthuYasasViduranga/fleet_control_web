@@ -55,7 +55,7 @@ import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 
-function graphToSegments(graph, google) {
+function graphToSegments(graph, _google) {
   const adjacency = graph.adjacency;
   const vertexMap = graph.vertices;
 

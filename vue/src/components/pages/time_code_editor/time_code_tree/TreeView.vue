@@ -40,7 +40,7 @@
 
 <script>
 import TreeNode from './TreeNode.vue';
-import { toTree, flattenTree, getNodes, locateChild } from './treeView.js';
+import { toTree, getNodes } from './treeView.js';
 
 import FolderClosedIcon from '@/components/icons/FolderClosed.vue';
 import Icon from 'hx-layout/Icon.vue';

@@ -172,7 +172,7 @@ export default {
           this.$toaster.info('Categories updated');
         })
         .receive('error', resp => this.$toaster.error(resp.error))
-        .receive('timeout', resp =>
+        .receive('timeout', () =>
           this.$toaster.noComms('Unable to update categories at this time'),
         );
     },

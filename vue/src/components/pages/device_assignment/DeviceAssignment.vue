@@ -121,6 +121,8 @@ export default {
             ['name', 'type', 'typeId'],
           );
 
+          const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
+
           const operatorName = attributeFromList(this.operators, 'id', operatorId, 'name') || '';
 
           const details = d.details || {};
@@ -133,6 +135,7 @@ export default {
             formattedDeviceName: this.formatDeviceUUID(d.uuid),
             assetId,
             assetName,
+            assetFullname,
             assetTypeId,
             assetType,
             operatorId,

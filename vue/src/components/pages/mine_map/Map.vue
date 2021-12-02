@@ -30,13 +30,22 @@
             :highlight="!showLabels"
             @click.native="toggleShowLabels()"
           />
+          <GmapMyPositionIcon class="my-position-control" tooltip="left" />
+          <RecenterIcon
+            v-show="myLocation"
+            class="my-position-recenter-control"
+            label="Find My Location"
+            tooltip="left"
+            @click.native="recenterMyLocation()"
+          />
+
           <div class="g-control asset-selector-control">
             <GMapDropDown
               :value="selectedAssetId"
               :items="assetOptions"
               label="fullname"
               :useScrollLock="true"
-              placeholder="Asset"
+              placeholder="Find Asset"
               direction="down"
               @change="onFindAsset"
             />
@@ -118,6 +127,8 @@
             @click="onAssetClick"
           />
 
+          <g-map-my-position :value="myLocation" />
+
           <gmap-info-window
             class="info-window"
             :options="pUpOptions"
@@ -153,6 +164,7 @@ import FilterIcon from '@/components/icons/Filter.vue';
 
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import GMapTracks from '@/components/gmap/GMapTracks.vue';
+import GMapMyPosition from '@/components/gmap/GMapMyPosition.vue';
 import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
@@ -160,6 +172,7 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GmapAlertIcon from '@/components/gmap/GmapAlertIcon.vue';
 import GmapClusterIcon from '@/components/gmap/GmapClusterIcon.vue';
 import GmapLabelIcon from '@/components/gmap/GmapLabelIcon.vue';
+import GmapMyPositionIcon from '@/components/gmap/GmapMyPositionIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles.js';
@@ -184,6 +197,7 @@ export default {
     GMapDropDown,
     GMapGeofences,
     GMapTracks,
+    GMapMyPosition,
     AssetInfo,
     HaulTruckInfo,
     DigUnitInfo,
@@ -194,6 +208,7 @@ export default {
     GmapAlertIcon,
     GmapClusterIcon,
     GmapLabelIcon,
+    GmapMyPositionIcon,
   },
   props: {
     assets: { type: Array, default: () => [] },
@@ -285,6 +300,9 @@ export default {
         };
       });
     },
+    myLocation() {
+      return this.$geolocation.position;
+    },
   },
   watch: {
     assets(newAssets) {
@@ -330,9 +348,11 @@ export default {
       attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
       attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
       attachControl(map, this.google, '.label-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.asset-type-filter-toggle', 'LEFT_TOP');
+      attachControl(map, this.google, '.asset-type-filter', 'LEFT_TOP');
+      attachControl(map, this.google, '.my-position-control', 'RIGHT_BOTTOM');
+      attachControl(map, this.google, '.my-position-recenter-control', 'RIGHT_BOTTOM');
       attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
-      attachControl(map, this.google, '.asset-type-filter-toggle', 'RIGHT_TOP');
-      attachControl(map, this.google, '.asset-type-filter', 'RIGHT_TOP');
       attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
@@ -350,6 +370,13 @@ export default {
         this.pUpPosition = position;
       }
       this.pUpShow = true;
+    },
+    recenterMyLocation() {
+      if (!this.myLocation) {
+        return;
+      }
+
+      this.moveTo(this.myLocation.position);
     },
     reCenter() {
       this.moveTo(this.defaults.center);
@@ -477,15 +504,15 @@ export default {
 }
 
 .asset-type-filter-toggle {
-  width: 42px;
-  margin: -1px;
-  height: 42px;
+  margin: 0;
+  width: 40px;
+  height: 40px;
 }
 
 .asset-type-filter-toggle .hx-icon {
   width: 100%;
-  height: 42px;
-  width: 42px;
+  height: 40px;
+  width: 40px;
   padding: 5px 0;
 }
 
@@ -551,5 +578,12 @@ export default {
 /* ------ dim all other assets when one is selected ------- */
 .mine-map .not-selected {
   opacity: 0.6 !important;
+}
+
+@media screen and (max-width: 820px) {
+  .mine-map .map-wrapper {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 </style>

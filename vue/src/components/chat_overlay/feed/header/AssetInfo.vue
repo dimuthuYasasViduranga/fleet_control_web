@@ -22,7 +22,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import { attributeFromList, toFullName } from '../../../../code/helpers';
+import { attributeFromList } from '@/code/helpers';
 import EditIcon from '../../../icons/Edit.vue';
 
 export default {

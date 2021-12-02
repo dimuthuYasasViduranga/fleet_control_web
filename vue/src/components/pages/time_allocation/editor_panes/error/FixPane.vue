@@ -70,7 +70,7 @@
 import TimeSpanChart from '../../chart/TimeSpanChart.vue';
 import AllocationTooltip from '../../tooltips/AllocationTimeSpanTooltip.vue';
 import { allocationStyle } from '../../timespan_formatters/timeAllocationTimeSpans';
-import { uniq, chunkEvery } from '../../../../../code/helpers';
+import { uniq } from '../../../../../code/helpers';
 import { findOverlapping, addDynamicLevels, overrideAll, mergeAll } from '../../timeSpan';
 import { copyDate } from '../../../../../code/time';
 

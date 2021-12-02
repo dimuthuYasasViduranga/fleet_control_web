@@ -204,7 +204,7 @@ export default {
       this.$channel
         .push('set allocation', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
-        .receive('timeout', resp => this.$toaster.noComms('Unable to update allocation'));
+        .receive('timeout', () => this.$toaster.noComms('Unable to update allocation'));
     },
     setActivity(asset) {
       const activity = {

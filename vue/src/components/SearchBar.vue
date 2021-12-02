@@ -57,7 +57,7 @@ export default {
       this.$emit('change', value);
     },
     focus() {
-      const input = this.$refs.input.focus();
+      this.$refs.input.focus();
     },
   },
 };

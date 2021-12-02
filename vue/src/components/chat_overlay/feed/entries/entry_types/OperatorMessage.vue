@@ -14,8 +14,6 @@
 </template>
 
 <script>
-import { toFullName } from '../../../../../code/helpers';
-
 export default {
   name: 'OperatorMessage',
   props: {

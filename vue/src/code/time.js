@@ -27,7 +27,8 @@ export function setTimeZone(datetime, timezone) {
   return datetime.setZone(timezone);
 }
 
-export function formatDateRelativeToIn(date, tz, now = new Date()) {
+export function formatDateRelativeToIn(date, tz, now) {
+  now = now || new Date();
   if (!date) {
     return null;
   }

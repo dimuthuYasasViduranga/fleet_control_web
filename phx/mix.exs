@@ -9,7 +9,7 @@ defmodule DispatchWeb.MixProject do
       config_path: "config/config.exs",
       deps_path: "deps",
       lockfile: "mix.lock",
-      elixir: "~> 1.8",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -42,10 +42,8 @@ defmodule DispatchWeb.MixProject do
       # web
       {:phoenix, "~> 1.5"},
       {:phoenix_pubsub, "~> 2.0"},
-      {:phoenix_ecto, "~> 4.2"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
-      {:cowlib, "~> 2.9.0", override: true},
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.1"},
       {:guardian, "~> 1.1"},
@@ -56,17 +54,13 @@ defmodule DispatchWeb.MixProject do
       {:topo, "~> 0.3.0"},
       {:geo, "~> 3.1"},
       {:joken, "~> 2.0"},
-      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.0"},
+      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.3"},
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.2"},
       {:poison, "~> 3.0"},
 
       # this overrides a dependency in cluster graph
-      {:hps_data,
-       git: "https://github.com/Haultrax/hps_data.git", branch: "pre-start", override: true},
-
-      # patch fix
-      {:hackney, "1.15.2", override: true},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
 
       # test
       {:mix_test_watch, "~> 0.9", only: :dev, runtime: false},

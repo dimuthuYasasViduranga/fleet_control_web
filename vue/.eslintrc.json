@@ -10,6 +10,14 @@
   },
   "plugins": ["vue"],
   "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "varsIgnorePattern": "_.*",
+        "argsIgnorePattern": "_.*",
+        "ignoreRestSiblings": true
+      }
+    ],
     "no-undef": "error",
     "eqeqeq": ["error", "smart"]
   },

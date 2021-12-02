@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import { attributeFromList } from '../../../code/helpers.js';
 import SingleMsg from './SingleMsg.vue';
 import MassMsgModal from './MassMsgModal';
 

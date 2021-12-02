@@ -16,6 +16,7 @@ import { Modal } from './code/modal.js';
 import { Timely } from './code/timely.js';
 import { Toaster } from './code/toasts.js';
 import { ContextMenu } from './code/context_menu.js';
+import Geolocation from './code/geolocation.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
@@ -50,6 +51,8 @@ Vue.prototype.$modal = new Modal(store);
 Vue.prototype.$toaster = new Toaster();
 
 Vue.prototype.$contextMenu = new ContextMenu();
+
+Vue.prototype.$geolocation = Geolocation;
 
 const timely = Vue.observable(new Timely());
 Vue.prototype.$timely = timely;

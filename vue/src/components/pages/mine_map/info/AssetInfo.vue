@@ -59,12 +59,7 @@
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import EditIcon from '@/components/icons/Edit.vue';
-import { attributeFromList } from '@/code/helpers';
-import {
-  formatDateRelativeToIn,
-  formatSeconds,
-  formatSecondsRelative,
-} from '../../../../code/time';
+import { formatDateRelativeToIn, formatSeconds, formatSecondsRelative } from '@/code/time';
 
 const MS_TO_KMH = 3.6;
 const SECONDS_IN_DAY = 24 * 3600;

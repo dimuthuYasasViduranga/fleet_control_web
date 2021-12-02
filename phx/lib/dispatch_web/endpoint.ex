@@ -53,7 +53,7 @@ defmodule DispatchWeb.Endpoint do
       ]
     else
       [
-        ~r{^http://localhost:},
+        ~r{^http://},
         "https://login.microsoftonline.com"
       ]
     end
@@ -87,6 +87,4 @@ defmodule DispatchWeb.Endpoint do
   end
 
   plug DispatchWeb.Router
-
-  def init(_key, config), do: {:ok, config}
 end

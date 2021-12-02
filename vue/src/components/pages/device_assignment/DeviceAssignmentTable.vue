@@ -23,7 +23,7 @@
 
       <table-column cell-class="table-cel" show="formattedDeviceName" label="Device" />
 
-      <table-column cell-class="table-cel" label="Version">
+      <table-column cell-class="table-cel" label="Version" show="clientVersion">
         <template slot-scope="row">
           <span v-tooltip="`Updated At: ${formatDate(row.clientUpdatedAt)}`">
             {{ row.clientVersion }}
@@ -31,7 +31,7 @@
         </template>
       </table-column>
 
-      <table-column label="Asset" cell-class="table-cel" show="assetName">
+      <table-column label="Asset" cell-class="table-cel" show="assetFullname">
         <template slot-scope="row">
           <div class="asset-selection">
             <DropDown

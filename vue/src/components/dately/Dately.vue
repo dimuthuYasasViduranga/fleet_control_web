@@ -1,25 +1,25 @@
 <template>
   <div class="dately">
-    <transition name="dately-modal">
+    <transition name="dately__modal" @after-enter="onTransitionComplete()">
       <div
         v-show="showDateModal"
         ref="modal-mask"
-        class="modal-mask"
+        class="dately__modal-mask"
         @click="onCloseDateModal()"
         @keyup.esc="onCloseDateModal()"
         @keyup.enter="onOk()"
         tabindex="0"
       >
-        <div class="modal-container" @click.stop>
-          <div class="date-header">
+        <div class="dately__modal-container" @click.stop>
+          <div class="dately__date-header">
             <div class="year" @click="onOpenYearPane()">{{ modalDate.year }}</div>
             <div class="date" @click="onOpenMonthPane()">
               {{ modalDate.date }} {{ selectedMonthName }}
             </div>
           </div>
 
-          <div class="calendar-pane">
-            <div v-if="showYearPane" class="year-pane">
+          <div class="dately__calendar-pane">
+            <div v-if="showYearPane" class="dately__year-pane">
               <Scrollable ref="scrollable-year" :options="{ wheelSpeed: 0.25 }">
                 <button
                   class="scrollable-entry"
@@ -45,7 +45,7 @@
                 </button>
               </Scrollable>
             </div>
-            <div v-else class="calendar-area">
+            <div v-else class="dately__calendar-area">
               <div class="month-navigator">
                 <div class="arrow prev-arrow" @click="moveNavigatorMonth(-1)">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61.3 102.8">
@@ -95,7 +95,11 @@
                         :disabled="getCalendarDayDisabled(day)"
                         @click="setModalDate(day)"
                       >
-                        <Bubble class="calendar-day" :class="getCalendarDayClass(day)" color="">
+                        <Bubble
+                          class="dately__calendar-day"
+                          :class="getCalendarDayClass(day)"
+                          color=""
+                        >
                           {{ day.day }}
                         </Bubble>
                       </button>
@@ -104,7 +108,7 @@
                 </tbody>
               </table>
             </div>
-            <div class="actions">
+            <div class="dately__actions">
               <div class="action-btn" @click="onCloseDateModal()">Cancel</div>
               <div class="action-btn" @click="onOk()">Ok</div>
             </div>
@@ -112,13 +116,16 @@
         </div>
       </div>
     </transition>
-    <div class="date-component">
-      <button class="date-button" @click="onOpenDateModal">{{ dateButtonText }}</button>
+    <div class="dately__date-component">
+      <button class="date-button" @click="onOpenDateModal()">
+        {{ dateButtonText }}
+      </button>
     </div>
-    <div class="time-component">
+    <div class="dately__time-component">
       <input
+        ref="time-input"
         v-tooltip="errorTooltip"
-        class="time-input"
+        class="dately__time-input"
         :class="{ invalid: hasErrors }"
         :value="inputTimeString"
         placeholder="HH:MM:SS"
@@ -136,7 +143,7 @@
 import { DateTime, Info } from 'luxon';
 import Icon from 'hx-layout/Icon.vue';
 import Scrollable from '@/components/Scrollable.vue';
-import { copyDate, pad, setTimeZone, toUtcDate } from '@/code/time';
+import { copyDate, pad, setTimeZone } from '@/code/time';
 
 import RefreshIcon from '@/components/icons/Refresh.vue';
 import Bubble from '@/components/Bubble.vue';
@@ -187,6 +194,7 @@ export default {
       },
       showYearPane: false,
       showMonthPane: false,
+      allowOk: false,
     };
   },
   computed: {
@@ -250,7 +258,6 @@ export default {
         .map((name, index) => {
           const month = index + 1;
           const selected = index + 1 === this.navigator.month;
-          const disabled = false;
 
           const givenYear = this.navigator.year;
           const beforeMin = givenYear <= min.year && month < min.month;
@@ -359,6 +366,7 @@ export default {
       this.showDateModal = true;
     },
     onCloseDateModal() {
+      this.allowOk = false;
       this.showDateModal = false;
       this.showYearPane = false;
       this.showMonthPane = false;
@@ -432,6 +440,13 @@ export default {
       }
     },
     onOk() {
+      if (!this.allowOk) {
+        return;
+      }
+
+      // focus the time input element
+      this.$refs['time-input'].focus();
+
       if (this.showMonthPane || this.showYearPane) {
         this.clearPanes();
         return;
@@ -558,6 +573,9 @@ export default {
 
       this.$emit('input', jsDate);
     },
+    onTransitionComplete() {
+      this.allowOk = true;
+    },
   },
 };
 </script>
@@ -568,7 +586,7 @@ export default {
 }
 
 /* ---- modal styling --- */
-.dately .modal-mask {
+.dately .dately__modal-mask {
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -585,23 +603,23 @@ export default {
   font-family: 'GE Inspira Sans', sans-serif;
 }
 
-.dately .modal-container {
+.dately .dately__modal-container {
   width: 340px;
   height: 530px;
   background-color: white;
   padding: 0;
+  margin: auto;
 }
 
 /* ---- date header ---- */
-.dately .date-header {
-  height: 84px;
+.dately .dately__date-header {
   padding: 18px 30px;
   background-color: #425866;
   text-align: center;
   color: white;
 }
 
-.dately .date-header .year {
+.dately .dately__date-header .year {
   font-weight: 200;
   font-size: 16px;
   cursor: pointer;
@@ -610,7 +628,7 @@ export default {
   height: 1.25rem;
 }
 
-.dately .date-header .date {
+.dately .dately__date-header .date {
   font-size: 32px;
   cursor: pointer;
 }
@@ -641,54 +659,53 @@ export default {
 }
 
 /* ---- calendar area ----- */
-.dately .calendar-area table {
+.dately .dately__calendar-area table {
   table-layout: fixed;
   width: 100%;
   height: 100%;
 }
 
-.dately .calendar-area th {
+.dately .dately__calendar-area th {
   color: black;
   text-align: center;
   user-select: none;
 }
 
-.dately .calendar-area td .day-wrapper {
+.dately .dately__calendar-area td .day-wrapper {
   cursor: pointer;
   background-color: transparent;
   padding: 0;
   margin: 0;
   box-shadow: none;
   border: none;
-  outline: none;
 }
 
-.dately .calendar-area td .day-wrapper[disabled] {
+.dately .dately__calendar-area td .day-wrapper[disabled] {
   opacity: 0.3;
   cursor: default;
 }
 
-.dately .calendar-area .calendar-day,
-.dately .calendar-area .calendar-day .day-wrapper {
+.dately .dately__calendar-area .dately__calendar-day,
+.dately .dately__calendar-area .dately__calendar-day .day-wrapper {
   margin: 0;
   padding: 0;
   width: 3rem;
   height: 3rem;
 }
 
-.dately .calendar-area .calendar-day .bubble {
+.dately .dately__calendar-area .dately__calendar-day .bubble {
   font-weight: 200;
   color: #444444;
 }
 
-.dately .calendar-area .calendar-day.selected .bubble {
+.dately .dately__calendar-area .dately__calendar-day.selected .bubble {
   background-color: #425866;
   padding-top: 3px;
   padding-right: 0;
   color: white;
 }
 
-.dately .calendar-area .calendar-day.today .bubble {
+.dately .dately__calendar-area .dately__calendar-day.today .bubble {
   background-color: rgb(230, 230, 230);
   padding-top: 3px;
   padding-right: 0;
@@ -713,7 +730,6 @@ export default {
   color: #555;
   cursor: pointer;
   border: none;
-  outline: none;
   background-color: transparent;
   box-shadow: none;
   opacity: 0.75;
@@ -736,15 +752,15 @@ export default {
   opacity: 1;
 }
 
-/* ---- Actions ----- */
-.dately .actions {
+/* ---- dately__actions ----- */
+.dately .dately__actions {
   height: 2rem;
   display: flex;
   justify-content: flex-end;
   margin-right: 0.5rem;
 }
 
-.dately .actions .action-btn {
+.dately .dately__actions .action-btn {
   color: #007acc;
   width: 3rem;
   margin: 0 1rem;
@@ -753,21 +769,21 @@ export default {
   cursor: pointer;
 }
 
-.dately .actions .action-btn:hover {
+.dately .dately__actions .action-btn:hover {
   opacity: 0.75;
 }
 
 /* ----- modal transitions ------ */
-.dately-modal-enter {
+.dately__modal-enter {
   opacity: 0;
 }
 
-.dately-modal-leave-active {
+.dately__modal-leave-active {
   opacity: 0;
 }
 
-.dately-modal-enter .modal-container,
-.dately-modal-leave-active .modal-container {
+.dately__modal-enter .dately__modal-container,
+.dately__modal-leave-active .dately__modal-container {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
@@ -796,17 +812,13 @@ export default {
   opacity: 0.75;
 }
 
-.dately .date-button:focus {
-  outline: none;
-}
-
 /* ---- time selector ---- */
-.dately .time-component {
+.dately .dately__time-component {
   display: flex;
 }
 
-.dately .time-input {
-  height: 2rem;
+.dately .dately__time-input {
+  height: 100%;
   width: 6rem;
   border: none;
   border-radius: 0;
@@ -814,44 +826,42 @@ export default {
   padding: 0 0.33333rem;
   color: #b6c3cc;
   background-color: transparent;
-  outline: none;
   transition: background 0.4s, border-color 0.4s, color 0.4s;
 }
 
-.dately .time-input:focus {
+.dately .dately__time-input:focus {
   background-color: white;
   color: #0c1419;
-  outline: none;
 }
 
-.dately .time-input.invalid {
+.dately .dately__time-input.invalid {
   transition: background 0.4s, border-color 0.4s, color 0.4s;
   background-color: #461212;
   color: #b6c3cc;
+  margin-right: -2rem;
 }
 
-.dately .time-input.invalid:focus {
+.dately .dately__time-input.invalid:focus {
   transition: background 0.4s, border-color 0.4s, color 0.4s;
   background-color: #461212;
   color: #b6c3cc;
 }
 
 /* ---- reset button ----- */
-.dately .time-component .reset-wrapper {
+.dately .dately__time-component .reset-wrapper {
   position: relative;
-  right: 2rem;
   height: 2rem;
   width: 2rem;
   padding: 0.5rem;
   cursor: pointer;
 }
 
-.dately .time-component .reset-wrapper .reset-icon {
+.dately .dately__time-component .reset-wrapper .reset-icon {
   width: 100%;
   height: 100%;
 }
 
-.dately .time-component .reset-wrapper:hover {
+.dately .dately__time-component .reset-wrapper:hover {
   opacity: 0.75;
 }
 </style>

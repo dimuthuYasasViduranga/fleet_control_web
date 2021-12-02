@@ -14,14 +14,11 @@
 
 <script>
 import Vue from 'vue';
-import * as d3 from 'd3';
+import d3 from '@/code/d3';
 
-import { toTimeSpan } from '../timeSpan.js';
 import { createChart, drawTimeline, defaultStyle, parseFill } from './timeSpanChart';
 import SlotWrapper from './SlotWrapper.vue';
-import { IrregularScaleBand } from './irregularScaleBand.js';
 import { setTooltipPosition, getTooltipPosition } from './timeSpanChartTooltip.js';
-import { attributeFromList } from '../../../../code/helpers';
 
 const TOOLTIP_LIFE = 5 * 1000;
 const DEFAULT_Y_AXIS = {
@@ -237,7 +234,7 @@ export default {
     },
     timeSpans: {
       deep: true,
-      handler(newTimeSpans) {
+      handler() {
         this.updateChart();
       },
     },
@@ -334,7 +331,7 @@ export default {
         this.colors,
         range,
         this.chartLayout,
-        () => this.onContextBrushEnd(chart),
+        e => this.onContextBrushEnd(e, chart),
         this.timezone,
       );
 
@@ -363,7 +360,7 @@ export default {
       );
 
       focusArea
-        .on('mouseenter', function (selection) {
+        .on('mouseenter', function (_event, selection) {
           const highlighted = selection;
           self.$emit('entered', highlighted);
           self.highlighted = highlighted;
@@ -375,11 +372,11 @@ export default {
             moveTooltip(self, tooltip, this, self.chart.svg, self.dimensions);
           }
         })
-        .on('mouseleave', function (selectionLeft) {
+        .on('mouseleave', function (_event, selectionLeft) {
           self.highlighted = null;
           applyStandardStyles(d3.select(this), selectionLeft.style);
         })
-        .on('click', selected => {
+        .on('click', (_event, selected) => {
           self.$emit('select', selected);
         });
     },
@@ -422,16 +419,16 @@ export default {
       const xScale = this.chart.context.xScale;
       return [xScale(this.brushMin), xScale(this.brushMax)];
     },
-    onContextBrushEnd(chart) {
+    onContextBrushEnd(event, chart) {
       this.highlighted = null;
-      if (!chart || (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom')) {
+      if (!chart || !event || (event.sourceEvent && event.sourceEvent.type === 'zoom')) {
         return; // ignore brush-by-zoom
       }
 
       const { focus, context } = chart;
 
       // the selection is in pixels
-      const selection = d3.event.selection || context.xScale.range();
+      const selection = event.selection || context.xScale.range();
       const domain = selection.map(context.xScale.invert, context.xScale);
       const maxDomain = context.xScale.domain();
       if (

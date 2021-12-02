@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import fuzzysort from 'fuzzysort';
+import { orderedFuzzySort } from '@/code/sort.js';
 import SearchBar from '@/components/SearchBar.vue';
 
 function toItem(value, key, label) {
@@ -59,7 +59,7 @@ export default {
       if (!this.searchText) {
         return this.items;
       }
-      return fuzzysort.go(this.searchText, this.items, { key: this.label }).map(r => r.obj);
+      return orderedFuzzySort(this.searchText, this.items, { key: this.label });
     },
   },
   methods: {

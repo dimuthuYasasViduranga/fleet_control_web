@@ -8,11 +8,35 @@ defmodule DispatchWeb.PageController do
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def index(conn, _) do
-    user = get_session(conn, :current_user)
+    {conn, user} = get_user(conn)
 
     case user do
       nil -> redirect(conn, to: "/auth/login")
       _ -> redirect(conn, to: "/index.html")
+    end
+  end
+
+  defp get_user(conn) do
+    case Application.get_env(:dispatch_web, :bypass_auth, false) do
+      true ->
+        {:ok, user} = DispatcherAgent.add(nil, "dev")
+
+        conn =
+          conn
+          |> put_session(:current_user, user)
+          |> Guardian.Plug.sign_in(user)
+
+        {conn, user}
+
+      _ ->
+        conn
+        |> get_session(:current_user)
+        |> Map.take([:id, :user_id])
+        |> case do
+          nil -> {conn, nil}
+          %{user_id: nil} -> {conn, nil}
+          user -> {conn, user}
+        end
     end
   end
 
@@ -38,7 +62,7 @@ defmodule DispatchWeb.PageController do
 
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
-    token = get_token(conn)
+    {conn, token} = get_token(conn)
 
     static_data =
       Dispatch.StaticData.fetch()
@@ -51,24 +75,16 @@ defmodule DispatchWeb.PageController do
   end
 
   defp get_token(conn) do
-    case Application.get_env(:dispatch_web, :bypass_auth, false) do
-      true ->
-        {:ok, user} = DispatcherAgent.add(nil, "dev")
+    {conn, user} = get_user(conn)
 
-        conn
-        |> put_session(:current_user, user)
-        |> Guardian.Plug.sign_in(user)
+    case user do
+      nil ->
+        {conn, nil}
 
-        user = %{id: user.id, user_id: user.user_id}
-        Phoenix.Token.sign(conn, "user socket", user)
-
-      _ ->
-        user =
-          conn
-          |> get_session(:current_user)
-          |> Map.take([:id, :user_id])
-
-        Phoenix.Token.sign(conn, "user socket", user)
+      data ->
+        user = Map.take(data, [:id, :user_id])
+        token = Phoenix.Token.sign(conn, "user socket", user)
+        {conn, token}
     end
   end
 end

@@ -112,9 +112,7 @@ export default MapElementFactory({
   events: [],
   mappedProps: {},
   ctr: () => DrawingManager,
-  ctrArgs: (opts, props) => {
-    return [opts.map, google];
-  },
+  ctrArgs: (opts, _props) => [opts.map, google],
   afterCreate(drawingManager) {
     this.init(drawingManager.map, drawingManager.google, drawingManager);
   },

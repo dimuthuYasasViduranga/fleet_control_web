@@ -55,9 +55,8 @@ import OperatorTimeSpanInfo from './OperatorTimeSpanInfo.vue';
 import ClockIcon from '@/components/icons/Time.vue';
 import { parseAsset, parseOperator } from '@/store/modules/constants';
 import { toUtcDate } from '@/code/time';
-import { attributeFromList, groupBy, isInText } from '@/code/helpers';
-
-import fuzzysort from 'fuzzysort';
+import { attributeFromList, groupBy } from '@/code/helpers';
+import { orderedFuzzySort } from '@/code/sort.js';
 
 function parseOperatorData(data) {
   const assets = data.assets.map(parseAsset);
@@ -93,28 +92,6 @@ function parseOperatorAllocation(alloc, assets, operators) {
     timeCode: alloc.time_code,
     timeCodeGroup: alloc.time_code_group,
   };
-}
-
-function extendByProcessWherePossible(allocations) {
-  // iterate forward, keeping track of the time code of the previous
-  return allocations
-    .filter(a => a.assetId)
-    .reduce(
-      (acc, alloc) => {
-        const prev = acc.prev;
-        // if current is process, and previous is not process, take type
-        if (prev && alloc.timeCodeGroup === 'Process' && prev.timeCodeGroup !== 'Process') {
-          alloc.timeCodeId = prev.timeCodeId;
-          alloc.timeCode = prev.timeCode;
-          alloc.timeCodeGroup = prev.timeCodeGroup;
-        }
-
-        acc.prev = alloc;
-        acc.completed.push(alloc);
-        return acc;
-      },
-      { prev: null, completed: [] },
-    ).completed;
 }
 
 export default {
@@ -170,7 +147,7 @@ export default {
       }
 
       if (this.search) {
-        operatorData = fuzzysort.go(this.search, operatorData, { key: 'name' }).map(r => r.obj);
+        operatorData = orderedFuzzySort(this.search, operatorData, { key: 'name' });
       }
 
       return operatorData;

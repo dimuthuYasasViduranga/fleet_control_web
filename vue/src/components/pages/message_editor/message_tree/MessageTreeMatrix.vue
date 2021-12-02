@@ -59,7 +59,7 @@ export default {
         .filter(t => !t.deleted)
         .map(messageType => {
           const row = { type: messageType.type };
-          const assetTypeIds = this.messageTree
+          this.messageTree
             .filter(mt => mt.messageTypeId === messageType.id)
             .forEach(mt => (row[assetLookup[mt.assetTypeId]] = true));
 
