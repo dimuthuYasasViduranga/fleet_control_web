@@ -50,7 +50,7 @@
         :assets="assets"
         :operators="operators"
         :icons="icons"
-        :useFullTimestamp="selectedModeId === 'latest'"
+        :useFullTimestamp="selectedTimeModeId === 'latest'"
         @refresh="onRefresh()"
       />
     </hxCard>
