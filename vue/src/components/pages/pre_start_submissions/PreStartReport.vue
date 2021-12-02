@@ -228,8 +228,8 @@ export default {
     formatHeadingTime(date) {
       const now = new Date();
       const tz = this.$timely.current.timezone;
-      const isToday = isSameDownTo(date, now, tz, 'day');
-      if (isToday || !this.useFullTimestamp) {
+
+      if (!this.useFullTimestamp) {
         return formatDateIn(date, tz, { format: 'HH:mm' });
       }
 
@@ -292,7 +292,7 @@ export default {
 }
 
 .pre-start-report .title-post .submission-time {
-  min-width: 10rem;
+  min-width: 13rem;
 }
 
 /* status indicator */

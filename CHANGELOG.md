@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.10.20
+- 🐛 fixed pdf page numbers
+
 ## 0.10.19
 - 🐛 fixed pre-start pdf not considering empty comments
 - 💄 better spacing on pre-start titles (alignment)

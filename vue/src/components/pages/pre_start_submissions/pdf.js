@@ -56,6 +56,7 @@ function createSubmissions(doc, submissions) {
   // add page numbers
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
     doc.text(`${i}`, 105, 285);
   }
 }
