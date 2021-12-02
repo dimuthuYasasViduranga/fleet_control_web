@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.10.17
+- 📦 updated deps
+- simplified analyzing bundles
+
 ## 0.10.16
 - 🚸 sorting algorithm has better ordering (especially for dropdowns)
 - 🚸 removed crossover range in pre-starts (was too confusing)
