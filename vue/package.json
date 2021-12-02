@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "analyze": "cross-env NODE_ENV=node_modules vue-cli-service serve",
+    "analyze": "sh ./../release/analyze-node-modules.sh",
     "serve": "vue-cli-service serve",
     "serve-mobile": "sh ./../release/serve-mobile.sh",
     "build": "vue-cli-service build",
@@ -56,8 +56,7 @@
     "eslint": "^7.30.0",
     "eslint-plugin-vue": "^7.13.0",
     "typescript": "^3.0.0",
-    "vue-template-compiler": "2.6.14",
-    "webpack-bundle-analyser": "^1.4.0"
+    "vue-template-compiler": "2.6.14"
   },
   "postcss": {
     "plugins": {
