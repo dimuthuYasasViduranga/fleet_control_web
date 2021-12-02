@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.10.18
+- 🐛 fixed incorrect redirect on page controller (unable to initially log in)
+
 ## 0.10.17
 - 📦 updated deps
 - simplified analyzing bundles

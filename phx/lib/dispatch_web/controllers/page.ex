@@ -29,14 +29,8 @@ defmodule DispatchWeb.PageController do
         {conn, user}
 
       _ ->
-        conn
-        |> get_session(:current_user)
-        |> Map.take([:id, :user_id])
-        |> case do
-          nil -> {conn, nil}
-          %{user_id: nil} -> {conn, nil}
-          user -> {conn, user}
-        end
+        user = get_session(conn, :current_user)
+        {conn, user}
     end
   end
 
