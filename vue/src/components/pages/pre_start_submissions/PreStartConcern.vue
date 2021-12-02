@@ -199,8 +199,9 @@ export default {
 .pre-start-concern .submission .overall-comments {
   border-top: 1px solid #364c59;
   background-color: #344652;
-  line-height: 1.5rem;
   padding-left: 2rem;
+  white-space: pre-line;
+  padding-bottom: 1rem;
 }
 
 /* controls */
