@@ -1,7 +1,7 @@
 const webpackConfig = {
+  plugins: [],
   externals: {
     canvg: 'canvg',
-    html2canvas: 'html2canvas',
     dompurify: 'dompurify',
   },
 };
@@ -9,7 +9,7 @@ const webpackConfig = {
 if (process.env.NODE_ENV === 'node_modules') {
   const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
   console.log('\n[Analyze] Node modules will be analysed and display along with the serve\n');
-  webpackConfig.plugins = [new BundleAnalyzerPlugin()];
+  webpackConfig.plugins.push(new BundleAnalyzerPlugin());
 }
 
 module.exports = {
