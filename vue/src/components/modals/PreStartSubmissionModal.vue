@@ -107,13 +107,15 @@ function submissionToPDFFormat(submission, asset, operator, ticketTypes) {
     formatSection(s, submission.responses, ticketTypes),
   );
 
+  const comments = submission.comment ? submission.comment.split('\n') : [];
+
   return {
     heading: {
       asset: assetFullname,
       operator: operatorName,
       timestamp: submission.timestamp,
     },
-    comments: submission.comment.split('\n'),
+    comments,
     sections: sections,
   };
 }

@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.10.19
+- 🐛 fixed pre-start pdf not considering empty comments
+- 💄 better spacing on pre-start titles (alignment)
+
 ## 0.10.18
 - 🐛 fixed incorrect redirect on page controller (unable to initially log in)
 
