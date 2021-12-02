@@ -52,6 +52,12 @@ function createSubmissions(doc, submissions) {
     }
     createSubmission(doc, sub);
   });
+
+  // add page numbers
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.text(`${i}`, 105, 285);
+  }
 }
 
 function createBanner(doc, heading) {
