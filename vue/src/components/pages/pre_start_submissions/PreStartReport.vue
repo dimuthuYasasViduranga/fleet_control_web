@@ -291,6 +291,10 @@ export default {
   margin-left: 1rem;
 }
 
+.pre-start-report .title-post .submission-time {
+  min-width: 10rem;
+}
+
 /* status indicator */
 .pre-start-report .status {
   width: 10rem;
