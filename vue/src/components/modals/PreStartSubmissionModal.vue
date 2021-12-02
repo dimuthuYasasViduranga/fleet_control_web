@@ -10,7 +10,17 @@
       >
         Employee ID: {{ submission.employeeId }}
       </div>
-      <div class="timestamp">{{ formatTime(submission.timestamp) }}</div>
+      <div class="timestamp">
+        <span>
+          {{ formatTime(submission.timestamp) }}
+        </span>
+        <Icon
+          v-tooltip="'Download PDF'"
+          class="pdf-download"
+          :icon="pdfIcon"
+          @click="onDownloadPdf()"
+        />
+      </div>
     </div>
     <div v-if="submission.comment" class="submission-comment">
       <div class="title">Comments</div>
@@ -74,10 +84,12 @@ import Icon from 'hx-layout/Icon.vue';
 
 import TagIcon from '@/components/icons/Tag.vue';
 import EditIcon from '@/components/icons/Edit.vue';
+import PdfIcon from '@/components/icons/Pdf.vue';
 
 import { attributeFromList } from '@/code/helpers';
 import { formatDateIn, toUtcDate } from '@/code/time';
 import PreStartCreateTicketModal from './PreStartCreateTicketModal.vue';
+import { createPDF } from '../pages/pre_start_submissions/pdf';
 
 function getOperator(operators, operatorId, employeeId) {
   return (
@@ -85,6 +97,75 @@ function getOperator(operators, operatorId, employeeId) {
     attributeFromList(operators, 'employeeId', employeeId) ||
     {}
   );
+}
+
+function submissionToPDFFormat(submission, asset, operator, ticketTypes) {
+  const assetFullname = asset.type ? `${asset.name} (${asset.type})` : asset.name;
+  const operatorName = operator.fullname || submission.employeeId;
+
+  const sections = submission.form.sections.map(s =>
+    formatSection(s, submission.responses, ticketTypes),
+  );
+
+  return {
+    heading: {
+      asset: assetFullname,
+      operator: operatorName,
+      timestamp: submission.timestamp,
+    },
+    comments: submission.comment.split('\n'),
+    sections: sections,
+  };
+}
+
+function formatSection(section, responses, ticketTypes) {
+  return {
+    title: section.title,
+    details: section.details,
+    controls: section.controls.map(c => formatControl(c, responses, ticketTypes)),
+  };
+}
+
+function formatControl(control, responses, ticketTypes) {
+  const resp = attributeFromList(responses, 'controlId', control.id) || {};
+  const ticket = resp.ticket || {};
+  const activeStatus = ticket.activeStatus || {};
+  const ticketStatus = getTicketStatus(ticket, ticketTypes);
+  const status = getStatus(resp);
+  return {
+    label: control.label,
+    status,
+    comment: resp.comment,
+    ticket: {
+      status: ticketStatus,
+      reference: activeStatus.reference,
+      details: activeStatus.details,
+      timestamp: ticket.timestamp,
+    },
+  };
+}
+
+function getStatus(resp) {
+  switch (resp.answer) {
+    case true:
+      return 'Pass';
+    case false:
+      return 'Fail';
+    default:
+      return 'N/A';
+  }
+}
+
+function getTicketStatus(ticket, ticketTypes) {
+  if (!ticket || !ticket.activeStatus) {
+    return;
+  }
+
+  const [name, alias] = attributeFromList(ticketTypes, 'id', ticket.activeStatus.statusTypeId, [
+    'name',
+    'alias',
+  ]);
+  return alias || name;
 }
 
 function statusChanged(a, b) {
@@ -106,6 +187,7 @@ export default {
     return {
       tagIcon: TagIcon,
       editIcon: EditIcon,
+      pdfIcon: PdfIcon,
       hasMadeChanges: false,
     };
   },
@@ -264,6 +346,20 @@ export default {
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to update ticket'));
     },
+    onDownloadPdf() {
+      const timeString = formatDateIn(this.submission.timestamp, this.$timely.current.timezone, {
+        format: `yyyy-MM-dd_HH-mm-ss`,
+      });
+      const filename = `${this.asset.name}_${timeString}`;
+
+      const data = submissionToPDFFormat(
+        this.submission,
+        this.asset,
+        this.operator,
+        this.ticketStatusTypes,
+      );
+      createPDF(data, this.$timely.current.timezone, { filename });
+    },
   },
 };
 </script>
@@ -281,11 +377,32 @@ export default {
   justify-content: space-around;
   background-color: #314452;
   padding: 0.5rem;
+  padding-right: 0;
+}
+
+.pre-start-submission-modal .identity {
+  line-height: 1.5rem;
 }
 
 .pre-start-submission-modal .identity .employee-id-only {
   background-color: darkred;
   padding: 0 2rem;
+}
+
+.pre-start-submission-modal .identity .timestamp {
+  display: inline-flex;
+  margin-right: -2rem;
+}
+
+.pre-start-submission-modal .identity .timestamp .pdf-download {
+  cursor: pointer;
+  margin-left: 2rem;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.pre-start-submission-modal .identity .timestamp .pdf-download:hover {
+  opacity: 0.75;
 }
 
 /* section */

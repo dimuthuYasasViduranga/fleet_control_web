@@ -72,7 +72,7 @@ function createBanner(doc, heading) {
   doc.text(heading.asset, halfSpacing, textY, textOpts);
   doc.text(heading.operator, 3 * halfSpacing, textY, textOpts);
   const formattedTimestamp = formatDateIn(heading.timestamp, doc.$.timezone, {
-    format: '(yyyy-MM-dd) HH:mm:ss',
+    format: 'yyyy-MM-dd HH:mm:ss',
   });
   doc.text(formattedTimestamp, 5 * halfSpacing, textY, textOpts);
 
@@ -126,7 +126,7 @@ function createComments(doc, comments) {
   doc.setFontSize(10);
   const lineHeight = getTextHeight(doc) * 1.5;
   const xOffset = doc.$.xMargin + 5;
-  for (const c in comments) {
+  for (const c of comments) {
     const nLines = createWrappedLine(doc, `- ${c}`, xOffset, doc.$.fromY, doc.$.width - xOffset);
     doc.$.fromY += lineHeight * nLines;
   }
