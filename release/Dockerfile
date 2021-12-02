@@ -1,5 +1,10 @@
-# Alias this container as builder:
-FROM haultrax/elixir-builder:1.10.4-slim as builder
+FROM elixir:1.12 as builder
+
+# install build dependencies
+RUN apt-get update && apt-get install -y git ca-certificates curl
+RUN mix local.hex --force
+RUN mix local.rebar --force
+
 
 WORKDIR /dispatch_phx
 
@@ -41,7 +46,7 @@ RUN MIX_ENV=prod mix release
 ###############
 ### Release ###
 ###############
-FROM debian:buster
+FROM debian:bullseye
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install erlang-tools erlang-xmerl bash openssl locales -y
@@ -50,7 +55,6 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
   dpkg-reconfigure locales && \
   /usr/sbin/update-locale LANG=en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
-
 
 ARG PORT=4001
 EXPOSE $PORT
