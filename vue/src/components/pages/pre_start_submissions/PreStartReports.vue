@@ -9,6 +9,7 @@
         :submissions="report.submissions"
         :icons="icons"
         :shift="shift"
+        :useFullTimestamp="useFullTimestamp"
         @refresh="$emit('refresh', $event)"
       />
     </div>
@@ -28,6 +29,7 @@ export default {
     assets: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
     shift: { type: Object },
+    useFullTimestamp: { type: Boolean, default: false },
   },
   computed: {
     reports() {

@@ -45,7 +45,7 @@
               :items="assetOptions"
               label="fullname"
               :useScrollLock="true"
-              placeholder="Asset"
+              placeholder="Find Asset"
               direction="down"
               @change="onFindAsset"
             />
@@ -348,11 +348,11 @@ export default {
       attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
       attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
       attachControl(map, this.google, '.label-control', 'LEFT_TOP');
+      attachControl(map, this.google, '.asset-type-filter-toggle', 'LEFT_TOP');
+      attachControl(map, this.google, '.asset-type-filter', 'LEFT_TOP');
       attachControl(map, this.google, '.my-position-control', 'RIGHT_BOTTOM');
       attachControl(map, this.google, '.my-position-recenter-control', 'RIGHT_BOTTOM');
       attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
-      attachControl(map, this.google, '.asset-type-filter-toggle', 'RIGHT_TOP');
-      attachControl(map, this.google, '.asset-type-filter', 'RIGHT_TOP');
       attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
@@ -504,15 +504,15 @@ export default {
 }
 
 .asset-type-filter-toggle {
-  width: 42px;
-  margin: -1px;
-  height: 42px;
+  margin: 0;
+  width: 40px;
+  height: 40px;
 }
 
 .asset-type-filter-toggle .hx-icon {
   width: 100%;
-  height: 42px;
-  width: 42px;
+  height: 40px;
+  width: 40px;
   padding: 5px 0;
 }
 

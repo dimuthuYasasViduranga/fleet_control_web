@@ -9,7 +9,7 @@
     />
     <div class="title-post" slot="title-post">
       <div class="submission-time">
-        {{ asset.name }} ({{ formatTime(latestSubmission.timestamp) }})
+        {{ asset.name }} ({{ formatHeadingTime(latestSubmission.timestamp) }})
       </div>
       <div class="status gap-left">
         <div v-if="latestSubmission.responseCounts.failuresWithoutTickets" class="failure">
@@ -122,6 +122,7 @@ export default {
     submissions: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
     shift: { type: Object, default: null },
+    useFullTimestamp: { type: Boolean, default: false },
   },
   data: () => {
     return {
@@ -223,6 +224,21 @@ export default {
           this.$emit('refresh');
         }
       });
+    },
+    formatHeadingTime(date) {
+      const now = new Date();
+      const tz = this.$timely.current.timezone;
+      const isToday = isSameDownTo(date, now, tz, 'day');
+      if (isToday || !this.useFullTimestamp) {
+        return formatDateIn(date, tz, { format: 'HH:mm' });
+      }
+
+      const isSameYear = isSameDownTo(date, now, tz, 'year');
+      if (isSameYear) {
+        return formatDateIn(date, tz, { format: 'LLL-dd HH:mm' });
+      }
+
+      return formatDateIn(date, tz, { format: 'yyyy LLL-dd HH:mm' });
     },
     formatTime(date, format = 'HH:mm') {
       const tz = this.$timely.current.timezone;

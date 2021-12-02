@@ -13,6 +13,7 @@
         :assetName="asset.name"
         :icon="icons[asset.type]"
         :submissions="asset.failedSubmissions"
+        :useFullTimestamp="useFullTimestamp"
         @refresh="$emit('refresh', $event)"
       />
     </div>
@@ -127,16 +128,17 @@ export default {
   components: {
     PreStartConcern,
   },
-  data: () => {
-    return {
-      showLatestOnly: true,
-    };
-  },
   props: {
     submissions: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
+    useFullTimestamp: { type: Boolean, default: false },
+  },
+  data: () => {
+    return {
+      showLatestOnly: true,
+    };
   },
   computed: {
     ticketStatusTypes() {

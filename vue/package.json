@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "analyze": "cross-env NODE_ENV=node_modules vue-cli-service serve",
     "serve": "vue-cli-service serve",
     "serve-mobile": "sh ./../release/serve-mobile.sh",
     "build": "vue-cli-service build",
@@ -12,10 +13,15 @@
   "dependencies": {
     "@types/phoenix": "^0.0.4",
     "axios": "^0.21.0",
-    "d3": "^5.15.0",
+    "d3-axis": "2.1.0",
+    "d3-brush": "2.1.0",
+    "d3-drag": "2.0.0",
+    "d3-scale": "2.2.2",
+    "d3-selection": "2.0.0",
     "fuzzysort": "^1.1.4",
     "gmap-vue": "^1.5.0",
-    "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#0.2.1",
+    "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#peer-deps",
+    "jspdf": "^2.4.0",
     "luxon": "^1.26.0",
     "moment": "^2.29.0",
     "phoenix": "^1.5.0",
@@ -30,13 +36,13 @@
     "vue-router": "^3.5.0",
     "vue-simple-context-menu": "^3.4.1",
     "vue-smooth-dnd": "^0.8.1",
-    "vue-table-component": "^1.9.2",
+    "vue-table-component": "git+https://git@github.com/jonHaultrax/vue-table-component.git#remove_moment",
     "vue-toasted": "^1.1.28",
-    "vue2-gmap-custom-marker": "^6.0.1",
+    "vue2-gmap-custom-marker": "git+https://git@github.com/jonHaultrax/vue2-gmap-custom-marker.git#peer-deps",
     "vue2-perfect-scrollbar": "^1.5.0",
     "vue2-touch-events": "^3.2.0",
     "vuex": "^3.6.0",
-    "weekstart": "^1.0.0"
+    "weekstart": "^1.1.0"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
@@ -46,11 +52,13 @@
     "@vue/cli-service": "^3.1.0",
     "@vue/test-utils": "^1.0.0-beta.20",
     "babel-core": "7.0.0-bridge.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.30.0",
     "eslint-plugin-vue": "^7.13.0",
     "ts-jest": "^23.0.0",
     "typescript": "^3.0.0",
-    "vue-template-compiler": "2.6.10"
+    "vue-template-compiler": "2.6.10",
+    "webpack-bundle-analyser": "^1.4.0"
   },
   "postcss": {
     "plugins": {

@@ -1,5 +1,11 @@
 <template>
   <div class="debug-page">
+    <hxCard title="PDF" :icon="bugIcon">
+      <iframe
+        id="pdf-iframe"
+        style="width: 100%; height: 50rem; top: 0; left: 0; z-index: 2; border: 1px solid orange"
+      />
+    </hxCard>
     <hxCard title="Modals" :icon="bugIcon">
       <div class="modal-list">
         <button class="hx-btn" @click="onOpenModal">Open Modal</button>
@@ -233,6 +239,8 @@ import Dately from '@/components/dately/Dately.vue';
 import { formatDateIn } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
 import { AVPlayer } from '@/code/audio.js';
+import { createPDF } from '../pre_start_submissions/pdf';
+import { attributeFromList } from '@/code/helpers';
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -246,6 +254,86 @@ const ASSET_ICONS = [
   LVIcon,
   undefined,
 ];
+
+function getOperatorName(operatorId, employeeId, operators) {
+  const operator = operators.find(o => o.id === operatorId || o.employeeId === employeeId) || {};
+  return operator.fullname || employeeId;
+}
+
+function submissionToPDFFormat(submission, assets, operators, ticketTypes) {
+  const [assetName, assetType] = attributeFromList(assets, 'id', submission.assetId, [
+    'name',
+    'type',
+  ]);
+  const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
+  const operatorName = getOperatorName(submission.operatorId, submission.employeeId, operators);
+
+  let sections = submission.form.sections.map(s =>
+    formatSection(s, submission.responses, ticketTypes),
+  );
+
+  [1, 2, 3].forEach(() => (sections = sections.concat(sections)));
+
+  return {
+    heading: {
+      asset: assetFullname,
+      operator: operatorName,
+      timestamp: submission.timestamp,
+    },
+    comments: submission.comment.split('\n'),
+    sections: sections,
+  };
+}
+
+function formatSection(section, responses, ticketTypes) {
+  return {
+    title: section.title,
+    details: section.details,
+    controls: section.controls.map(c => formatControl(c, responses, ticketTypes)),
+  };
+}
+
+function formatControl(control, responses, ticketTypes) {
+  const resp = attributeFromList(responses, 'controlId', control.id) || {};
+  const ticket = resp.ticket || {};
+  const activeStatus = ticket.activeStatus || {};
+  const ticketStatus = getTicketStatus(ticket, ticketTypes);
+  const status = getStatus(resp);
+  return {
+    label: control.label,
+    status,
+    comment: resp.comment,
+    ticket: {
+      status: ticketStatus,
+      reference: activeStatus.reference,
+      details: activeStatus.details,
+      timestamp: ticket.timestamp,
+    },
+  };
+}
+
+function getStatus(resp) {
+  switch (resp.answer) {
+    case true:
+      return 'Pass';
+    case false:
+      return 'Fail';
+    default:
+      return 'N/A';
+  }
+}
+
+function getTicketStatus(ticket, ticketTypes) {
+  if (!ticket || !ticket.activeStatus) {
+    return;
+  }
+
+  const [name, alias] = attributeFromList(ticketTypes, 'id', ticket.activeStatus.statusTypeId, [
+    'name',
+    'alias',
+  ]);
+  return alias || name;
+}
 
 export default {
   name: 'DebugPage',
@@ -339,6 +427,25 @@ export default {
     }),
     timezone() {
       return this.$store.state.constants.timezone;
+    },
+    submission() {
+      return (this.$store.state.currentPreStartSubmissions || [])[0];
+    },
+  },
+  watch: {
+    submission: {
+      immediate: true,
+      handler(sub) {
+        if (!sub) {
+          return;
+        }
+
+        const assets = this.$store.state.constants.assets;
+        const operators = this.$store.state.constants.operators;
+        const ticketTypes = this.$store.state.constants.preStartTicketStatusTypes;
+        const data = submissionToPDFFormat(sub, assets, operators, ticketTypes);
+        createPDF(data, this.$timely.current.timezone, { iframe: 'pdf-iframe' });
+      },
     },
   },
   beforeDestroy() {
