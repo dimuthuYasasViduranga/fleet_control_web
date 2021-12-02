@@ -41,6 +41,7 @@
         :assets="assets"
         :icons="icons"
         :shift="shift"
+        :useFullTimestamp="selectedTimeModeId === 'latest'"
         @refresh="onRefresh()"
       />
       <PreStartConcerns
@@ -49,6 +50,7 @@
         :assets="assets"
         :operators="operators"
         :icons="icons"
+        :useFullTimestamp="selectedModeId === 'latest'"
         @refresh="onRefresh()"
       />
     </hxCard>
