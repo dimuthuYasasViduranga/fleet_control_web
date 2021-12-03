@@ -25,7 +25,7 @@ defmodule DispatchWeb.Router do
     end
   end
 
-  scope "/", DispatchWeb do
+  scope "/fleet-control", DispatchWeb do
     pipe_through :api
     pipe_through :authorized
 
@@ -33,13 +33,13 @@ defmodule DispatchWeb.Router do
     get "/api/route_whitelist", PageController, :get_whitelist
   end
 
-  scope "/", DispatchWeb do
+  scope "/fleet-control", DispatchWeb do
     pipe_through :api
 
     get "/", PageController, :index
   end
 
-  scope "/auth", DispatchWeb do
+  scope "/fleet-control/auth", DispatchWeb do
     pipe_through :api
 
     # dispatcher login

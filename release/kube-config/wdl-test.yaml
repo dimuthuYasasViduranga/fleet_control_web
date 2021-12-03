@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleet-control-ui-subdomain
+  namespace: wdl-test
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 4001
+  selector:
+    app: fleet-control-ui
+    subdomain: fleet-control-ui
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fleet-control-ui.deployment
+  namespace: wdl-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fleet-control-ui
+  template:
+    metadata:
+      labels:
+        app: fleet-control-ui
+        subdomain: fleet-control-ui
+    spec:
+      hostname: fleet-control-ui
+      subdomain: fleet-control-ui-subdomain
+      containers:
+        - name: fleet-control-ui
+          image: hxreg.azurecr.io/fleet-control-ui
+          imagePullPolicy: 'Always'
+          env:
+            - name: APPSIGNAL_APP_NAME
+              value: fleet_control_ui_kube-wdl-test
+            - name: APPSIGNAL_APP_ENV
+              value: prod
+            - name: APPSIGNAL_API
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: APPSIGNAL_PUSH_API_KEY
+            - name: AZURE_ACTIVE_DIRECTORY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: AZURE_ACTIVE_DIRECTORY
+            - name: MAP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: MAP_KEY
+            - name: HPSSQL_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: HPSSQL_CONNECTION
+            - name: HPSSQL_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: HPSSQL_ENCRYPTION_KEY
+            - name: GPS_GATE_REST
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: GPS_GATE_REST
+            - name: DISPATCH_JOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: DISPATCH_JOKEN_SECRET
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: SLACK_WEBHOOK
+            - name: RELEASE_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: RELEASE_COOKIE
+            - name: RELEASE_DISTRIBUTION
+              value: name
+            - name: RELEASE_NODE
+              value: fleet-control-ui@fleet-control-ui.fleet-control-ui-subdomain
+            - name: DISPATCH
+              value: |
+                [
+                  quick_messages: [
+                    "Smoko after tip",
+                    "Blasting about to start",
+                    ["Did you get this message", "Yes", "No"]
+                  ],
+                  use_gps_device: false,
+                  track_method: :gps_gate,
+                  auth_permissions: [
+                    can_edit_operators: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
+                    can_edit_time_allocations: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
+                    can_edit_time_codes: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
+                    can_edit_messages: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
+                    can_refresh_agents: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
+                    can_edit_pre_starts: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"]
+                  ],
+                  route_white_list: %{
+                    :default => [
+                      "/asset_assignment",
+                      "/location_assignment",
+                      "/asset_overview",
+                      "/mine_map",
+                      "/operators",
+                      "/device_assignment",
+                      "/asset_status",
+                      "/engine_hours",
+                      "/time_allocation",
+                      "/operator_time_allocation",
+                      "/time_allocation_report",
+                      "/pre_start_submissions"
+                    ],
+                    "0a91f791-d521-4ac4-a35e-8cc509c02cb7" => [
+                      "/asset_assignment",
+                      "/location_assignment",
+                      "/asset_overview",
+                      "/mine_map",
+                      "/route_map",
+                      "/operators",
+                      "/device_assignment",
+                      "/asset_status",
+                      "/time_allocation",
+                      "/operator_time_allocation",
+                      "/time_allocation_report",
+                      "/time_code_editor",
+                      "/message_editor",
+                      "/engine_hours",
+                      "/debug",
+                      "/agents",
+                      "/pre_start_editor",
+                      "/pre_start_submissions"
+                    ]
+                  },
+                  map_center: %{
+                    latitude: -32.969483,
+                    longitude: 116.079195,
+                    zoom: 15
+                  }
+                ]
+            - name: URL
+              value: https://alcoa-wdl-test.haultrax.digital

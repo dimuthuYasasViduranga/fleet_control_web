@@ -19,7 +19,7 @@ defmodule DispatchWeb.AuthController do
   @spec login(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def login(conn, _) do
     base_uri = Application.get_env(:dispatch_web, :url)
-    redirect_uri = "#{base_uri}/auth/callback"
+    redirect_uri = "#{base_uri}/fleet-control/auth/callback"
     redirect(conn, external: AzureADOpenId.authorize_url!(redirect_uri))
   end
 
@@ -50,7 +50,7 @@ defmodule DispatchWeb.AuthController do
         Logger.warn("[Auth] #{error_type}: #{error}")
         conn
     end
-    |> redirect(to: "/")
+    |> redirect(to: "/fleet-control")
   end
 
   @doc """
