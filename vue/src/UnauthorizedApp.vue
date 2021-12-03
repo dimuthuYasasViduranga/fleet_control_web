@@ -1,14 +1,19 @@
 <template>
   <div id="unauthorized">
-    <p>Insufficient permissions to access this application</p>
-
-    <p>If you feel you should have access, please contact support@haultrax.com</p>
+    <p>Welcome, {{ user.name }}</p>
+    <br />
+    <p>It appears you do not have the required authorization for this application</p>
+    <p>If you were recently given access, please try again in a couple of minutes</p>
+    <p>otherwise, please contact support@haultrax.com to have your permissions elevated</p>
   </div>
 </template>
 
 <script>
 export default {
   name: 'UnauthorizedApp',
+  props: {
+    user: { type: Object, default: () => ({}) },
+  },
 };
 </script>
 

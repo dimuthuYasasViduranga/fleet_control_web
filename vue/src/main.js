@@ -105,10 +105,11 @@ async function startApp(staticData) {
   }).$mount('#app');
 }
 
-async function startUnauthorized() {
+async function startUnauthorized(user) {
+  const props = { user };
   new Vue({
     render(createElement) {
-      return createElement(UnauthorizedApp, {});
+      return createElement(UnauthorizedApp, { props });
     },
   }).$mount('#app');
 }
@@ -130,7 +131,7 @@ axios
       return;
     }
 
-    startUnauthorized();
+    startUnauthorized(resp.data.user);
   })
   .catch(error => {
     console.error(error);
