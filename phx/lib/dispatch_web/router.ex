@@ -12,7 +12,7 @@ defmodule DispatchWeb.Router do
   pipeline :authorized do
     case Application.get_env(:dispatch_web, :bypass_auth, false) do
       true ->
-        nil
+        plug DispatchWeb.Authorization.Plug.LoadAuthPermissions, full_access: true
 
       _ ->
         plug Guardian.Plug.Pipeline,
@@ -22,6 +22,8 @@ defmodule DispatchWeb.Router do
         plug Guardian.Plug.VerifySession
         plug Guardian.Plug.LoadResource
         plug Guardian.Plug.EnsureAuthenticated
+
+        plug DispatchWeb.Authorization.Plug.LoadAuthPermissions
     end
   end
 
@@ -30,7 +32,6 @@ defmodule DispatchWeb.Router do
     pipe_through :authorized
 
     get "/api/static_data", PageController, :static_data
-    get "/api/route_whitelist", PageController, :get_whitelist
   end
 
   scope "/fleet-control", DispatchWeb do
@@ -43,7 +44,6 @@ defmodule DispatchWeb.Router do
     pipe_through :api
 
     # dispatcher login
-    get "/user-info", PageController, :user_info
     get "/login", AuthController, :login
     post "/callback", AuthController, :callback
     get "/logout", AuthController, :logout

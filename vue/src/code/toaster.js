@@ -12,9 +12,7 @@ function getNextId() {
   return id;
 }
 
-// need to convert this to use show instead (more control)
-
-export class Toaster {
+class Toaster {
   clearAll() {
     Vue.toasted.clear();
   }
@@ -98,14 +96,16 @@ function createToast(msg, type, options) {
   // override text changer
   toast._text = msg;
   Object.defineProperty(toast, 'text', {
-    set: function(text) {
+    set: function (text) {
       toast._text = text;
       textSpan.innerText = text;
     },
-    get: function() {
+    get: function () {
       return toast._text;
     },
   });
 
   return toast;
 }
+
+export default new Toaster();

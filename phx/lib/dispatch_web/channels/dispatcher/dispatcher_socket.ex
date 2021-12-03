@@ -2,7 +2,7 @@ defmodule DispatchWeb.DispatcherSocket do
   @moduledoc nil
 
   use Phoenix.Socket
-  alias DispatchWeb.Authorization
+  alias DispatchWeb.Authorization.Permissions
 
   # 2 weeks in seconds
   @max_age 14 * 24 * 3600
@@ -25,14 +25,13 @@ defmodule DispatchWeb.DispatcherSocket do
 
   defp get_permissions(user_id) do
     case Application.get_env(:dispatch_web, :bypass_auth, false) do
-      true -> bypass_permissions()
-      _ -> Authorization.Socket.get_permissions(user_id)
-    end
-  end
+      true ->
+        Permissions.default_permissions()
+        |> Enum.map(fn {key, _} -> {key, true} end)
+        |> Enum.into(%{})
 
-  defp bypass_permissions() do
-    Authorization.Socket.default_permissions()
-    |> Enum.map(fn {permission, _} -> {permission, true} end)
-    |> Enum.into(%{})
+      _ ->
+        Permissions.fetch_permissions(user_id)
+    end
   end
 end

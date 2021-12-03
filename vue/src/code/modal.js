@@ -51,11 +51,15 @@ class ModalInstance {
   }
 }
 
-export class Modal {
-  constructor(store) {
+class Modal {
+  constructor() {
     this.openModals = [];
     this.TERMINATE = TERM_PAYLOAD;
-    this.store = store;
+    this._store;
+  }
+
+  set store(val) {
+    this._store = val;
   }
 
   create(component, componentProps = {}, options = {}) {
@@ -68,7 +72,7 @@ export class Modal {
       ...ModalWrapper,
       propsData: { component, componentProps, ...options },
     });
-    modal.$store = this.store;
+    modal.$store = this._store;
     modal.$mount(modalElement);
 
     const modalInstance = new ModalInstance(modal, m => this.handleRemove(m));
@@ -92,3 +96,5 @@ export class Modal {
     this.openModals = [];
   }
 }
+
+export default new Modal();

@@ -67,9 +67,9 @@ class PushFailure {
   }
 }
 
-export class Channel {
-  constructor(mode = 'normal') {
-    this._mode = parseMode(mode);
+class Channel {
+  constructor() {
+    this.mode = 'normal';
     this._channel = null;
     this._isAlive = false;
     this._isConnected = false;
@@ -105,6 +105,10 @@ export class Channel {
 
   get mode() {
     return this._mode;
+  }
+
+  set mode(value) {
+    this._mode = parseMode(value);
   }
 
   getInfo() {
@@ -226,3 +230,5 @@ export class Channel {
     return new PushFailure();
   }
 }
+
+export default new Channel();

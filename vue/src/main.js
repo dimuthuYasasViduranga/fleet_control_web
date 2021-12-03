@@ -10,12 +10,14 @@ import Toasted from 'vue-toasted';
 
 import setupRouter from './code/routes';
 import App from './App.vue';
+import UnauthorizedApp from './UnauthorizedApp.vue';
+import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
-import { Channel } from './code/channel.js';
-import { Modal } from './code/modal.js';
-import { Timely } from './code/timely.js';
-import { Toaster } from './code/toasts.js';
-import { ContextMenu } from './code/context_menu.js';
+import Channel from './code/channel.js';
+import Modal from './code/modal.js';
+import Timely from './code/timely.js';
+import Toaster from './code/toaster.js';
+import ContextMenu from './code/context_menu.js';
 import Geolocation from './code/geolocation.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
@@ -25,16 +27,10 @@ import { nowTimer } from './code/time.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 let hostname = window.location.origin;
-let uiHost = '';
 if (isDev) {
   hostname = 'http://localhost:4010';
-  uiHost = 'http://localhost:8080';
 }
 hostname += '/fleet-control';
-uiHost += '/fleet-control';
-
-// in the future this will be required when on the kube
-// hostname += '/fleet-control'
 
 Vue.prototype.$hostname = hostname;
 axios.defaults.withCredentials = true;
@@ -46,18 +42,18 @@ Vue.use(Vue2TouchEvents);
 Vue.prototype.$eventBus = new Vue();
 
 // Create a global channel wrapper
-Vue.prototype.$channel = new Channel(false ? 'debug' : null);
+Vue.prototype.$channel = Channel;
 
-Vue.prototype.$modal = new Modal(store);
+Modal.store = store;
+Vue.prototype.$modal = Modal;
 
-Vue.prototype.$toaster = new Toaster();
+Vue.prototype.$toaster = Toaster;
 
-Vue.prototype.$contextMenu = new ContextMenu();
+Vue.prototype.$contextMenu = ContextMenu;
 
 Vue.prototype.$geolocation = Geolocation;
 
-const timely = Vue.observable(new Timely());
-Vue.prototype.$timely = timely;
+Vue.prototype.$timely = Timely;
 
 Vue.prototype.$everySecond = nowTimer(1000);
 
@@ -83,45 +79,65 @@ const configureToasts = function (router) {
   });
 };
 
-async function startApp() {
-  const whitelist = store.state.constants.whitelist;
+async function startApp(staticData) {
+  store.dispatch('constants/setStaticData', staticData);
+  store.dispatch('trackStore/startPendingInterval');
+
+  const whitelist = staticData.whitelist;
+
   const [routes, router] = setupRouter(whitelist);
 
   // configure toasted
   configureToasts(router);
 
-  function createApp(data) {
-    const props = { routes, logout };
-    const key = data.map_config.key;
+  const props = { routes, logout };
+  const key = staticData.data.map_config.key;
 
-    // maps
-    Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
+  // maps
+  Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
 
-    new Vue({
-      router,
-      store,
-      render(createElement) {
-        return createElement(App, { props });
-      },
-    }).$mount('#app');
-  }
-
-  store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
-  store.dispatch('trackStore/startPendingInterval');
+  new Vue({
+    router,
+    store,
+    render(createElement) {
+      return createElement(App, { props });
+    },
+  }).$mount('#app');
 }
 
-// fetch whitelist
-const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
+async function startUnauthorized(user) {
+  const props = { user };
+  new Vue({
+    render(createElement) {
+      return createElement(UnauthorizedApp, { props });
+    },
+  }).$mount('#app');
+}
 
-const promises = [whitelistPromise];
+async function startUnknownError(error) {
+  const props = { error };
+  new Vue({
+    render(createElement) {
+      return createElement(UnknownErrorApp, { props });
+    },
+  }).$mount('#app');
+}
 
-Promise.all(promises)
-  .then(startApp)
+axios
+  .get(`${hostname}/api/static_data`)
+  .then(resp => {
+    if (resp.data.permissions.authorized) {
+      startApp(resp.data);
+      return;
+    }
+
+    startUnauthorized(resp.data.user);
+  })
   .catch(error => {
     console.error(error);
     if (isDev) {
       console.error('While rendering from 8080, ensure that bypass_auth is true');
-    } else {
-      document.location.href = uiHost || hostname;
     }
+
+    startUnknownError(error);
   });

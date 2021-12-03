@@ -101,12 +101,13 @@ spec:
                   use_gps_device: false,
                   track_method: :gps_gate,
                   auth_permissions: [
-                    can_edit_operators: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
-                    can_edit_time_allocations: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
-                    can_edit_time_codes: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
-                    can_edit_messages: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
-                    can_refresh_agents: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"], 
-                    can_edit_pre_starts: ["a95c03f3-fbf7-4d7a-b6f7-68b6c81a9560"]
+                    authorized: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
+                    can_edit_operators: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_edit_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_edit_time_codes: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_edit_messages: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_refresh_agents: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_edit_pre_starts: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"]
                   ],
                   route_white_list: %{
                     :default => [

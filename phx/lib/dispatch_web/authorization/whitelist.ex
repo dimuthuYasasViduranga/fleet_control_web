@@ -1,20 +1,17 @@
-defmodule DispatchWeb.Authorization.Conn do
+defmodule DispatchWeb.Authorization.Whitelist do
   alias DispatchWeb.Authorization.AzureGraph
 
   defp whitelist_config(), do: Application.get_env(:dispatch_web, :route_white_list, %{})
 
   defp default_whitelist(), do: whitelist_config()[:default] || []
 
-  def get_whitelist(conn) do
-    case Plug.Conn.get_session(conn, :current_user) do
-      %{user_id: user_id} ->
-        user_id
-        |> AzureGraph.group_ids()
-        |> get_first_whitelist()
+  @spec get(user_id :: String.t() | nil) :: list()
+  def get(nil), do: default_whitelist()
 
-      _ ->
-        default_whitelist()
-    end
+  def get(user_id) do
+    user_id
+    |> AzureGraph.group_ids()
+    |> get_first_whitelist()
   end
 
   defp get_first_whitelist(nil), do: default_whitelist()
