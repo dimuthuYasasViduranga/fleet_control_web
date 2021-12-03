@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { DateTime } from 'luxon';
 import LocalZone from 'luxon/src/zones/localZone.js';
 
@@ -10,7 +11,7 @@ function isValidTz(tz) {
   return DateTime.local().setZone(tz).isValid;
 }
 
-export class Timely {
+class Timely {
   constructor() {
     this.siteZone = LOCAL_ZONE;
     this.localZone = LOCAL_ZONE;
@@ -88,3 +89,5 @@ export class Timely {
     return false;
   }
 }
+
+export default Vue.observable(new Timely());

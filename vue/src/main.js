@@ -15,7 +15,7 @@ import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
-import { Timely } from './code/timely.js';
+import Timely from './code/timely.js';
 import { Toaster } from './code/toasts.js';
 import { ContextMenu } from './code/context_menu.js';
 import Geolocation from './code/geolocation.js';
@@ -27,13 +27,10 @@ import { nowTimer } from './code/time.js';
 
 const isDev = process.env.NODE_ENV === 'development';
 let hostname = window.location.origin;
-let uiHost = '';
 if (isDev) {
   hostname = 'http://localhost:4010';
-  uiHost = 'http://localhost:8080';
 }
 hostname += '/fleet-control';
-uiHost += '/fleet-control';
 
 // in the future this will be required when on the kube
 // hostname += '/fleet-control'
@@ -58,8 +55,7 @@ Vue.prototype.$contextMenu = new ContextMenu();
 
 Vue.prototype.$geolocation = Geolocation;
 
-const timely = Vue.observable(new Timely());
-Vue.prototype.$timely = timely;
+Vue.prototype.$timely = Timely;
 
 Vue.prototype.$everySecond = nowTimer(1000);
 
@@ -86,32 +82,29 @@ const configureToasts = function (router) {
 };
 
 async function startApp(staticData) {
-  console.log('---- starting app');
-  console.log(staticData);
-  // const whitelist = store.state.constants.whitelist;
-  // const [routes, router] = setupRouter(whitelist);
+  store.dispatch('constants/setStaticData', staticData);
+  store.dispatch('trackStore/startPendingInterval');
 
-  // // configure toasted
-  // configureToasts(router);
+  const whitelist = staticData.whitelist;
 
-  // function createApp(data) {
-  //   const props = { routes, logout };
-  //   const key = data.map_config.key;
+  const [routes, router] = setupRouter(whitelist);
 
-  //   // maps
-  //   Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
+  // configure toasted
+  configureToasts(router);
 
-  //   new Vue({
-  //     router,
-  //     store,
-  //     render(createElement) {
-  //       return createElement(App, { props });
-  //     },
-  //   }).$mount('#app');
-  // }
+  const props = { routes, logout };
+  const key = staticData.data.map_config.key;
 
-  // store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
-  // store.dispatch('trackStore/startPendingInterval');
+  // maps
+  Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
+
+  new Vue({
+    router,
+    store,
+    render(createElement) {
+      return createElement(App, { props });
+    },
+  }).$mount('#app');
 }
 
 async function startUnauthorized() {
@@ -131,14 +124,8 @@ async function startUnknownError(error) {
   }).$mount('#app');
 }
 
-// fetch whitelist
-// const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
-
-// const promises = [whitelistPromise];
-
-const api = `${hostname}/api/static_data`;
 axios
-  .get(api)
+  .get(`${hostname}/api/static_data`)
   .then(resp => {
     if (resp.data.permissions.authorized) {
       startApp(resp.data);
@@ -148,7 +135,6 @@ axios
     startUnauthorized();
   })
   .catch(error => {
-    // if the error is unauthorized, display a separate app
     console.error(error);
     if (isDev) {
       console.error('While rendering from 8080, ensure that bypass_auth is true');
@@ -156,18 +142,3 @@ axios
 
     startUnknownError(error);
   });
-
-// Promise.all(promises)
-//   .then(startApp)
-//   .catch(error => {
-//     console.error(error);
-//     console.log('---- start unauthorized');
-//     startUnauthorized();
-//     // // if the error is unauthorized, display a separate app
-//     // console.error(error);
-//     // if (isDev) {
-//     //   console.error('While rendering from 8080, ensure that bypass_auth is true');
-//     // } else {
-//     //   document.location.href = uiHost || hostname;
-//     // }
-//   });

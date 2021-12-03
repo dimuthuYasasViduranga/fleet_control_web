@@ -10,11 +10,9 @@ defmodule DispatchWeb.Authorization.Plug.EnsureAuthorized do
     |> Map.get(:authorized, false)
     |> case do
       true ->
-        IO.inspect("------------ authorized")
         conn
 
       _ ->
-        IO.inspect("---------- unauthorized")
         body = Jason.encode!(%{message: "Unauthorized"})
 
         conn

@@ -16,6 +16,7 @@ import FloatIcon from '@/components/icons/asset_icons/Float.vue';
 import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vue';
 import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
 import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
+import Timely from '@/code/timely';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['production', 'stockpile', 'waste_stockpile'];
@@ -303,28 +304,6 @@ function parsePreStartControlCategory(cat) {
   };
 }
 
-function setStaticData(dispatch, data, timely) {
-  // all in constants
-  [
-    ['setLocationData', data.locations],
-    ['setQuickMessages', data.quick_messages],
-    ['setMapConfig', data.map_config],
-    ['setAssets', data.assets],
-    ['setAssetTypes', data.asset_types],
-    ['setShifts', data.shifts],
-    ['setShiftTypes', data.shift_types],
-    ['setTimeCodes', data.time_codes],
-    ['setTimeCodeGroups', data.time_code_groups],
-    ['setTimeCodeCategories', data.time_code_categories],
-    ['setOperatorMessageTypes', data.operator_message_types],
-    ['setLoadStyles', data.load_styles],
-    ['setMaterialTypes', data.material_types],
-  ].forEach(([path, value]) => dispatch(path, value));
-
-  dispatch('connection/setUserToken', data.user_token, { root: true });
-  timely.setSiteZone(data.timezone);
-}
-
 function toFullTimeCode(timeCode, timeCodeGroups, assetTypes, treeElements) {
   const assetTypeIds = uniq(
     treeElements.filter(e => e.timeCodeId === timeCode.id).map(e => e.assetTypeId),
@@ -365,8 +344,8 @@ function parseQuickMessage(message) {
 /* ---------------------- module --------------------- */
 
 const state = {
+  user: Object(),
   mapKey: String(),
-  whitelist: Array(),
   assets: Array(),
   assetTypes: Array(),
   operators: Array(),
@@ -418,36 +397,37 @@ const getters = {
 };
 
 const actions = {
-  getStaticData({ dispatch }, [hostname, callback, timely]) {
-    if (callback === undefined) {
-      callback = () => {
-        return;
-      };
-    }
+  setStaticData({ dispatch }, staticData) {
+    const data = staticData.data;
 
-    axios
-      .get(`${hostname}/api/static_data`)
-      .then(({ data }) => {
-        setStaticData(dispatch, data, timely);
-        return data;
-      })
-      .then(callback)
-      .catch(error => {
-        console.error(error);
-        throw error;
-      });
+    // all in constants
+    [
+      ['setLocationData', data.locations],
+      ['setQuickMessages', data.quick_messages],
+      ['setMapConfig', data.map_config],
+      ['setAssets', data.assets],
+      ['setAssetTypes', data.asset_types],
+      ['setShifts', data.shifts],
+      ['setShiftTypes', data.shift_types],
+      ['setTimeCodes', data.time_codes],
+      ['setTimeCodeGroups', data.time_code_groups],
+      ['setTimeCodeCategories', data.time_code_categories],
+      ['setOperatorMessageTypes', data.operator_message_types],
+      ['setLoadStyles', data.load_styles],
+      ['setMaterialTypes', data.material_types],
+      ['setUser', staticData.user],
+    ].forEach(([path, value]) => dispatch(path, value));
+
+    dispatch('connection/setUserToken', staticData.user_token, { root: true });
+    Timely.setSiteZone(data.timezone);
   },
-  fetchRouteWhitelist({ commit }, { hostname }) {
-    const api = `${hostname}/api/route_whitelist`;
-    return axios
-      .get(api)
-      .then(({ data }) => {
-        commit('setWhitelist', data);
-      })
-      .catch(error => {
-        console.error(error);
-        throw error;
-      });
+  setUser({ commit }, user) {
+    const formattedUser = {
+      id: user.id,
+      name: user.name,
+      userId: user.user_id,
+    };
+    commit('setUser', formattedUser);
   },
   setShifts({ commit }, shifts = []) {
     const formattedShifts = shifts.map(parseShift);
@@ -460,9 +440,6 @@ const actions = {
   setLocationData({ commit }, locs = []) {
     const locations = locs.map(parseLocation);
     commit('setLocationData', locations);
-  },
-  setWhitelist({ commit }, whitelist = []) {
-    commit('setWhitelist', whitelist);
   },
   setRadioNumbers({ commit }, radioNumbers = []) {
     const formattedRadioNumbers = radioNumbers.map(parseRadioNumber);
@@ -541,6 +518,9 @@ const actions = {
 };
 
 const mutations = {
+  setUser(state, user) {
+    state.user = user;
+  },
   setShifts(state, shifts = []) {
     state.shifts = shifts;
   },
@@ -554,9 +534,6 @@ const mutations = {
     state.locations = sortedLocations;
     state.loadLocations = load;
     state.dumpLocations = dump;
-  },
-  setWhitelist(state, whitelist = []) {
-    state.whitelist = whitelist;
   },
   setRadioNumbers(state, radioNumbers = []) {
     state.radioNumbers = radioNumbers;

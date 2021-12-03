@@ -19,8 +19,6 @@
 import { mapState } from 'vuex';
 import Layout from 'hx-layout/Layout.vue';
 
-import axios from 'axios';
-
 import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
 import ChatButton from './components/header_buttons/ChatButton.vue';
 import ChatButtonFloating from './components/header_buttons/ChatButtonFloating.vue';
@@ -46,15 +44,13 @@ export default {
     logout: Function,
     login: Function,
   },
-  data: () => {
-    return {
-      username: '',
-    };
-  },
   computed: {
     ...mapState('connection', {
       channelAlive: state => state.isAlive,
       userToken: state => state.userToken,
+    }),
+    ...mapState('constants', {
+      username: state => state?.user?.name || 'Unknown User',
     }),
   },
   watch: {
@@ -72,24 +68,8 @@ export default {
   },
   mounted() {
     this.initialiseChannel();
-    this.getUserInfo();
   },
   methods: {
-    getUserInfo() {
-      const api = `${this.$hostname}/auth/user-info`;
-      axios
-        .get(api, { withCredentials: true })
-        .then(response => {
-          if (!!response && !!response.data) {
-            this.username = response.data;
-            return;
-          }
-          this.username = 'Unknown';
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    },
     initialiseChannel() {
       const channel = this.$channel;
       const dispatch = this.$store.dispatch;
