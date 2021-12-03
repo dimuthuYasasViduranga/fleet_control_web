@@ -31,7 +31,7 @@ defmodule DispatchWeb.Endpoint do
   plug Plug.Static,
     at: "/fleet-control",
     from: {:dispatch_web, "priv/static"},
-    gzip: mix_env == :prod,
+    gzip: false,
     only: ~w(css fonts images index.html js media favicon.ico robots.txt),
     headers: secure_headers
 

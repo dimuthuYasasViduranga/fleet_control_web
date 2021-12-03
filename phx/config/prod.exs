@@ -7,8 +7,7 @@ random_string = fn size ->
   |> binary_part(0, size)
 end
 
-config :dispatch_web,
-  bypass_auth: false
+config :dispatch_web, bypass_auth: false
 
 config :appsignal, :config, active: true
 
@@ -17,11 +16,13 @@ config :dispatch_web, DispatchWeb.Endpoint,
   load_from_system_env: true,
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,
-  # TODO
   root: ".",
-  version: Application.spec(:phoenix_app, :vsn)
+  version: Application.spec(:phoenix_app, :vsn),
+  http: [port: 4001]
 
 config :dispatch_web, DispatchWeb.Guardian, secret_key: random_string.(64)
 
 # Do not print debug messages in production
 config :logger, level: :info
+
+config :appsignal, :config, active: true, env: :prod
