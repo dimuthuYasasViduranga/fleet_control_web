@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import { Toaster as ToasterClass } from '@/code/toasts';
+import Toaster from '@/code/toaster';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '@/code/time.js';
@@ -21,8 +21,6 @@ import trackStore from './modules/track_store.js';
 import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
-
-const Toaster = new ToasterClass();
 
 export function parseEngineHour(engineHour) {
   return {
@@ -391,12 +389,8 @@ const getters = {
     );
   },
   events: state => timezone => {
-    const {
-      operatorMessages,
-      dispatcherMessages,
-      activeTimeAllocations,
-      historicTimeAllocations,
-    } = state;
+    const { operatorMessages, dispatcherMessages, activeTimeAllocations, historicTimeAllocations } =
+      state;
 
     const {
       assets,
@@ -458,24 +452,28 @@ const getters = {
   },
   unreadOperatorMessages: ({ operatorMessages, constants }) => {
     const { assets, operators, operatorMessageTypes } = constants;
-    return operatorMessages.filter(m => !m.acknowledged).map(m => {
-      return Transforms.toOperatorMessage(m, assets, operators, operatorMessageTypes);
-    });
+    return operatorMessages
+      .filter(m => !m.acknowledged)
+      .map(m => {
+        return Transforms.toOperatorMessage(m, assets, operators, operatorMessageTypes);
+      });
   },
   unreadDispatcherMessages: ({ dispatcherMessages }) => {
     return dispatcherMessages.filter(d => d.acknowledged !== true);
   },
-  engineHours: ({ currentEngineHours, constants }) => assetType => {
-    const engineHours = currentEngineHours.map(eh =>
-      Transforms.toEngineHour(eh, constants.assets, constants.operators),
-    );
+  engineHours:
+    ({ currentEngineHours, constants }) =>
+    assetType => {
+      const engineHours = currentEngineHours.map(eh =>
+        Transforms.toEngineHour(eh, constants.assets, constants.operators),
+      );
 
-    if (!assetType) {
-      return engineHours;
-    }
+      if (!assetType) {
+        return engineHours;
+      }
 
-    return engineHours.filter(eh => eh.assetType === assetType);
-  },
+      return engineHours.filter(eh => eh.assetType === assetType);
+    },
 };
 
 const actions = {

@@ -2,7 +2,7 @@ import Vue from 'vue';
 import VueSimpleContextMenu from 'vue-simple-context-menu';
 import 'vue-simple-context-menu/dist/vue-simple-context-menu.css';
 
-export class ContextMenu {
+class ContextMenu {
   constructor() {
     this._instances = {};
   }
@@ -89,3 +89,5 @@ function destroyContext(context) {
     context.$el.remove();
   }
 }
+
+export default new ContextMenu();

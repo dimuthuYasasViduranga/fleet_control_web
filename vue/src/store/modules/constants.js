@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { toUtcDate } from '@/code/time.js';
 import { attributeFromList, uniq } from '@/code/helpers.js';
 

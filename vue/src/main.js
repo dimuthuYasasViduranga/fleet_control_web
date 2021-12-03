@@ -13,11 +13,11 @@ import App from './App.vue';
 import UnauthorizedApp from './UnauthorizedApp.vue';
 import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
-import { Channel } from './code/channel.js';
-import { Modal } from './code/modal.js';
+import Channel from './code/channel.js';
+import Modal from './code/modal.js';
 import Timely from './code/timely.js';
-import { Toaster } from './code/toasts.js';
-import { ContextMenu } from './code/context_menu.js';
+import Toaster from './code/toaster.js';
+import ContextMenu from './code/context_menu.js';
 import Geolocation from './code/geolocation.js';
 
 import 'vue-datetime/dist/vue-datetime.css';
@@ -32,9 +32,6 @@ if (isDev) {
 }
 hostname += '/fleet-control';
 
-// in the future this will be required when on the kube
-// hostname += '/fleet-control'
-
 Vue.prototype.$hostname = hostname;
 axios.defaults.withCredentials = true;
 Vue.use(VTooltip);
@@ -45,13 +42,14 @@ Vue.use(Vue2TouchEvents);
 Vue.prototype.$eventBus = new Vue();
 
 // Create a global channel wrapper
-Vue.prototype.$channel = new Channel(false ? 'debug' : null);
+Vue.prototype.$channel = Channel;
 
-Vue.prototype.$modal = new Modal(store);
+Modal.store = store;
+Vue.prototype.$modal = Modal;
 
-Vue.prototype.$toaster = new Toaster();
+Vue.prototype.$toaster = Toaster;
 
-Vue.prototype.$contextMenu = new ContextMenu();
+Vue.prototype.$contextMenu = ContextMenu;
 
 Vue.prototype.$geolocation = Geolocation;
 

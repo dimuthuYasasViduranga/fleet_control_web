@@ -1,5 +1,4 @@
-import { Toaster as ToasterClass } from '@/code/toasts';
-const Toaster = new ToasterClass();
+import Toaster from '@/code/toaster';
 const UPDATE_INTERVAL = 5 * 1000;
 const LONG_OFFLINE_DURATION = 30 * 1000;
 const COMMS_ESTABLISH_MSG = 'Connection established';

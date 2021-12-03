@@ -1,10 +1,8 @@
-import { Toaster as ToasterClass } from '@/code/toasts';
+import Toaster from '@/code/toaster';
 
 import { attributeFromList, Dictionary } from '@/code/helpers.js';
 import { toUtcDate } from '@/code/time.js';
 import { formatDeviceUUID } from '../../code/helpers';
-
-const Toaster = new ToasterClass();
 
 export function parseDeviceAssignment(assignment) {
   return {

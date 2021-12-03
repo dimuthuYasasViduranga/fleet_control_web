@@ -24,7 +24,6 @@ defmodule DispatchWeb.Router do
         plug Guardian.Plug.EnsureAuthenticated
 
         plug DispatchWeb.Authorization.Plug.LoadAuthPermissions
-        plug DispatchWeb.Authorization.Plug.EnsureAuthorized
     end
   end
 
