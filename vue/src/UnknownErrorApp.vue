@@ -1,8 +1,8 @@
 <template>
   <div id="unknown-error-app">
-    <div>An error has occured</div>
-    <pre>{{ error }}</pre>
-    {{ error.response.statusText || '' }} - {{ error.response.data }}
+    <p>An error has occured</p>
+    <p>{{ error }}</p>
+    {{ error.response.statusText || '' }} - {{ message }}
   </div>
 </template>
 
@@ -12,8 +12,15 @@ export default {
   props: {
     error: { type: Error },
   },
-  mounted() {
-    console.dir(this.error);
+  computed: {
+    message() {
+      const message = this.error?.response?.data || '';
+      if (typeof message !== 'string' || message.includes('DOCTYPE')) {
+        return 'No reason given';
+      } else {
+        return message;
+      }
+    },
   },
 };
 </script>
