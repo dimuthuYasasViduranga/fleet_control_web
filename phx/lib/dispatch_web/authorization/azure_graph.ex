@@ -2,6 +2,8 @@ defmodule DispatchWeb.Authorization.AzureGraph do
   alias OAuth2.Client
   alias OAuth2.Strategy.ClientCredentials
 
+  require Logger
+
   @type user_id :: any()
 
   @spec group_ids(user_id) :: list(integer)
@@ -25,6 +27,11 @@ defmodule DispatchWeb.Authorization.AzureGraph do
         |> Map.get("value")
         |> Enum.map(&Map.take(&1, ["displayName", "description", "id"]))
 
+      {:error, reason} ->
+        Logger.error("Could not get azure groups for user")
+        Logger.error(reason)
+        []
+
       _ ->
         []
     end
@@ -35,8 +42,14 @@ defmodule DispatchWeb.Authorization.AzureGraph do
   defp http_get(url, {:ok, token}) do
     HTTPoison.get(url, Authorization: token)
     |> case do
-      {:ok, %{status_code: 200, body: body}} -> Jason.decode(body)
-      error -> error
+      {:ok, %{status_code: 200, body: body}} ->
+        Jason.decode(body)
+
+      {:ok, %{body: body}} ->
+        {:error, Jason.decode!(body)}
+
+      error ->
+        error
     end
   end
 
