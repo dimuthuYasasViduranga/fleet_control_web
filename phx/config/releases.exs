@@ -37,7 +37,7 @@ config :gps_gate_rest, gps_gate_rest
 azure_ad = fetch_eval.("AZURE_ACTIVE_DIRECTORY")
 config :azure_ad_openid, AzureADOpenId, azure_ad
 
-joken_secret = System.fetch_env!("JOKEN_SECRET")
+joken_secret = System.fetch_env!("DISPATCH_JOKEN_SECRET")
 config :joken, default_signer: joken_secret
 
 # url
@@ -47,10 +47,7 @@ port = System.fetch_env!("PORT")
 whitelist = fetch_eval.("ROUTE_WHITE_LIST")
 auth_permissions = fetch_eval.("AUTH_PERMISSIONS")
 
-config :dispatch_web,
-  url: url,
-  route_white_list: whitelist,
-  auth_permissions: auth_permissions
+config :dispatch_web, url: url
 
 config :dispatch_web, DispatchWeb.Endpoint,
   url: [host: url],
