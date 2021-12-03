@@ -10,6 +10,8 @@ import Toasted from 'vue-toasted';
 
 import setupRouter from './code/routes';
 import App from './App.vue';
+import UnauthorizedApp from './UnauthorizedApp.vue';
+import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
 import { Channel } from './code/channel.js';
 import { Modal } from './code/modal.js';
@@ -83,45 +85,89 @@ const configureToasts = function (router) {
   });
 };
 
-async function startApp() {
-  const whitelist = store.state.constants.whitelist;
-  const [routes, router] = setupRouter(whitelist);
+async function startApp(staticData) {
+  console.log('---- starting app');
+  console.log(staticData);
+  // const whitelist = store.state.constants.whitelist;
+  // const [routes, router] = setupRouter(whitelist);
 
-  // configure toasted
-  configureToasts(router);
+  // // configure toasted
+  // configureToasts(router);
 
-  function createApp(data) {
-    const props = { routes, logout };
-    const key = data.map_config.key;
+  // function createApp(data) {
+  //   const props = { routes, logout };
+  //   const key = data.map_config.key;
 
-    // maps
-    Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
+  //   // maps
+  //   Vue.use(VueGoogleMaps, { load: { key, libraries: 'drawing' } });
 
-    new Vue({
-      router,
-      store,
-      render(createElement) {
-        return createElement(App, { props });
-      },
-    }).$mount('#app');
-  }
+  //   new Vue({
+  //     router,
+  //     store,
+  //     render(createElement) {
+  //       return createElement(App, { props });
+  //     },
+  //   }).$mount('#app');
+  // }
 
-  store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
-  store.dispatch('trackStore/startPendingInterval');
+  // store.dispatch('constants/getStaticData', [hostname, createApp, timely]);
+  // store.dispatch('trackStore/startPendingInterval');
+}
+
+async function startUnauthorized() {
+  new Vue({
+    render(createElement) {
+      return createElement(UnauthorizedApp, {});
+    },
+  }).$mount('#app');
+}
+
+async function startUnknownError(error) {
+  const props = { error };
+  new Vue({
+    render(createElement) {
+      return createElement(UnknownErrorApp, { props });
+    },
+  }).$mount('#app');
 }
 
 // fetch whitelist
-const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
+// const whitelistPromise = store.dispatch('constants/fetchRouteWhitelist', { hostname });
 
-const promises = [whitelistPromise];
+// const promises = [whitelistPromise];
 
-Promise.all(promises)
-  .then(startApp)
+const api = `${hostname}/api/static_data`;
+axios
+  .get(api)
+  .then(resp => {
+    if (resp.data.permissions.authorized) {
+      startApp(resp.data);
+      return;
+    }
+
+    startUnauthorized();
+  })
   .catch(error => {
+    // if the error is unauthorized, display a separate app
     console.error(error);
     if (isDev) {
       console.error('While rendering from 8080, ensure that bypass_auth is true');
-    } else {
-      document.location.href = uiHost || hostname;
     }
+
+    startUnknownError(error);
   });
+
+// Promise.all(promises)
+//   .then(startApp)
+//   .catch(error => {
+//     console.error(error);
+//     console.log('---- start unauthorized');
+//     startUnauthorized();
+//     // // if the error is unauthorized, display a separate app
+//     // console.error(error);
+//     // if (isDev) {
+//     //   console.error('While rendering from 8080, ensure that bypass_auth is true');
+//     // } else {
+//     //   document.location.href = uiHost || hostname;
+//     // }
+//   });

@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Authorization.Socket do
+defmodule DispatchWeb.Authorization.Permissions do
   alias DispatchWeb.Authorization.AzureGraph
 
   def default_permissions() do
@@ -13,9 +13,10 @@ defmodule DispatchWeb.Authorization.Socket do
     }
   end
 
-  def get_permissions(nil), do: default_permissions()
+  @spec fetch_permissions(user_id :: String.t()) :: map
+  def fetch_permissions(nil), do: default_permissions()
 
-  def get_permissions(user_id) do
+  def fetch_permissions(user_id) do
     assigned_groups = AzureGraph.group_ids(user_id)
     config = Application.get_env(:dispatch_web, :auth_permissions, %{})
 
