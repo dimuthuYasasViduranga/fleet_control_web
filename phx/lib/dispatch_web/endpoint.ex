@@ -16,27 +16,25 @@ defmodule DispatchWeb.Endpoint do
     "x-xss-protection" => "1; mode=block"
   }
 
-  socket "/operator-socket", DispatchWeb.OperatorSocket,
+  socket "/fleet-control/operator-socket", DispatchWeb.OperatorSocket,
     websocket: true,
     longpoll: false
 
-  socket "/dispatcher-socket", DispatchWeb.DispatcherSocket,
+  socket "/fleet-control/dispatcher-socket", DispatchWeb.DispatcherSocket,
     websocket: true,
     longpoll: false
 
-  socket "/device-auth-socket", DispatchWeb.DeviceAuthSocket,
+  socket "/fleet-control/device-auth-socket", DispatchWeb.DeviceAuthSocket,
     websocket: true,
     longpoll: false
 
   plug Plug.Static,
-    at: "/",
+    at: "/fleet-control",
     from: {:dispatch_web, "priv/static"},
-    gzip: false,
+    gzip: mix_env == :prod,
     only: ~w(css fonts images index.html js media favicon.ico robots.txt),
     headers: secure_headers
 
-  # Code reloading can be explicitly enabled under the
-  # :code_reloader configuration of your endpoint.
   if code_reloading? do
     plug Phoenix.CodeReloader
   end
@@ -48,7 +46,6 @@ defmodule DispatchWeb.Endpoint do
     if mix_env == :prod do
       [
         ~r{^https://.*haultrax.digital},
-        ~r{^https://hx-fleet-control*.azurewebsites.net},
         "https://login.microsoftonline.com"
       ]
     else

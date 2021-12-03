@@ -30,6 +30,8 @@ if (isDev) {
   hostname = 'http://localhost:4010';
   uiHost = 'http://localhost:8080';
 }
+hostname += '/fleet-control';
+uiHost += '/fleet-control';
 
 // in the future this will be required when on the kube
 // hostname += '/fleet-control'
@@ -60,11 +62,11 @@ Vue.prototype.$timely = timely;
 Vue.prototype.$everySecond = nowTimer(1000);
 
 // Logout function
-const logout = function() {
+const logout = function () {
   window.location.href = `${hostname}/auth/logout`;
 };
 
-const configureToasts = function(router) {
+const configureToasts = function (router) {
   Vue.use(Toasted, {
     position: 'top-right',
     theme: 'hx-toast',

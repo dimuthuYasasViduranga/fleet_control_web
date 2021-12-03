@@ -11,8 +11,8 @@ defmodule DispatchWeb.PageController do
     {conn, user} = get_user(conn)
 
     case user do
-      nil -> redirect(conn, to: "/auth/login")
-      _ -> redirect(conn, to: "/index.html")
+      nil -> redirect(conn, to: "/fleet-control/auth/login")
+      _ -> redirect(conn, to: "/fleet-control/index.html")
     end
   end
 
