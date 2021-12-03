@@ -44,9 +44,6 @@ config :joken, default_signer: joken_secret
 url = System.fetch_env!("URL")
 port = System.fetch_env!("PORT")
 
-whitelist = fetch_eval.("ROUTE_WHITE_LIST")
-auth_permissions = fetch_eval.("AUTH_PERMISSIONS")
-
 config :dispatch_web, url: url
 
 config :dispatch_web, DispatchWeb.Endpoint,
