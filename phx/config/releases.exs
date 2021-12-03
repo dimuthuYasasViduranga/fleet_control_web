@@ -6,7 +6,6 @@ fetch_eval = fn env_name ->
   |> elem(0)
 end
 
-# site config (not required)
 dispatch = fetch_eval.("DISPATCH")
 config :dispatch_web, dispatch
 
@@ -16,11 +15,8 @@ config :dispatch_web, g_map_key: map_key
 
 # appsignal
 appsignal_api = System.fetch_env!("APPSIGNAL_API")
-site = System.fetch_env!("SITE")
 
-config :appsignal, :config,
-  name: "fleet-control-#{site}",
-  push_api_key: appsignal_api
+config :appsignal, :config, push_api_key: appsignal_api
 
 # hpssql database
 hpssql_config = fetch_eval.("HPSSQL_CONNECTION")
@@ -42,11 +38,15 @@ config :joken, default_signer: joken_secret
 
 # url
 url = System.fetch_env!("URL")
-port = System.fetch_env!("PORT")
+
+url_base =
+  url
+  |> String.trim_leading("https:")
+  |> String.split(".")
+  |> List.first()
 
 config :dispatch_web, url: url
 
 config :dispatch_web, DispatchWeb.Endpoint,
   url: [host: url],
-  check_origin: [url],
-  http: [port: port]
+  check_origin: [url_base <> ".haultrax.digital", url]
