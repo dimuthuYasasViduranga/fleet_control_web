@@ -17,8 +17,8 @@ import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue'
 import Timely from '@/code/timely';
 
 const DEFAULT_ZOOM = 16;
-const LOAD_TYPES = ['production', 'stockpile', 'waste_stockpile'];
-const DUMP_TYPES = ['crusher', 'waste_dump', 'rehab', 'stockpile', 'waste_stockpile'];
+const LOAD_TYPES = ['load', 'load|dump'];
+const DUMP_TYPES = ['dump', 'load|dump'];
 
 function getIcons() {
   return {
@@ -69,8 +69,13 @@ function parseLocation(location) {
     name: location.name,
     typeId: location.location_type_id,
     type: location.type,
+    locationGroupId: location.location_group_id,
+    locationGroup: location.location_group,
+    materialTypeId: location.material_type_id,
+    materialType: location.material_type,
     historyId: location.history_id,
-    timestamp: location.timestamp,
+    startTime: toUtcDate(location.start_time),
+    endTime: toUtcDate(location.end_time),
     geofence: parseGeofence(location.geofence),
   };
 }

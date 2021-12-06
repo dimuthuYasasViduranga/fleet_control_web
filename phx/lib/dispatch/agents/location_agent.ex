@@ -20,7 +20,16 @@ defmodule Dispatch.LocationAgent do
 
   defp pull_locations() do
     from(lh in Dim.LocationHistory,
+      left_join: mh in Dim.LocationMaterialHistory,
+      on: lh.location_id == mh.location_id and lh.start_time == mh.start_time,
+      left_join: m in Dim.MaterialType,
+      on: [id: mh.material_type_id],
+      left_join: lgh in Dim.LocationGroupHistory,
+      on: lh.location_id == lgh.location_id and lh.start_time == lgh.start_time,
+      left_join: lg in Dim.LocationGroup,
+      on: [id: lgh.location_group_id],
       order_by: [asc: lh.start_time, asc: lh.id],
+      where: lh.deleted == false,
       select: %{
         start_time: lh.start_time,
         end_time: lh.end_time,
@@ -28,6 +37,10 @@ defmodule Dispatch.LocationAgent do
         location_id: lh.location_id,
         name: lh.name,
         location_type_id: lh.location_type_id,
+        material_type_id: m.id,
+        material_type: m.name,
+        location_group_id: lg.id,
+        location_group: lg.name,
         type: lh.type,
         lat_min: lh.lat_min,
         lat_max: lh.lat_max,

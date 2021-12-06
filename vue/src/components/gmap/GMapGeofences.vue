@@ -35,16 +35,14 @@ function getGeofenceColor(colors, options, geofence, unselected) {
 function defaultColors() {
   return {
     parkup: 'red',
-    maintenance: 'grey',
+    maintenance: 'darkgrey',
     fuel_bay: 'orange',
-    production: 'green',
-    stockpile: 'darkorange',
-    crusher: 'blue',
-    rehab: 'violet',
+    load: 'green',
+    'load|dump': 'darkorange',
+    dump: 'blue',
     closed: 'black',
     changeover_bay: 'darkred',
-    waste_dump: 'saddlebrown',
-    waste_stockpile: 'chocolate',
+    obstruction: 'black',
     default: 'black',
   };
 }
