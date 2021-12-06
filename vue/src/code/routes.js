@@ -5,7 +5,6 @@ import AssetStatus from '../components/pages/asset_status/AssetStatus.vue';
 import DeviceAssignment from '../components/pages/device_assignment/DeviceAssignment.vue';
 import LocationAssignment from '../components/pages/location_assignment/LocationAssignment.vue';
 import Operators from '../components/pages/operators/Operators.vue';
-import ActivityLog from '../components/pages/activity_log/ActivityLog.vue';
 import TimeAllocationPage from '../components/pages/time_allocation/TimeAllocationPage.vue';
 import TimeAllocationReport from '../components/pages/time_allocation_report/TimeAllocationReport.vue';
 import TimeCodeEditorPage from '../components/pages/time_code_editor/TimeCodeEditorPage.vue';
@@ -13,10 +12,6 @@ import OperatorTimeAllocationPage from '../components/pages/operator_time_alloca
 import MessageEditorPage from '../components/pages/message_editor/MessageEditorPage.vue';
 import MineMap from '../components/pages/mine_map/MineMap.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
-import OperatorMessages from '../components/pages/operator_messages/OperatorMessages.vue';
-import DispatcherMessages from '../components/pages/dispatcher_messages/DispatcherMessages.vue';
-import DispatchHistory from '../components/pages/dispatch_history/DispatchHistory.vue';
-import Assignments from '../components/pages/assignments/Assignments.vue';
 import EngineHours from '../components/pages/engine_hours/EngineHours.vue';
 import CycleTally from '../components/pages/cycle_tally/CycleTally.vue';
 import Debug from '../components/pages/debug/Debug.vue';
@@ -34,7 +29,6 @@ import LineIcon from '../components/icons/Line.vue';
 import ClockWithTruckIcon from '../components/icons/ClockWithTruck.vue';
 import ClockWithUserIcon from '../components/icons/ClockWithUser.vue';
 import MapIcon from '../components/icons/Map.vue';
-import BellIcon from '../components/icons/Bell.vue';
 import PlaneEngineIcon from '../components/icons/PlaneEngine.vue';
 import NestedListIcon from '../components/icons/NestedList.vue';
 import BugIcon from '../components/icons/Bug.vue';
@@ -164,36 +158,36 @@ export default function setupRouter(whitelist) {
       icon: ListIcon,
     },
     { path: '/gap_4', gap: true },
-    {
-      name: 'Activity Log',
-      path: '/activity_log',
-      component: ActivityLog,
-      icon: ListIcon,
-    },
-    {
-      name: 'Operator Messages',
-      path: '/operator_messages',
-      component: OperatorMessages,
-      icon: BellIcon,
-    },
-    {
-      name: 'Dispatcher Messages',
-      path: '/disptacher_messages',
-      component: DispatcherMessages,
-      icon: BellIcon,
-    },
-    {
-      name: 'Dispatch History',
-      path: '/dispatch_history',
-      component: DispatchHistory,
-      icon: BellIcon,
-    },
-    {
-      name: 'Assignments',
-      path: '/assignments',
-      component: Assignments,
-      icon: BellIcon,
-    },
+    // {
+    //   name: 'Activity Log',
+    //   path: '/activity_log',
+    //   component: ActivityLog,
+    //   icon: ListIcon,
+    // },
+    // {
+    //   name: 'Operator Messages',
+    //   path: '/operator_messages',
+    //   component: OperatorMessages,
+    //   icon: BellIcon,
+    // },
+    // {
+    //   name: 'Dispatcher Messages',
+    //   path: '/disptacher_messages',
+    //   component: DispatcherMessages,
+    //   icon: BellIcon,
+    // },
+    // {
+    //   name: 'Dispatch History',
+    //   path: '/dispatch_history',
+    //   component: DispatchHistory,
+    //   icon: BellIcon,
+    // },
+    // {
+    //   name: 'Assignments',
+    //   path: '/assignments',
+    //   component: Assignments,
+    //   icon: BellIcon,
+    // },
     {
       name: 'Debug',
       path: '/debug',
