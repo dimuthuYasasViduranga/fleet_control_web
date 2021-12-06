@@ -39,7 +39,7 @@ defmodule DispatchWeb.DispatcherChannel do
     TimeCodeAgent,
     TimeAllocationAgent,
     CalendarAgent,
-    FleetOpsAgent,
+    HaulAgent,
     TrackAgent,
     ManualCycleAgent,
     PreStartAgent,
@@ -94,7 +94,7 @@ defmodule DispatchWeb.DispatcherChannel do
         active: TimeAllocationAgent.active(),
         historic: TimeAllocationAgent.historic()
       },
-      fleetops_data: FleetOpsAgent.get(),
+      fleetops_data: HaulAgent.get(),
       pre_start_forms: PreStartAgent.all(),
       current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
@@ -464,8 +464,8 @@ defmodule DispatchWeb.DispatcherChannel do
 
         device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
-        timeusage = FleetOpsAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
-        cycles = FleetOpsAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
+        timeusage = HaulAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
+        cycles = HaulAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
 
         payload = %{
           shift: shift,

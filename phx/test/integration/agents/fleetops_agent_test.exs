@@ -1,8 +1,8 @@
-defmodule Dispatch.FleetopsAgentTest do
+defmodule Dispatch.HaulAgentTest do
   use DispatchWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{CalendarAgent, FleetOpsAgent}
+  alias Dispatch.{CalendarAgent, HaulAgent}
   alias HpsData.{Dim, Fleet}
 
   setup_all _ do
@@ -22,7 +22,7 @@ defmodule Dispatch.FleetopsAgentTest do
   end
 
   setup _ do
-    FleetOpsAgent.start_link([])
+    HaulAgent.start_link([])
     :ok
   end
 
@@ -116,8 +116,8 @@ defmodule Dispatch.FleetopsAgentTest do
   end
 
   test "insert cycles then update", %{asset: asset} = context do
-    assert length(FleetOpsAgent.cycles()) == 0
-    assert length(FleetOpsAgent.timeusage()) == 0
+    assert length(HaulAgent.cycles()) == 0
+    assert length(HaulAgent.timeusage()) == 0
 
     tu_durations = [
       EmptyHaul: 300,
@@ -139,10 +139,10 @@ defmodule Dispatch.FleetopsAgentTest do
       tu_durations
     )
 
-    FleetOpsAgent.refresh!(~N[2020-01-01 01:00:00])
+    HaulAgent.refresh!(~N[2020-01-01 01:00:00])
 
-    assert length(FleetOpsAgent.cycles()) == 1
-    assert length(FleetOpsAgent.timeusage()) != 0
+    assert length(HaulAgent.cycles()) == 1
+    assert length(HaulAgent.timeusage()) != 0
   end
 
   describe "fetch by range! -" do
@@ -168,7 +168,7 @@ defmodule Dispatch.FleetopsAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        FleetOpsAgent.fetch_by_range!(%{
+        HaulAgent.fetch_by_range!(%{
           start_time: ~N[2020-01-01 00:00:00],
           end_time: ~N[2020-01-01 02:00:00]
         })
@@ -199,7 +199,7 @@ defmodule Dispatch.FleetopsAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        FleetOpsAgent.fetch_by_range!(%{
+        HaulAgent.fetch_by_range!(%{
           start_time: ~N[2020-01-01 01:05:00],
           end_time: ~N[2020-01-01 02:00:00]
         })
@@ -230,7 +230,7 @@ defmodule Dispatch.FleetopsAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        FleetOpsAgent.fetch_by_range!(%{
+        HaulAgent.fetch_by_range!(%{
           start_time: ~N[2020-01-01 00:00:00],
           end_time: ~N[2020-01-01 01:05:00]
         })
@@ -261,7 +261,7 @@ defmodule Dispatch.FleetopsAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        FleetOpsAgent.fetch_by_range!(%{
+        HaulAgent.fetch_by_range!(%{
           start_time: ~N[2020-01-01 01:01:00],
           end_time: ~N[2020-01-01 01:02:00]
         })
@@ -292,7 +292,7 @@ defmodule Dispatch.FleetopsAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        FleetOpsAgent.fetch_by_range!(%{
+        HaulAgent.fetch_by_range!(%{
           start_time: ~N[2020-01-02 00:00:00],
           end_time: ~N[2020-01-02 01:00:00]
         })

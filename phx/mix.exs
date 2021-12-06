@@ -60,7 +60,7 @@ defmodule DispatchWeb.MixProject do
       {:poison, "~> 3.0"},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "next"},
 
       # test
       {:mix_test_watch, "~> 0.9", only: :dev, runtime: false},

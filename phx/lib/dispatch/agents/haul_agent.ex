@@ -1,4 +1,4 @@
-defmodule Dispatch.FleetOpsAgent do
+defmodule Dispatch.HaulAgent do
   @moduledoc """
   Holds live (ish) fleetops data and provides helper functions to retrieve time uasge
   """
@@ -9,7 +9,7 @@ defmodule Dispatch.FleetOpsAgent do
 
   import Ecto.Query, only: [from: 2, subquery: 1]
 
-  alias HpsData.{Asset, Dim, Fleet}
+  alias HpsData.{Asset, Dim, Haul}
   alias HpsData.Repo
 
   @type timeusage :: map
@@ -77,13 +77,13 @@ defmodule Dispatch.FleetOpsAgent do
   end
 
   defp fetch_cycles(where) do
-    query = where.(Fleet.Cycle)
+    query = where.(Haul.Cycle)
 
     from([c] in query,
-      join: da in Dim.Asset,
-      on: [id: c.asset_id],
+      join: ht in Dim.HaulTruck,
+      on: [id: c.haul_truck_id],
       join: a in Asset,
-      on: [id: da.asset_id],
+      on: [id: ht.asset_id],
       left_join: start_loc in ^location_subquery(),
       on: [history_id: c.location_history_start_id],
       left_join: load_loc in ^location_subquery(),
@@ -94,7 +94,7 @@ defmodule Dispatch.FleetOpsAgent do
       select: %{
         # associations
         id: c.id,
-        dim_asset_id: da.id,
+        haul_truck_id: ht.id,
         asset_id: a.id,
         asset_name: a.name,
         # start
@@ -141,9 +141,10 @@ defmodule Dispatch.FleetOpsAgent do
 
   def fetch_timeusage_by_range!(%{start_time: start_time, end_time: end_time}) do
     cull_start = NaiveDateTime.add(start_time, -24 * 3600)
+
     fn query ->
       from([tu] in query,
-      where: tu.start_time > ^cull_start,
+        where: tu.start_time > ^cull_start,
         where: tu.end_time >= ^start_time,
         where: tu.start_time < ^end_time
       )
@@ -152,13 +153,13 @@ defmodule Dispatch.FleetOpsAgent do
   end
 
   defp fetch_timeusage(where) do
-    query = where.(Fleet.TimeUsage)
+    query = where.(Haul.TimeUsage)
 
     from([tu] in query,
-      join: da in Dim.Asset,
-      on: [id: tu.asset_id],
+      join: ht in Dim.HaulTruck,
+      on: [id: tu.haul_truck_id],
       join: a in Asset,
-      on: [id: da.asset_id],
+      on: [id: ht.asset_id],
       left_join: loc in ^location_subquery(),
       on: [history_id: tu.location_history_id],
       join: tu_type in Dim.TimeUsage,
@@ -168,7 +169,7 @@ defmodule Dispatch.FleetOpsAgent do
       select: %{
         # associations
         id: tu.id,
-        dim_asset_id: da.id,
+        haul_truck_id: ht.id,
         asset_id: a.id,
         asset_name: a.name,
 
@@ -198,21 +199,17 @@ defmodule Dispatch.FleetOpsAgent do
   defp location_subquery() do
     query =
       from(lh in Dim.LocationHistory,
-        join: l in Dim.Location,
-        on: [id: lh.location_id],
-        join: lt in Dim.LocationType,
-        on: [id: lh.location_type_id],
         select: %{
           # location history
           history_id: lh.id,
 
           # location
-          name: l.name,
-          id: l.id,
+          name: lh.name,
+          id: lh.location_id,
 
           # location type
-          type: lt.type,
-          type_id: lt.id
+          type: lh.type,
+          type_id: lh.location_type_id
         }
       )
 

@@ -33,7 +33,7 @@ defmodule DispatchWeb.Broadcast do
     TimeAllocationAgent,
     LocationAgent,
     CalendarAgent,
-    FleetOpsAgent,
+    HaulAgent,
     PreStartAgent,
     PreStartSubmissionAgent
   }
@@ -200,7 +200,7 @@ defmodule DispatchWeb.Broadcast do
   end
 
   def send_fleetops_data_to_all() do
-    payload = FleetOpsAgent.get()
+    payload = HaulAgent.get()
     Endpoint.broadcast(@dispatch, "set fleetops data", payload)
   end
 

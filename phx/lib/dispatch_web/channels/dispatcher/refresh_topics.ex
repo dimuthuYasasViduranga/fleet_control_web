@@ -65,7 +65,7 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
   end
 
   def refresh("fleetops agent") do
-    :ok = Dispatch.FleetOpsAgent.refresh!()
+    :ok = Dispatch.HaulAgent.refresh!()
     Broadcast.send_fleetops_data_to_all()
     :ok
   end

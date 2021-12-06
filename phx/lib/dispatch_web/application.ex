@@ -24,7 +24,7 @@ defmodule DispatchWeb.Application do
       Dispatch.AssetRadioAgent,
       Dispatch.LoadStyleAgent,
       Dispatch.MapTileAgent,
-      Dispatch.FleetOpsAgent,
+      Dispatch.HaulAgent,
       Dispatch.ManualCycleAgent,
       Dispatch.MaterialTypeAgent,
       Dispatch.PreStartAgent,
