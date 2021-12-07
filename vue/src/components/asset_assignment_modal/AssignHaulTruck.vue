@@ -45,7 +45,7 @@
           <DropDown
             v-model="localDispatch.dumpId"
             :items="dumps"
-            label="name"
+            label="extendedName"
             :useScrollLock="false"
           />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearDump" />

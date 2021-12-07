@@ -120,30 +120,26 @@ export default {
     },
     assets() {
       const tracks = this.tracks;
-      return (
-        this.$store.getters.fullAssets
-          // .filter(fa => fa.hasDevice)
-          .map(fa => {
-            const track = tracks.find(t => t.assetId === fa.id);
+      return this.$store.getters.fullAssets.map(fa => {
+        const track = tracks.find(t => t.assetId === fa.id);
 
-            const allocation = fa.activeTimeAllocation || {};
-            const alert = calculateAlert(fa, track);
+        const allocation = fa.activeTimeAllocation || {};
+        const alert = calculateAlert(fa, track);
 
-            return {
-              id: fa.id,
-              name: fa.name,
-              type: fa.type,
-              secondaryType: fa.secondaryType,
-              operatorName: fa.operator.shortname,
-              radioNumber: fa.radioNumber,
-              deviceId: fa.deviceId,
-              deviceUUID: fa.deviceUUID,
-              allocation,
-              alert,
-              track,
-            };
-          })
-      );
+        return {
+          id: fa.id,
+          name: fa.name,
+          type: fa.type,
+          secondaryType: fa.secondaryType,
+          operatorName: fa.operator.shortname,
+          radioNumber: fa.radioNumber,
+          deviceId: fa.deviceId,
+          deviceUUID: fa.deviceUUID,
+          allocation,
+          alert,
+          track,
+        };
+      });
     },
   },
   watch: {
