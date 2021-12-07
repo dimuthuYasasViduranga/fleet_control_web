@@ -172,7 +172,7 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   def handle_in("asset:set enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
-    case set_asset_enabled(asset_id, bool)do
+    case set_asset_enabled(asset_id, bool) do
       :ok -> {:reply, :ok, socket}
       error -> {:reply, to_error(error), socket}
     end
@@ -687,6 +687,7 @@ defmodule DispatchWeb.DispatcherChannel do
           deleted: false
         })
 
+        Broadcast.force_logout(%{asset_id: asset_id})
         DeviceAssignmentAgent.clear(asset_id)
         HaulTruckDispatchAgent.clear(asset_id)
         DigUnitActivityAgent.clear(asset_id)
