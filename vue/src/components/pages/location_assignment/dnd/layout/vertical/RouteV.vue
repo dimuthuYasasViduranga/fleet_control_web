@@ -61,7 +61,7 @@
         v-for="dump in dumps"
         :key="dump.id"
         :dumpId="dump.id"
-        :dumpName="dump.name"
+        :dumpName="dump.extendedName"
         :haulTrucks="assignedHaulTrucks"
         :columns="cols"
         @drag-start="onDragStart"
@@ -125,11 +125,8 @@ export default {
   },
   computed: {
     dumps() {
-      return this.dumpIds
-        .map(id => {
-          const name = attributeFromList(this.locations, 'id', id, 'name') || '';
-          return { id, name };
-        })
+      return this.locations
+        .filter(l => this.dumpIds.includes(l.id))
         .sort((a, b) => a.name.localeCompare(b.name));
     },
     digUnit() {

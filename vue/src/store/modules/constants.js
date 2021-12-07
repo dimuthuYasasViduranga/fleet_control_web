@@ -64,9 +64,14 @@ function parseManifest(manifest) {
 }
 
 function parseLocation(location) {
+  const extendedName = location.material_type
+    ? `${location.name} (${location.material_type})`
+    : location.name;
+
   return {
     id: location.location_id,
     name: location.name,
+    extendedName,
     typeId: location.location_type_id,
     type: location.type,
     locationGroupId: location.location_group_id,
@@ -254,7 +259,9 @@ function parseMaterialType(type) {
   return {
     id: type.id,
     name: type.name,
-    commonName: type.common_name,
+    alias: type.alias,
+    commonName: type.alias || type.name,
+    tonnesToBCMFactor: type.tonnes_to_bcm_factor,
   };
 }
 

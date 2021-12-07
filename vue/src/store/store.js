@@ -316,14 +316,14 @@ function notifyActiveTimeAllocationChanges(state, newAllocs) {
       actions: [
         {
           text: 'Change',
-          onClick: (e, toast) => {
+          onClick: (_e, toast) => {
             Vue.prototype.$eventBus.$emit('asset-assignment-open', alloc.assetId);
             toast.goAway(0);
           },
         },
         {
           text: 'Clear',
-          onClick: (e, toast) => toast.goAway(0),
+          onClick: (_e, toast) => toast.goAway(0),
         },
       ],
     });

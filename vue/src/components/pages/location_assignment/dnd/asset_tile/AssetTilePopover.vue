@@ -33,7 +33,7 @@
           </td>
         </tr>
       </template>
-      <!-- <template v-if="asset.secondaryType === 'Dig Unit'">
+      <template v-if="asset.secondaryType === 'Dig Unit'">
         <tr>
           <td class="key">Material Type</td>
           <td class="value">{{ materialType || '--' }}</td>
@@ -42,7 +42,7 @@
           <td class="key">Load Style</td>
           <td class="value">{{ loadStyle || '--' }}</td>
         </tr>
-      </template> -->
+      </template>
 
       <tr>
         <td class="key">Allocation</td>

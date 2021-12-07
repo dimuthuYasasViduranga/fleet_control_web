@@ -8,7 +8,7 @@ defmodule Dispatch.MaterialTypeAgent do
   use Agent
 
   alias HpsData.Repo
-  alias HpsData.Schemas.Dispatch
+  alias HpsData.Dim.MaterialType
 
   @type material_type :: map
 
@@ -21,9 +21,9 @@ defmodule Dispatch.MaterialTypeAgent do
   end
 
   defp pull_material_types() do
-    Dispatch.MaterialType
+    MaterialType
     |> Repo.all()
-    |> Enum.map(&Dispatch.MaterialType.to_map/1)
+    |> Enum.map(&MaterialType.to_map/1)
   end
 
   @spec get() :: list(material_type)

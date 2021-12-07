@@ -50,7 +50,7 @@
           <DropDown
             v-model="localDumpId"
             :items="availableDumps"
-            label="name"
+            label="extendedName"
             :useScrollLock="false"
           />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDumpId = null" />
