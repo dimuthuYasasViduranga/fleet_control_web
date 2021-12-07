@@ -171,6 +171,7 @@ defmodule DispatchWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
+  @decorate authorized(:can_edit_asset_roster)
   def handle_in("asset:set enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
     case set_asset_enabled(asset_id, bool) do
       :ok -> {:reply, :ok, socket}

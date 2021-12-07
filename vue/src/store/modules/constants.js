@@ -351,6 +351,7 @@ const state = {
   user: Object(),
   mapKey: String(),
   assets: Array(),
+  allAssets: Array(),
   assetTypes: Array(),
   operators: Array(),
   shifts: Array(),
@@ -556,7 +557,8 @@ const mutations = {
   },
   setAssets(state, assets = []) {
     assets.sort((a, b) => a.name.localeCompare(b.name));
-    state.assets = assets;
+    state.assets = assets.filter(a => a.enabled);
+    state.allAssets = assets;
   },
   setAssetTypes(state, assetTypes = []) {
     state.assetTypes = assetTypes;

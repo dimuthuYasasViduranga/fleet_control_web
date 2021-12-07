@@ -9,7 +9,8 @@ defmodule DispatchWeb.Authorization.Permissions do
       can_edit_time_codes: false,
       can_edit_messages: false,
       can_refresh_agents: false,
-      can_edit_pre_starts: false
+      can_edit_pre_starts: false,
+      can_edit_asset_roster: false,
     }
   end
 

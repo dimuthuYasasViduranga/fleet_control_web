@@ -1,6 +1,6 @@
 <template>
   <div class="asset-roster-page">
-    <hxCard title="Available Assets" :icon="haulTruckIcon">
+    <hxCard title="Asset Roster" :icon="haulTruckIcon">
       <table-component
         table-wrapper="#content"
         table-class="table"
@@ -72,7 +72,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      assets: state => state.assets.slice().sort((a, b) => a.name.localeCompare(b.name)),
+      assets: state => state.allAssets.slice().sort((a, b) => a.name.localeCompare(b.name)),
       assetIcons: state => state.icons,
     }),
   },

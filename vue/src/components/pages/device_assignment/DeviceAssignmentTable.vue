@@ -145,7 +145,6 @@ export default {
       const userAssetIds = this.assignments.filter(a => a.deviceId).map(a => a.assetId);
 
       const dropdownAssets = this.assets
-        .filter(a => a.enabled)
         .map(asset => {
           const label = asset.type ? `${asset.name} (${asset.type})` : asset.name;
           return {
