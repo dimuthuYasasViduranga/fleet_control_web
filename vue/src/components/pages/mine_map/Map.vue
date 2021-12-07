@@ -117,6 +117,20 @@
         >
           <g-map-geofences :geofences="shownGeofences" @click="onGeofenceClick" />
 
+          <gmap-circle
+            v-for="(center, index) in loadingZones"
+            :key="`loading-zone-${index}`"
+            :center="center"
+            :radius="digUnitLoadingRadius"
+            :options="{
+              clickable: false,
+              zIndex: -10,
+              strokeWeight: 0,
+              fillColor: 'green',
+              fillOpacity: 0.1,
+            }"
+          />
+
           <g-map-tracks
             :assets="assets"
             :showAlerts="showAlerts"
@@ -182,6 +196,8 @@ import HaulTruckInfo from './info/HaulTruckInfo.vue';
 import DigUnitInfo from './info/DigUnitInfo.vue';
 import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
+
+const DIG_UNIT_LOADING_RADIUS = 30;
 
 function fromLatLng(latLng) {
   return {
@@ -254,6 +270,7 @@ export default {
 
       // track properties
       trackClusterSize: 35,
+      digUnitLoadingRadius: DIG_UNIT_LOADING_RADIUS,
       debug: false,
       hideIcon: HideIcon,
       showIcon: ShowIcon,
@@ -302,6 +319,11 @@ export default {
     },
     myLocation() {
       return this.$geolocation.position;
+    },
+    loadingZones() {
+      return this.assets
+        .filter(a => a.secondaryType === 'Dig Unit' && a.track?.position)
+        .map(a => a.track?.position);
     },
   },
   watch: {
