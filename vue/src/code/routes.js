@@ -19,6 +19,7 @@ import Agents from '../components/pages/agents/Agents.vue';
 import PreStartEditor from '../components/pages/pre_start_editor/PreStartEditor.vue';
 import PreStartSubmissionsPage from '../components/pages/pre_start_submissions/PreStartSubmissionsPage.vue';
 import AssetOverviewPage from '../components/pages/asset_overview/AssetOverviewPage.vue';
+import AssetRosterPage from '../components/pages/asset_roster/AssetRosterPage.vue';
 
 import HaulTruckIcon from '../components/icons/asset_icons/HaulTruck.vue';
 import TabletIcon from '../components/icons/Tablet.vue';
@@ -36,6 +37,7 @@ import DatabaseIcon from '../components/icons/Database.vue';
 import ReportIcon from '../components/icons/Report.vue';
 import ChatIcon from '../components/icons/Chat.vue';
 import GridIcon from '../components/icons/Grid.vue';
+import CogIcon from '../components/icons/Cog.vue';
 
 import Vue from 'vue';
 
@@ -86,6 +88,7 @@ export default function setupRouter(whitelist) {
       component: Operators,
       icon: ManIcon,
     },
+    { name: 'Asset Roster', path: '/asset_roster', component: AssetRosterPage, icon: CogIcon },
     {
       name: 'Device Assignment',
       path: '/device_assignment',
@@ -158,36 +161,6 @@ export default function setupRouter(whitelist) {
       icon: ListIcon,
     },
     { path: '/gap_4', gap: true },
-    // {
-    //   name: 'Activity Log',
-    //   path: '/activity_log',
-    //   component: ActivityLog,
-    //   icon: ListIcon,
-    // },
-    // {
-    //   name: 'Operator Messages',
-    //   path: '/operator_messages',
-    //   component: OperatorMessages,
-    //   icon: BellIcon,
-    // },
-    // {
-    //   name: 'Dispatcher Messages',
-    //   path: '/disptacher_messages',
-    //   component: DispatcherMessages,
-    //   icon: BellIcon,
-    // },
-    // {
-    //   name: 'Dispatch History',
-    //   path: '/dispatch_history',
-    //   component: DispatchHistory,
-    //   icon: BellIcon,
-    // },
-    // {
-    //   name: 'Assignments',
-    //   path: '/assignments',
-    //   component: Assignments,
-    //   icon: BellIcon,
-    // },
     {
       name: 'Debug',
       path: '/debug',

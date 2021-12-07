@@ -190,7 +190,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
     end
   end
 
-  @spec clear(integer) :: {:ok, dispatch} | {:error, term}
+  @spec clear(integer) :: {:ok, dispatch} | {:error, :no_asset | term}
   def clear(asset_id) do
     Agent.get_and_update(__MODULE__, fn state ->
       case Enum.find(state.current, &(&1.asset_id == asset_id)) do

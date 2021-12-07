@@ -44,6 +44,7 @@ config :dispatch_web,
       "/mine_map",
       "/asset_progress_line",
       "/operators",
+      "/asset_roster",
       "/device_assignment",
       "/asset_status",
       "/time_allocation",
@@ -64,7 +65,7 @@ config :dispatch_web,
       "/route_map",
       "/pre_start_editor",
       "/pre_start_submissions",
-      "/asset_overview",
+      "/asset_overview"
     ]
   }
 

@@ -24,6 +24,8 @@ defmodule Dispatch.TimeCodeAgent do
     :node_name
   ]
 
+  @reserved ["No Task", "Disabled"]
+
   @type time_code :: map
   @type time_code_group :: map
   @type time_code_tree_element :: map
@@ -34,13 +36,15 @@ defmodule Dispatch.TimeCodeAgent do
   defp init() do
     time_codes = pull_time_codes()
     no_task_id = Enum.find(time_codes, &(&1.name === "No Task")).id
+    disabled_id = Enum.find(time_codes, &(&1.name === "Disabled")).id
 
     %{
       time_codes: time_codes,
       time_code_groups: pull_time_code_groups(),
       time_code_tree_elements: pull_time_code_tree_elements(),
       time_code_categories: pull_time_code_categories(),
-      no_task_id: no_task_id
+      no_task_id: no_task_id,
+      disabled_id: disabled_id
     }
   end
 
@@ -106,6 +110,9 @@ defmodule Dispatch.TimeCodeAgent do
   @spec no_task_id() :: integer
   def no_task_id(), do: get(:no_task_id)
 
+  @spec disabled_id() :: integer
+  def disabled_id(), do: get(:disabled_id)
+
   @spec get_time_codes() :: list(time_code)
   def get_time_codes(), do: get(:time_codes)
 
@@ -138,7 +145,7 @@ defmodule Dispatch.TimeCodeAgent do
       |> TimeCode.new()
 
     Agent.get_and_update(__MODULE__, fn state ->
-      case params[:name] == "No Task" do
+      case params[:name] in @reserved do
         true ->
           {{:error, :reserved_name}, state}
 
@@ -173,7 +180,7 @@ defmodule Dispatch.TimeCodeAgent do
         existing.id == state.no_task_id ->
           {{:error, :cannot_edit}, state}
 
-        params[:name] == "No Task" ->
+        params[:name] in @reserved ->
           {{:error, :reserved_name}, state}
 
         true ->

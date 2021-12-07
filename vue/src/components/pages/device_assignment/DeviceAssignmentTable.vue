@@ -144,16 +144,18 @@ export default {
     dropdownAssets() {
       const userAssetIds = this.assignments.filter(a => a.deviceId).map(a => a.assetId);
 
-      const dropdownAssets = this.assets.map(asset => {
-        const label = asset.type ? `${asset.name} (${asset.type})` : asset.name;
-        return {
-          id: asset.id,
-          name: asset.name,
-          type: asset.type,
-          label,
-          disabled: userAssetIds.includes(asset.id),
-        };
-      });
+      const dropdownAssets = this.assets
+        .filter(a => a.enabled)
+        .map(asset => {
+          const label = asset.type ? `${asset.name} (${asset.type})` : asset.name;
+          return {
+            id: asset.id,
+            name: asset.name,
+            type: asset.type,
+            label,
+            disabled: userAssetIds.includes(asset.id),
+          };
+        });
 
       const unassignedOpt = { id: null, label: 'Not Assigned' };
 

@@ -171,6 +171,13 @@ defmodule DispatchWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
+  def handle_in("asset:set enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
+    case set_asset_enabled(asset_id, bool)do
+      :ok -> {:reply, :ok, socket}
+      error -> {:reply, to_error(error), socket}
+    end
+  end
+
   def handle_in("set radio number", payload, socket) do
     %{"asset_id" => asset_id, "radio_number" => radio_number} = payload
     AssetRadioAgent.set(asset_id, radio_number)
@@ -616,11 +623,12 @@ defmodule DispatchWeb.DispatcherChannel do
 
         # clear any settings for the asset
         HaulTruckDispatchAgent.clear(old_asset_id)
-
+        DigUnitActivityAgent.clear(old_asset_id)
         DeviceAssignmentAgent.clear(old_asset_id)
 
         Broadcast.send_activity(%{asset_id: old_asset_id}, "dispatcher", "device unassigned")
         Broadcast.HaulTruck.send_dispatches()
+        Broadcast.DigUnit.send_activities_to_all()
         Broadcast.send_assignments_to_all()
     end
   end
@@ -637,6 +645,66 @@ defmodule DispatchWeb.DispatcherChannel do
 
     Broadcast.send_activity(%{asset_id: asset_id}, "dispatcher", "device assigned")
     Broadcast.send_assignments_to_all()
+  end
+
+  defp set_asset_enabled(nil, _), do: {:error, :invalid_asset}
+
+  defp set_asset_enabled(asset_id, true) do
+    case AssetAgent.set_enabled(asset_id, true) do
+      :ok ->
+        no_task_id = TimeCodeAgent.no_task_id()
+
+        TimeAllocationAgent.add(%{
+          asset_id: asset_id,
+          time_code_id: no_task_id,
+          start_time: NaiveDateTime.utc_now(),
+          end_time: nil,
+          deleted: false
+        })
+
+        Broadcast.send_asset_data_to_all()
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+        Broadcast.send_assignments_to_all()
+
+        :ok
+
+      error ->
+        error
+    end
+  end
+
+  defp set_asset_enabled(asset_id, false) do
+    case AssetAgent.set_enabled(asset_id, false) do
+      :ok ->
+        disabled_id = TimeCodeAgent.disabled_id()
+
+        TimeAllocationAgent.add(%{
+          asset_id: asset_id,
+          time_code_id: disabled_id,
+          start_time: NaiveDateTime.utc_now(),
+          end_time: nil,
+          deleted: false
+        })
+
+        DeviceAssignmentAgent.clear(asset_id)
+        HaulTruckDispatchAgent.clear(asset_id)
+        DigUnitActivityAgent.clear(asset_id)
+
+        Broadcast.send_asset_data_to_all()
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+
+        Broadcast.HaulTruck.send_dispatches()
+        Broadcast.DigUnit.send_activities_to_all()
+
+        Broadcast.send_assignments_to_all()
+
+        :ok
+
+      error ->
+        error
+    end
   end
 
   @doc """

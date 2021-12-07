@@ -28,7 +28,7 @@
         <template slot-scope="row">
           <div class="edit-wrapper">
             <Icon
-              v-if="row.name !== 'No Task'"
+              v-if="!['No Task', 'Disabled'].includes(row.name)"
               v-tooltip="'Edit'"
               class="edit-icon"
               :icon="editIcon"

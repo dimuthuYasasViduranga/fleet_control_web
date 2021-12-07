@@ -175,6 +175,7 @@ export function parseAsset(asset) {
     type: asset.type,
     typeId: asset.type_id,
     secondaryType: asset.secondary_type,
+    enabled: asset.enabled,
   };
 }
 
