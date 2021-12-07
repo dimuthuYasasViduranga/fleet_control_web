@@ -292,7 +292,7 @@ function notifyActiveTimeAllocationChanges(state, newAllocs) {
     return !oldAlloc || oldAlloc.timeCodeId !== newAlloc.timeCodeId;
   });
 
-  const assets = state.constants.assets || [];
+  const assets = state.constants.allAssets || [];
   const timeCodes = state.constants.timeCodes || [];
   const timeCodeGroups = state.constants.timeCodeGroups || [];
 

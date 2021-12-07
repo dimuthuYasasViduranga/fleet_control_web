@@ -693,11 +693,19 @@ defmodule DispatchWeb.DispatcherChannel do
         HaulTruckDispatchAgent.clear(asset_id)
         DigUnitActivityAgent.clear(asset_id)
 
+        case HaulTruckDispatchAgent.clear_dig_unit(asset_id) do
+          {:ok, dispatches} ->
+            identifiers = Enum.map(dispatches, &%{asset_id: &1.asset_id})
+            Broadcast.HaulTruck.send_dispatches(identifiers)
+
+          _ ->
+            nil
+        end
+
         Broadcast.send_asset_data_to_all()
         Broadcast.send_active_allocation_to(%{asset_id: asset_id})
         Broadcast.send_allocations_to_dispatcher()
 
-        Broadcast.HaulTruck.send_dispatches()
         Broadcast.DigUnit.send_activities_to_all()
 
         Broadcast.send_assignments_to_all()
