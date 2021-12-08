@@ -433,7 +433,8 @@ const actions = {
     dispatch('connection/setUserToken', staticData.user_token, { root: true });
     Timely.setSiteZone(data.timezone);
   },
-  setUser({ commit }, user = {}) {
+  setUser({ commit }, user) {
+    user = user || {};
     const formattedUser = {
       id: user.id,
       name: user.name,
