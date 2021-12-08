@@ -68,6 +68,7 @@ import { getAssetTileSecondaryIcon } from '@/code/common';
 import ListIcon from '@/components/icons/List.vue';
 
 import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
+import MapModal from '@/components/modals/MapModal.vue';
 
 const FLASH_DURATION = 10;
 
@@ -175,6 +176,7 @@ export default {
       const items = [
         { id: 'assignment', name: 'Edit Assignment' },
         { id: 'time-allocation', name: 'View Time Allocation' },
+        { id: 'locate', name: 'Locate' },
       ];
 
       if (this.hasDevice) {
@@ -185,31 +187,33 @@ export default {
         items.push({ id: 'logout', name: 'Force Logout' });
       }
 
-      this.$contextMenu
-        .create(`asset-tile-${this.asset.id}`, mouseEvent, items, { toggle: true })
-        .then(resp => {
-          if (!resp) {
-            return;
-          }
+      this.$contextMenu.create('asset-tile', mouseEvent, items, { toggle: true }).then(resp => {
+        if (!resp) {
+          return;
+        }
 
-          switch (resp.id) {
-            case 'assignment':
-              this.onOpenAssignment();
-              break;
+        switch (resp.id) {
+          case 'assignment':
+            this.onOpenAssignment();
+            break;
 
-            case 'chat':
-              this.onOpenMessages();
-              break;
+          case 'chat':
+            this.onOpenMessages();
+            break;
 
-            case 'time-allocation':
-              this.$eventBus.$emit('live-time-allocation-open', this.asset.id);
-              break;
+          case 'time-allocation':
+            this.$eventBus.$emit('live-time-allocation-open', this.asset.id);
+            break;
 
-            case 'logout':
-              this.promptLogout();
-              break;
-          }
-        });
+          case 'logout':
+            this.promptLogout();
+            break;
+
+          case 'locate':
+            this.openMap();
+            break;
+        }
+      });
     },
     promptLogout() {
       const asset = this.asset;
@@ -240,6 +244,13 @@ export default {
       };
 
       this.$channel.push('force logout device', payload);
+    },
+    openMap() {
+      const opts = {
+        assetId: this.asset.id,
+      };
+
+      this.$modal.create(MapModal, opts);
     },
   },
 };

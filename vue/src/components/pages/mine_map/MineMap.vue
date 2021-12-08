@@ -1,6 +1,7 @@
 <template>
   <hxCard :title="title" :icon="icon">
     <Map
+      ref="map"
       :assets="localAssets"
       :assetTypes="assetTypes"
       :activeLocations="activeLocations"

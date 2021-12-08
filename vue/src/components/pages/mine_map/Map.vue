@@ -490,8 +490,6 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/googleMaps.css';
-
 .mine-map .map-wrapper {
   position: relative;
   height: 800px;
@@ -527,14 +525,13 @@ export default {
 
 .asset-type-filter-toggle {
   margin: 0;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
 }
 
 .asset-type-filter-toggle .hx-icon {
   width: 100%;
-  height: 40px;
-  width: 40px;
+  height: 100%;
   padding: 5px 0;
 }
 
@@ -554,12 +551,7 @@ export default {
   height: auto;
 }
 
-.asset-type-filter .hx-icon {
-  width: 100%;
-  height: 42px;
-  width: 42px;
-  padding: 5px 0;
-}
+
 
 .asset-type-filter-toggle .hx-icon:hover,
 .asset-type-filter-toggle .hx-icon.highlight,

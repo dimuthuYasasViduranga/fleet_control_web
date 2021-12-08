@@ -248,6 +248,7 @@ export default {
 @import './assets/toasted.css';
 @import './assets/toggle.css';
 @import './assets/contextMenu.css';
+@import './assets/googleMaps.css';
 
 /* firefox scrollbar color was transparent */
 html {
