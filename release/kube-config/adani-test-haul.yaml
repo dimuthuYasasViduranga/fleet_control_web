@@ -139,4 +139,4 @@ spec:
                   map_tile_endpoint: "https://hxtest.blob.core.windows.net/adani-map-tiles"
                 ]
             - name: URL
-              value: https://adani-test-haul.haultrax.digital
+              value: https://adaniau-test-haul.haultrax.digital
