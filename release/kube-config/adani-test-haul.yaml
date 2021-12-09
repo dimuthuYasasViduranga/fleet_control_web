@@ -107,7 +107,8 @@ spec:
                     can_edit_time_codes: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
                     can_edit_messages: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
                     can_refresh_agents: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_edit_pre_starts: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"]
+                    can_edit_pre_starts: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"],
+                    can_edit_asset_roster: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"]
                   ],
                   route_white_list: %{
                     :default => [
