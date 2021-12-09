@@ -2,6 +2,31 @@
 
 ## pending [unreleased]
 
+## 0.12.0
+- 💥 using next version of hps_data
+  - fleetops agent uses haul instead of fleet
+  - locations use new start/end structure
+  - use new location types
+  - material types moved from "dis_material_type" to "dim_material_type"
+- 🧹 removed some unused pages
+- ✨ added asset roster to show/hide assets
+  - 🔒 requires the "can_edit_asset_roster" permission
+- 💄 dig units now show a "loading radius" bubble around them for better feedback
+- ✨ added "locate" context menu on asset tiles. Opens the minemap, centered on the target
+- ✨ long click and hold on chat head allows it to be moved around
+
+## 0.11.2
+- 🐛 added redirect on 401 (ie not authenticated)
+
+## 0.11.1
+- 🔊 error log if unable to access azure graph (for authorization groups)
+- 🧹 merged startup calls
+- 🔒 added 'authorized' group to prevent any access without it
+
+## 0.11.0
+- 👽 updated endpoints to kube format of /fleet-control
+- 🧹 merged release config params
+
 ## 0.10.20
 - 🐛 fixed pdf page numbers
 
