@@ -35,8 +35,8 @@ defmodule Dispatch.TimeCodeAgent do
 
   defp init() do
     time_codes = pull_time_codes()
-    no_task_id = Enum.find(time_codes, &(&1.name === "No Task")).id
-    disabled_id = Enum.find(time_codes, &(&1.name === "Disabled")).id
+    no_task_id = find_or_raise(time_codes, "No Task")
+    disabled_id = find_or_raise(time_codes, "Disabled")
 
     %{
       time_codes: time_codes,
@@ -46,6 +46,13 @@ defmodule Dispatch.TimeCodeAgent do
       no_task_id: no_task_id,
       disabled_id: disabled_id
     }
+  end
+
+  defp find_or_raise(time_codes, name) do
+    case Enum.find(time_codes, &(&1.name == name)) do
+      nil -> raise "Time codes unseeded - cannot find '#{name}'"
+      %{id: id} -> id
+    end
   end
 
   defp pull_time_codes() do
