@@ -393,7 +393,7 @@ const getters = {
       state;
 
     const {
-      assets,
+      allAssets,
       dispatchers,
       operators,
       operatorMessageTypes,
@@ -429,7 +429,7 @@ const getters = {
       });
 
     return toEvents(
-      assets,
+      allAssets,
       dispatchers,
       operators,
       devices,

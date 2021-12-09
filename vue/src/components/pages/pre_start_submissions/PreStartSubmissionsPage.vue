@@ -124,7 +124,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      assets: state => state.assets,
+      assets: state => state.allAssets,
       operators: state => state.operators,
       shifts: state => state.shifts,
       shiftTypes: state => state.shiftTypes,
