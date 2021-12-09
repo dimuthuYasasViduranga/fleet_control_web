@@ -113,10 +113,9 @@ spec:
                     :default => [
                       "/asset_assignment",
                       "/location_assignment",
-                      "/asset_overview",
                       "/mine_map",
-                      "/route_map",
                       "/operators",
+                      "/asset_roster",
                       "/device_assignment",
                       "/asset_status",
                       "/time_allocation",
@@ -127,6 +126,7 @@ spec:
                       "/engine_hours",
                       "/debug",
                       "/agents",
+                      "/route_map",
                       "/pre_start_editor",
                       "/pre_start_submissions"
                     ],
