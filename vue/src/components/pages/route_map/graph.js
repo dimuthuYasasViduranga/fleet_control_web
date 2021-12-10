@@ -8,7 +8,7 @@ export function fromGraph(vertices, adjacency) {
     .map(edges => edges.map(e => e.id))
     .flat();
   const allIds = vertexIds.concat(adjacencyIds);
-  const nextId = Math.max(...allIds);
+  const nextId = Math.max(...allIds, 1);
 
   const graph = new Graph();
   graph.vertices = vertices;
