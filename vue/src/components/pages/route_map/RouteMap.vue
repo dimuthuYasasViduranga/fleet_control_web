@@ -1,7 +1,16 @@
 <template>
   <div class="route-map">
+    <button class="hx-btn" @click="onLogStructure()">Log</button>
     <div class="map-wrapper">
       <div class="gmap-map">
+        <div style="display: none">
+          <PolygonIcon
+            class="geofence-control"
+            tooltip="right"
+            :highlight="!showLocations"
+            @click.native="toggleShowLocations()"
+          />
+        </div>
         <GmapMap
           ref="gmap"
           :map-type-id="mapType"
@@ -23,6 +32,13 @@
             @accept="onEditAccept"
             @reject="onEditReject"
           />
+
+          <g-map-geofences
+            v-if="showLocations"
+            :geofences="locations"
+            :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
+          />
+
           <gmap-polyline
             v-for="(poly, index) in uneditablePolylines"
             :key="`polyline-${index}`"
@@ -30,6 +46,7 @@
             :options="{
               strokeColor: poly.color,
               strokeWeight: poly.width,
+              zIndex: 10,
             }"
             @click="onPolylineClick(poly)"
           />
@@ -40,7 +57,7 @@
             :radius="snapDistance"
             :options="{
               clickable: false,
-              zIndex: -1,
+              zIndex: 5,
               strokeOpacity: 0.5,
             }"
           />
@@ -56,9 +73,12 @@ import { gmapApi } from 'gmap-vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
+import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
+import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import { hasOrderedSubArray } from '@/code/helpers.js';
 import { getUniqPaths } from './graph';
 import { pixelsToMeters } from '@/code/distance';
+import { attachControl } from '@/components/gmap/gmapControls';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
@@ -109,9 +129,12 @@ export default {
   components: {
     GMapDrawingControls,
     GMapEditable,
+    GMapGeofences,
+    PolygonIcon,
   },
   props: {
     graph: { type: Object, required: true },
+    locations: { type: Array, default: () => [] },
     snapDistancePx: { type: Number, default: 0 },
   },
   data: () => {
@@ -127,6 +150,7 @@ export default {
         polylines: [],
       },
       selectedPolyline: null,
+      showLocations: true,
     };
   },
   computed: {
@@ -171,6 +195,7 @@ export default {
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
+      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -244,6 +269,13 @@ export default {
           this.onPolylineClick(newPolyline);
         }, 100);
       }
+    },
+    onLogStructure() {
+      console.dir('---- structure');
+      console.dir(this.graph);
+    },
+    toggleShowLocations() {
+      this.showLocations = !this.showLocations;
     },
   },
 };

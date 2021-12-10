@@ -2,6 +2,14 @@
   <div class="traversal-map">
     <div class="map-wrapper">
       <div class="gmap-map">
+        <div style="display: none">
+          <PolygonIcon
+            class="geofence-control"
+            tooltip="right"
+            :highlight="!showLocations"
+            @click.native="toggleShowLocations()"
+          />
+        </div>
         <GmapMap
           ref="gmap"
           :map-type-id="mapType"
@@ -12,6 +20,12 @@
             tilt: 0,
           }"
         >
+          <g-map-geofences
+            v-if="showLocations"
+            :geofences="locations"
+            :options="{ zIndex: -1, fillOpacity: 0.2, strokeOpacity: 0.2 }"
+          />
+
           <!-- draw markers -->
           <gmap-marker
             v-for="(marker, index) in [markerEnd, markerStart]"
@@ -69,8 +83,11 @@
 <script>
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
+import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
+import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { getUniqPaths, getClosestVertex, dijkstra, dijkstraToVertices } from './graph';
+import { attachControl } from '@/components/gmap/gmapControls';
 
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
@@ -121,8 +138,13 @@ function createLink(graph, marker, color) {
 
 export default {
   name: 'TraveralMap',
+  components: {
+    GMapGeofences,
+    PolygonIcon,
+  },
   props: {
     graph: { type: Object, required: true },
+    locations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -135,6 +157,7 @@ export default {
       markerStart: { position: { lat: 0, lng: 0 }, icon: START_ICON_URL, pendingPosition: null },
       markerEnd: { position: { lat: 0, lng: 0 }, icon: END_ICON_URL, pendingPosition: null },
       routePolylines: [],
+      showLocations: true,
     };
   },
   computed: {
@@ -193,8 +216,11 @@ export default {
   },
   mounted() {
     // configure the start and end markers to be the map center
-    this.markerStart.position = { lat: -32.847896, lng: 116.0596581 };
-    this.markerEnd.position = { lat: -32.852, lng: 116.065 };
+    this.markerStart.position = {
+      lat: this.defaultCenter.lat,
+      lng: this.defaultCenter.lng + 0.01,
+    };
+    this.markerEnd.position = { lat: this.defaultCenter.lat, lng: this.defaultCenter.lng - 0.01 };
 
     this.reCenter();
     this.resetZoom();
@@ -202,6 +228,7 @@ export default {
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
+      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -237,6 +264,9 @@ export default {
     onMarkerDragEnd(marker, event) {
       marker.interval = clearInterval(marker.interval);
       marker.position = { lat: event.latLng.lat(), lng: event.latLng.lng() };
+    },
+    toggleShowLocations() {
+      this.showLocations = !this.showLocations;
     },
   },
 };
