@@ -19,7 +19,7 @@
             :path="[segment.posStart, segment.posEnd]"
             :options="{
               strokeColor: selectedSegment === segment ? 'orange' : 'green',
-              strokeWeight: 10,
+              strokeWeight: strokeWidth,
               strokeOpacity: 1,
               icons: polylineIcons,
               geodesic: true,
@@ -54,6 +54,30 @@
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
+
+const POLYLINE_SYMBOLS = {
+  diamond: {
+    path: 'M 0,1 1,0 -1,0 z',
+    strokeColor: '#F00',
+    fillColor: '#F00',
+    fillOpacity: 1,
+    scale: 1,
+  },
+  arrow: {
+    path: 'M -2,0 0,-10 2,0 z',
+    strokeColor: 'black',
+    fillColor: 'black',
+    fillOpacity: 1,
+    scale: 1,
+  },
+  gArrowBackwards: {
+    path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW
+  }
+};
+
+function getSymbol(name, opts) {
+  return { ...POLYLINE_SYMBOLS[name], ...(opts || {}) };
+}
 
 function graphToSegments(graph, _google) {
   const adjacency = graph.adjacency;
@@ -91,28 +115,6 @@ function graphToSegments(graph, _google) {
       edge2,
       posStart,
       posEnd,
-      // icons: [
-      //   {
-      //     icon: {
-      //       path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      //       strokeColor: 'darkgreen',
-      //       strokeWeight: 2,
-      //       fillColor: 'green',
-      //       fillOpacity: 1,
-      //       scale: 4,
-      //     },
-      //   },
-      //   {
-      //     icon: {
-      //       path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      //       strokeColor: 'darkgreen',
-      //       strokeWeight: 2,
-      //       fillColor: 'green',
-      //       fillOpacity: 1,
-      //       scale: 4,
-      //     },
-      //   },
-      // ],
       data: {},
     };
   });
@@ -131,6 +133,7 @@ export default {
         lng: 0,
       },
       zoom: 0,
+      strokeWidth: 10,
       segments: [],
       selectedSegment: null,
     };
@@ -149,29 +152,30 @@ export default {
       });
     },
     polylineIcons() {
-      const scale = this.zoom > 16 ? 5 : 0;
-      const baseIcon = {
-        strokeColor: 'darkgreen',
-        strokeWeight: 2,
-        fillColor: 'green',
-        fillOpacity: 1,
-        scale,
+      const opts = {
+        strokeOpacity: 0.5,
+        fillOpacity: 0.25,
+        scale: 2,
       };
+      const arrowBackwards = getSymbol('arrow', opts);
+
+      // only render arrows if they are single directional
       return [
         {
-          icon: {
-            path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-            ...baseIcon,
-          },
-          offset: '0%',
+          icon: arrowBackwards,
+          
+          offset: '50%',
+          // this can be used to show a conga line of arrows
+          // repeat: '100px',
         },
-        {
-          icon: {
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            ...baseIcon,
-          },
-          offset: '100%',
-        },
+        // {
+        //   icon: {
+        //     path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        //     ...baseIcon,
+        //   },
+        //   offset: '0%',
+        //   repeat: '10%'
+        // },
       ];
     },
   },
