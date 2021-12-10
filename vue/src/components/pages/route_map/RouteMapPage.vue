@@ -15,17 +15,19 @@
       <RouteMap
         v-if="mapMode === 'routing'"
         :graph="graph"
+        :locations="locations"
         :snapDistancePx="snapDistancePx"
         @create="onRouteCreate"
         @delete="onRouteDelete"
       />
-      <TraversalMap v-else-if="mapMode === 'traversal'" :graph="graph" />
+      <TraversalMap v-else-if="mapMode === 'traversal'" :graph="graph" :locations="locations" />
       <SegmentMap v-else :graph="graph" />
     </hxCard>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 import LineIcon from '@/components/icons/Line.vue';
 import RouteMap from './RouteMap.vue';
@@ -77,9 +79,14 @@ export default {
       graph: new Graph(),
       snapDistancePx: 10,
       // mapMode: 'routing',
-      // mapMode: 'traversal',
-      mapMode: 'segment',
+      mapMode: 'traversal',
+      // mapMode: 'segment',
     };
+  },
+  computed: {
+    ...mapState('constants', {
+      locations: state => state.locations,
+    }),
   },
   mounted() {
     this.graph = createTempGraph();
@@ -87,6 +94,7 @@ export default {
   methods: {
     onRouteCreate({ path, zoom }) {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
+      console.dir(this.graph);
       // console.dir('----------');
       // console.dir(JSON.stringify(this.graph.vertices, null, 2));
       // console.dir(JSON.stringify(this.graph.adjacency, null, 2));
