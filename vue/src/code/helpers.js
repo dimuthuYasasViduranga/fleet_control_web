@@ -285,3 +285,10 @@ export class Dictionary {
     return match;
   }
 }
+
+export function toLookup(arr, key) {
+  return arr.reduce((acc, elem) => {
+    acc[elem[key]] = elem;
+    return acc;
+  }, {});
+}

@@ -36,6 +36,7 @@ import SegmentMap from './SegmentMap.vue';
 import { Graph } from './graph';
 import { haversineDistanceM, pixelsToMeters } from '@/code/distance';
 import { chunkEvery } from '@/code/helpers';
+import { fromRoute } from './graph.js';
 import { createTempGraph } from './graphData';
 
 function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
@@ -86,15 +87,27 @@ export default {
   computed: {
     ...mapState('constants', {
       locations: state => state.locations,
+      nodes: state => state.routeNodes,
+      edges: state => state.routeEdges,
+      routes: state => state.routes,
     }),
   },
+  watch: {
+    nodes() {
+      this.reloadGraph();
+    },
+  },
   mounted() {
-    this.graph = createTempGraph();
+    this.reloadGraph();
   },
   methods: {
+    reloadGraph() {
+      const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
+      this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
+      // this.graph = createTempGraph();
+    },
     onRouteCreate({ path, zoom }) {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
-      console.dir(this.graph);
       // console.dir('----------');
       // console.dir(JSON.stringify(this.graph.vertices, null, 2));
       // console.dir(JSON.stringify(this.graph.adjacency, null, 2));

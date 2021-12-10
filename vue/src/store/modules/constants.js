@@ -1,5 +1,5 @@
 import { toUtcDate } from '@/code/time.js';
-import { attributeFromList, uniq } from '@/code/helpers.js';
+import { attributeFromList, toLookup, uniq } from '@/code/helpers.js';
 
 import UnknownIcon from '@/components/icons/asset_icons/Unknown.vue';
 import HaulTruckIcon from '@/components/icons/asset_icons/HaulTruck.vue';
@@ -15,6 +15,7 @@ import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vu
 import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
 import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
 import Timely from '@/code/timely';
+import { haversineDistanceM } from '@/code/distance';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['load', 'load|dump'];
@@ -352,6 +353,47 @@ function parseQuickMessage(message) {
   };
 }
 
+function parseRouteNode(node) {
+  return {
+    id: node.id,
+    lat: node.lat,
+    lng: node.lon,
+    alt: node.alt,
+  };
+}
+
+function parseRouteEdge(edge, nodeLookup) {
+  const edgeStart = nodeLookup[edge.node_start_id];
+  const edgeEnd = nodeLookup[edge.node_end_id];
+
+  const distance = haversineDistanceM(edgeStart, edgeEnd);
+
+  return {
+    id: edge.id,
+    nodeStartId: edge.node_start_id,
+    nodeEndId: edge.node_end_id,
+    distance,
+  };
+}
+
+function parseRouteRestrictionGroup(group) {
+  return {
+    id: group.id,
+    name: group.name,
+    assetTypeIds: group.asset_type_ids,
+  };
+}
+
+function parseRoute(route) {
+  return {
+    id: route.route_id,
+    restrictionGroupId: route.restriction_group_id,
+    startTime: toUtcDate(route.start_time),
+    endTime: toUtcDate(route.end_time),
+    edgeIds: route.edge_ids,
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
@@ -384,6 +426,10 @@ const state = {
   preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
+  routes: Array(),
+  routeNodes: Array(),
+  routeEdges: Array(),
+  routeRestrictionGroups: Array(),
 };
 
 const getters = {
@@ -528,6 +574,15 @@ const actions = {
     const formattedTypes = types.map(parsePreStartControlCategory);
     commit('setPreStartControlCategories', formattedTypes);
   },
+  setRoutingData({ commit }, data) {
+    data = data || {};
+    const nodes = (data.nodes || []).map(parseRouteNode);
+    const nodeLookup = toLookup(nodes, 'id');
+    const edges = (data.edges || []).map(e => parseRouteEdge(e, nodeLookup));
+    const restrictionGroups = (data.restriction_groups || []).map(parseRouteRestrictionGroup);
+    const routes = (data.routes || []).map(parseRoute);
+    commit('setRoutingData', { nodes, edges, restrictionGroups, routes });
+  },
 };
 
 const mutations = {
@@ -610,6 +665,12 @@ const mutations = {
   },
   setPreStartControlCategories(state, types = []) {
     state.preStartControlCategories = types;
+  },
+  setRoutingData(state, { nodes, edges, restrictionGroups, routes }) {
+    state.routes = routes;
+    state.routeNodes = nodes;
+    state.routeEdges = edges;
+    state.routeRestrictionGroups = restrictionGroups;
   },
 };
 

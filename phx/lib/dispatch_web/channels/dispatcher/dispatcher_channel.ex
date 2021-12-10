@@ -43,7 +43,8 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackAgent,
     ManualCycleAgent,
     PreStartAgent,
-    PreStartSubmissionAgent
+    PreStartSubmissionAgent,
+    RoutingAgent
   }
 
   alias Phoenix.Socket
@@ -72,6 +73,7 @@ defmodule DispatchWeb.DispatcherChannel do
       dispatchers: DispatcherAgent.all(),
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
       pre_start_control_categories: PreStartAgent.categories(),
+      routing: RoutingAgent.get(),
 
       # devices
       devices: DeviceAgent.safe_all(),

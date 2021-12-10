@@ -70,9 +70,6 @@ const POLYLINE_SYMBOLS = {
     fillOpacity: 1,
     scale: 1,
   },
-  gArrowBackwards: {
-    path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW
-  }
 };
 
 function getSymbol(name, opts) {

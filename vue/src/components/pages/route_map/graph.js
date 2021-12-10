@@ -1,7 +1,9 @@
-import { hasOrderedSubArray } from '@/code/helpers';
+import { Dictionary, uniq, hasOrderedSubArray, toLookup } from '@/code/helpers';
 import { haversineDistanceM } from '@/code/distance';
 
 export function fromGraph(vertices, adjacency) {
+  vertices = vertices || {};
+  adjacency = adjacency || {};
   const vertexIds = Object.values(vertices).map(v => v.id);
 
   const adjacencyIds = Object.values(adjacency)
@@ -15,6 +17,57 @@ export function fromGraph(vertices, adjacency) {
   graph.adjacency = adjacency;
   graph._nextId = nextId;
   return graph;
+}
+
+export function fromRoute(nodes, edges, route) {
+  if (!route) {
+    return new Graph();
+  }
+
+  const edgeLookup = toLookup(edges, 'id');
+  const nodeLookup = toLookup(nodes, 'id');
+
+  const filteredEdges = route.edgeIds.map(id => edgeLookup[id]).filter(e => e);
+
+  const filteredNodes = uniq(
+    filteredEdges.reduce((acc, e) => {
+      acc.push(e.nodeStartId);
+      acc.push(e.nodeEndId);
+      return acc;
+    }, []),
+  ).map(id => nodeLookup[id]);
+
+  const vertices = filteredNodes.reduce((acc, node) => {
+    acc[node.id] = {
+      id: node.id,
+      data: {
+        lat: node.lat,
+        lng: node.lng,
+      },
+    };
+    return acc;
+  }, {});
+
+  const adjDict = new Dictionary();
+  filteredEdges.forEach(edge => {
+    const adj = {
+      id: edge.id,
+      startVertexId: edge.nodeStartId,
+      endVertexId: edge.nodeEndId,
+      data: {
+        distance: edge.distance,
+      },
+    };
+    adjDict.append(edge.nodeStartId, adj);
+    adjDict.append(edge.nodeEndId, adj);
+  });
+
+  const adjacency = adjDict.reduce((acc, key, adjacencies) => {
+    acc[key] = adjacencies;
+    return acc;
+  }, {});
+
+  return fromGraph(vertices, adjacency);
 }
 
 export class Graph {

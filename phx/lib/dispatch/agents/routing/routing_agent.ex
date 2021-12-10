@@ -5,6 +5,42 @@ defmodule Dispatch.RoutingAgent do
 
   alias __MODULE__.Data
 
+  @type restriction_group :: %{
+          id: integer,
+          name: String.t(),
+          asset_type_ids: list(integer)
+        }
+
+  @type route_node :: %{
+          id: integer,
+          lat: float,
+          lon: float,
+          alt: float | nil,
+          deleted: boolean
+        }
+
+  @type edge :: %{
+          id: integer,
+          node_start_id: integer,
+          node_end_id: integer,
+          distance: float
+        }
+
+  @type route :: %{
+          route_id: integer,
+          restriction_group_id: integer | nil,
+          start_time: NaiveDateTime.t(),
+          end_time: NaiveDateTime.t() | nil,
+          edge_ids: list[integer]
+        }
+
+  @type data :: %{
+          restriction_groups: list(restriction_group),
+          nodes: list(route_node),
+          edges: list(edge),
+          routes: list(route)
+        }
+
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
   def init(), do: Data.fetch_data() |> IO.inspect()
@@ -12,6 +48,8 @@ defmodule Dispatch.RoutingAgent do
   @spec refresh!() :: :ok
   def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
 
+  @spec get() :: data
+  def get(), do: Agent.get(__MODULE__, & &1)
 
   def create_route(nodes, unrestricted_edges, restriction_groups) do
     # nodes
