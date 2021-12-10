@@ -29,6 +29,7 @@ defmodule DispatchWeb.Application do
       Dispatch.MaterialTypeAgent,
       Dispatch.PreStartAgent,
       Dispatch.PreStartSubmissionAgent,
+      Dispatch.RoutingAgent,
 
       # agents that call other agents
       Dispatch.TimeAllocationAgent,
