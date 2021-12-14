@@ -4,7 +4,7 @@
       <div class="gmap-map">
         <div style="display: none">
           <PolygonIcon
-            class="geofence-control"
+            ref="geofence-control"
             tooltip="right"
             :highlight="!showLocations"
             @click.native="toggleShowLocations()"
@@ -175,7 +175,6 @@ export default {
       return pixelsToMeters(this.snapDistancePx, this.zoom);
     },
     circles() {
-      console.dir(this.graph);
       return this.graph.getVerticesList().map(v => {
         const center = { lat: v.data.lat, lng: v.data.lng };
         return { center };
@@ -197,7 +196,7 @@ export default {
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
-      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -293,5 +292,9 @@ export default {
 .creator-pane .gmap-map {
   height: 100%;
   width: 100%;
+}
+
+.creator-pane .gmap-map .vue-map-container {
+  height: 100%;
 }
 </style>

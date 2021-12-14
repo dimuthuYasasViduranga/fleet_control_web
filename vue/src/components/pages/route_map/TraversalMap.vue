@@ -4,7 +4,7 @@
       <div class="gmap-map">
         <div style="display: none">
           <PolygonIcon
-            class="geofence-control"
+            ref="geofence-control"
             tooltip="right"
             :highlight="!showLocations"
             @click.native="toggleShowLocations()"
@@ -228,7 +228,7 @@ export default {
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
-      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -282,5 +282,9 @@ export default {
 .traversal-map .gmap-map {
   height: 100%;
   width: 100%;
+}
+
+.traversal-map .gmap-map .vue-map-container {
+  height: 100%;
 }
 </style>

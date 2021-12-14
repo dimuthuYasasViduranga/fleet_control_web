@@ -160,7 +160,7 @@ export default {
       return [
         {
           icon: arrowBackwards,
-          
+
           offset: '50%',
           // this can be used to show a conga line of arrows
           // repeat: '100px',
@@ -237,5 +237,9 @@ export default {
 .segment-map .gmap-map {
   height: 100%;
   width: 100%;
+}
+
+.segment-map .gmap-map .vue-map-container {
+  height: 100%;
 }
 </style>

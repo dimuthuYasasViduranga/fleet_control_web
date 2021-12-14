@@ -4,42 +4,42 @@
       <div class="gmap-map">
         <!-- buttons to attach -->
         <div style="display: none">
-          <RecenterIcon class="recenter-control" tooltip="right" @click.native="reCenter" />
-          <ResetZoomIcon class="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
+          <RecenterIcon ref="recenter-control" tooltip="right" @click.native="reCenter" />
+          <ResetZoomIcon ref="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
           <PolygonIcon
-            class="geofence-control"
+            ref="geofence-control"
             tooltip="right"
             :highlight="!showAllGeofences"
             @click.native="toggleAllGeofences()"
           />
           <GmapAlertIcon
-            class="alert-control"
+            ref="alert-control"
             tooltip="right"
             :highlight="!showAlerts"
             @click.native="toggleShowAlerts()"
           />
           <GmapClusterIcon
-            class="cluster-control"
+            ref="cluster-control"
             tooltip="right"
             :highlight="!useMapClusters"
             @click.native="toggleUseMapClusters()"
           />
           <GmapLabelIcon
-            class="label-control"
+            ref="label-control"
             tooltip="right"
             :highlight="!showLabels"
             @click.native="toggleShowLabels()"
           />
-          <GmapMyPositionIcon class="my-position-control" tooltip="left" />
+          <GmapMyPositionIcon ref="my-position-control" tooltip="left" />
           <RecenterIcon
             v-show="myLocation"
-            class="my-position-recenter-control"
+            ref="my-position-recenter-control"
             label="Find My Location"
             tooltip="left"
             @click.native="recenterMyLocation()"
           />
 
-          <div class="g-control asset-selector-control">
+          <div ref="asset-selector-control" class="g-control asset-selector-control">
             <GMapDropDown
               :value="selectedAssetId"
               :items="assetOptions"
@@ -50,7 +50,7 @@
               @change="onFindAsset"
             />
           </div>
-          <div class="g-control asset-type-filter-toggle">
+          <div ref="asset-type-filter-toggle" class="g-control asset-type-filter-toggle">
             <Icon
               v-tooltip="{
                 classes: ['google-tooltip'],
@@ -63,7 +63,7 @@
               @click="showAssetFilter = !showAssetFilter"
             />
           </div>
-          <div v-show="showAssetFilter" class="g-control asset-type-filter">
+          <div v-show="showAssetFilter" ref="asset-type-filter" class="g-control asset-type-filter">
             <Icon
               v-tooltip="{
                 classes: ['google-tooltip'],
@@ -100,7 +100,12 @@
               @click="onToggleAssetTypeVisibility(assetType.type)"
             />
           </div>
-          <div class="debug-control" :class="{ show: debug }" @click="onDebugControl"></div>
+          <div
+            ref="debug-control"
+            class="debug-control"
+            :class="{ show: debug }"
+            @click="onDebugControl"
+          ></div>
         </div>
         <!-- GMap Element -->
         <GmapMap
@@ -364,18 +369,18 @@ export default {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
 
-      attachControl(map, this.google, '.recenter-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.reset-zoom-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.label-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.asset-type-filter-toggle', 'LEFT_TOP');
-      attachControl(map, this.google, '.asset-type-filter', 'LEFT_TOP');
-      attachControl(map, this.google, '.my-position-control', 'RIGHT_BOTTOM');
-      attachControl(map, this.google, '.my-position-recenter-control', 'RIGHT_BOTTOM');
-      attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
-      attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
+      attachControl(map, this.google, this.$refs['recenter-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['reset-zoom-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['alert-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['cluster-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['label-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-filter-toggle'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-filter'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['my-position-control'], 'RIGHT_BOTTOM');
+      attachControl(map, this.google, this.$refs['my-position-recenter-control'], 'RIGHT_BOTTOM');
+      attachControl(map, this.google, this.$refs['asset-selector-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['debug-control'], 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -502,65 +507,66 @@ export default {
   width: 100%;
 }
 
-.map-wrapper .gmap-map .vue-map-container {
+.mine-map .map-wrapper .gmap-map .vue-map-container {
   height: 100%;
 }
 
-.grey-out {
-  filter: grayscale(75%);
-}
-
-.asset-selector-control {
+/* asset selector */
+.g-control .asset-selector-control {
   display: flex;
   background-color: white;
 }
 
-.asset-selector-control:hover {
+.g-control .asset-selector-control:hover {
   background-color: white;
 }
 
-.asset-selector-control .gmap-dropdown {
+.g-control .asset-selector-control .gmap-dropdown {
   width: 20rem;
 }
 
-.asset-type-filter-toggle {
+/* asset filter and icons */
+.g-control .asset-type-filter-toggle {
   margin: 0;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 }
 
-.asset-type-filter-toggle .hx-icon {
+.g-control .asset-type-filter-toggle .hx-icon {
   width: 100%;
   height: 100%;
   padding: 5px 0;
 }
 
-.asset-type-filter-toggle .hx-icon svg {
+.g-control .asset-type-filter-toggle .hx-icon svg {
   stroke: black;
 }
 
-.asset-type-filter {
+.g-control .asset-type-filter {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-content: center;
-  justify-content: space-between;
-  width: 84px;
+  align-content: flex-start;
+  justify-content: flex-start;
+  width: 80px;
   margin-left: -1px;
   margin-right: -1px;
   height: auto;
 }
 
-
-
-.asset-type-filter-toggle .hx-icon:hover,
-.asset-type-filter-toggle .hx-icon.highlight,
-.asset-type-filter .hx-icon:hover,
-.asset-type-filter .hx-icon.highlight {
+.g-control .asset-type-filter-toggle .hx-icon:hover,
+.g-control .asset-type-filter-toggle .hx-icon.highlight,
+.g-control .asset-type-filter .hx-icon:hover,
+.g-control .asset-type-filter .hx-icon.highlight {
   background-color: rgb(189, 189, 189);
 }
 
-.asset-type-filter .hx-icon svg {
+.g-control .asset-type-filter .hx-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.g-control .asset-type-filter .hx-icon svg {
   stroke: black;
 }
 

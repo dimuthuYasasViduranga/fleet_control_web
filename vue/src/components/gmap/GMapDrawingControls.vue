@@ -1,6 +1,6 @@
 <template>
   <div style="display: none">
-    <div class="drawing-controls" v-show="show">
+    <div ref="drawing-controls" class="drawing-controls" v-show="show">
       <svg
         class="drawing-mode hand-mode"
         v-tooltip="{
@@ -150,7 +150,7 @@ export default MapElementFactory({
       this.drawingManager = drawingManager;
 
       // mount controls
-      const controls = document.querySelector('.drawing-controls');
+      const controls = this.$refs['drawing-controls'];
 
       map.controls[google.maps.ControlPosition[this.position]].push(controls);
       this.controls = controls;
