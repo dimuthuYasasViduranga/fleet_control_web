@@ -1,5 +1,16 @@
 <template>
   <div class="creator-pane">
+    <div class="modes">
+      <button
+        class="hx-btn"
+        v-for="mode in modes"
+        :key="mode"
+        :class="{ selected: mode === selectedMode }"
+        @click="setMode(mode)"
+      >
+        {{ mode }}
+      </button>
+    </div>
     <div class="map-wrapper">
       <div class="gmap-map">
         <div style="display: none">
@@ -20,46 +31,76 @@
             tilt: 0,
           }"
         >
-          <GMapDrawingControls :show="!canEdit" :modes="['polyline']" @create="onShapeCreate" />
-          <GMapEditable
-            ref="gmap-editable"
-            :edit.sync="canEdit"
-            :clickToEdit="false"
-            direction="vertical"
-            :polylines="editablePolylines"
-            :removeDeleted="false"
-            @accept="onEditAccept"
-            @reject="onEditReject"
-          />
-
           <g-map-geofences
             v-if="showLocations"
             :geofences="locations"
             :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
           />
 
-          <gmap-polyline
-            v-for="(poly, index) in uneditablePolylines"
-            :key="`polyline-${index}`"
-            :path="poly.path"
-            :options="{
-              strokeColor: poly.color,
-              strokeWeight: poly.width,
-              zIndex: 10,
-            }"
-            @click="onPolylineClick(poly)"
-          />
-          <gmap-circle
-            v-for="(circle, index) in circles"
-            :key="`circle-${index}`"
-            :center="circle.center"
-            :radius="snapDistance"
-            :options="{
-              clickable: false,
-              zIndex: 5,
-              strokeOpacity: 0.5,
-            }"
-          />
+          <template v-if="selectedMode === 'drawing'">
+            <GMapDrawingControls :show="!canEdit" :modes="['polyline']" @create="onShapeCreate" />
+            <GMapEditable
+              ref="gmap-editable"
+              :edit.sync="canEdit"
+              :clickToEdit="false"
+              direction="vertical"
+              :polylines="editablePolylines"
+              :removeDeleted="false"
+              @accept="onEditAccept"
+              @reject="onEditReject"
+            />
+
+            <gmap-polyline
+              v-for="(poly, index) in uneditablePolylines"
+              :key="`polyline-${index}`"
+              :path="poly.path"
+              :options="{
+                strokeColor: poly.color,
+                strokeWeight: poly.width,
+                zIndex: 10,
+              }"
+              @click="onPolylineClick(poly)"
+            />
+            <gmap-circle
+              v-for="(circle, index) in circles"
+              :key="`polyline-circle-${index}`"
+              :center="circle.center"
+              :radius="snapDistance"
+              :options="{
+                clickable: false,
+                zIndex: 5,
+                strokeOpacity: 0.5,
+              }"
+            />
+          </template>
+          <template v-else-if="selectedMode === 'directions'">
+            <gmap-polyline
+              v-for="(poly, index) in polylineSegments"
+              :key="`segment-${index}`"
+              :path="poly.path"
+              :options="{
+                strokeColor: poly.color,
+                strokeWeight: 10,
+                icons: poly.icons,
+                zIndex: 10,
+              }"
+              @click="onSegmentClick(poly)"
+              @dblclick="stopGEvent"
+            />
+
+            <gmap-circle
+              v-for="(circle, index) in circles"
+              :key="`segment-circle-${index}`"
+              :center="circle.center"
+              :radius="0"
+              :options="{
+                clickable: false,
+                zIndex: 20,
+                strokeOpacity: 0.5,
+                strokeWeight: 10,
+              }"
+            />
+          </template>
         </GmapMap>
       </div>
     </div>
@@ -76,7 +117,7 @@ import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 
-import { hasOrderedSubArray } from '@/code/helpers.js';
+import { Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
 import { getUniqPaths } from '../graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
@@ -84,6 +125,25 @@ import { attachControl } from '@/components/gmap/gmapControls';
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 10;
+const MODES = ['drawing', 'directions'];
+const DIRECTIONS = ['both', 'positive', 'negative'];
+
+const POLYLINE_SYMBOLS = {
+  diamond: {
+    path: 'M 0,1 1,0 -1,0 z',
+    strokeColor: '#F00',
+    fillColor: '#F00',
+    fillOpacity: 1,
+    scale: 1,
+  },
+  arrow: {
+    path: 'M -2,0 0,-4 2,0',
+    strokeColor: 'black',
+    fillColor: null,
+    fillOpacity: 1,
+    scale: 1,
+  },
+};
 
 function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
@@ -101,6 +161,37 @@ function graphToPolylines(graph) {
     });
     return { path: points, color: ROUTE_COLOR, width: ROUTE_WIDTH, vertices: path };
   });
+}
+
+function graphToSegments(graph, existingSegments = []) {
+  // need to handle existing segments so that data is not lost
+  const vertices = graph.vertices;
+
+  // group edges into segment (a segment contains both directions if avialable)
+  const dict = new Dictionary();
+  Object.values(graph.adjacency).forEach(edges => {
+    edges.forEach(edge => {
+      const orderedIndex = [edge.startVertexId, edge.endVertexId].sort();
+      dict.append(orderedIndex, edge);
+    });
+  });
+
+  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
+    const nodeStartPosition = vertices[nodeAId].data;
+    const nodeEndPosition = vertices[nodeBId].data;
+    const path = [nodeStartPosition, nodeEndPosition];
+
+    return {
+      id: index,
+      edges: edges,
+      direction: 'both',
+      nodeAId,
+      nodeBId,
+      path,
+    };
+  });
+
+  return segments;
 }
 
 function approxEqual(a, b, epsilon = 0.00001) {
@@ -123,6 +214,51 @@ function pathsEqual(a, b) {
   }
 
   return true;
+}
+
+function nextDirection(dir) {
+  const index = DIRECTIONS.indexOf(dir);
+  return DIRECTIONS[index + 1] || DIRECTIONS[0];
+}
+
+function getSymbol(name, opts) {
+  return { ...POLYLINE_SYMBOLS[name], ...(opts || {}) };
+}
+
+function getSegmentOpts(seg) {
+  const icons = getSegmentIcons(seg.direction);
+  const color = seg.direction === 'both' ? 'darkgreen' : 'green';
+
+  return {
+    color,
+    icons,
+  };
+}
+
+function getSegmentIcons(direction) {
+  const arrowOpts = {
+    strokeOpacity: 1,
+    fillOpacity: 1,
+    scale: 2,
+  };
+  switch (direction) {
+    case 'positive':
+      return [
+        {
+          icon: getSymbol('arrow', arrowOpts),
+          offset: '50%',
+        },
+      ];
+    case 'negative':
+      return [
+        {
+          icon: getSymbol('arrow', { ...arrowOpts, rotation: 180 }),
+          offset: '50%',
+        },
+      ];
+    default:
+      return [];
+  }
 }
 
 export default {
@@ -149,9 +285,13 @@ export default {
       canEdit: false,
       shapes: {
         polylines: [],
+        segments: [],
       },
       selectedPolyline: null,
       showLocations: true,
+      modes: MODES,
+      // selectedMode: MODES[0],
+      selectedMode: 'directions',
     };
   },
   computed: {
@@ -171,6 +311,17 @@ export default {
       }
       return [];
     },
+    polylineSegments() {
+      return this.shapes.segments.map(s => {
+        const opts = getSegmentOpts(s);
+
+        return {
+          segment: s,
+          path: s.path,
+          ...opts,
+        };
+      });
+    },
     snapDistance() {
       return pixelsToMeters(this.snapDistancePx, this.zoom);
     },
@@ -186,6 +337,7 @@ export default {
       immediate: true,
       handler() {
         this.refreshGraphPolylines();
+        this.refreshGraphSegments();
       },
     },
   },
@@ -204,9 +356,15 @@ export default {
     gPromise() {
       return this.$refs.gmap.$mapPromise;
     },
+    stopGEvent(event) {
+      event.stop();
+    },
     refreshGraphPolylines() {
       this.shapes.polylines = graphToPolylines(this.graph);
       this.selectedPolyline = null;
+    },
+    refreshGraphSegments() {
+      this.shapes.segments = graphToSegments(this.graph, this.shapes.segments);
     },
     reCenter() {
       this.moveTo(this.defaultCenter);
@@ -219,6 +377,14 @@ export default {
     },
     resetZoom() {
       this.zoom = this.defaultZoom;
+    },
+    setMode(mode) {
+      if (this.selectedMode === 'drawing') {
+        this.canEdit = false;
+        this.selectedPolyline = null;
+      }
+
+      this.selectedMode = mode;
     },
     onShapeCreate({ type, props }) {
       if (type === 'polyline') {
@@ -250,6 +416,7 @@ export default {
       this.selectedPolyline = null;
     },
     onPolylineClick(polyline) {
+      console.dir(polyline);
       if (!this.selectedPolyline) {
         this.canEdit = true;
         this.selectedPolyline = polyline;
@@ -271,6 +438,9 @@ export default {
         }, 100);
       }
     },
+    onSegmentClick(poly) {
+      poly.segment.direction = nextDirection(poly.segment.direction);
+    },
     toggleShowLocations() {
       this.showLocations = !this.showLocations;
     },
@@ -281,6 +451,22 @@ export default {
 <style>
 .creator-pane {
   height: 60vh;
+}
+
+.creator-pane > .modes {
+  margin-top: 1rem;
+  width: 100%;
+  display: flex;
+}
+
+.creator-pane > .modes > button {
+  opacity: 0.75;
+  width: 100%;
+}
+
+.creator-pane > .modes > button.selected {
+  border-color: #b6c3cc;
+  opacity: 1;
 }
 
 .creator-pane .map-wrapper {
