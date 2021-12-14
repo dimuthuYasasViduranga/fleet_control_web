@@ -59,7 +59,6 @@ export function fromRoute(nodes, edges, route) {
       },
     };
     adjDict.append(edge.nodeStartId, adj);
-    adjDict.append(edge.nodeEndId, adj);
   });
 
   const adjacency = adjDict.reduce((acc, key, adjacencies) => {
