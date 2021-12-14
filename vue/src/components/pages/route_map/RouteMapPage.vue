@@ -1,6 +1,7 @@
 <template>
   <div class="route-map-page">
     <hxCard title="Route Map" :icon="lineIcon">
+      <button class="hx-btn" @click="onOpenEditor()">Open</button>
       <div class="map-selector">
         <button
           v-for="mode in ['routing', 'traversal', 'segment']"
@@ -38,6 +39,7 @@ import { haversineDistanceM, pixelsToMeters } from '@/code/distance';
 import { chunkEvery } from '@/code/helpers';
 import { fromRoute } from './graph.js';
 import { createTempGraph } from './graphData';
+import RouteEditorModal from './RouteEditorModal.vue';
 
 function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
   const snapDistance = pixelsToMeters(snapDistancePx, zoom);
@@ -101,6 +103,9 @@ export default {
     this.reloadGraph();
   },
   methods: {
+    onOpenEditor() {
+      this.$modal.create(RouteEditorModal);
+    },
     reloadGraph() {
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
