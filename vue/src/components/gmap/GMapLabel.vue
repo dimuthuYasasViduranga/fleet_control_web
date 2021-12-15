@@ -1,6 +1,10 @@
 <template>
   <div class="g-map-label">
-    <div ref="container" class="container"><slot></slot></div>
+    <div ref="container" class="g-map-label-container">
+      <div class="wrapper" :style="`transform: ${transform}`">
+        <slot></slot>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -87,9 +91,24 @@ export default MapElementFactory({
   name: 'GMapLabel',
   events: [],
   mappedProps: PROPS,
+  props: {
+    anchor: { type: Number, default: 0.5 },
+  },
   ctr: () => createClass(),
   afterCreate(label) {
     label.setSlot(this.$refs.container);
   },
+  computed: {
+    transform() {
+      const yOffset = this.anchor * 100;
+      return `translate(-${yOffset.toFixed(1)}%, 0)`;
+    },
+  },
 });
 </script>
+
+<style>
+.g-map-label-container > .wrapper {
+  position: absolute;
+}
+</style>
