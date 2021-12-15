@@ -292,3 +292,21 @@ export function toLookup(arr, key) {
     return acc;
   }, {});
 }
+
+export class IdGen {
+  constructor(start = 0, step = 1) {
+    this._start = start;
+    this._step = step;
+    this._id = start;
+  }
+
+  next() {
+    const id = this._id;
+    this._id += this._step;
+    return id;
+  }
+
+  reset() {
+    this._id = this._start;
+  }
+}

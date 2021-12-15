@@ -104,7 +104,7 @@ function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
   const vertices = graph.vertices;
 
-  const uniqPaths = getUniqPaths(adjacency, vertices);
+  const uniqPaths = getUniqPaths(adjacency);
 
   return uniqPaths.map(path => {
     const points = path.map(id => {

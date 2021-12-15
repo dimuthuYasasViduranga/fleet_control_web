@@ -26,39 +26,44 @@ export function fromRoute(nodes, edges, route) {
 
   const edgeLookup = toLookup(edges, 'id');
   const nodeLookup = toLookup(nodes, 'id');
+  const nodeToVertexId = {};
 
-  const filteredEdges = route.edgeIds.map(id => edgeLookup[id]).filter(e => e);
+  const usedEdges = route.edgeIds.map(id => edgeLookup[id]).filter(e => e);
 
-  const filteredNodes = uniq(
-    filteredEdges.reduce((acc, e) => {
+  const usedNodes = uniq(
+    usedEdges.reduce((acc, e) => {
       acc.push(e.nodeStartId);
       acc.push(e.nodeEndId);
       return acc;
     }, []),
   ).map(id => nodeLookup[id]);
 
-  const vertices = filteredNodes.reduce((acc, node) => {
-    acc[node.id] = {
-      id: node.id,
+  const vertices = usedNodes.reduce((acc, node, index) => {
+    const vertex = {
+      id: index,
       data: {
+        nodeId: node.id,
         lat: node.lat,
         lng: node.lng,
       },
     };
+    nodeToVertexId[node.id] = index;
+    acc[index] = vertex;
     return acc;
   }, {});
 
   const adjDict = new Dictionary();
-  filteredEdges.forEach(edge => {
+  usedEdges.forEach((edge, index) => {
     const adj = {
-      id: edge.id,
-      startVertexId: edge.nodeStartId,
-      endVertexId: edge.nodeEndId,
+      id: index,
+      startVertexId: nodeToVertexId[edge.nodeStartId],
+      endVertexId: nodeToVertexId[edge.nodeEndId],
       data: {
+        edgeId: edge.id,
         distance: edge.distance,
       },
     };
-    adjDict.append(edge.nodeStartId, adj);
+    adjDict.append(adj.startVertexId, adj);
   });
 
   const adjacency = adjDict.reduce((acc, key, adjacencies) => {
@@ -210,10 +215,10 @@ function getNeighbours(queue, vertexId, adjacency) {
   return (adjacency[vertexId] || []).filter(edge => queue.includes(edge.endVertexId));
 }
 
-export function getUniqPaths(adjacency, vertices) {
+export function getUniqPaths(adjacency) {
   const paths = Object.keys(adjacency)
     .map(startVertexId => {
-      const paths = createAllPathsFrom(adjacency, parseInt(startVertexId, 10), vertices);
+      const paths = createAllPathsFrom(adjacency, parseInt(startVertexId, 10));
 
       return paths;
     })
@@ -254,7 +259,6 @@ export function getUniqPaths(adjacency, vertices) {
 
 function createAllPathsFrom(adjacency, startVId) {
   const neighbours = adjacency[startVId] || [];
-
   return neighbours.map(edge => createPathUntil(adjacency, edge.endVertexId, startVId, [startVId]));
 }
 

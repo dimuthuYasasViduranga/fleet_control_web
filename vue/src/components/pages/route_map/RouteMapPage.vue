@@ -81,8 +81,8 @@ export default {
       lineIcon: LineIcon,
       graph: new Graph(),
       snapDistancePx: 10,
-      // mapMode: 'routing',
-      mapMode: 'traversal',
+      mapMode: 'routing',
+      // mapMode: 'traversal',
       // mapMode: 'segment',
     };
   },

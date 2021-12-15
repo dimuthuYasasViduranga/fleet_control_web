@@ -36,10 +36,6 @@
             :geofences="locations"
             :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
           />
-          <GMapLabel :position="defaultCenter"> Apples </GMapLabel>
-          <GMapLabel v-if="polylineSegments.length" :position="polylineSegments[0].path[0]">
-            <div style="background-color: white; color: black;">Tip</div>
-          </GMapLabel>
 
           <template v-if="selectedMode === 'drawing'">
             <GMapDrawingControls :show="!canEdit" :modes="['polyline']" @create="onShapeCreate" />
@@ -65,6 +61,40 @@
               }"
               @click="onPolylineClick(poly)"
             />
+
+            <GMapCustomPolyline
+              v-for="(poly, index) in polylineSegments"
+              :key="`segment-${index}`"
+              :path="poly.path"
+              :options="{
+                strokeColor: poly.color,
+                strokeWeight: 10,
+                icons: poly.icons,
+                zIndex: 9,
+              }"
+              :labelPosition="0.5"
+              @click="onSegmentClick(poly)"
+              @dblclick="stopGEvent"
+            >
+              <div style="background-color: white; color: black; text-align: center; width: 120px">
+                <div>Seg: {{ poly.segment.id }}</div>
+                <div>Edges: {{ poly.segment.edges.map(e => e.id) }}</div>
+                <div>Db Edges: {{ poly.segment.edges.map(e => e.data.edgeId) }}</div>
+              </div>
+            </GMapCustomPolyline>
+
+            <GMapLabel
+              v-for="(circle, index) in circles"
+              :key="`circle-label-${index}`"
+              :position="circle.center"
+              :zIndex="500"
+            >
+              <div style="width: 100px; background-color: gray; color: black; text-align: center;">
+                <div>Vertex: {{ circle.id }}</div>
+                <div>Db Node: {{ circle.nodeId }}</div>
+              </div>
+            </GMapLabel>
+
             <gmap-circle
               v-for="(circle, index) in circles"
               :key="`polyline-circle-${index}`"
@@ -78,7 +108,7 @@
             />
           </template>
           <template v-else-if="selectedMode === 'directions'">
-            <gmap-polyline
+            <GMapCustomPolyline
               v-for="(poly, index) in polylineSegments"
               :key="`segment-${index}`"
               :path="poly.path"
@@ -88,9 +118,17 @@
                 icons: poly.icons,
                 zIndex: 10,
               }"
+              :labelPosition="0.5"
               @click="onSegmentClick(poly)"
               @dblclick="stopGEvent"
-            />
+            >
+              <div style="background-color: white; color: black; text-align: center; width: 50px">
+                <span
+                  >{{ poly.segment.id }} | {{ poly.segment.nodeAId }} --
+                  {{ poly.segment.nodeBId }}</span
+                >
+              </div>
+            </GMapCustomPolyline>
 
             <gmap-circle
               v-for="(circle, index) in circles"
@@ -120,7 +158,7 @@ import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
-
+import GMapCustomPolyline from '@/components/gmap/GMapCustomPolyline.vue';
 import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
 import { Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
@@ -155,7 +193,7 @@ function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
   const vertices = graph.vertices;
 
-  const uniqPaths = getUniqPaths(adjacency, vertices);
+  const uniqPaths = getUniqPaths(adjacency);
 
   return uniqPaths.map(path => {
     const points = path.map(id => {
@@ -281,6 +319,7 @@ export default {
     GMapEditable,
     GMapGeofences,
     PolygonIcon,
+    GMapCustomPolyline,
     GMapLabel,
   },
   props: {
@@ -305,7 +344,6 @@ export default {
       showLocations: true,
       modes: MODES,
       selectedMode: MODES[0],
-      selectedMode: 'directions',
     };
   },
   computed: {
@@ -342,7 +380,7 @@ export default {
     circles() {
       return this.graph.getVerticesList().map(v => {
         const center = { lat: v.data.lat, lng: v.data.lng };
-        return { center };
+        return { center, id: v.id, nodeId: v.data.nodeId };
       });
     },
   },
@@ -418,11 +456,20 @@ export default {
         return;
       }
 
-      this.$emit('delete', this.selectedPolyline.vertices.slice());
+      const payload = {
+        oldPath: this.selectedPolyline.path.slice(),
+        newPath: polyline.path,
+        oldVertices: this.selectedPolyline.vertices.slice(),
+        zoom: this.zoom,
+      };
 
-      if (!polyline.deleted) {
-        this.$emit('create', { path: polyline.path, zoom: this.zoom });
-      }
+      this.$emit('edit', payload);
+
+      // this.$emit('delete', this.selectedPolyline.vertices.slice());
+
+      // if (!polyline.deleted) {
+      //   this.$emit('create', { path: polyline.path, zoom: this.zoom });
+      // }
 
       this.selectedPolyline = null;
     },

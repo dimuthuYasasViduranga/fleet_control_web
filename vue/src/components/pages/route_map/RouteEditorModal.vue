@@ -25,6 +25,7 @@
           :locations="locations"
           :snapDistancePx="snapDistancePx"
           @create="onAddPolyline"
+          @edit="onEditPolyline"
           @delete="onRemovePolyline"
         />
         <RestrictionPane v-else-if="selectedStage === 'restrict'" />
@@ -47,26 +48,95 @@ import MinimiseIcon from '@/components/icons/Minimise.vue';
 
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
 import { fromRoute, Graph } from './graph';
-import { chunkEvery } from '@/code/helpers';
+import { chunkEvery, Dictionary, IdGen, toLookup } from '@/code/helpers';
 import { haversineDistanceM, pixelsToMeters } from '@/code/distance';
 
 const STAGES = ['create', 'restrict', 'review'];
+const NodeDbIds = new IdGen(-1, -1);
+const EdgeDbIds = new IdGen(-1, -1);
 
 function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
   const snapDistance = pixelsToMeters(snapDistancePx, zoom);
   const existingVertices = graph.getVerticesList();
-  const usedVertices = path.map(point => {
-    const existingV = existingVertices.find(v => haversineDistanceM(point, v.data) < snapDistance);
-    return existingV || graph.addVertex({ lat: point.lat, lng: point.lng });
-  });
+
+  const usedVertices = path.map(point =>
+    addOrGetVertex(graph, existingVertices, point, snapDistance),
+  );
 
   chunkEvery(usedVertices, 2, 1, 'discard').forEach(([v1, v2]) => {
-    const distance = haversineDistanceM(v1.data, v2.data);
-    graph.addEdge(v1.id, v2.id, { distance });
-    graph.addEdge(v2.id, v1.id, { distance });
+    addOrGetEdge(graph, v1, v2);
+    addOrGetEdge(graph, v2, v1);
   });
 
   return graph.copy();
+}
+
+function editGraph(graph, path, oldVertices, zoom, snapDistancePx) {
+  const snapDistance = pixelsToMeters(snapDistancePx, zoom);
+
+  const existingVertices = graph.getVerticesList();
+
+  // for each path, try to associate with an existing vertex
+  const usedVertices = path.map(point =>
+    addOrGetVertex(graph, existingVertices, point, snapDistance),
+  );
+
+  // remove unused edges
+  const newSegmentDict = new Dictionary();
+  chunkEvery(usedVertices, 2, 1, 'discard').forEach(([a, b]) => {
+    const key = [a.id, b.id].sort();
+    newSegmentDict.add(key, true);
+  });
+  chunkEvery(oldVertices, 2, 1, 'discard').forEach(([aId, bId]) => {
+    const key = [aId, bId].sort();
+    if (!newSegmentDict.get(key)) {
+      graph.removeEdge(aId, bId);
+      graph.removeEdge(bId, aId);
+    }
+  });
+
+  // remove the unused vertices
+  const usedVertexLookup = toLookup(usedVertices, 'id');
+  oldVertices.forEach(id => {
+    if (!usedVertexLookup[id]) {
+      graph.removeVertex(id);
+    }
+  });
+
+  // const oldVertexDict = new Dictionary();
+
+  // chunkEvery(oldVertices, 2, 1, 'discard').forEach(([aId, bId]) => {
+  //   const key = [aId, bId].sort();
+  //   oldVertexDict.add(key, true);
+  // });
+
+  // console.dir(JSON.stringify(oldVertices));
+  // console.dir(JSON.stringify(usedVertices.map(e => e.id)));
+
+  // add the new edges
+  chunkEvery(usedVertices, 2, 1, 'discard').forEach(([v1, v2]) => {
+    addOrGetEdge(graph, v1, v2);
+    addOrGetEdge(graph, v2, v1);
+  });
+
+  // then need to remove edges not used (i guess compare usedVertices id with oldVertices)
+  // and remove the missing ones
+
+  return graph.copy();
+}
+
+function addOrGetVertex(graph, vertices, point, snapDistance) {
+  const existingV = vertices.find(v => haversineDistanceM(point, v.data) < snapDistance);
+  return existingV || graph.addVertex({ lat: point.lat, lng: point.lng, nodeId: NodeDbIds.next() });
+}
+
+function addOrGetEdge(graph, v1, v2) {
+  const edge = graph.getEdge(v1.id, v2.id);
+  if (edge) {
+    return edge;
+  }
+
+  return graph.addEdge(v1.id, v2.id, { ...v1.data, edgeId: EdgeDbIds.next() });
 }
 
 function removePolylineFromGraph(graph, vertices) {
@@ -136,6 +206,11 @@ export default {
     reloadGraph() {
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
+    },
+    onEditPolyline({ newPath, oldVertices, zoom }) {
+      this.graph = editGraph(this.graph, newPath, oldVertices, zoom, this.snapDistancePx);
+      // pair new path points with something from the exists nodes, ie to get
+      // this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
     },
     onAddPolyline({ path, zoom }) {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
