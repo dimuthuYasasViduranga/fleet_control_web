@@ -36,6 +36,10 @@
             :geofences="locations"
             :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
           />
+          <GMapLabel :position="defaultCenter"> Apples </GMapLabel>
+          <GMapLabel v-if="polylineSegments.length" :position="polylineSegments[0].path[0]">
+            <div style="background-color: white; color: black;">Tip</div>
+          </GMapLabel>
 
           <template v-if="selectedMode === 'drawing'">
             <GMapDrawingControls :show="!canEdit" :modes="['polyline']" @create="onShapeCreate" />
@@ -117,6 +121,8 @@ import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 
+import GMapLabel from '@/components/gmap/GMapLabel.vue';
+
 import { Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
 import { getUniqPaths } from '../graph';
 import { pixelsToMeters } from '@/code/distance';
@@ -164,6 +170,11 @@ function graphToPolylines(graph) {
 }
 
 function graphToSegments(graph, existingSegments = []) {
+  const existingDirections = new Dictionary();
+  existingSegments.forEach(seg => {
+    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
+  });
+
   // need to handle existing segments so that data is not lost
   const vertices = graph.vertices;
 
@@ -181,10 +192,12 @@ function graphToSegments(graph, existingSegments = []) {
     const nodeEndPosition = vertices[nodeBId].data;
     const path = [nodeStartPosition, nodeEndPosition];
 
+    const direction = existingDirections.get([nodeAId, nodeBId]) || 'both';
+
     return {
       id: index,
       edges: edges,
-      direction: 'both',
+      direction,
       nodeAId,
       nodeBId,
       path,
@@ -268,6 +281,7 @@ export default {
     GMapEditable,
     GMapGeofences,
     PolygonIcon,
+    GMapLabel,
   },
   props: {
     graph: { type: Object },
@@ -290,7 +304,7 @@ export default {
       selectedPolyline: null,
       showLocations: true,
       modes: MODES,
-      // selectedMode: MODES[0],
+      selectedMode: MODES[0],
       selectedMode: 'directions',
     };
   },
@@ -416,7 +430,6 @@ export default {
       this.selectedPolyline = null;
     },
     onPolylineClick(polyline) {
-      console.dir(polyline);
       if (!this.selectedPolyline) {
         this.canEdit = true;
         this.selectedPolyline = polyline;
