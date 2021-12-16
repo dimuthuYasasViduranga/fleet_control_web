@@ -62,41 +62,6 @@
               @click="onPolylineClick(poly)"
             />
 
-            <GMapCustomPolyline
-              v-for="(poly, index) in polylineSegments"
-              :key="`segment-${index}`"
-              :path="poly.path"
-              :options="{
-                strokeColor: poly.color,
-                strokeWeight: 10,
-                icons: poly.icons,
-                zIndex: 9,
-              }"
-              :labelPosition="0.5"
-              @click="onSegmentClick(poly)"
-              @dblclick="stopGEvent"
-            >
-              <div class="edge-label">
-                <div>Seg: {{ poly.segment.id }}</div>
-                <div>Edges: {{ poly.segment.edges.map(e => e.id) }}</div>
-                <div :class="{ danger: poly.segment.edges.some(e => e.data.edgeId < 0) }">
-                  Db Edges: {{ poly.segment.edges.map(e => e.data.edgeId) }}
-                </div>
-              </div>
-            </GMapCustomPolyline>
-
-            <GMapLabel
-              v-for="(circle, index) in circles"
-              :key="`circle-label-${index}`"
-              :position="circle.center"
-              :zIndex="500"
-            >
-              <div class="node-label">
-                <div>Vertex: {{ circle.id }}</div>
-                <div :class="{ danger: circle.nodeId < 0 }">Db Node: {{ circle.nodeId }}</div>
-              </div>
-            </GMapLabel>
-
             <gmap-circle
               v-for="(circle, index) in circles"
               :key="`polyline-circle-${index}`"
@@ -110,7 +75,7 @@
             />
           </template>
           <template v-else-if="selectedMode === 'directions'">
-            <GMapCustomPolyline
+            <gmap-polyline
               v-for="(poly, index) in polylineSegments"
               :key="`segment-${index}`"
               :path="poly.path"
@@ -120,17 +85,9 @@
                 icons: poly.icons,
                 zIndex: 10,
               }"
-              :labelPosition="0.5"
               @click="onSegmentClick(poly)"
               @dblclick="stopGEvent"
-            >
-              <div style="background-color: white; color: black; text-align: center; width: 50px">
-                <span
-                  >{{ poly.segment.id }} | {{ poly.segment.nodeAId }} --
-                  {{ poly.segment.nodeBId }}</span
-                >
-              </div>
-            </GMapCustomPolyline>
+            />
 
             <gmap-circle
               v-for="(circle, index) in circles"
@@ -160,10 +117,8 @@ import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
-import GMapCustomPolyline from '@/components/gmap/GMapCustomPolyline.vue';
-import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
-import { chunkEvery, copy, Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
+import { Dictionary } from '@/code/helpers.js';
 import { getUniqPaths } from '../graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
@@ -183,11 +138,13 @@ const POLYLINE_SYMBOLS = {
     scale: 1,
   },
   arrow: {
-    path: 'M -2,0 0,-4 2,0',
+    path: 'M -2,0 0,-4 2,0 z',
     strokeColor: 'black',
     fillColor: null,
     fillOpacity: 1,
     scale: 1,
+    // anchor units are based off path space
+    anchor: { x: 0, y: -1.5 },
   },
 };
 
@@ -293,8 +250,11 @@ function getSegmentOpts(seg) {
 function getSegmentIcons(direction) {
   const arrowOpts = {
     strokeOpacity: 1,
+    strokeColor: 'black',
+    strokeWeight: 2,
     fillOpacity: 1,
-    scale: 2,
+    fillColor: 'green',
+    scale: 4,
   };
   switch (direction) {
     case 'positive':
@@ -323,8 +283,6 @@ export default {
     GMapEditable,
     GMapGeofences,
     PolygonIcon,
-    GMapCustomPolyline,
-    GMapLabel,
   },
   props: {
     graph: { type: Object },
@@ -347,7 +305,8 @@ export default {
       selectedPolyline: null,
       showLocations: true,
       modes: MODES,
-      selectedMode: MODES[0],
+      // selectedMode: MODES[0],
+      selectedMode: MODES[1],
     };
   },
   computed: {
