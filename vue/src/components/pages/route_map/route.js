@@ -32,7 +32,15 @@ function addOrGetEdge(graph, v1, v2) {
     return edge;
   }
 
-  return graph.addEdge(v1.id, v2.id, { ...v1.data, edgeId: EdgeDbIds.next() });
+  const distance = haversineDistanceM(v1.data, v2.data);
+
+  const data = {
+    ...v1.data,
+    edgeId: EdgeDbIds.next(),
+    distance,
+  };
+
+  return graph.addEdge(v1.id, v2.id, data);
 }
 
 function findVertexInRange(vertices, point, threshold) {

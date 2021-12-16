@@ -34,11 +34,9 @@ import LineIcon from '@/components/icons/Line.vue';
 import RouteMap from './RouteMap.vue';
 import TraversalMap from './TraversalMap.vue';
 import SegmentMap from './SegmentMap.vue';
-import { Graph } from './graph';
+import { Graph, fromRoute } from '@/code/graph';
 import { haversineDistanceM, pixelsToMeters } from '@/code/distance';
 import { chunkEvery } from '@/code/helpers';
-import { fromRoute } from './graph.js';
-import { createTempGraph } from './graphData';
 import RouteEditorModal from './RouteEditorModal.vue';
 
 function addPolylineToGraph(graph, path, zoom, snapDistancePx) {

@@ -46,7 +46,7 @@ import FullscreenIcon from '@/components/icons/Fullscreen.vue';
 import MinimiseIcon from '@/components/icons/Minimise.vue';
 
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
-import { fromRoute, Graph } from './graph';
+import { fromRoute, Graph } from '@/code/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
 
 const STAGES = ['create', 'restrict', 'review'];

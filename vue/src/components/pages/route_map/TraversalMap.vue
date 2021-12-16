@@ -86,7 +86,8 @@ import { gmapApi } from 'gmap-vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
-import { getUniqPaths, getClosestVertex, dijkstra, dijkstraToVertices } from './graph';
+import { getUniqPaths, getClosestVertex } from '@/code/graph';
+import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal.js';
 import { attachControl } from '@/components/gmap/gmapControls';
 
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
@@ -189,7 +190,7 @@ export default {
       if (!startVertex || !endVertex) {
         return [];
       }
-      const result = dijkstra(vertexMap, adjacency, startVertex);
+      const result = dijkstra(vertexMap, adjacency, startVertex.id);
       const vertices = dijkstraToVertices(result, endVertex.id);
 
       const path = vertices.map(id => {

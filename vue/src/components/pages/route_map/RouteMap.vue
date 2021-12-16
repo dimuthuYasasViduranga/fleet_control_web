@@ -1,6 +1,5 @@
 <template>
   <div class="route-map">
-    <button class="hx-btn" @click="onLogStructure()">Log</button>
     <div class="map-wrapper">
       <div class="gmap-map">
         <div style="display: none">
@@ -76,7 +75,7 @@ import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import { hasOrderedSubArray } from '@/code/helpers.js';
-import { getUniqPaths } from './graph';
+import { getUniqPaths } from '@/code/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
 
@@ -269,10 +268,6 @@ export default {
           this.onPolylineClick(newPolyline);
         }, 100);
       }
-    },
-    onLogStructure() {
-      console.dir('---- structure');
-      console.dir(this.graph);
     },
     toggleShowLocations() {
       this.showLocations = !this.showLocations;

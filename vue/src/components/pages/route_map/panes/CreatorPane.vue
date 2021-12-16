@@ -101,6 +101,27 @@
                 strokeWeight: 10,
               }"
             />
+
+            <gmap-polyline
+              v-for="(poly, index) in sccSegments"
+              :key="`scc-segment-${index}`"
+              :path="poly.path"
+              :options="{
+                strokeColor: poly.color,
+                strokeWeight: 20,
+                strokeOpacity: 1,
+                zIndex: 2,
+              }"
+              @dblclick="stopGEvent"
+            />
+
+            <GMapLabel
+              v-for="(circle, index) in circles"
+              :key="`segment-circle-label-${index}`"
+              :position="circle.center"
+            >
+              {{ circle.id }}
+            </GMapLabel>
           </template>
         </GmapMap>
       </div>
@@ -117,17 +138,20 @@ import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
+import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
-import { Dictionary } from '@/code/helpers.js';
-import { getUniqPaths } from '../graph';
+import { copy, Dictionary, uniq } from '@/code/helpers.js';
+import { getUniqPaths } from '@/code/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
+import { stronglyConnectedComponents } from '@/code/graph_traversal';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 10;
 const MODES = ['drawing', 'directions'];
 const DIRECTIONS = ['both', 'positive', 'negative'];
+const SCC_COLORS = ['orange', 'blue', 'magenta', 'gold', 'purple', 'red', 'cyan'];
 
 const POLYLINE_SYMBOLS = {
   diamond: {
@@ -239,10 +263,9 @@ function getSymbol(name, opts) {
 
 function getSegmentOpts(seg) {
   const icons = getSegmentIcons(seg.direction);
-  const color = seg.direction === 'both' ? 'darkgreen' : 'green';
 
   return {
-    color,
+    color: 'darkgreen',
     icons,
   };
 }
@@ -276,6 +299,37 @@ function getSegmentIcons(direction) {
   }
 }
 
+function getNodeGroups(graph, segments) {
+  const adjacency = copy(graph.adjacency);
+
+  // for each segment that isnt both, remove the other direction
+  const directionalSegments = segments
+    .filter(s => s.direction !== 'both')
+    .map(s => {
+      const [a, b] = s.direction === 'positive' ? [s.nodeAId, s.nodeBId] : [s.nodeBId, s.nodeAId];
+      return {
+        startId: a,
+        endId: b,
+      };
+    });
+
+  directionalSegments.forEach(s => {
+    adjacency[s.endId] = adjacency[s.endId].filter(e => e.endVertexId !== s.startId);
+  });
+
+  const sccVertices = stronglyConnectedComponents(graph.vertices, adjacency);
+
+  const normaliseGroups = uniq(sccVertices.map(v => v.group)).reduce((acc, group, index) => {
+    acc[group] = index;
+    return acc;
+  }, {});
+
+  return sccVertices.reduce((acc, v) => {
+    acc[graph.vertices[v.id].id] = normaliseGroups[v.group];
+    return acc;
+  }, {});
+}
+
 export default {
   name: 'CreatorPane',
   components: {
@@ -283,6 +337,7 @@ export default {
     GMapEditable,
     GMapGeofences,
     PolygonIcon,
+    GMapLabel,
   },
   props: {
     graph: { type: Object },
@@ -345,6 +400,28 @@ export default {
         const center = { lat: v.data.lat, lng: v.data.lng };
         return { center, id: v.id, nodeId: v.data.nodeId };
       });
+    },
+    sccSegments() {
+      const nodeToGroup = getNodeGroups(this.graph, this.shapes.segments);
+
+      if (uniq(Object.values(nodeToGroup)).length < 2) {
+        return [];
+      }
+
+      return this.shapes.segments
+        .map(s => {
+          // start and end ids must have same group
+          if (nodeToGroup[s.nodeAId] !== nodeToGroup[s.nodeBId]) {
+            return null;
+          }
+
+          const color = SCC_COLORS[nodeToGroup[s.nodeAId] % SCC_COLORS.length];
+          return {
+            path: s.path,
+            color: color,
+          };
+        })
+        .filter(s => s);
     },
   },
   watch: {

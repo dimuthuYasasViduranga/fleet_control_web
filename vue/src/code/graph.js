@@ -1,5 +1,5 @@
-import { Dictionary, uniq, hasOrderedSubArray, toLookup } from '@/code/helpers';
-import { haversineDistanceM } from '@/code/distance';
+import { Dictionary, uniq, hasOrderedSubArray, toLookup } from './helpers';
+import { haversineDistanceM } from './distance';
 
 export function fromGraph(vertices, adjacency) {
   vertices = vertices || {};
@@ -158,62 +158,6 @@ export class Graph {
     const newEdges = edges.filter(edge => edge.endVertexId !== vertex2Id);
     this.adjacency[vertex1Id] = newEdges;
   }
-}
-
-export function dijkstra(vertexMap, adjacency, source) {
-  let queue = [];
-  const dist = {};
-  const prev = {};
-
-  Object.values(vertexMap).forEach(({ id }) => {
-    dist[id] = Infinity;
-    queue.push(id);
-  });
-  dist[source.id] = 0;
-
-  while (queue.length !== 0) {
-    const curId = getNextVertex(queue, dist);
-
-    queue = queue.filter(id => id !== curId);
-
-    const neighbours = getNeighbours(queue, curId, adjacency);
-
-    for (let neighbour of neighbours) {
-      const endId = neighbour.endVertexId;
-      const alternateDist = dist[curId] + (neighbour.data.distance || Infinity);
-      if (alternateDist < dist[endId]) {
-        dist[endId] = alternateDist;
-        prev[endId] = { id: curId, edge: neighbour };
-      }
-    }
-  }
-
-  return Object.entries(dist).reduce((acc, [id, distance]) => {
-    const prevData = prev[id] || {};
-    acc[id] = { id, distance, parentVertexId: prevData.id, edge: prevData.edge };
-    return acc;
-  }, {});
-}
-
-export function dijkstraToVertices(djk, targetId, path = []) {
-  const parentId = djk[targetId].parentVertexId;
-  path.push(targetId);
-
-  if (!parentId) {
-    return path.reverse();
-  }
-
-  return dijkstraToVertices(djk, parentId, path);
-}
-
-function getNextVertex(queue, dist) {
-  const available = queue.map(vId => ({ id: vId, dist: dist[vId] }));
-  available.sort((a, b) => a.dist - b.dist);
-  return available[0].id;
-}
-
-function getNeighbours(queue, vertexId, adjacency) {
-  return (adjacency[vertexId] || []).filter(edge => queue.includes(edge.endVertexId));
 }
 
 export function getUniqPaths(adjacency) {
