@@ -76,10 +76,12 @@
               @click="onSegmentClick(poly)"
               @dblclick="stopGEvent"
             >
-              <div style="background-color: white; color: black; text-align: center; width: 120px">
+              <div class="edge-label">
                 <div>Seg: {{ poly.segment.id }}</div>
                 <div>Edges: {{ poly.segment.edges.map(e => e.id) }}</div>
-                <div>Db Edges: {{ poly.segment.edges.map(e => e.data.edgeId) }}</div>
+                <div :class="{ danger: poly.segment.edges.some(e => e.data.edgeId < 0) }">
+                  Db Edges: {{ poly.segment.edges.map(e => e.data.edgeId) }}
+                </div>
               </div>
             </GMapCustomPolyline>
 
@@ -89,9 +91,9 @@
               :position="circle.center"
               :zIndex="500"
             >
-              <div style="width: 100px; background-color: gray; color: black; text-align: center;">
+              <div class="node-label">
                 <div>Vertex: {{ circle.id }}</div>
-                <div>Db Node: {{ circle.nodeId }}</div>
+                <div :class="{ danger: circle.nodeId < 0 }">Db Node: {{ circle.nodeId }}</div>
               </div>
             </GMapLabel>
 
@@ -161,7 +163,7 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GMapCustomPolyline from '@/components/gmap/GMapCustomPolyline.vue';
 import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
-import { Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
+import { chunkEvery, copy, Dictionary, hasOrderedSubArray } from '@/code/helpers.js';
 import { getUniqPaths } from '../graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
@@ -197,10 +199,12 @@ function graphToPolylines(graph) {
 
   return uniqPaths.map(path => {
     const points = path.map(id => {
-      const data = vertices[id].data;
+      const { lat, lng, ...rest } = vertices[id].data;
       return {
-        lat: data.lat,
-        lng: data.lng,
+        id,
+        data: rest,
+        lat,
+        lng,
       };
     });
     return { path: points, color: ROUTE_COLOR, width: ROUTE_WIDTH, vertices: path };
@@ -444,32 +448,23 @@ export default {
       }
     },
     onEditAccept(shapes) {
-      const polyline = shapes.polylines[0];
-      if (!polyline || !this.selectedPolyline) {
-        this.selectedPolyline = null;
-        return;
-      }
+      console.dir('---- accept');
+      const newPath = shapes.polylines[0].path;
+      const oldPath = this.selectedPolyline.path;
 
-      // if no change, dont emit
-      if (!polyline.deleted && pathsEqual(this.selectedPolyline.path, polyline.path)) {
+      if (pathsEqual(newPath, oldPath)) {
+        console.log('[CreatorPane] Paths equal, no change required');
         this.selectedPolyline = null;
         return;
       }
 
       const payload = {
-        oldPath: this.selectedPolyline.path.slice(),
-        newPath: polyline.path,
-        oldVertices: this.selectedPolyline.vertices.slice(),
+        oldPath,
+        newPath,
         zoom: this.zoom,
       };
 
       this.$emit('edit', payload);
-
-      // this.$emit('delete', this.selectedPolyline.vertices.slice());
-
-      // if (!polyline.deleted) {
-      //   this.$emit('create', { path: polyline.path, zoom: this.zoom });
-      // }
 
       this.selectedPolyline = null;
     },
@@ -481,21 +476,6 @@ export default {
         this.canEdit = true;
         this.selectedPolyline = polyline;
         return;
-      }
-
-      if (polyline !== this.selectedPolyline) {
-        this.$refs['gmap-editable'].onAction('accept');
-        this.selectedPolyline = null;
-        setTimeout(() => {
-          const newPolyline = this.shapes.polylines.find(({ vertices }) => {
-            const doubledVerts = vertices.slice(0, vertices.length - 1).concat(vertices);
-            return (
-              hasOrderedSubArray(doubledVerts, polyline.vertices) ||
-              hasOrderedSubArray(doubledVerts, polyline.vertices.slice().reverse())
-            );
-          });
-          this.onPolylineClick(newPolyline);
-        }, 100);
       }
     },
     onSegmentClick(poly) {
@@ -542,5 +522,29 @@ export default {
 
 .creator-pane .gmap-map .vue-map-container {
   height: 100%;
+}
+
+.edge-label {
+  font-size: 0.5rem;
+  background-color: white;
+  color: black;
+  text-align: center;
+  width: 100px;
+}
+
+.node-label {
+  font-size: 0.5rem;
+  width: 75px;
+  background-color: gray;
+  color: black;
+  text-align: center;
+}
+
+.edge-label .danger {
+  color: red;
+}
+
+.node-label .danger {
+  color: darkred;
 }
 </style>
