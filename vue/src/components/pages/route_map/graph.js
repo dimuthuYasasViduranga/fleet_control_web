@@ -105,9 +105,10 @@ export class Graph {
     }
 
     delete this.vertices[id];
+    delete this.adjacency[id];
 
     Object.keys(this.adjacency).map(id => {
-      this.adjacency[id] = this.adjacency[id].filter(edge => edge.endVertexId === id);
+      this.adjacency[id] = this.adjacency[id].filter(edge => edge.endVertexId !== id);
     });
   }
 
