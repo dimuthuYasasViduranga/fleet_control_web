@@ -448,7 +448,6 @@ export default {
       }
     },
     onEditAccept(shapes) {
-      console.dir('---- accept');
       const newPath = shapes.polylines[0].path;
       const oldPath = this.selectedPolyline.path;
 
@@ -526,7 +525,7 @@ export default {
 
 .edge-label {
   font-size: 0.5rem;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.411);
   color: black;
   text-align: center;
   width: 100px;
@@ -535,7 +534,7 @@ export default {
 .node-label {
   font-size: 0.5rem;
   width: 75px;
-  background-color: gray;
+  background-color: rgba(128, 128, 128, 0.575);
   color: black;
   text-align: center;
 }

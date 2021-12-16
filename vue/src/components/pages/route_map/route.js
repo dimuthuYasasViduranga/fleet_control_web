@@ -53,7 +53,6 @@ function findVertexInRange(vertices, point, threshold) {
 }
 
 export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
-  console.dir('---- edit graph');
   const snapDistance = pixelsToMeters(snapDistancePx, zoom);
 
   const existingVertices = graph.getVerticesList();
@@ -70,7 +69,7 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     };
   });
 
-  // get new vertices
+  // get new/existing vertices
   const newVertices = newPath.map((p, index) => {
     const existingVertex = findVertexInRange(existingVertices, p, snapDistance);
 
@@ -88,10 +87,6 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     };
   });
 
-  console.dir('--- vertices');
-  console.dir(oldVertices);
-  console.dir(newVertices);
-
   // get all old edges
   const oldEdges = chunkEvery(oldVertices, 2, 1, 'discard')
     .map(([v1, v2]) => {
@@ -99,6 +94,7 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     })
     .flat();
 
+  // get new/existing edges
   const newEdges = chunkEvery(newVertices, 2, 1, 'discard')
     .map(([v1, v2], index) => {
       const e1TempId = (index + 1) * -2;
@@ -110,31 +106,58 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     })
     .flat();
 
-  console.dir('--- edges');
-  console.dir(oldEdges);
-  console.dir(newEdges);
-
   // added vertices
-  console.dir('---- added vertices');
   const addedVertices = newVertices.filter(v => v.id < 0);
-  console.dir(addedVertices);
 
   // added edges
-  console.dir('---- added edges');
-  const addedEdges = newEdges.filter(e => e.startVertexId < 0 || e.endVertexId < 0);
-  console.dir(addedEdges);
+  const addedEdges = newEdges.filter(e => e.id < 0);
 
-  // removed vertices
-  console.dir('---- removed vertices');
+  // removed vertices (if they are a termination for another segment, they cannot be removed)
   const newVerticesLookup = toLookup(newVertices, 'id');
-  const removedVertices = oldVertices.filter(v => !newVerticesLookup[v.id]);
-  console.dir(removedVertices);
+  const maybeRemovedVertices = oldVertices.filter(v => !newVerticesLookup[v.id]);
 
   // removed edges
-  console.dir('---- removed edges');
   const newEdgeLookup = toLookup(newEdges, 'id');
   const removedEdges = oldEdges.filter(e => !newEdgeLookup[e.id]);
-  console.dir(removedEdges);
+
+  return applyChanges(graph, addedVertices, addedEdges, maybeRemovedVertices, removedEdges);
+}
+
+function applyChanges(sourceGraph, addedVertices, addedEdges, maybeRemovedVertices, removedEdges) {
+  const graph = sourceGraph.copy();
+
+  // removal first
+  removedEdges.forEach(e => {
+    graph.removeEdge(e.startVertexId, e.endVertexId);
+    graph.removeEdge(e.endVertexId, e.startVertexId);
+  });
+
+  // only remove orphaned vertices
+  maybeRemovedVertices.forEach(v => {
+    if (graph.adjacency[v.id].length === 0) {
+      graph.removeVertex(v.id);
+    }
+  });
+
+  // need a id map lookup for edges
+  const idMap = addedVertices.reduce((acc, v) => {
+    const data = {
+      nodeId: NodeDbIds.next(),
+      lat: v.data.lat,
+      lng: v.data.lng,
+    };
+    const vInst = graph.addVertex(data);
+    acc[v.id] = vInst.id;
+    return acc;
+  }, {});
+
+  addedEdges.forEach(e => {
+    // map the ids if possible
+    const a = idMap[e.startVertexId] || e.startVertexId;
+    const b = idMap[e.endVertexId] || e.endVertexId;
+    graph.addEdge(a, b, { edgeId: EdgeDbIds.next(), distance: e.distance });
+    graph.addEdge(b, a, { edgeId: EdgeDbIds.next(), distance: e.distance });
+  });
 
   return graph;
 }
@@ -150,14 +173,4 @@ function getTempEdge(id, v1, v2) {
       distance,
     },
   };
-}
-
-export function removePolylineFromGraph(graph, vertices) {
-  chunkEvery(vertices, 2, 1, 'discard').map(([v1, v2]) => {
-    graph.removeEdge(v1, v2);
-    graph.removeEdge(v2, v1);
-  });
-  graph.removeOrphanVertices();
-
-  return graph.copy();
 }

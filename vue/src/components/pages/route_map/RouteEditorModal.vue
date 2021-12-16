@@ -26,7 +26,6 @@
           :snapDistancePx="snapDistancePx"
           @create="onAddPolyline"
           @edit="onEditPolyline"
-          @delete="onRemovePolyline"
         />
         <RestrictionPane v-else-if="selectedStage === 'restrict'" />
         <ReviewPane v-else-if="selectedStage === 'review'" />
@@ -48,7 +47,7 @@ import MinimiseIcon from '@/components/icons/Minimise.vue';
 
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
 import { fromRoute, Graph } from './graph';
-import { addPolylineToGraph, editGraph, removePolylineFromGraph } from './route.js';
+import { addPolylineToGraph, editGraph } from './route.js';
 
 const STAGES = ['create', 'restrict', 'review'];
 
@@ -107,7 +106,6 @@ export default {
       this.isFullscreen ? exitFullscreen(area) : requestFullscreen(area);
     },
     reloadGraph() {
-      console.dir('---- reloaded graph');
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
     },
@@ -115,12 +113,7 @@ export default {
       this.graph = editGraph(this.graph, newPath, oldPath, zoom, this.snapDistancePx);
     },
     onAddPolyline({ path, zoom }) {
-      console.dir('---- add');
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
-    },
-    onRemovePolyline(vertices) {
-      console.dir('---- remove');
-      this.graph = removePolylineFromGraph(this.graph, vertices);
     },
   },
 };
