@@ -14,6 +14,8 @@
     <div class="map-wrapper">
       <div class="gmap-map">
         <div style="display: none">
+          <RecenterIcon ref="recenter-control" tooltip="right" @click.native="reCenter" />
+          <ResetZoomIcon ref="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
           <PolygonIcon
             ref="geofence-control"
             tooltip="right"
@@ -124,8 +126,11 @@ import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
-import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GMapLabel from '@/components/gmap/GMapLabel.vue';
+
+import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
+import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
+import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
 import { copy, Dictionary, uniq } from '@/code/helpers.js';
 import { getUniqPaths } from '@/code/graph';
@@ -336,8 +341,10 @@ export default {
     GMapDrawingControls,
     GMapEditable,
     GMapGeofences,
-    PolygonIcon,
     GMapLabel,
+    PolygonIcon,
+    RecenterIcon,
+    ResetZoomIcon,
   },
   props: {
     graph: { type: Object },
@@ -449,6 +456,8 @@ export default {
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
+      attachControl(map, this.google, this.$refs['recenter-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['reset-zoom-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
@@ -566,29 +575,5 @@ export default {
 
 .creator-pane .gmap-map .vue-map-container {
   height: 100%;
-}
-
-.edge-label {
-  font-size: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.411);
-  color: black;
-  text-align: center;
-  width: 100px;
-}
-
-.node-label {
-  font-size: 0.5rem;
-  width: 75px;
-  background-color: rgba(128, 128, 128, 0.575);
-  color: black;
-  text-align: center;
-}
-
-.edge-label .danger {
-  color: red;
-}
-
-.node-label .danger {
-  color: darkred;
 }
 </style>
