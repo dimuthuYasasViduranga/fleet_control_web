@@ -27,7 +27,13 @@
           @create="onAddPolyline"
           @edit="onEditPolyline"
         />
-        <RestrictionPane v-else-if="selectedStage === 'restrict'" />
+        <RestrictionPane
+          v-else-if="selectedStage === 'restrict'"
+          :graph="graph"
+          :locations="locations"
+          :restrictionGroups="restrictionGroups"
+          :assetTypes="assetTypes"
+        />
         <ReviewPane v-else-if="selectedStage === 'review'" />
       </div>
     </div>
@@ -39,7 +45,7 @@ import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 
 import CreatorPane from './panes/CreatorPane.vue';
-import RestrictionPane from './panes/RestrictionPane.vue';
+import RestrictionPane from './panes/restriction/RestrictionPane.vue';
 import ReviewPane from './panes/ReviewPane.vue';
 
 import FullscreenIcon from '@/components/icons/Fullscreen.vue';
@@ -65,18 +71,28 @@ export default {
       stages: STAGES,
       graph: new Graph(),
       snapDistancePx: 10,
-      selectedStage: STAGES[0],
+      selectedStage: STAGES[1],
       fullscreenIcon: FullscreenIcon,
       minimiseIcon: MinimiseIcon,
     };
   },
   computed: {
     ...mapState('constants', {
+      assetTypes: state => state.assetTypes,
       locations: state => state.locations,
       nodes: state => state.routeNodes,
       edges: state => state.routeEdges,
       routes: state => state.routes,
+      // restrictionGroups: state => state.routeRestrictionGroups,
     }),
+    restrictionGroups() {
+      const hvTypes = this.assetTypes.map(t => t.type).filter(t => t !== 'Light Vehicle');
+      return [
+        { id: 2, name: 'HV', assetTypes: hvTypes },
+        { id: 1, name: 'LV', assetTypes: ['Light Vehicle'] },
+
+      ];
+    },
   },
   mounted() {
     document.addEventListener('fullscreenchange', this.onFullscreenChange, false);
@@ -120,19 +136,7 @@ export default {
 </script>
 
 <style>
-.route-editor-modal .modal-container-wrapper > .modal-container {
-  height: auto;
-}
-
-.route-editor-modal .modal-container-wrapper {
-  height: 100%;
-  width: 100%;
-  padding: 4rem 6rem;
-  overflow-y: auto;
-}
-
 /* fullscreen container wrapper */
-
 .route-editor-modal > .container {
   display: flex;
   flex-direction: column;

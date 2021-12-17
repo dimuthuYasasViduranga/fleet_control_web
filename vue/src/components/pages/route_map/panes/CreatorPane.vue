@@ -542,10 +542,6 @@ export default {
 </script>
 
 <style>
-.creator-pane {
-  height: 60vh;
-}
-
 .creator-pane > .modes {
   margin-top: 1rem;
   width: 100%;
@@ -564,7 +560,7 @@ export default {
 
 .creator-pane .map-wrapper {
   position: relative;
-  height: 100%;
+  height: 60vh;
   width: 100%;
 }
 
