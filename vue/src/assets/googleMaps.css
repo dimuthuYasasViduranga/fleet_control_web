@@ -55,3 +55,19 @@
 .gmap-map .cluster > div:focus {
   outline: none;
 }
+
+/* this hides the map copyright */
+.gmap-map[hide-info] .gmnoprint {
+  display: none;
+}
+
+/* hide report a bug */
+.gmap-map[hide-info] .gm-style-cc {
+  display: none;
+}
+
+/* this hides the big google logo */
+.gmap-map[hide-info] img[src="https://maps.gstatic.com/mapfiles/api-3/images/google_white5.png"]
+{
+  display: none;
+}
