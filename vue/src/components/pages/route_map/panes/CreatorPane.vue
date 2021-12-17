@@ -102,19 +102,6 @@
               }"
             />
 
-            <gmap-polyline
-              v-for="(poly, index) in sccSegments"
-              :key="`scc-segment-${index}`"
-              :path="poly.path"
-              :options="{
-                strokeColor: poly.color,
-                strokeWeight: 20,
-                strokeOpacity: 1,
-                zIndex: 2,
-              }"
-              @dblclick="stopGEvent"
-            />
-
             <GMapLabel
               v-for="(circle, index) in circles"
               :key="`segment-circle-label-${index}`"
@@ -151,7 +138,7 @@ const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 10;
 const MODES = ['drawing', 'directions'];
 const DIRECTIONS = ['both', 'positive', 'negative'];
-const SCC_COLORS = ['orange', 'blue', 'magenta', 'gold', 'purple', 'red', 'cyan'];
+const SCC_COLORS = ['#007300', '#005a00', '#004000', '#339933', '#66b366', '#99cc99', '#cce6cc'];
 
 const POLYLINE_SYMBOLS = {
   diamond: {
@@ -261,11 +248,12 @@ function getSymbol(name, opts) {
   return { ...POLYLINE_SYMBOLS[name], ...(opts || {}) };
 }
 
-function getSegmentOpts(seg) {
+function getSegmentOpts(seg, groupLookup) {
   const icons = getSegmentIcons(seg.direction);
+  const color = getSegmentColor(seg, groupLookup);
 
   return {
-    color: 'darkgreen',
+    color,
     icons,
   };
 }
@@ -297,6 +285,18 @@ function getSegmentIcons(direction) {
     default:
       return [];
   }
+}
+
+function getSegmentColor(seg, groupLookup) {
+  if (!groupLookup) {
+    return 'darkgreen';
+  }
+
+  if (groupLookup[seg.nodeAId] !== groupLookup[seg.nodeBId]) {
+    return '#444444';
+  }
+
+  return SCC_COLORS[groupLookup[seg.nodeAId] % SCC_COLORS.length];
 }
 
 function getNodeGroups(graph, segments) {
@@ -382,8 +382,9 @@ export default {
       return [];
     },
     polylineSegments() {
+      const groupLookup = this.nodeToSCCGroup;
       return this.shapes.segments.map(s => {
-        const opts = getSegmentOpts(s);
+        const opts = getSegmentOpts(s, groupLookup);
 
         return {
           segment: s,
@@ -400,6 +401,14 @@ export default {
         const center = { lat: v.data.lat, lng: v.data.lng };
         return { center, id: v.id, nodeId: v.data.nodeId };
       });
+    },
+    nodeToSCCGroup() {
+      const group = getNodeGroups(this.graph, this.shapes.segments);
+      if (uniq(Object.values(group)).length < 2) {
+        return;
+      }
+
+      return group;
     },
     sccSegments() {
       const nodeToGroup = getNodeGroups(this.graph, this.shapes.segments);

@@ -72,7 +72,6 @@ function getNeighbours(queue, vertexId, adjacency) {
 
 // https://www.youtube.com/watch?v=wUgWX0nc4NY&ab_channel=WilliamFiset
 export function stronglyConnectedComponents(vertices, adjacency) {
-  console.dir('==== strongly connected components');
   const nodeCount = Object.keys(vertices).length;
 
   // create adjacency array instead of map
