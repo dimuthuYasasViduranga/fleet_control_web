@@ -6,14 +6,14 @@
     @enter="emit('tran-open-start')"
     @after-enter="emit('tran-open-end')"
   >
-    <div class="modal-mask" v-show="show" @mousedown="emitClose">
+    <div class="modal-mask" v-show="show" @click="emitClose">
       <div
         ref="modal-container-wrapper"
         class="modal-container-wrapper"
         @keyup.esc="onEsc"
         tabindex="0"
       >
-        <div class="modal-container" @mousedown.stop @click.stop>
+        <div class="modal-container" @click.stop>
           <slot></slot>
         </div>
       </div>
