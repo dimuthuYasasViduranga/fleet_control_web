@@ -83,7 +83,7 @@
               :path="poly.path"
               :options="{
                 strokeColor: poly.color,
-                strokeWeight: 10,
+                strokeWeight: 12,
                 icons: poly.icons,
                 zIndex: 10,
               }"
@@ -100,7 +100,7 @@
                 clickable: false,
                 zIndex: 20,
                 strokeOpacity: 0.5,
-                strokeWeight: 10,
+                strokeWeight: 12,
               }"
             />
 
@@ -132,16 +132,16 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
-import { Dictionary, uniq } from '@/code/helpers.js';
+import { uniq } from '@/code/helpers.js';
 import { getUniqPaths } from '@/code/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
 
-import { segmentsToPolylines, getNodeGroups, nextDirection } from '../common.js';
+import { segmentsToPolylines, getNodeGroups } from '../common.js';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
-const ROUTE_WIDTH = 10;
+const ROUTE_WIDTH = 12;
 const MODES = ['drawing', 'directions'];
 
 function graphToPolylines(graph) {
@@ -162,44 +162,6 @@ function graphToPolylines(graph) {
     });
     return { path: points, color: ROUTE_COLOR, width: ROUTE_WIDTH, vertices: path };
   });
-}
-
-function graphToSegments(graph, existingSegments = []) {
-  const existingDirections = new Dictionary();
-  existingSegments.forEach(seg => {
-    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
-  });
-
-  // need to handle existing segments so that data is not lost
-  const vertices = graph.vertices;
-
-  // group edges into segment (a segment contains both directions if avialable)
-  const dict = new Dictionary();
-  Object.values(graph.adjacency).forEach(edges => {
-    edges.forEach(edge => {
-      const orderedIndex = [edge.startVertexId, edge.endVertexId].sort();
-      dict.append(orderedIndex, edge);
-    });
-  });
-
-  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
-    const nodeStartPosition = vertices[nodeAId].data;
-    const nodeEndPosition = vertices[nodeBId].data;
-    const path = [nodeStartPosition, nodeEndPosition];
-
-    const direction = existingDirections.get([nodeAId, nodeBId]) || 'both';
-
-    return {
-      id: index,
-      edges: edges,
-      direction,
-      nodeAId,
-      nodeBId,
-      path,
-    };
-  });
-
-  return segments;
 }
 
 function approxEqual(a, b, epsilon = 0.00001) {
@@ -224,8 +186,6 @@ function pathsEqual(a, b) {
   return true;
 }
 
-
-
 export default {
   name: 'CreatorPane',
   components: {
@@ -239,6 +199,7 @@ export default {
   },
   props: {
     graph: { type: Object },
+    segments: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     snapDistancePx: { type: Number, default: 5 },
   },
@@ -251,10 +212,7 @@ export default {
       },
       zoom: 0,
       canEdit: false,
-      shapes: {
-        polylines: [],
-        segments: [],
-      },
+      polylines: [],
       selectedPolyline: null,
       showLocations: true,
       modes: MODES,
@@ -270,7 +228,7 @@ export default {
       defaultZoom: state => state.mapZoom,
     }),
     uneditablePolylines() {
-      return this.shapes.polylines.filter(p => p !== this.selectedPolyline);
+      return this.polylines.filter(p => p !== this.selectedPolyline);
     },
     editablePolylines() {
       if (this.selectedPolyline) {
@@ -280,7 +238,7 @@ export default {
       return [];
     },
     nodeToSCCGroup() {
-      const group = getNodeGroups(this.graph, this.shapes.segments);
+      const group = getNodeGroups(this.graph, this.segments);
       if (uniq(Object.values(group)).length < 2) {
         return;
       }
@@ -288,7 +246,7 @@ export default {
       return group;
     },
     polylineSegments() {
-      return segmentsToPolylines(this.shapes.segments, this.nodeToSCCGroup);
+      return segmentsToPolylines(this.segments, this.nodeToSCCGroup);
     },
     snapDistance() {
       return pixelsToMeters(this.snapDistancePx, this.zoom);
@@ -305,7 +263,6 @@ export default {
       immediate: true,
       handler() {
         this.refreshGraphPolylines();
-        this.refreshGraphSegments();
       },
     },
   },
@@ -330,11 +287,8 @@ export default {
       event.stop();
     },
     refreshGraphPolylines() {
-      this.shapes.polylines = graphToPolylines(this.graph);
+      this.polylines = graphToPolylines(this.graph);
       this.selectedPolyline = null;
-    },
-    refreshGraphSegments() {
-      this.shapes.segments = graphToSegments(this.graph, this.shapes.segments);
     },
     reCenter() {
       this.moveTo(this.defaultCenter);
@@ -361,8 +315,9 @@ export default {
         this.$emit('create', { path: props.path, zoom: this.zoom });
       }
     },
-    onEditAccept(shapes) {
-      const newPath = shapes.polylines[0].path;
+    onEditAccept({ polylines }) {
+      const polyline = polylines[0];
+      const newPath = polyline.deleted ? [] : polyline.path;
       const oldPath = this.selectedPolyline.path;
 
       if (pathsEqual(newPath, oldPath)) {
@@ -391,8 +346,8 @@ export default {
         return;
       }
     },
-    onSegmentClick(poly) {
-      poly.segment.direction = nextDirection(poly.segment.direction);
+    onSegmentClick({ segment }) {
+      this.$emit('toggle-segment', segment);
     },
     toggleShowLocations() {
       this.showLocations = !this.showLocations;

@@ -1,5 +1,5 @@
 import { stronglyConnectedComponents } from '@/code/graph_traversal';
-import { copy, uniq } from '@/code/helpers';
+import { copy, Dictionary, uniq } from '@/code/helpers';
 
 const DIRECTIONS = ['both', 'positive', 'negative'];
 const SCC_COLORS = ['#007300', '#005a00', '#004000', '#339933', '#66b366', '#99cc99', '#cce6cc'];
@@ -124,4 +124,62 @@ function getSymbol(name, opts) {
 export function nextDirection(dir) {
   const index = DIRECTIONS.indexOf(dir);
   return DIRECTIONS[index + 1] || DIRECTIONS[0];
+}
+
+export function graphToSegments(graph, existingSegments = []) {
+  const existingDirections = new Dictionary();
+  existingSegments.forEach(seg => {
+    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
+  });
+
+  // need to handle existing segments so that data is not lost
+  const vertices = graph.vertices;
+
+  // group edges into segment (a segment contains both directions if avialable)
+  const dict = new Dictionary();
+  Object.values(graph.adjacency).forEach(edges => {
+    edges.forEach(edge => {
+      const orderedIndex = [edge.startVertexId, edge.endVertexId].sort();
+      dict.append(orderedIndex, edge);
+    });
+  });
+
+  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
+    const nodeStartPosition = vertices[nodeAId].data;
+    const nodeEndPosition = vertices[nodeBId].data;
+    const path = [nodeStartPosition, nodeEndPosition];
+
+    const direction =
+      existingDirections.get([nodeAId, nodeBId]) || getEdgeDirection(graph, nodeAId, nodeBId);
+
+    return {
+      id: index,
+      edges: edges,
+      direction,
+      nodeAId,
+      nodeBId,
+      path,
+    };
+  });
+
+  return segments;
+}
+
+function getEdgeDirection(graph, v1, v2) {
+  const e1 = graph.getEdge(v1, v2);
+  const e2 = graph.getEdge(v2, v1);
+
+  if (e1 && e2) {
+    return 'both';
+  }
+
+  if (e1 && !e2) {
+    return 'positive';
+  }
+
+  if (!e1 && e2) {
+    return 'negative';
+  }
+
+  return 'none';
 }

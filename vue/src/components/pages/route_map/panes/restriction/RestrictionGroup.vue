@@ -9,6 +9,7 @@
       :disabled="!canEditName"
       @change="onNameChange"
     />
+    {{edgeIds}}
     <button
       v-if="canRemove && assetTypes.length === 0"
       class="hx-btn"
@@ -80,7 +81,7 @@ export default {
     name: { type: String, default: '' },
     assetTypes: { type: Array, default: () => [] },
     graph: { type: Object },
-    edges: { type: Array, default: () => [] },
+    edgeIds: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     canEditName: { type: Boolean, default: true },
     canRemove: { type: Boolean, default: true },
@@ -145,10 +146,12 @@ export default {
       const opts = {
         locations: this.locations,
         graph: this.graph,
-        edges: this.edges || [],
+        edgeIds: this.edgeIds || [],
       };
       this.$modal.create(RestrictionMapModal, opts).onClose(resp => {
-        console.dir(resp);
+        if (resp) {
+          this.$emit('edges-changed', resp);
+        }
       });
     },
     reCenter() {

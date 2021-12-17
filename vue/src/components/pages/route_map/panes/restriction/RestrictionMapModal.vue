@@ -44,6 +44,9 @@
         </GmapMap>
       </div>
     </div>
+    <div class="actions">
+      <button class="hx-btn" @click="onAccept()">Accept</button>
+    </div>
   </div>
 </template>
 
@@ -59,45 +62,29 @@ import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
-import { Dictionary, uniq } from '@/code/helpers';
-import { getNodeGroups, nextDirection, segmentsToPolylines } from '../../common';
+import { toLookup, uniq } from '@/code/helpers';
+import { getNodeGroups, graphToSegments, segmentsToPolylines } from '../../common';
+import { Graph } from '@/code/graph';
 
-function graphToSegments(graph, existingSegments = []) {
-  const existingDirections = new Dictionary();
-  existingSegments.forEach(seg => {
-    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
-  });
+function createSegmentPolyline(polyline, selectedSegments) {
+  if (selectedSegments[polyline.segment.id]) {
+    polyline.color = 'darkgreen';
+  } else {
+    polyline.color = 'black';
+  }
 
-  // need to handle existing segments so that data is not lost
-  const vertices = graph.vertices;
+  return polyline;
+}
 
-  // group edges into segment (a segment contains both directions if avialable)
-  const dict = new Dictionary();
-  Object.values(graph.adjacency).forEach(edges => {
-    edges.forEach(edge => {
-      const orderedIndex = [edge.startVertexId, edge.endVertexId].sort();
-      dict.append(orderedIndex, edge);
-    });
-  });
+function initialiseSelectedSegments(segments, edgeIds) {
+  // for each segment, determine if the edge id is given
+  return segments.reduce((acc, s) => {
+    if (s.edges.some(e => edgeIds.includes(e.id))) {
+      acc[s.id] = true;
+    }
 
-  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
-    const nodeStartPosition = vertices[nodeAId].data;
-    const nodeEndPosition = vertices[nodeBId].data;
-    const path = [nodeStartPosition, nodeEndPosition];
-
-    const direction = existingDirections.get([nodeAId, nodeBId]) || 'both';
-
-    return {
-      id: index,
-      edges: edges,
-      direction,
-      nodeAId,
-      nodeBId,
-      path,
-    };
-  });
-
-  return segments;
+    return acc;
+  }, {});
 }
 
 export default {
@@ -110,7 +97,8 @@ export default {
   },
   props: {
     graph: { type: Object, required: true },
-    edges: { type: Array, default: () => [] },
+    // this is only needed to initialise the edges
+    edgeIds: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
   },
   data: () => {
@@ -123,6 +111,8 @@ export default {
       zoom: 0,
       showLocations: true,
       segments: [],
+      localGraph: new Graph(),
+      selectedSegments: {},
     };
   },
   computed: {
@@ -141,7 +131,9 @@ export default {
       return group;
     },
     polylineSegments() {
-      return segmentsToPolylines(this.segments, this.nodeToSCCGroup);
+      return segmentsToPolylines(this.segments, this.nodeToSCCGroup).map(s =>
+        createSegmentPolyline(s, this.selectedSegments),
+      );
     },
   },
   mounted() {
@@ -157,7 +149,9 @@ export default {
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
 
-    this.segments = graphToSegments(this.graph);
+    this.localGraph = this.graph.copy();
+    this.segments = graphToSegments(this.localGraph);
+    this.selectedSegments = initialiseSelectedSegments(this.segments, this.edgeIds);
   },
   methods: {
     close(resp) {
@@ -185,7 +179,22 @@ export default {
       this.showLocations = !this.showLocations;
     },
     onSegmentClick(poly) {
-      poly.segment.direction = nextDirection(poly.segment.direction);
+      if (this.selectedSegments[poly.segment.id]) {
+        delete this.selectedSegments[poly.segment.id];
+      } else {
+        this.selectedSegments[poly.segment.id] = true;
+      }
+
+      this.selectedSegments = { ...this.selectedSegments };
+    },
+    onAccept() {
+      const segmentLookup = toLookup(this.segments, 'id');
+
+      const edgeIds = Object.keys(this.selectedSegments)
+        .map(sId => segmentLookup[parseInt(sId, 10)].edges.map(e => e.id))
+        .flat();
+
+      this.close(edgeIds);
     },
   },
 };

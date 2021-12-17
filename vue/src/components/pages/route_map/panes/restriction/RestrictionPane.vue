@@ -4,8 +4,8 @@
       v-for="(group, index) in localRestrictionGroups"
       :key="index"
       :name.sync="group.name"
-      :graph="graph"
-      :edges="group.edges"
+      :graph="directionalGraph"
+      :edgeIds="group.edgeIds"
       :assetTypes="group.assetTypes"
       :locations="locations"
       :canEditName="group.canEditName"
@@ -14,6 +14,7 @@
       @update="onGroupUpdate(index, $event)"
       @added="onAssetTypeAdded(index, $event)"
       @remove="onRemove(index)"
+      @edges-changed="onEdgesChanged(index, $event)"
     />
     <button class="hx-btn" @click="onAddGroup">Add</button>
   </div>
@@ -39,6 +40,7 @@ export default {
   },
   props: {
     graph: { type: Object },
+    segments: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     assetTypes: { type: Array, default: () => [] },
     restrictionGroups: { type: Array, default: () => [] },
@@ -52,6 +54,20 @@ export default {
     nextId() {
       const ids = this.localRestrictionGroups.map(g => g.id || 0);
       return Math.min(...ids, 0) - 1;
+    },
+    directionalGraph() {
+      const graph = this.graph.copy();
+
+      this.segments
+        .filter(s => s.direction !== 'both')
+        .forEach(s => {
+          if (s.direction === 'positive') {
+            graph.removeEdge(s.nodeBId, s.nodeAId);
+          } else {
+            graph.removeEdge(s.nodeAId, s.nodeBId);
+          }
+        });
+      return graph;
     },
   },
   watch: {
@@ -79,7 +95,7 @@ export default {
           canEditName: false,
           canRemove: false,
           showPreview: false,
-          edges: [],
+          edgeIds: [],
         };
 
         validGroups.unshift(unusedGroup);
@@ -119,7 +135,12 @@ export default {
     },
     onAddGroup() {
       const groups = this.localRestrictionGroups.slice();
-      groups.push({ id: this.nextId, name: 'New Group', assetTypes: [] });
+      groups.push({ id: this.nextId, name: 'New Group', assetTypes: [], edgeIds: [] });
+      this.updateLocalGroups(groups);
+    },
+    onEdgesChanged(groupId, edgeIds) {
+      const groups = this.localRestrictionGroups.slice();
+      groups[groupId].edgeIds = edgeIds;
       this.updateLocalGroups(groups);
     },
   },

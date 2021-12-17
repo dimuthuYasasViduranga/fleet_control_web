@@ -22,14 +22,17 @@
         <CreatorPane
           v-if="selectedStage === 'create'"
           :graph="graph"
+          :segments="segments"
           :locations="locations"
           :snapDistancePx="snapDistancePx"
           @create="onAddPolyline"
           @edit="onEditPolyline"
+          @toggle-segment="onToggleSegment"
         />
         <RestrictionPane
           v-else-if="selectedStage === 'restrict'"
           :graph="graph"
+          :segments="segments"
           :locations="locations"
           :restrictionGroups="restrictionGroups"
           :assetTypes="assetTypes"
@@ -54,8 +57,11 @@ import MinimiseIcon from '@/components/icons/Minimise.vue';
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
 import { fromRoute, Graph } from '@/code/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
+import { toLookup } from '@/code/helpers';
+import { graphToSegments, nextDirection } from './common';
 
 const STAGES = ['create', 'restrict', 'review'];
+const SNAP_DISTANCE_PX = 10;
 
 export default {
   name: 'RouteEditorModal',
@@ -70,8 +76,10 @@ export default {
       isFullscreen: false,
       stages: STAGES,
       graph: new Graph(),
-      snapDistancePx: 10,
-      selectedStage: STAGES[1],
+      segments: [],
+      restrictionGroups: [],
+      snapDistancePx: SNAP_DISTANCE_PX,
+      selectedStage: STAGES[0],
       fullscreenIcon: FullscreenIcon,
       minimiseIcon: MinimiseIcon,
     };
@@ -83,19 +91,37 @@ export default {
       nodes: state => state.routeNodes,
       edges: state => state.routeEdges,
       routes: state => state.routes,
-      // restrictionGroups: state => state.routeRestrictionGroups,
+      routeRestrictionGroups: state => {
+        const lookup = toLookup(state.assetTypes, 'id', e => e.type);
+        return state.routeRestrictionGroups.map(r => {
+          const assetTypes = r.assetTypeIds.map(id => lookup[id]);
+          return {
+            id: r.id,
+            name: r.name,
+            assetTypes,
+          };
+        });
+      },
     }),
-    restrictionGroups() {
-      const hvTypes = this.assetTypes.map(t => t.type).filter(t => t !== 'Light Vehicle');
-      return [
-        { id: 2, name: 'HV', assetTypes: hvTypes },
-        { id: 1, name: 'LV', assetTypes: ['Light Vehicle'] },
-      ];
+  },
+  watch: {
+    graph: {
+      immediate: true,
+      handler() {
+        this.reloadGraphSegments();
+      },
+    },
+    routeRestrictionGroups: {
+      immediate: true,
+      handler() {
+        this.reloadRestrictionGroups();
+      },
     },
   },
   mounted() {
     document.addEventListener('fullscreenchange', this.onFullscreenChange, false);
     this.reloadGraph();
+    this.reloadGraphSegments();
   },
   beforeDestroy() {
     document.removeEventListener('fullscreenchange', this.onFullscreenChange, false);
@@ -124,11 +150,21 @@ export default {
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
     },
+    reloadGraphSegments() {
+      this.segments = graphToSegments(this.graph, this.segments);
+    },
+    reloadRestrictionGroups() {
+      this.restrictionGroups = this.routeRestrictionGroups.slice();
+    },
     onEditPolyline({ newPath, oldPath, zoom }) {
       this.graph = editGraph(this.graph, newPath, oldPath, zoom, this.snapDistancePx);
     },
     onAddPolyline({ path, zoom }) {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
+    },
+    onToggleSegment(segment) {
+      // this will need to be an emit
+      segment.direction = nextDirection(segment.direction);
     },
   },
 };

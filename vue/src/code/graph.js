@@ -113,16 +113,20 @@ export class Graph {
   }
 
   removeOrphanVertices() {
-    Object.keys(this.adjacency).forEach(id => {
-      if (this.adjacency[id].length === 0) {
-        delete this.adjacency[id];
+    const edges = Object.values(this.adjacency).flat();
+    Object.keys(this.vertices).forEach(vId => {
+      // if there are connections from the vertex
+      if (this.adjacency[vId].length) {
+        return;
       }
-    });
 
-    Object.keys(this.vertices).forEach(id => {
-      if ((this.adjacency[id] || []).length === 0) {
-        delete this.vertices[id];
+      // if there are any connections to the vertex
+      if (edges.some(e => e.endVertexId === vId)) {
+        return;
       }
+
+      delete this.adjacency[vId];
+      delete this.vertices[vId];
     });
   }
 
