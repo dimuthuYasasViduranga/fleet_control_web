@@ -90,7 +90,6 @@ export default {
       return [
         { id: 2, name: 'HV', assetTypes: hvTypes },
         { id: 1, name: 'LV', assetTypes: ['Light Vehicle'] },
-
       ];
     },
   },
