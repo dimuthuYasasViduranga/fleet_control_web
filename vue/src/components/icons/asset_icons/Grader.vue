@@ -1,5 +1,5 @@
 <template>
-  <g id="grader_icon">
+  <g id="grader_icon" class="custom-icon">
     <circle id="wheel-front" r="3.5057292" cy="21.067448" cx="28.310415" />
     <circle id="wheel-back-1" r="3.5057292" cy="21.034374" cx="13.129948" />
     <circle id="wheel-back-2" r="3.5057292" cy="21.100521" cx="4.99401" />

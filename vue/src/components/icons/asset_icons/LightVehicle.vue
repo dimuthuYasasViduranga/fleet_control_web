@@ -1,5 +1,5 @@
 <template>
-  <g id="light_vehicle_icon" style="">
+  <g id="light_vehicle_icon" class="custom-icon">
     <circle id="wheel-back" r="3.0757811" cy="20.657343" cx="8.7643242" />
     <circle id="wheel-front" r="3.0757811" cy="20.657343" cx="25.962238" />
     <path id="bottom-line" d="M 11.840104,20.591199 H 22.820312" />

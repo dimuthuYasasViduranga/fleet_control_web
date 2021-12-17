@@ -1,5 +1,5 @@
 <template>
-  <g id="float_icon">
+  <g id="float_icon" class="custom-icon">
     <circle r="3.3889792" cy="21.332033" cx="28.674219" id="wheel-front-20" />
     <circle r="4.3878121" cy="20.297623" cx="5.0166874" id="wheel-front-20-2" />
     <path

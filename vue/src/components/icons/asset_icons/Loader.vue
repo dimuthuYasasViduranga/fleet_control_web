@@ -1,5 +1,5 @@
 <template>
-  <g id="loader_icon">
+  <g id="loader_icon" class="custom-icon">
     <circle id="wheel-back" r="3.6380208" cy="21.629686" cx="7.6729178" />
     <circle id="wheel-front" r="3.6380208" cy="21.563541" cx="19.678385" />
     <path
@@ -24,3 +24,4 @@ export default {
   viewBox: [0, 0, 34, 34],
 };
 </script>
+

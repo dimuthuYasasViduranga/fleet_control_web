@@ -281,7 +281,7 @@ a[href^='#/gap'] div {
   background-color: #121f26;
 }
 
-.nav-bar .hx-icon .svg {
+g.custom-icon {
   stroke-width: 1;
 }
 </style>

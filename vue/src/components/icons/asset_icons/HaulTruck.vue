@@ -1,5 +1,5 @@
 <template>
-  <g id="haul_truck_icon">
+  <g id="haul_truck_icon" class="custom-icon">
     <path
       id="tray"
       d="M 4.2333333,9.1332347 H 19.579166 L 22.225,6.4874047 h 9.525 v 2.64583 h -7.9375 l -9.525,9.5250003 -12.1708334,-7.40833 z"
@@ -21,9 +21,3 @@ export default {
   viewBox: [0, 0, 35, 35],
 };
 </script>
-
-<style>
-#haul_truck_icon {
-  stroke-width: 1.2;
-}
-</style>
