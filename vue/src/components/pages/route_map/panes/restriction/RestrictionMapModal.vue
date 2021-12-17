@@ -27,6 +27,20 @@
             :geofences="locations"
             :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
           />
+
+          <gmap-polyline
+            v-for="(poly, index) in polylineSegments"
+            :key="`segment-${index}`"
+            :path="poly.path"
+            :options="{
+              strokeColor: poly.color,
+              strokeWeight: 10,
+              icons: poly.icons,
+              zIndex: 10,
+            }"
+            @click="onSegmentClick(poly)"
+            @dblclick="stopGEvent"
+          />
         </GmapMap>
       </div>
     </div>
@@ -45,6 +59,46 @@ import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
+import { Dictionary, uniq } from '@/code/helpers';
+import { getNodeGroups, nextDirection, segmentsToPolylines } from '../../common';
+
+function graphToSegments(graph, existingSegments = []) {
+  const existingDirections = new Dictionary();
+  existingSegments.forEach(seg => {
+    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
+  });
+
+  // need to handle existing segments so that data is not lost
+  const vertices = graph.vertices;
+
+  // group edges into segment (a segment contains both directions if avialable)
+  const dict = new Dictionary();
+  Object.values(graph.adjacency).forEach(edges => {
+    edges.forEach(edge => {
+      const orderedIndex = [edge.startVertexId, edge.endVertexId].sort();
+      dict.append(orderedIndex, edge);
+    });
+  });
+
+  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
+    const nodeStartPosition = vertices[nodeAId].data;
+    const nodeEndPosition = vertices[nodeBId].data;
+    const path = [nodeStartPosition, nodeEndPosition];
+
+    const direction = existingDirections.get([nodeAId, nodeBId]) || 'both';
+
+    return {
+      id: index,
+      edges: edges,
+      direction,
+      nodeAId,
+      nodeBId,
+      path,
+    };
+  });
+
+  return segments;
+}
 
 export default {
   name: 'RestrictionMapModal',
@@ -54,7 +108,11 @@ export default {
     RecenterIcon,
     ResetZoomIcon,
   },
-  props: {},
+  props: {
+    graph: { type: Object, required: true },
+    edges: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
+  },
   data: () => {
     return {
       mapType: 'satellite',
@@ -64,15 +122,27 @@ export default {
       },
       zoom: 0,
       showLocations: true,
+      segments: [],
     };
   },
   computed: {
+    google: gmapApi,
     ...mapState('constants', {
       mapManifest: state => state.mapManifest,
       defaultCenter: ({ mapCenter }) => ({ lat: mapCenter.latitude, lng: mapCenter.longitude }),
       defaultZoom: state => state.mapZoom,
     }),
-    google: gmapApi,
+    nodeToSCCGroup() {
+      const group = getNodeGroups(this.graph, this.segments);
+      if (uniq(Object.values(group)).length < 2) {
+        return;
+      }
+
+      return group;
+    },
+    polylineSegments() {
+      return segmentsToPolylines(this.segments, this.nodeToSCCGroup);
+    },
   },
   mounted() {
     this.reCenter();
@@ -86,6 +156,8 @@ export default {
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
+
+    this.segments = graphToSegments(this.graph);
   },
   methods: {
     close(resp) {
@@ -111,6 +183,9 @@ export default {
     },
     toggleShowLocations() {
       this.showLocations = !this.showLocations;
+    },
+    onSegmentClick(poly) {
+      poly.segment.direction = nextDirection(poly.segment.direction);
     },
   },
 };

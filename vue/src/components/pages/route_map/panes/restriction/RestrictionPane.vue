@@ -3,7 +3,10 @@
     <RestrictionGroup
       v-for="(group, index) in localRestrictionGroups"
       :key="index"
-      :value="group"
+      :name.sync="group.name"
+      :graph="graph"
+      :edges="group.edges"
+      :assetTypes="group.assetTypes"
       :locations="locations"
       :canEditName="group.canEditName"
       :canRemove="group.canRemove"
@@ -18,7 +21,7 @@
 
 <script>
 import RestrictionGroup from './RestrictionGroup.vue';
-import { copy, uniq } from '@/code/helpers';
+import { uniq } from '@/code/helpers';
 
 function removeAssetType(groups, assetType) {
   return groups.map(g => {
@@ -55,7 +58,15 @@ export default {
     restrictionGroups: {
       immediate: true,
       handler(groups) {
-        const validGroups = groups.map(copy);
+        const validGroups = groups.map(g => {
+          return {
+            id: g.id,
+            name: g.name,
+            assetTypes: g.assetTypes.slice(),
+            // TODO need to work out how to do this part becuase we need to handle
+            // if the source graph is different
+          };
+        });
 
         const usedAssetTypes = uniq(validGroups.map(g => g.assetTypes).flat());
         const remainingAssetTypes = this.assetTypes
@@ -68,6 +79,7 @@ export default {
           canEditName: false,
           canRemove: false,
           showPreview: false,
+          edges: [],
         };
 
         validGroups.unshift(unusedGroup);
@@ -80,6 +92,9 @@ export default {
       const groups = this.localRestrictionGroups.slice();
       groups[index] = group;
       this.localRestrictionGroups = groups;
+    },
+    updateLocalGroups(groups) {
+      this.localRestrictionGroups = groups || this.localRestrictionGroups;
     },
     onSetAssetTypeUnused({ assetType }) {
       // remove asset type from everywhere
@@ -94,17 +109,18 @@ export default {
       types.push(assetType);
       types.sort((a, b) => a.localeCompare(b));
 
-      this.localRestrictionGroups = filteredGroups;
+      this.updateLocalGroups(filteredGroups);
     },
     onRemove(groupId) {
       const groups = this.localRestrictionGroups.slice();
       groups.splice(groupId, 1);
-      this.localRestrictionGroups = groups;
+
+      this.updateLocalGroups(groups);
     },
     onAddGroup() {
       const groups = this.localRestrictionGroups.slice();
       groups.push({ id: this.nextId, name: 'New Group', assetTypes: [] });
-      this.localRestrictionGroups = groups;
+      this.updateLocalGroups(groups);
     },
   },
 };

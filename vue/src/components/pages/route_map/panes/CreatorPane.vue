@@ -132,37 +132,17 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
-import { copy, Dictionary, uniq } from '@/code/helpers.js';
+import { Dictionary, uniq } from '@/code/helpers.js';
 import { getUniqPaths } from '@/code/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
-import { stronglyConnectedComponents } from '@/code/graph_traversal';
+
+import { segmentsToPolylines, getNodeGroups, nextDirection } from '../common.js';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 10;
 const MODES = ['drawing', 'directions'];
-const DIRECTIONS = ['both', 'positive', 'negative'];
-const SCC_COLORS = ['#007300', '#005a00', '#004000', '#339933', '#66b366', '#99cc99', '#cce6cc'];
-
-const POLYLINE_SYMBOLS = {
-  diamond: {
-    path: 'M 0,1 1,0 -1,0 z',
-    strokeColor: '#F00',
-    fillColor: '#F00',
-    fillOpacity: 1,
-    scale: 1,
-  },
-  arrow: {
-    path: 'M -2,0 0,-4 2,0 z',
-    strokeColor: 'black',
-    fillColor: null,
-    fillOpacity: 1,
-    scale: 1,
-    // anchor units are based off path space
-    anchor: { x: 0, y: -1.5 },
-  },
-};
 
 function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
@@ -244,96 +224,7 @@ function pathsEqual(a, b) {
   return true;
 }
 
-function nextDirection(dir) {
-  const index = DIRECTIONS.indexOf(dir);
-  return DIRECTIONS[index + 1] || DIRECTIONS[0];
-}
 
-function getSymbol(name, opts) {
-  return { ...POLYLINE_SYMBOLS[name], ...(opts || {}) };
-}
-
-function getSegmentOpts(seg, groupLookup) {
-  const icons = getSegmentIcons(seg.direction);
-  const color = getSegmentColor(seg, groupLookup);
-
-  return {
-    color,
-    icons,
-  };
-}
-
-function getSegmentIcons(direction) {
-  const arrowOpts = {
-    strokeOpacity: 1,
-    strokeColor: 'black',
-    strokeWeight: 2,
-    fillOpacity: 1,
-    fillColor: 'green',
-    scale: 4,
-  };
-  switch (direction) {
-    case 'positive':
-      return [
-        {
-          icon: getSymbol('arrow', arrowOpts),
-          offset: '50%',
-        },
-      ];
-    case 'negative':
-      return [
-        {
-          icon: getSymbol('arrow', { ...arrowOpts, rotation: 180 }),
-          offset: '50%',
-        },
-      ];
-    default:
-      return [];
-  }
-}
-
-function getSegmentColor(seg, groupLookup) {
-  if (!groupLookup) {
-    return 'darkgreen';
-  }
-
-  if (groupLookup[seg.nodeAId] !== groupLookup[seg.nodeBId]) {
-    return '#444444';
-  }
-
-  return SCC_COLORS[groupLookup[seg.nodeAId] % SCC_COLORS.length];
-}
-
-function getNodeGroups(graph, segments) {
-  const adjacency = copy(graph.adjacency);
-
-  // for each segment that isnt both, remove the other direction
-  const directionalSegments = segments
-    .filter(s => s.direction !== 'both')
-    .map(s => {
-      const [a, b] = s.direction === 'positive' ? [s.nodeAId, s.nodeBId] : [s.nodeBId, s.nodeAId];
-      return {
-        startId: a,
-        endId: b,
-      };
-    });
-
-  directionalSegments.forEach(s => {
-    adjacency[s.endId] = adjacency[s.endId].filter(e => e.endVertexId !== s.startId);
-  });
-
-  const sccVertices = stronglyConnectedComponents(graph.vertices, adjacency);
-
-  const normaliseGroups = uniq(sccVertices.map(v => v.group)).reduce((acc, group, index) => {
-    acc[group] = index;
-    return acc;
-  }, {});
-
-  return sccVertices.reduce((acc, v) => {
-    acc[graph.vertices[v.id].id] = normaliseGroups[v.group];
-    return acc;
-  }, {});
-}
 
 export default {
   name: 'CreatorPane',
@@ -388,17 +279,16 @@ export default {
       }
       return [];
     },
-    polylineSegments() {
-      const groupLookup = this.nodeToSCCGroup;
-      return this.shapes.segments.map(s => {
-        const opts = getSegmentOpts(s, groupLookup);
+    nodeToSCCGroup() {
+      const group = getNodeGroups(this.graph, this.shapes.segments);
+      if (uniq(Object.values(group)).length < 2) {
+        return;
+      }
 
-        return {
-          segment: s,
-          path: s.path,
-          ...opts,
-        };
-      });
+      return group;
+    },
+    polylineSegments() {
+      return segmentsToPolylines(this.shapes.segments, this.nodeToSCCGroup);
     },
     snapDistance() {
       return pixelsToMeters(this.snapDistancePx, this.zoom);
@@ -408,36 +298,6 @@ export default {
         const center = { lat: v.data.lat, lng: v.data.lng };
         return { center, id: v.id, nodeId: v.data.nodeId };
       });
-    },
-    nodeToSCCGroup() {
-      const group = getNodeGroups(this.graph, this.shapes.segments);
-      if (uniq(Object.values(group)).length < 2) {
-        return;
-      }
-
-      return group;
-    },
-    sccSegments() {
-      const nodeToGroup = getNodeGroups(this.graph, this.shapes.segments);
-
-      if (uniq(Object.values(nodeToGroup)).length < 2) {
-        return [];
-      }
-
-      return this.shapes.segments
-        .map(s => {
-          // start and end ids must have same group
-          if (nodeToGroup[s.nodeAId] !== nodeToGroup[s.nodeBId]) {
-            return null;
-          }
-
-          const color = SCC_COLORS[nodeToGroup[s.nodeAId] % SCC_COLORS.length];
-          return {
-            path: s.path,
-            color: color,
-          };
-        })
-        .filter(s => s);
     },
   },
   watch: {

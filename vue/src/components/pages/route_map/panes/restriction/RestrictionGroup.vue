@@ -66,6 +66,7 @@ import Icon from 'hx-layout/Icon.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
+import RestrictionMapModal from './RestrictionMapModal.vue';
 
 export default {
   name: 'RestrictionGroup',
@@ -76,7 +77,10 @@ export default {
     GMapGeofences,
   },
   props: {
-    value: { type: Object },
+    name: { type: String, default: '' },
+    assetTypes: { type: Array, default: () => [] },
+    graph: { type: Object },
+    edges: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     canEditName: { type: Boolean, default: true },
     canRemove: { type: Boolean, default: true },
@@ -105,12 +109,6 @@ export default {
       defaultCenter: ({ mapCenter }) => ({ lat: mapCenter.latitude, lng: mapCenter.longitude }),
       defaultZoom: state => state.mapZoom,
     }),
-    assetTypes() {
-      return this.value?.assetTypes || [];
-    },
-    name() {
-      return this.value?.name || '';
-    },
   },
   mounted() {
     this.reCenter();
@@ -131,9 +129,6 @@ export default {
     getPayload(index) {
       return this.assetTypes[index];
     },
-    update(changes) {
-      this.$emit('update', { ...this.value, ...changes });
-    },
     onDrop({ addedIndex, removedIndex, payload }) {
       // is added
       if (addedIndex != null && removedIndex == null) {
@@ -141,13 +136,20 @@ export default {
       }
     },
     onNameChange(event) {
-      this.update({ name: event.target.value });
+      this.$emit('update:name', event.target.value);
     },
     onRemove() {
       this.$emit('remove');
     },
-    onedit() {
-      console.dir('---- edit');
+    onEdit() {
+      const opts = {
+        locations: this.locations,
+        graph: this.graph,
+        edges: this.edges || [],
+      };
+      this.$modal.create(RestrictionMapModal, opts).onClose(resp => {
+        console.dir(resp);
+      });
     },
     reCenter() {
       this.moveTo(this.defaultCenter);
