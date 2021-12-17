@@ -22,9 +22,13 @@
         <Icon v-tooltip="type" class="asset-type-icon" :icon="icons[type]" />
       </Draggable>
     </Container>
-    <!-- <button v-if="canRemove && assetTypes.length === 0" class="remove hx-btn" @click="onRemove()">
+    <button
+      v-if="canRemove && assetTypes.length === 0"
+      class="hx-btn remove-btn"
+      @click="onRemove()"
+    >
       Remove
-    </button> -->
+    </button>
   </div>
 </template>
 
@@ -99,12 +103,13 @@ export default {
   font-style: italic;
 }
 
-.restriction-group .remove {
+.restriction-group .remove-btn {
   position: relative;
-  top: -3.5rem;
-  height: 2rem;
   width: 6rem;
+  top: -3rem;
   left: calc(50% - 3rem);
+  margin-top: -5rem;
+  margin-bottom: -5rem;
 }
 
 /* dnd wrappers */

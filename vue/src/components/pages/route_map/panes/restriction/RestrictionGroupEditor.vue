@@ -12,6 +12,7 @@
       :value="group"
       @update="onGroupUpdate(index, $event)"
       @added="onAssetTypeAdded(index, $event)"
+      @remove="onRemove(index)"
     />
     <button class="hx-btn" @click="onAddGroup">Add</button>
   </div>
@@ -81,6 +82,11 @@ export default {
       types.sort((a, b) => a.localeCompare(b));
 
       this.$emit('input', filteredGroups);
+    },
+    onRemove(groupIndex) {
+      const groups = this.value;
+      groups.splice(groupIndex, 1);
+      this.$emit('input', groups);
     },
   },
 };
