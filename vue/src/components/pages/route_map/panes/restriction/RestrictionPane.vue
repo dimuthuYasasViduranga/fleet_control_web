@@ -19,6 +19,29 @@
     />
 
     <div v-show="selectedMode === 'map'" class="map-wrapper">
+      <div class="groups">
+        <div
+          class="group-tile"
+          v-for="(group, index) in localRestrictionGroups"
+          :key="index"
+          :class="{ unset: !group.graph }"
+        >
+          <div class="name">{{ group.name }}</div>
+          <div class="actions">
+            <div>
+              <button class="hx-btn" @click="onSetGraph(group)">Set</button>
+              <button class="hx-btn" :disabled="!group.graph" @click="onLoadGraph(group)">
+                Load
+              </button>
+            </div>
+            <div>
+              <button class="hx-btn" :disabled="!group.graph" @click="onClearGraph(group)">
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="gmap-map">
         <div style="display: none">
           <RecenterIcon ref="recenter-control" tooltip="right" @click.native="reCenter" />
@@ -95,7 +118,7 @@ export default {
       zoom: 0,
       showLocations: true,
       modes: MODES,
-      selectedMode: MODES[0],
+      selectedMode: MODES[1],
     };
   },
   computed: {
@@ -156,6 +179,19 @@ export default {
       this.localRestrictionGroups[index] = newGroup;
       this.localRestrictionGroups = this.localRestrictionGroups.slice();
     },
+    onSetGraph(group) {
+      console.dir('---- set graph');
+      group.graph = true;
+      this.localRestrictionGroups = this.localRestrictionGroups.slice();
+    },
+    onLoadGraph(group) {
+      console.dir('=--- load graph');
+    },
+    onClearGraph(group) {
+      console.dir('---- clear graph');
+      group.graph = false;
+      this.localRestrictionGroups = this.localRestrictionGroups.slice();
+    },
   },
 };
 </script>
@@ -177,6 +213,41 @@ export default {
 .restriction-pane > .modes > button.selected {
   border-color: #b6c3cc;
   opacity: 1;
+}
+
+/* groups */
+.restriction-pane .groups {
+  display: inline-flex;
+}
+
+.restriction-pane .groups .group-tile {
+  min-width: 8rem;
+  text-align: center;
+  border: 1px solid gray;
+  margin: 0.1rem;
+}
+
+.restriction-pane .groups .group-tile.unset {
+  border-color: orange;
+}
+
+.restriction-pane .groups .group-tile .actions > * {
+  display: flex;
+}
+
+.restriction-pane .groups .group-tile .actions button {
+  margin: 2px;
+  width: 100%;
+}
+
+.restriction-pane .groups .group-tile .actions button[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.restriction-pane .groups .group-tile .name {
+  font-size: 1.6rem;
+  padding: 0 0.5rem;
 }
 
 /* map */
