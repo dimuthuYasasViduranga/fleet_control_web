@@ -36,6 +36,10 @@
           :locations="locations"
           :restrictionGroups="restrictionGroups"
           :assetTypes="assetTypes"
+          @add="onAddRestrictionGroup"
+          @move="onRestrictionAssetTypeMove"
+          @edit="onEditRestrictionGroup"
+          @remove="onRemoveRestrictionGroup"
         />
         <ReviewPane v-else-if="selectedStage === 'review'" />
       </div>
@@ -57,11 +61,12 @@ import MinimiseIcon from '@/components/icons/Minimise.vue';
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
 import { fromRoute, Graph } from '@/code/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
-import { toLookup } from '@/code/helpers';
+import { IdGen, toLookup } from '@/code/helpers';
 import { graphToSegments, nextDirection } from './common';
 
 const STAGES = ['create', 'restrict', 'review'];
 const SNAP_DISTANCE_PX = 10;
+const RestrictionIDGen = new IdGen(-1, -1);
 
 export default {
   name: 'RouteEditorModal',
@@ -99,6 +104,7 @@ export default {
             id: r.id,
             name: r.name,
             assetTypes,
+            edgeIds: [],
           };
         });
       },
@@ -154,7 +160,18 @@ export default {
       this.segments = graphToSegments(this.graph, this.segments);
     },
     reloadRestrictionGroups() {
-      this.restrictionGroups = this.routeRestrictionGroups.slice();
+      const groups = this.routeRestrictionGroups.slice();
+      if (groups.length === 0) {
+        groups = [
+          {
+            id: RestrictionIDGen.next(),
+            name: 'Default',
+            assetTypes: this.assetTypes.map(at => at.type),
+            edgeIds: [],
+          },
+        ];
+      }
+      this.restrictionGroups = groups;
     },
     onEditPolyline({ newPath, oldPath, zoom }) {
       this.graph = editGraph(this.graph, newPath, oldPath, zoom, this.snapDistancePx);
@@ -165,6 +182,39 @@ export default {
     onToggleSegment(segment) {
       // this will need to be an emit
       segment.direction = nextDirection(segment.direction);
+    },
+    onAddRestrictionGroup() {
+      const groups = this.restrictionGroups.slice();
+      groups.push({
+        id: RestrictionIDGen.next(),
+        name: 'New Group',
+        assetTypes: [],
+        edgeIds: [],
+      });
+      this.restrictionGroups = groups;
+    },
+    onEditRestrictionGroup({ index, newGroup }) {
+      const groups = this.restrictionGroups.slice();
+      groups[index] = newGroup;
+      this.restrictionGroups = groups;
+    },
+    onRemoveRestrictionGroup(index) {
+      const groups = this.restrictionGroups.slice();
+      groups.splice(index, 1);
+      this.restrictionGroups = groups;
+    },
+    onRestrictionAssetTypeMove({ index, assetType }) {
+      const groups = this.restrictionGroups.map(g => {
+        return {
+          ...g,
+          assetTypes: g.assetTypes.filter(t => t !== assetType),
+        };
+      });
+
+      groups[index].assetTypes.push(assetType);
+      groups[index].assetTypes.sort((a, b) => a.localeCompare(b));
+
+      this.restrictionGroups = groups;
     },
   },
 };

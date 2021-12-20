@@ -1,7 +1,7 @@
 <template>
   <div class="restriction-pane">
     <RestrictionGroup
-      v-for="(group, index) in localRestrictionGroups"
+      v-for="(group, index) in restrictionGroups"
       :key="index"
       :name.sync="group.name"
       :graph="directionalGraph"
@@ -22,16 +22,7 @@
 
 <script>
 import RestrictionGroup from './RestrictionGroup.vue';
-import { uniq } from '@/code/helpers';
-
-function removeAssetType(groups, assetType) {
-  return groups.map(g => {
-    return {
-      ...g,
-      assetTypes: g.assetTypes.filter(t => t !== assetType),
-    };
-  });
-}
+import { copy } from '@/code/helpers';
 
 export default {
   name: 'RestrictionPane',
@@ -45,14 +36,9 @@ export default {
     assetTypes: { type: Array, default: () => [] },
     restrictionGroups: { type: Array, default: () => [] },
   },
-  data: () => {
-    return {
-      localRestrictionGroups: [],
-    };
-  },
   computed: {
     nextId() {
-      const ids = this.localRestrictionGroups.map(g => g.id || 0);
+      const ids = this.restrictionGroups.map(g => g.id || 0);
       return Math.min(...ids, 0) - 1;
     },
     directionalGraph() {
@@ -70,78 +56,24 @@ export default {
       return graph;
     },
   },
-  watch: {
-    restrictionGroups: {
-      immediate: true,
-      handler(groups) {
-        const validGroups = groups.map(g => {
-          return {
-            id: g.id,
-            name: g.name,
-            assetTypes: g.assetTypes.slice(),
-            // TODO need to work out how to do this part becuase we need to handle
-            // if the source graph is different
-          };
-        });
 
-        const usedAssetTypes = uniq(validGroups.map(g => g.assetTypes).flat());
-        const remainingAssetTypes = this.assetTypes
-          .map(at => at.type)
-          .filter(t => !usedAssetTypes.includes(t));
-
-        const unusedGroup = {
-          name: '-- Unused --',
-          assetTypes: remainingAssetTypes,
-          canEditName: false,
-          canRemove: false,
-          showPreview: false,
-          edgeIds: [],
-        };
-
-        validGroups.unshift(unusedGroup);
-        this.localRestrictionGroups = validGroups;
-      },
-    },
-  },
   methods: {
-    onGroupUpdate(index, group) {
-      const groups = this.localRestrictionGroups.slice();
-      groups[index] = group;
-      this.localRestrictionGroups = groups;
+    onGroupUpdate(index, newGroup) {
+      this.$emit('edit', { index, newGroup });
     },
-    updateLocalGroups(groups) {
-      this.localRestrictionGroups = groups || this.localRestrictionGroups;
+    onAssetTypeAdded(index, { assetType }) {
+      this.$emit('move', { index, assetType });
     },
-    onSetAssetTypeUnused({ assetType }) {
-      // remove asset type from everywhere
-      this.localRestrictionGroups = removeAssetType(this.localRestrictionGroups, assetType);
-    },
-    onAssetTypeAdded(groupIndex, { assetType }) {
-      // remove asset type from everywhere
-      const filteredGroups = removeAssetType(this.localRestrictionGroups, assetType);
-
-      // add it into the new group
-      const types = filteredGroups[groupIndex].assetTypes;
-      types.push(assetType);
-      types.sort((a, b) => a.localeCompare(b));
-
-      this.updateLocalGroups(filteredGroups);
-    },
-    onRemove(groupId) {
-      const groups = this.localRestrictionGroups.slice();
-      groups.splice(groupId, 1);
-
-      this.updateLocalGroups(groups);
+    onRemove(groupIndex) {
+      this.$emit('remove', groupIndex);
     },
     onAddGroup() {
-      const groups = this.localRestrictionGroups.slice();
-      groups.push({ id: this.nextId, name: 'New Group', assetTypes: [], edgeIds: [] });
-      this.updateLocalGroups(groups);
+      this.$emit('add');
     },
-    onEdgesChanged(groupId, edgeIds) {
-      const groups = this.localRestrictionGroups.slice();
-      groups[groupId].edgeIds = edgeIds;
-      this.updateLocalGroups(groups);
+    onEdgesChanged(index, edgeIds) {
+      const newGroup = copy(this.restrictionGroups[index]);
+      newGroup.edgeIds = edgeIds;
+      this.$emit('edit', { index, newGroup });
     },
   },
 };
