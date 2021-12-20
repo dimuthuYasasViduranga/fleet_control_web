@@ -79,11 +79,41 @@ import Icon from 'hx-layout/Icon.vue';
 
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 
-import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import RestrictionMapModal from './RestrictionMapModal.vue';
+
+import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { graphToSegments, segmentsToPolylines } from '../../common';
 
 const FIT_PADDING = 20;
+
+function edgesToSegments(graph, edgeIds) {
+  const edgeLookup = edgeIds.reduce((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {});
+
+  return graphToSegments(graph)
+    .map(s => {
+      const aId = s.edges.find(e => e.endVertexId === s.nodeBId).data.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.nodeAId).data.edgeId;
+
+      const e1 = edgeLookup[aId];
+      const e2 = edgeLookup[bId];
+
+      if (!e1 && !e2) {
+        return;
+      }
+
+      if (e1 && !e2) {
+        s.direction = 'positive';
+      } else if (!e1 && e2) {
+        s.direction = 'negative';
+      }
+
+      return s;
+    })
+    .filter(s => s);
+}
 
 export default {
   name: 'RestrictionGroup',
@@ -127,11 +157,7 @@ export default {
       defaultZoom: state => state.mapZoom,
     }),
     segments() {
-      const edgeLookup = this.edgeIds.reduce((acc, id) => {
-        acc[id] = true;
-        return acc;
-      }, {});
-      return graphToSegments(this.graph).filter(s => s.edges.some(e => edgeLookup[e.data.edgeId]));
+      return edgesToSegments(this.graph, this.edgeIds);
     },
     polylineSegments() {
       return segmentsToPolylines(this.segments);
