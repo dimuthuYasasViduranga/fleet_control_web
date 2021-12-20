@@ -7,7 +7,8 @@
   border-radius: 0;
 }
 
-.g-control {
+.g-control,
+.g-button {
   line-height: 38px;
   height: 40px;
   text-align: center;
@@ -23,6 +24,10 @@
   border: none;
   cursor: pointer;
   margin: 1px;
+}
+
+.g-button:hover {
+  background-color: #ebebeb;
 }
 
 .g-control[g-position='TOP_LEFT'],

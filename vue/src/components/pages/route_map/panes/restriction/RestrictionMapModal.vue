@@ -12,6 +12,12 @@
             :highlight="!showLocations"
             @click.native="toggleShowLocations()"
           />
+          <button ref="selection-all-control" class="g-button" @click="onSelectAll()">
+            Select All
+          </button>
+          <button ref="selection-clear-control" class="g-button" @click="onClearSelected()">
+            Clear All
+          </button>
         </div>
         <GmapMap
           ref="gmap"
@@ -180,6 +186,8 @@ export default {
       attachControl(map, this.google, this.$refs['recenter-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['reset-zoom-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['selection-all-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['selection-clear-control'], 'TOP_LEFT');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
 
@@ -240,6 +248,16 @@ export default {
         .filter(id => id);
 
       this.close(edgeIds);
+    },
+    onSelectAll() {
+      this.selectedSegments = this.segments.reduce((acc, s) => {
+        acc[s.id] = true;
+        return acc;
+      }, {});
+    },
+    onClearSelected() {
+      this.segments.forEach(s => (s.direction = 'both'));
+      this.selectedSegments = {};
     },
   },
 };
