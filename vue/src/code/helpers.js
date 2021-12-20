@@ -286,9 +286,9 @@ export class Dictionary {
   }
 }
 
-export function toLookup(arr, on, mapper = e => e) {
+export function toLookup(arr, on = e => e.id, mapper = e => e) {
   return arr.reduce((acc, elem) => {
-    acc[elem[on]] = mapper(elem);
+    acc[on(elem)] = mapper(elem);
     return acc;
   }, {});
 }

@@ -577,7 +577,7 @@ const actions = {
   setRoutingData({ commit }, data) {
     data = data || {};
     const nodes = (data.nodes || []).map(parseRouteNode);
-    const nodeLookup = toLookup(nodes, 'id');
+    const nodeLookup = toLookup(nodes, e => e.id);
     const edges = (data.edges || []).map(e => parseRouteEdge(e, nodeLookup));
     const restrictionGroups = (data.restriction_groups || []).map(parseRouteRestrictionGroup);
     const routes = (data.routes || []).map(parseRoute);

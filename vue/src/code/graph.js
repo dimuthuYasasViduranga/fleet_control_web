@@ -24,8 +24,8 @@ export function fromRoute(nodes, edges, route) {
     return new Graph();
   }
 
-  const edgeLookup = toLookup(edges, 'id');
-  const nodeLookup = toLookup(nodes, 'id');
+  const edgeLookup = toLookup(edges, e => e.id);
+  const nodeLookup = toLookup(nodes, e => e.id);
   const nodeToVertexId = {};
 
   const usedEdges = route.edgeIds.map(id => edgeLookup[id]).filter(e => e);

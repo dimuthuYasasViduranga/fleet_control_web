@@ -121,11 +121,11 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
   const addedEdges = newEdges.filter(e => e.id < 0);
 
   // removed vertices (if they are a termination for another segment, they cannot be removed)
-  const newVerticesLookup = toLookup(newVertices, 'id');
+  const newVerticesLookup = toLookup(newVertices, e => e.id);
   const maybeRemovedVertices = oldVertices.filter(v => !newVerticesLookup[v.id]);
 
   // removed edges
-  const newEdgeLookup = toLookup(newEdges, 'id');
+  const newEdgeLookup = toLookup(newEdges, e => e.id);
   const removedEdges = oldEdges.filter(e => !newEdgeLookup[e.id]);
 
   return applyChanges(graph, addedVertices, addedEdges, maybeRemovedVertices, removedEdges);

@@ -239,7 +239,7 @@ export default {
       this.refreshSelectedSegments();
     },
     onAccept() {
-      const segmentLookup = toLookup(this.segments, 'id');
+      const segmentLookup = toLookup(this.segments, e => e.id);
 
       const edgeIds = Object.keys(this.selectedSegments)
         .map(sId => segmentLookup[parseInt(sId, 10)])

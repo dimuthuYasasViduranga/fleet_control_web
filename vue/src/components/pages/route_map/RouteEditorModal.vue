@@ -97,7 +97,7 @@ export default {
       edges: state => state.routeEdges,
       routes: state => state.routes,
       routeRestrictionGroups: state => {
-        const lookup = toLookup(state.assetTypes, 'id', e => e.type);
+        const lookup = toLookup(state.assetTypes, e => e.id, e => e.type);
         return state.routeRestrictionGroups.map(r => {
           const assetTypes = r.assetTypeIds.map(id => lookup[id]);
           return {
