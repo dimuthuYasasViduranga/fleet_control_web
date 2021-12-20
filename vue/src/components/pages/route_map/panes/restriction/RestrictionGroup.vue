@@ -9,7 +9,7 @@
       :disabled="!canEditName"
       @change="onNameChange"
     />
-    {{edgeIds}}
+    {{ edgeIds }}
     <button
       v-if="canRemove && assetTypes.length === 0"
       class="hx-btn"
@@ -36,6 +36,19 @@
               <g-map-geofences
                 :geofences="locations"
                 :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
+              />
+
+              <gmap-polyline
+                v-for="(poly, index) in polylineSegments"
+                :key="`segment-${index}`"
+                :path="poly.path"
+                :options="{
+                  strokeColor: poly.color,
+                  strokeWeight: 10,
+                  icons: poly.icons,
+                  zIndex: 10,
+                  clickable: false,
+                }"
               />
             </GmapMap>
           </div>
@@ -68,6 +81,9 @@ import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import RestrictionMapModal from './RestrictionMapModal.vue';
+import { graphToSegments, segmentsToPolylines } from '../../common';
+
+const FIT_PADDING = 20;
 
 export default {
   name: 'RestrictionGroup',
@@ -110,6 +126,21 @@ export default {
       defaultCenter: ({ mapCenter }) => ({ lat: mapCenter.latitude, lng: mapCenter.longitude }),
       defaultZoom: state => state.mapZoom,
     }),
+    segments() {
+      const edgeLookup = this.edgeIds.reduce((acc, id) => {
+        acc[id] = true;
+        return acc;
+      }, {});
+      return graphToSegments(this.graph).filter(s => s.edges.some(e => edgeLookup[e.data.edgeId]));
+    },
+    polylineSegments() {
+      return segmentsToPolylines(this.segments);
+    },
+  },
+  watch: {
+    polylineSegments() {
+      this.fitSegments();
+    },
   },
   mounted() {
     this.reCenter();
@@ -122,10 +153,12 @@ export default {
       setMapTypeOverlay(map, this.google, this.mapManifest);
       // trigger fit bounds on the graph
     });
+
+    this.fitSegments();
   },
   methods: {
     gPromise() {
-      return this.$refs.gmap.$mapPromise;
+      return this.$refs.gmap?.$mapPromise || Promise.reject('not_loaded');
     },
     getPayload(index) {
       return this.assetTypes[index];
@@ -135,6 +168,20 @@ export default {
       if (addedIndex != null && removedIndex == null) {
         this.$emit('added', { assetType: payload });
       }
+    },
+    fitSegments() {
+      const segments = this.segments;
+      if (!segments.length) {
+        this.resetZoom();
+        this.reCenter();
+      }
+
+      const bounds = new this.google.maps.LatLngBounds();
+      segments.forEach(s => s.path.forEach(p => bounds.extend(p)));
+
+      this.gPromise().then(map => {
+        map.fitBounds(bounds, FIT_PADDING);
+      });
     },
     onNameChange(event) {
       this.$emit('update:name', event.target.value);

@@ -211,6 +211,9 @@ export default {
     toggleShowLocations() {
       this.showLocations = !this.showLocations;
     },
+    refreshSelectedSegments() {
+      this.selectedSegments = { ...this.selectedSegments };
+    },
     onSegmentClick(poly) {
       // toggle on, or set direction
       if (!this.selectedSegments[poly.segment.id]) {
@@ -220,12 +223,12 @@ export default {
         poly.segment.direction = nextDirection(poly.segment.direction);
       }
 
-      this.selectedSegments = { ...this.selectedSegments };
+      this.refreshSelectedSegments();
     },
     onSegmentRightClick(poly) {
       poly.segment.direction = 'both';
       delete this.selectedSegments[poly.segment.id];
-      this.selectedSegments = { ...this.selectedSegments };
+      this.refreshSelectedSegments();
     },
     onAccept() {
       const segmentLookup = toLookup(this.segments, 'id');
