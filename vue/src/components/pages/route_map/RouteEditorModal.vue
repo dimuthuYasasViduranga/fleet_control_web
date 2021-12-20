@@ -97,7 +97,11 @@ export default {
       edges: state => state.routeEdges,
       routes: state => state.routes,
       routeRestrictionGroups: state => {
-        const lookup = toLookup(state.assetTypes, e => e.id, e => e.type);
+        const lookup = toLookup(
+          state.assetTypes,
+          e => e.id,
+          e => e.type,
+        );
         return state.routeRestrictionGroups.map(r => {
           const assetTypes = r.assetTypeIds.map(id => lookup[id]);
           return {
@@ -115,6 +119,7 @@ export default {
       immediate: true,
       handler() {
         this.reloadGraphSegments();
+        this.cullRestrictionGroups();
       },
     },
     routeRestrictionGroups: {
@@ -172,6 +177,18 @@ export default {
         ];
       }
       this.restrictionGroups = groups;
+    },
+    cullRestrictionGroups() {
+      const availableEdges = Object.values(this.graph.adjacency).flat();
+      const edgeLookup = toLookup(
+        availableEdges,
+        e => e.data.edgeId,
+        () => true,
+      );
+      this.restrictionGroups.forEach(r => {
+        r.edgeIds = r.edgeIds.filter(id => edgeLookup[id]);
+      });
+      this.restrictionGroups = this.restrictionGroups.slice();
     },
     onEditPolyline({ newPath, oldPath, zoom }) {
       this.graph = editGraph(this.graph, newPath, oldPath, zoom, this.snapDistancePx);
