@@ -42,6 +42,7 @@
           <template v-if="selectedMode === 'drawing'">
             <GMapDrawingControls :show="!canEdit" :modes="['polyline']" @create="onShapeCreate" />
             <GMapEditable
+              v-if="canEdit"
               ref="gmap-editable"
               :edit.sync="canEdit"
               :clickToEdit="false"
@@ -216,8 +217,7 @@ export default {
       selectedPolyline: null,
       showLocations: true,
       modes: MODES,
-      // selectedMode: MODES[0],
-      selectedMode: MODES[1],
+      selectedMode: 'drawing',
     };
   },
   computed: {

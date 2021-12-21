@@ -180,6 +180,15 @@ export default {
         createSegmentPolyline(s, this.selectedSegments),
       );
     },
+    selectedEdgeIds() {
+      const segmentLookup = toLookup(this.segments, e => e.id);
+
+      return Object.keys(this.selectedSegments)
+        .map(sId => segmentLookup[parseInt(sId, 10)])
+        .map(seg => getSegmentEdgeIds(this.graph, seg))
+        .flat()
+        .filter(id => id);
+    },
   },
   mounted() {
     this.reCenter();
@@ -247,15 +256,7 @@ export default {
       this.refreshSelectedSegments();
     },
     onAccept() {
-      const segmentLookup = toLookup(this.segments, e => e.id);
-
-      const edgeIds = Object.keys(this.selectedSegments)
-        .map(sId => segmentLookup[parseInt(sId, 10)])
-        .map(seg => getSegmentEdgeIds(this.graph, seg))
-        .flat()
-        .filter(id => id);
-
-      this.close(edgeIds);
+      this.close(this.selectedEdgeIds);
     },
     onSelectAll() {
       this.selectedSegments = this.segments.reduce((acc, s) => {

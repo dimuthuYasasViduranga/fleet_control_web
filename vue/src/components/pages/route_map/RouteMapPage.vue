@@ -80,8 +80,6 @@ export default {
       graph: new Graph(),
       snapDistancePx: 10,
       mapMode: 'routing',
-      // mapMode: 'traversal',
-      // mapMode: 'segment',
     };
   },
   computed: {
@@ -107,13 +105,9 @@ export default {
     reloadGraph() {
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
-      // this.graph = createTempGraph();
     },
     onRouteCreate({ path, zoom }) {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
-      // console.dir('----------');
-      // console.dir(JSON.stringify(this.graph.vertices, null, 2));
-      // console.dir(JSON.stringify(this.graph.adjacency, null, 2));
     },
     onRouteDelete(vertices) {
       this.graph = removePolylineFromGraph(this.graph, vertices);

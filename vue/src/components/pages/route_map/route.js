@@ -100,7 +100,8 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     .map(([v1, v2]) => {
       return [graph.getEdge(v1.id, v2.id), graph.getEdge(v2.id, v1.id)];
     })
-    .flat();
+    .flat()
+    .filter(e => e);
 
   // get new/existing edges
   const newEdges = chunkEvery(newVertices, 2, 1, 'discard')
