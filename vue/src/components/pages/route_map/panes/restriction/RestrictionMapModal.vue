@@ -74,10 +74,12 @@ import { toLookup, uniq } from '@/code/helpers';
 import { getNodeGroups, graphToSegments, nextDirection, segmentsToPolylines } from '../../common';
 
 function createSegmentPolyline(polyline, selectedSegments) {
-  if (selectedSegments[polyline.segment.id]) {
-    polyline.color = 'darkgreen';
-  } else {
-    polyline.color = 'black';
+  const isSelected = selectedSegments[polyline.segment.id];
+  const color = isSelected ? 'darkgreen' : 'black';
+  polyline.color = color;
+
+  if (!isSelected && polyline.icons) {
+    polyline.icons.forEach(i => (i.icon.fillColor = 'black'));
   }
 
   return polyline;
@@ -97,9 +99,9 @@ function initialiseSelectedSegments(segments, edgeIds) {
 function getSegmentEdgeIds(graph, segment) {
   switch (segment.direction) {
     case 'positive':
-      return [graph.getEdge(segment.nodeAId, segment.nodeBId).data.edgeId];
+      return [graph.getEdge(segment.nodeAId, segment.nodeBId)?.data?.edgeId];
     case 'negative':
-      return [graph.getEdge(segment.nodeBId, segment.nodeAId).data.edgeId];
+      return [graph.getEdge(segment.nodeBId, segment.nodeAId)?.data?.edgeId];
     default:
       return segment.edges.map(e => e.data.edgeId);
   }
@@ -111,18 +113,22 @@ function edgesToSegments(graph, edgeIds) {
     return acc;
   }, {});
   return graphToSegments(graph).map(s => {
-    const aId = s.edges.find(e => e.endVertexId === s.nodeBId).data.edgeId;
-    const bId = s.edges.find(e => e.endVertexId === s.nodeAId).data.edgeId;
-
-    const e1 = edgeLookup[aId];
-    const e2 = edgeLookup[bId];
-
-    if (!e1 && !e2) {
+    if (s.edges.length === 2) {
       s.direction = 'both';
-    } else if (e1 && !e2) {
-      s.direction = 'positive';
-    } else if (!e1 && e2) {
-      s.direction = 'negative';
+    } else {
+      // TODO: something is not producing the edge correctly
+
+      const aId = s.edges.find(e => e.endVertexId === s.nodeBId)?.data.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.nodeAId)?.data.edgeId;
+
+      const e1 = edgeLookup[aId];
+      const e2 = edgeLookup[bId];
+
+      if (e1 && !e2) {
+        s.direction = 'positive';
+      } else if (!e1 && e2) {
+        s.direction = 'negative';
+      }
     }
 
     return s;
@@ -223,18 +229,22 @@ export default {
       this.selectedSegments = { ...this.selectedSegments };
     },
     onSegmentClick(poly) {
-      // toggle on, or set direction
+      // toggle on
       if (!this.selectedSegments[poly.segment.id]) {
         this.selectedSegments[poly.segment.id] = true;
-      } else {
-        // need to determine if the next direction is available or not
+      }
+
+      // set direction if possible
+      if (poly.segment.edges.length !== 1) {
         poly.segment.direction = nextDirection(poly.segment.direction);
       }
 
       this.refreshSelectedSegments();
     },
     onSegmentRightClick(poly) {
-      poly.segment.direction = 'both';
+      if (poly.segment.edges.length === 2) {
+        poly.segment.direction = 'both';
+      }
       delete this.selectedSegments[poly.segment.id];
       this.refreshSelectedSegments();
     },

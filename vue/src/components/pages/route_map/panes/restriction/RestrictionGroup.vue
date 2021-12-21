@@ -94,8 +94,8 @@ function edgesToSegments(graph, edgeIds) {
 
   return graphToSegments(graph)
     .map(s => {
-      const aId = s.edges.find(e => e.endVertexId === s.nodeBId).data.edgeId;
-      const bId = s.edges.find(e => e.endVertexId === s.nodeAId).data.edgeId;
+      const aId = s.edges.find(e => e.endVertexId === s.nodeBId)?.data?.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.nodeAId)?.data?.edgeId;
 
       const e1 = edgeLookup[aId];
       const e2 = edgeLookup[bId];

@@ -197,7 +197,6 @@ export default {
       this.graph = addPolylineToGraph(this.graph, path, zoom, this.snapDistancePx);
     },
     onToggleSegment(segment) {
-      // this will need to be an emit
       segment.direction = nextDirection(segment.direction);
     },
     onAddRestrictionGroup() {
