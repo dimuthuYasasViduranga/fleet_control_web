@@ -11,6 +11,8 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "@turf/boolean-within": "^6.5.0",
+    "@turf/helpers": "^6.5.0",
     "@types/phoenix": "^0.0.4",
     "axios": "^0.21.0",
     "core-js": "^3.6.5",

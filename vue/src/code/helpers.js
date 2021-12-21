@@ -310,3 +310,7 @@ export class IdGen {
     this._id = this._start;
   }
 }
+
+export function approx(a, b, epsilon = 0.0001) {
+  return Math.abs(a - b) < epsilon;
+}

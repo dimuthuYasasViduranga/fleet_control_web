@@ -35,8 +35,14 @@
         >
           <g-map-geofences
             v-if="showLocations"
-            :geofences="locations"
-            :options="{ fillOpacity: 0.2, strokeOpacity: 0.2 }"
+            :geofences="geofences.accessible"
+            :options="{ fillOpacity: 0.3, strokeOpacity: 0.2 }"
+          />
+
+          <g-map-geofences
+            v-if="showLocations"
+            :geofences="geofences.inaccessible"
+            :options="{ fillOpacity: 0.3, strokeOpacity: 0.3, strokeColor: 'red' }"
           />
 
           <template v-if="selectedMode === 'drawing'">
@@ -122,7 +128,6 @@
 <script>
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
-import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
@@ -137,8 +142,10 @@ import { uniq } from '@/code/helpers.js';
 import { getUniqPaths } from '@/code/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
-
+import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
+import { coordsObjsToCoordArrays } from '@/code/turfHelpers';
 import { segmentsToPolylines, getNodeGroups } from '../common.js';
+import turf from '@/code/turf';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
@@ -185,6 +192,32 @@ function pathsEqual(a, b) {
   }
 
   return true;
+}
+
+function splitLocationsByAccessibility(graph, locations) {
+  const points = Object.values(graph.vertices).map(v => {
+    return turf.point([v.data.lng, v.data.lat]);
+  });
+
+  return locations
+    .map(l => {
+      return {
+        location: l,
+        polygon: turf.polygon([coordsObjsToCoordArrays(l.geofence)]),
+      };
+    })
+    .reduce(
+      (acc, g) => {
+        if (points.some(p => turf.booleanWithin(p, g.polygon))) {
+          acc.accessible.push(g.location);
+        } else {
+          acc.inaccessible.push(g.location);
+        }
+
+        return acc;
+      },
+      { accessible: [], inaccessible: [] },
+    );
 }
 
 export default {
@@ -256,6 +289,9 @@ export default {
         const center = { lat: v.data.lat, lng: v.data.lng };
         return { center, id: v.id, nodeId: v.data.nodeId };
       });
+    },
+    geofences() {
+      return splitLocationsByAccessibility(this.graph, this.locations);
     },
   },
   watch: {

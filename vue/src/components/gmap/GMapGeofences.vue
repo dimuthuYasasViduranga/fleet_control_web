@@ -14,7 +14,7 @@
 <script>
 const DEFAULT_COLORS = {
   parkup: 'red',
-  maintenance: 'darkgrey',
+  maintenance: '#555555',
   fuel_bay: 'orange',
   load: 'green',
   'load|dump': 'darkorange',
@@ -39,7 +39,7 @@ function getGeofenceOptions(colors, options, geofence, unselected) {
   const fillColor = colors[geofence.type] || colors.default;
   const fillOpacity = unselected ? unselectedFillOpacity : options.fillOpacity;
 
-  const strokeColor = fillColor;
+  const strokeColor = options.strokeColor || fillColor;
   const strokeOpacity = unselected ? unselectedStrokeOpacity : options.strokeOpacity;
   const strokeWeight = options.strokeWeight;
 
