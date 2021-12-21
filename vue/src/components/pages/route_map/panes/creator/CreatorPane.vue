@@ -11,7 +11,13 @@
         {{ mode }}
       </button>
     </div>
-    <div class="map-wrapper">
+    <RouteImport
+      v-if="selectedMode === 'import'"
+      :segments="segments"
+      :locations="locations"
+      @add="onImportPath"
+    />
+    <div v-show="selectedMode !== 'import'" class="map-wrapper">
       <div class="gmap-map">
         <div style="display: none">
           <RecenterIcon ref="recenter-control" tooltip="right" @click.native="reCenter" />
@@ -133,6 +139,7 @@ import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import GMapLabel from '@/components/gmap/GMapLabel.vue';
+import RouteImport from './RouteImport.vue';
 
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
@@ -144,13 +151,13 @@ import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { coordsObjsToCoordArrays } from '@/code/turfHelpers';
-import { segmentsToPolylines, getNodeGroups } from '../common.js';
+import { segmentsToPolylines, getNodeGroups } from '../../common.js';
 import turf from '@/code/turf';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';
 const ROUTE_WIDTH = 12;
-const MODES = ['drawing', 'directions'];
+const MODES = ['import', 'drawing', 'directions'];
 
 function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
@@ -230,6 +237,7 @@ export default {
     PolygonIcon,
     RecenterIcon,
     ResetZoomIcon,
+    RouteImport,
   },
   props: {
     graph: { type: Object },
@@ -250,7 +258,7 @@ export default {
       selectedPolyline: null,
       showLocations: true,
       modes: MODES,
-      selectedMode: 'drawing',
+      selectedMode: 'import',
     };
   },
   computed: {
@@ -388,6 +396,9 @@ export default {
     toggleShowLocations() {
       this.showLocations = !this.showLocations;
     },
+    onImportPath(path) {
+      this.$emit('create', { path });
+    },
   },
 };
 </script>
@@ -400,8 +411,10 @@ export default {
 }
 
 .creator-pane > .modes > button {
+  text-transform: capitalize;
   opacity: 0.75;
   width: 100%;
+  margin: 0 0.1rem;
 }
 
 .creator-pane > .modes > button.selected {
@@ -409,18 +422,18 @@ export default {
   opacity: 1;
 }
 
-.creator-pane .map-wrapper {
+.creator-pane > .map-wrapper {
   position: relative;
   height: 60vh;
   width: 100%;
 }
 
-.creator-pane .gmap-map {
+.creator-pane > .map-wrapper > .gmap-map {
   height: 100%;
   width: 100%;
 }
 
-.creator-pane .gmap-map .vue-map-container {
+.creator-pane > .map-wrapper > .gmap-map .vue-map-container {
   height: 100%;
 }
 </style>

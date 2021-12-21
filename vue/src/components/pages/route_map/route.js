@@ -6,7 +6,7 @@ const NodeDbIds = new IdGen(-1, -1);
 const EdgeDbIds = new IdGen(-1, -1);
 
 export function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
-  const snapDistance = pixelsToMeters(snapDistancePx, zoom);
+  const snapDistance = zoom == null ? 1 : pixelsToMeters(snapDistancePx, zoom);
   const existingVertices = graph.getVerticesList();
 
   const usedVertices = path.map(point =>

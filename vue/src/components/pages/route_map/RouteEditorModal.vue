@@ -51,7 +51,7 @@
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
 
-import CreatorPane from './panes/CreatorPane.vue';
+import CreatorPane from './panes/creator/CreatorPane.vue';
 import RestrictionPane from './panes/restriction/RestrictionPane.vue';
 import ReviewPane from './panes/ReviewPane.vue';
 
