@@ -1,7 +1,8 @@
 import * as kml from './kml';
+import * as geojson from './geojson';
 
 export function getDefinitions() {
-  return [kml.getDefinition()];
+  return [kml.getDefinition(), geojson.getDefinition()];
 }
 
 export async function parseFile(file, definitions) {
