@@ -89,7 +89,7 @@
             :options="{
               strokeColor: selectedPathId === item.id ? 'blue' : 'orange',
               strokeWeight: 10,
-              zIndex: 4,
+              zIndex: selectedPathId === item.id ? 10 : 5,
             }"
             @click="onSetSelectedPathId(item.id)"
             @dblclick="e => e.stop()"
@@ -307,7 +307,7 @@ export default {
           pendingPaths.forEach((p, index) => {
             p.id = index + offset;
             p.pathLength = p.path.length;
-            if (!p.name) {
+            if (!p.name || p.name === 'Path') {
               return `path-${p.id}`;
             }
           });
