@@ -45,6 +45,9 @@
           v-else-if="selectedStage === 'review'"
           :graph="graph"
           :restrictionGroups="restrictionGroups"
+          @reset="onResetAll()"
+          @cancel="close()"
+          @submit="onSubmit()"
         />
       </div>
     </div>
@@ -65,13 +68,55 @@ import MinimiseIcon from '@/components/icons/Minimise.vue';
 import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
 import { fromRoute, Graph } from '@/code/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
-import { IdGen, toLookup } from '@/code/helpers';
+import { attributeFromList, IdGen, toLookup } from '@/code/helpers';
 import { graphToSegments, nextDirection } from './common';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
+import LoadingModal from '@/components/modals/LoadingModal.vue';
 
 const STAGES = ['create', 'restrict', 'review'];
 const SNAP_DISTANCE_PX = 10;
 const RestrictionIDGen = new IdGen(-1, -1);
+
+function segmentToEdges(seg, vertices) {
+  if (seg.direction === 'both') {
+    return seg.edges.map(e => {
+      return {
+        id: e.id,
+        edgeId: e.data.edgeId,
+        startVertexId: e.startVertexId,
+        endVertexId: e.endVertexId,
+        nodeStartId: vertices[e.startVertexId].data.nodeId,
+        nodeEndId: vertices[e.endVertexId].data.nodeId,
+      };
+    });
+  }
+
+  if (seg.direction === 'positive') {
+    const edge = seg.edges.find(e => e.endVertexId === seg.endVertexId);
+    return [
+      {
+        id: edge.id,
+        edgeId: edge.data.edgeId,
+        startVertexId: edge.data.startVertexId,
+        endVertexId: edge.data.endVertexId,
+        nodeStartId: vertices[edge.startVertexId].data.nodeId,
+        nodeEndId: vertices[edge.endVertexId].data.nodeId,
+      },
+    ];
+  }
+
+  const edge = seg.edges.find(e => e.endVertexId === seg.startVertexId);
+  return [
+    {
+      id: edge.id,
+      edgeId: edge.data.edgeId,
+      startVertexId: edge.data.startVertexId,
+      endVertexId: edge.data.endVertexId,
+      nodeStartId: vertices[edge.startVertexId].data.nodeId,
+      nodeEndId: vertices[edge.endVertexId].data.nodeId,
+    },
+  ];
+}
 
 export default {
   name: 'RouteEditorModal',
@@ -143,6 +188,9 @@ export default {
     document.removeEventListener('fullscreenchange', this.onFullscreenChange, false);
   },
   methods: {
+    close(resp) {
+      this.$emit('close', resp);
+    },
     outerClickIntercept(payload) {
       return new Promise(resolve => {
         const opts = {
@@ -248,6 +296,76 @@ export default {
       groups[index].assetTypes.sort((a, b) => a.localeCompare(b));
 
       this.restrictionGroups = groups;
+    },
+    onSubmit() {
+      const nodes = Object.values(this.graph.vertices).map(v => {
+        return {
+          id: v.id,
+          nodeId: v.data.nodeId,
+          lat: v.data.lat,
+          lng: v.data.lng,
+        };
+      });
+
+      const edges = this.segments.map(s => segmentToEdges(s, this.graph.vertices)).flat();
+
+      const restrictionGroups = this.restrictionGroups.map(r => {
+        const assetTypeIds = r.assetTypes.map(t =>
+          attributeFromList(this.assetTypes, 'type', t, 'id'),
+        );
+
+        return {
+          name: r.name,
+          assetTypeIds,
+          edgeRefIds: r.edgeIds,
+        };
+      });
+
+      const formattedNodes = nodes.map(n => {
+        return {
+          refId: n.nodeId,
+          lat: n.lat,
+          lng: n.lng,
+        };
+      });
+
+      const formattedEdges = edges.map(e => {
+        return {
+          refId: e.edgeId,
+          nodeStartId: e.nodeStartId,
+          nodeEndId: e.nodeEndId,
+        };
+      });
+
+      const payload = {
+        nodes: formattedNodes,
+        edges: formattedEdges,
+        restrictionGroups,
+      };
+
+      const loading = this.$modal.create(
+        LoadingModal,
+        { message: 'updating routes' },
+        { clickOutsideClose: false },
+      );
+
+      this.$channel
+        .push('routing:update', payload)
+        .receive('ok', () => {
+          this.$toaster.info('Route update successful');
+          loading.close();
+          this.close();
+        })
+        .receive('error', error => {
+          console.error(error);
+          this.$toaster.error(error.error);
+          loading.close();
+        })
+
+        .receive('timeout', () => {
+          this.$toaster.noComms('unable to update routes at this time');
+          loading.close();
+        });
     },
   },
 };

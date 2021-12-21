@@ -212,6 +212,10 @@ export class Dictionary {
     this._hasher = hasher;
   }
 
+  get length() {
+    return Object.keys(this._entries).length;
+  }
+
   get(keys) {
     return (this._entries[this._hasher(keys)] || {}).value;
   }

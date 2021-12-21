@@ -517,6 +517,12 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in("routing:update", payload, socket) do
+    IO.inspect(payload)
+
+    {:reply, :ok, socket}
+  end
+
   def handle_in(
         "report:time allocation",
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
