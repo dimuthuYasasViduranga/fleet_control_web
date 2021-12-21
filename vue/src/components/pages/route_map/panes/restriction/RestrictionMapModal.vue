@@ -1,6 +1,5 @@
 <template>
   <div class="restriction-map-modal">
-    {{ Object.keys(selectedSegments) }}
     <div class="map-wrapper">
       <div class="gmap-map">
         <div style="display: none">
@@ -229,13 +228,12 @@ export default {
       this.selectedSegments = { ...this.selectedSegments };
     },
     onSegmentClick(poly) {
-      // toggle on
-      if (!this.selectedSegments[poly.segment.id]) {
-        this.selectedSegments[poly.segment.id] = true;
-      }
+      const alreadySelected = this.selectedSegments[poly.segment.id];
 
-      // set direction if possible
-      if (poly.segment.edges.length !== 1) {
+      // toggle on
+      if (!alreadySelected) {
+        this.selectedSegments[poly.segment.id] = true;
+      } else if (poly.segment.edges.length !== 1) {
         poly.segment.direction = nextDirection(poly.segment.direction);
       }
 
@@ -266,7 +264,7 @@ export default {
       }, {});
     },
     onClearSelected() {
-      this.segments.forEach(s => (s.direction = 'both'));
+      this.segments.filter(s => s.edges.length === 2).forEach(s => (s.direction = 'both'));
       this.selectedSegments = {};
     },
   },
