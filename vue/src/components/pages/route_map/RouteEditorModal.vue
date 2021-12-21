@@ -41,7 +41,11 @@
           @edit="onEditRestrictionGroup"
           @remove="onRemoveRestrictionGroup"
         />
-        <ReviewPane v-else-if="selectedStage === 'review'" />
+        <ReviewPane
+          v-else-if="selectedStage === 'review'"
+          :graph="graph"
+          :restrictionGroups="restrictionGroups"
+        />
       </div>
     </div>
   </div>
@@ -63,6 +67,7 @@ import { fromRoute, Graph } from '@/code/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
 import { IdGen, toLookup } from '@/code/helpers';
 import { graphToSegments, nextDirection } from './common';
+import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 const STAGES = ['create', 'restrict', 'review'];
 const SNAP_DISTANCE_PX = 10;
@@ -139,8 +144,20 @@ export default {
   },
   methods: {
     outerClickIntercept(payload) {
-      // this can be used to prompt that you will lose some data
-      console.log('---- click');
+      return new Promise(resolve => {
+        const opts = {
+          title: 'Are you sure you want to quit?',
+          body: 'Any progress made will be loss',
+          ok: 'Yes',
+        };
+
+        this.$modal.create(ConfirmModal, opts).onClose(resp => {
+          if (resp !== opts.ok) {
+            payload.ignore = true;
+          }
+          resolve();
+        });
+      });
     },
     onFullscreenChange() {
       this.isFullscreen = isElementFullscreen();
