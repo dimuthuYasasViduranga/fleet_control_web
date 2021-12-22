@@ -298,7 +298,7 @@ export default {
       this.restrictionGroups = groups;
     },
     onSubmit() {
-      const nodes = Object.values(this.graph.vertices).map(v => {
+      const vertices = Object.values(this.graph.vertices).map(v => {
         return {
           id: v.id,
           nodeId: v.data.nodeId,
@@ -321,7 +321,7 @@ export default {
         };
       });
 
-      const formattedNodes = nodes.map(n => {
+      const formattedVertices = vertices.map(n => {
         return {
           ref_id: n.nodeId,
           lat: n.lat,
@@ -332,13 +332,13 @@ export default {
       const formattedEdges = edges.map(e => {
         return {
           ref_id: e.edgeId,
-          node_start_ref_id: e.nodeStartRefId,
-          node_end_ref_id: e.nodeEndRefId,
+          vertex_start_ref_id: e.nodeStartRefId,
+          vertex_end_ref_id: e.nodeEndRefId,
         };
       });
 
       const payload = {
-        nodes: formattedNodes,
+        vertices: formattedVertices,
         edges: formattedEdges,
         restrictionGroups,
       };

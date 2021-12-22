@@ -1,6 +1,5 @@
 defmodule Dispatch.RoutingAgent.Validation do
-  # two ees to no override build in node
-  @type nodee :: %{
+  @type vertex :: %{
           ref_id: integer,
           lat: number,
           lng: number
@@ -8,8 +7,8 @@ defmodule Dispatch.RoutingAgent.Validation do
 
   @type edge :: %{
           ref_id: integer,
-          node_start_ref_id: integer,
-          node_end_ref_id: integer
+          vertex_start_ref_id: integer,
+          vertex_end_ref_id: integer
         }
 
   @type restriction_group :: %{
@@ -18,15 +17,15 @@ defmodule Dispatch.RoutingAgent.Validation do
           edge_ref_ids: list(integer)
         }
 
-  @spec(validate(list(nodee), list(edge), list(restriction_group)) :: :ok, {:error, term})
-  def validate(nodes, edges, restriction_groups) do
+  @spec(validate(list(vertex), list(edge), list(restriction_group)) :: :ok, {:error, term})
+  def validate(vertices, edges, restriction_groups) do
     %{
-      nodes: nodes,
+      vertices: vertices,
       edges: edges,
       restriction_groups: restriction_groups
     }
     |> abortable_chain([
-      &validate_nodes/1,
+      &validate_vertices/1,
       &validate_edges/1,
       &validate_restriction_groups/1
     ])
@@ -64,14 +63,14 @@ defmodule Dispatch.RoutingAgent.Validation do
 
   defp has_duplicates?(list), do: Enum.uniq(list) != list
 
-  defp validate_nodes(state) do
-    invalid_node_reason = first_error(state.nodes, &validate_node/1)
+  defp validate_vertices(state) do
+    invalid_vertex_reason = first_error(state.vertices, &validate_vertex/1)
 
     cond do
-      !is_nil(invalid_node_reason) ->
-        invalid_node_reason
+      !is_nil(invalid_vertex_reason) ->
+        invalid_vertex_reason
 
-      has_duplicates?(Enum.map(state.nodes, & &1.ref_id)) ->
+      has_duplicates?(Enum.map(state.vertices, & &1.ref_id)) ->
         {:error, :duplicate_ref_ids}
 
       true ->
@@ -79,7 +78,7 @@ defmodule Dispatch.RoutingAgent.Validation do
     end
   end
 
-  defp validate_node(n) do
+  defp validate_vertex(n) do
     cond do
       is_nil(n.ref_id) -> {:error, :nil_ref_id}
       is_nil(n.lat) -> {:error, :invalid_latitude}
@@ -89,9 +88,9 @@ defmodule Dispatch.RoutingAgent.Validation do
   end
 
   defp validate_edges(state) do
-    node_map = to_map(state.nodes)
+    vertex_map = to_map(state.vertices)
 
-    invalid_edge_reason = first_error(state.edges, &validate_edge(&1, node_map))
+    invalid_edge_reason = first_error(state.edges, &validate_edge(&1, vertex_map))
 
     cond do
       !is_nil(invalid_edge_reason) ->
@@ -105,11 +104,11 @@ defmodule Dispatch.RoutingAgent.Validation do
     end
   end
 
-  defp validate_edge(edge, node_map) do
+  defp validate_edge(edge, vertex_map) do
     cond do
       is_nil(edge.ref_id) -> {:error, :nil_ref_id}
-      is_nil(node_map[edge.node_start_ref_id]) -> {:error, :invalid_start_ref_id}
-      is_nil(node_map[edge.node_end_ref_id]) -> {:error, :invalid_end_ref_id}
+      is_nil(vertex_map[edge.vertex_start_ref_id]) -> {:error, :invalid_start_ref_id}
+      is_nil(vertex_map[edge.vertex_end_ref_id]) -> {:error, :invalid_end_ref_id}
       true -> :ok
     end
   end
