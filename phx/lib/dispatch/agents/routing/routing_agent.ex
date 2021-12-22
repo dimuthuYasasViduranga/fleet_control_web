@@ -1,9 +1,11 @@
 defmodule Dispatch.RoutingAgent do
   use Agent
-  alias Dispatch.AgentHelper
+
   require Logger
 
-  alias __MODULE__.Data
+  alias Dispatch.AgentHelper
+
+  alias __MODULE__.{Data, Validation}
 
   @type restriction_group :: %{
           id: integer,
@@ -51,16 +53,59 @@ defmodule Dispatch.RoutingAgent do
   @spec get() :: data
   def get(), do: Agent.get(__MODULE__, & &1)
 
-  def create_route(nodes, unrestricted_edges, restriction_groups) do
-    # nodes
-    #   - negative ids represent new nodes
-    # fallback_edges
-    #   - the unrestricted edges that all restriction groups use as a subset
-    # restriction groups (these will need to be handle separately to reference them later)
-    #   - each have
-    #     { name, asset_types, edges}
-    #     - the edges must be a subset of the fallback_edges (just for sanity reasons)
+  @spec update(list(map), list(map), list(map)) :: {:ok, term} | {:error, term}
+  def update(nodes, edges, restriction_groups) do
+    IO.inspect("---- create route")
 
-    IO.inspect("--- this is going to need a lot of stuff")
+    {nodes, edges, restriction_groups} = parse(nodes, edges, restriction_groups)
+
+    case Validation.validate(nodes, edges, restriction_groups) do
+      :ok ->
+        Agent.get_and_update(__MODULE__, &Data.update(&1, nodes, edges, restriction_groups))
+
+      error ->
+        error
+    end
+  end
+
+  defp parse(nodes, edges, restriction_groups) do
+    parsed_nodes =
+      Enum.map(nodes, fn n ->
+        %{
+          ref_id: n["ref_id"],
+          lat: n["lat"],
+          lng: n["lng"]
+        }
+      end)
+
+    parsed_edges =
+      Enum.map(edges, fn e ->
+        %{
+          ref_id: e["ref_id"],
+          node_start_ref_id: e["node_start_ref_id"],
+          node_end_ref_id: e["node_end_ref_id"]
+        }
+      end)
+
+    parsed_restriction_groups =
+      Enum.map(restriction_groups, fn rg ->
+        asset_type_ids =
+          rg["asset_type_ids"]
+          |> Enum.uniq()
+          |> Enum.reject(&is_nil/1)
+
+        edge_ref_ids =
+          rg["edge_ref_ids"]
+          |> Enum.uniq()
+          |> Enum.reject(&is_nil/1)
+
+        %{
+          name: rg["name"],
+          asset_type_ids: asset_type_ids,
+          edge_ref_ids: edge_ref_ids
+        }
+      end)
+
+    {parsed_nodes, parsed_edges, parsed_restriction_groups}
   end
 end

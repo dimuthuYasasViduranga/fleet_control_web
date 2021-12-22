@@ -85,8 +85,8 @@ function segmentToEdges(seg, vertices) {
         edgeId: e.data.edgeId,
         startVertexId: e.startVertexId,
         endVertexId: e.endVertexId,
-        nodeStartId: vertices[e.startVertexId].data.nodeId,
-        nodeEndId: vertices[e.endVertexId].data.nodeId,
+        nodeStartRefId: vertices[e.startVertexId].data.nodeId,
+        nodeEndRefId: vertices[e.endVertexId].data.nodeId,
       };
     });
   }
@@ -99,8 +99,8 @@ function segmentToEdges(seg, vertices) {
         edgeId: edge.data.edgeId,
         startVertexId: edge.data.startVertexId,
         endVertexId: edge.data.endVertexId,
-        nodeStartId: vertices[edge.startVertexId].data.nodeId,
-        nodeEndId: vertices[edge.endVertexId].data.nodeId,
+        nodeStartRefId: vertices[edge.startVertexId].data.nodeId,
+        nodeEndRefId: vertices[edge.endVertexId].data.nodeId,
       },
     ];
   }
@@ -112,8 +112,8 @@ function segmentToEdges(seg, vertices) {
       edgeId: edge.data.edgeId,
       startVertexId: edge.data.startVertexId,
       endVertexId: edge.data.endVertexId,
-      nodeStartId: vertices[edge.startVertexId].data.nodeId,
-      nodeEndId: vertices[edge.endVertexId].data.nodeId,
+      nodeStartRefId: vertices[edge.startVertexId].data.nodeId,
+      nodeEndRefId: vertices[edge.endVertexId].data.nodeId,
     },
   ];
 }
@@ -316,14 +316,14 @@ export default {
 
         return {
           name: r.name,
-          assetTypeIds,
-          edgeRefIds: r.edgeIds,
+          asset_type_ids: assetTypeIds,
+          edge_ref_ids: r.edgeIds,
         };
       });
 
       const formattedNodes = nodes.map(n => {
         return {
-          refId: n.nodeId,
+          ref_id: n.nodeId,
           lat: n.lat,
           lng: n.lng,
         };
@@ -331,9 +331,9 @@ export default {
 
       const formattedEdges = edges.map(e => {
         return {
-          refId: e.edgeId,
-          nodeStartId: e.nodeStartId,
-          nodeEndId: e.nodeEndId,
+          ref_id: e.edgeId,
+          node_start_ref_id: e.nodeStartRefId,
+          node_end_ref_id: e.nodeEndRefId,
         };
       });
 

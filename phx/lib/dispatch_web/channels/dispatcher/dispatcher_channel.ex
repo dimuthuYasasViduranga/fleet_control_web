@@ -518,7 +518,7 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   def handle_in("routing:update", payload, socket) do
-    IO.inspect(payload)
+    RoutingAgent.update(payload["nodes"], payload["edges"], payload["restriction_groups"])
 
     {:reply, :ok, socket}
   end

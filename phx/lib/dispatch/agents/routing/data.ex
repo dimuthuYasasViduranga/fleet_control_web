@@ -79,4 +79,13 @@ defmodule Dispatch.RoutingAgent.Data do
     |> Map.put(:node_start, Route.Node.to_map(elem.node_start))
     |> Map.put(:node_end, Route.Node.to_map(elem.node_end))
   end
+
+  @spec update(map, list(map), list(map), list(map)) :: {:ok, term} | {:error, term}
+  def update(state, nodes, edges, restriction_groups) do
+    IO.inspect("---- update")
+    IO.inspect(Map.keys(state))
+    IO.inspect(nodes)
+    IO.inspect(edges)
+    IO.inspect(restriction_groups)
+  end
 end
