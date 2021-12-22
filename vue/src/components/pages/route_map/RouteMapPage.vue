@@ -13,7 +13,7 @@
           {{ mode }}
         </button>
       </div>
-      <RouteMap
+      <!-- <RouteMap
         v-if="mapMode === 'routing'"
         :graph="graph"
         :locations="locations"
@@ -22,7 +22,7 @@
         @delete="onRouteDelete"
       />
       <TraversalMap v-else-if="mapMode === 'traversal'" :graph="graph" :locations="locations" />
-      <SegmentMap v-else :graph="graph" />
+      <SegmentMap v-else :graph="graph" /> -->
     </hxCard>
   </div>
 </template>
@@ -103,6 +103,7 @@ export default {
       this.$modal.create(RouteEditorModal);
     },
     reloadGraph() {
+      return;
       const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
       this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
     },

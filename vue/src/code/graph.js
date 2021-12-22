@@ -1,4 +1,4 @@
-import { Dictionary, uniq, hasOrderedSubArray, toLookup } from './helpers';
+import { hasOrderedSubArray } from './helpers';
 import { haversineDistanceM } from './distance';
 
 export function fromGraph(vertices, adjacency) {
@@ -19,59 +19,35 @@ export function fromGraph(vertices, adjacency) {
   return graph;
 }
 
-export function fromRoute(nodes, edges, route) {
+export function fromRoute(route) {
   if (!route) {
     return new Graph();
   }
 
-  const edgeLookup = toLookup(edges, e => e.id);
-  const nodeLookup = toLookup(nodes, e => e.id);
-  const nodeToVertexId = {};
+  const graph = new Graph();
 
-  const usedEdges = route.edgeIds.map(id => edgeLookup[id]).filter(e => e);
+  const graphVId = {};
 
-  const usedNodes = uniq(
-    usedEdges.reduce((acc, e) => {
-      acc.push(e.nodeStartId);
-      acc.push(e.nodeEndId);
-      return acc;
-    }, []),
-  ).map(id => nodeLookup[id]);
+  route.elementIds.forEach(edgeId => {
+    const edge = route.edgeMap[edgeId];
+    const { vertexStartId, vertexEndId } = edge;
 
-  const vertices = usedNodes.reduce((acc, node, index) => {
-    const vertex = {
-      id: index,
-      data: {
-        nodeId: node.id,
-        lat: node.lat,
-        lng: node.lng,
-      },
-    };
-    nodeToVertexId[node.id] = index;
-    acc[index] = vertex;
-    return acc;
-  }, {});
+    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
 
-  const adjDict = new Dictionary();
-  usedEdges.forEach((edge, index) => {
-    const adj = {
-      id: index,
-      startVertexId: nodeToVertexId[edge.nodeStartId],
-      endVertexId: nodeToVertexId[edge.nodeEndId],
-      data: {
-        edgeId: edge.id,
-        distance: edge.distance,
-      },
-    };
-    adjDict.append(adj.startVertexId, adj);
+    vertices.forEach(v => {
+      if (graphVId[v.id] == null) {
+        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+        graphVId[v.id] = insertedV.id;
+      }
+    });
+
+    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+      edgeId,
+      distance: edge.distance,
+    });
   });
 
-  const adjacency = adjDict.reduce((acc, key, adjacencies) => {
-    acc[key] = adjacencies;
-    return acc;
-  }, {});
-
-  return fromGraph(vertices, adjacency);
+  return graph;
 }
 
 export class Graph {

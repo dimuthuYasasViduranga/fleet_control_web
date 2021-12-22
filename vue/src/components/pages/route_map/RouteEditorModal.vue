@@ -83,10 +83,8 @@ function segmentToEdges(seg, vertices) {
       return {
         id: e.id,
         edgeId: e.data.edgeId,
-        startVertexId: e.startVertexId,
-        endVertexId: e.endVertexId,
-        nodeStartRefId: vertices[e.startVertexId].data.nodeId,
-        nodeEndRefId: vertices[e.endVertexId].data.nodeId,
+        vertexStartId: vertices[e.startVertexId].data.vertexId,
+        vertexEndId: vertices[e.endVertexId].data.vertexId,
       };
     });
   }
@@ -97,10 +95,8 @@ function segmentToEdges(seg, vertices) {
       {
         id: edge.id,
         edgeId: edge.data.edgeId,
-        startVertexId: edge.data.startVertexId,
-        endVertexId: edge.data.endVertexId,
-        nodeStartRefId: vertices[edge.startVertexId].data.nodeId,
-        nodeEndRefId: vertices[edge.endVertexId].data.nodeId,
+        vertexStartId: vertices[edge.startVertexId].data.vertexId,
+        vertexEndId: vertices[edge.endVertexId].data.vertexId,
       },
     ];
   }
@@ -110,10 +106,8 @@ function segmentToEdges(seg, vertices) {
     {
       id: edge.id,
       edgeId: edge.data.edgeId,
-      startVertexId: edge.data.startVertexId,
-      endVertexId: edge.data.endVertexId,
-      nodeStartRefId: vertices[edge.startVertexId].data.nodeId,
-      nodeEndRefId: vertices[edge.endVertexId].data.nodeId,
+      vertexStartId: vertices[edge.startVertexId].data.vertexId,
+      vertexEndId: vertices[edge.endVertexId].data.vertexId,
     },
   ];
 }
@@ -145,24 +139,26 @@ export default {
       locations: state => state.locations,
       nodes: state => state.routeNodes,
       edges: state => state.routeEdges,
-      routes: state => state.routes,
-      routeRestrictionGroups: state => {
-        const lookup = toLookup(
-          state.assetTypes,
-          e => e.id,
-          e => e.type,
-        );
-        return state.routeRestrictionGroups.map(r => {
-          const assetTypes = r.assetTypeIds.map(id => lookup[id]);
-          return {
-            id: r.id,
-            name: r.name,
-            assetTypes,
-            edgeIds: [],
-          };
-        });
-      },
+      activeRoute: state => state.activeRoute,
     }),
+    routeRestrictionGroups() {
+      const lookup = toLookup(
+        this.assetTypes,
+        e => e.id,
+        e => e.type,
+      );
+      const active = this.activeRoute || {};
+      return (active.restrictionGroups || []).map(r => {
+        const assetTypes = r.assetTypeIds.map(id => lookup[id]);
+
+        return {
+          id: r.id,
+          name: r.name,
+          assetTypes,
+          edgeIds: r.edgeIds.slice(),
+        };
+      });
+    },
   },
   watch: {
     graph: {
@@ -223,8 +219,7 @@ export default {
       this.isFullscreen ? exitFullscreen(area) : requestFullscreen(area);
     },
     reloadGraph() {
-      const unrestrictedRoute = this.routes.find(r => !r.restrictionGroupId);
-      this.graph = fromRoute(this.nodes, this.edges, unrestrictedRoute);
+      this.graph = fromRoute(this.activeRoute);
     },
     reloadGraphSegments() {
       this.segments = graphToSegments(this.graph, this.segments);
@@ -301,7 +296,7 @@ export default {
       const vertices = Object.values(this.graph.vertices).map(v => {
         return {
           id: v.id,
-          nodeId: v.data.nodeId,
+          vertexId: v.data.vertexId,
           lat: v.data.lat,
           lng: v.data.lng,
         };
@@ -317,13 +312,13 @@ export default {
         return {
           name: r.name,
           asset_type_ids: assetTypeIds,
-          edge_ref_ids: r.edgeIds,
+          edge_ids: r.edgeIds,
         };
       });
 
       const formattedVertices = vertices.map(n => {
         return {
-          ref_id: n.nodeId,
+          id: n.vertexId,
           lat: n.lat,
           lng: n.lng,
         };
@@ -331,17 +326,21 @@ export default {
 
       const formattedEdges = edges.map(e => {
         return {
-          ref_id: e.edgeId,
-          vertex_start_ref_id: e.nodeStartRefId,
-          vertex_end_ref_id: e.nodeEndRefId,
+          id: e.edgeId,
+          vertex_start_id: e.vertexStartId,
+          vertex_end_id: e.vertexEndId,
         };
       });
 
+      // will need some form of checksum/list of node, edge and restriction group ids
+      // to help defend against user races
       const payload = {
         vertices: formattedVertices,
         edges: formattedEdges,
-        restrictionGroups,
+        restriction_groups: restrictionGroups,
       };
+
+      console.dir(payload);
 
       const loading = this.$modal.create(
         LoadingModal,
@@ -354,7 +353,7 @@ export default {
         .receive('ok', () => {
           this.$toaster.info('Route update successful');
           loading.close();
-          this.close();
+          // this.close();
         })
         .receive('error', error => {
           console.error(error);

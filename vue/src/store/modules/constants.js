@@ -353,44 +353,57 @@ function parseQuickMessage(message) {
   };
 }
 
-function parseRouteNode(node) {
+function parseRouteVertex(v) {
   return {
-    id: node.id,
-    lat: node.lat,
-    lng: node.lon,
-    alt: node.alt,
+    id: v.id,
+    lat: v.lat,
+    lng: v.lng,
+    alt: v.alt,
   };
 }
 
-function parseRouteEdge(edge, nodeLookup) {
-  const edgeStart = nodeLookup[edge.node_start_id];
-  const edgeEnd = nodeLookup[edge.node_end_id];
+function parseRouteEdge(edge, vertexLookup) {
+  const edgeStart = vertexLookup[edge.vertex_start_id];
+  const edgeEnd = vertexLookup[edge.vertex_end_id];
 
   const distance = haversineDistanceM(edgeStart, edgeEnd);
 
   return {
     id: edge.id,
-    nodeStartId: edge.node_start_id,
-    nodeEndId: edge.node_end_id,
+    vertexStartId: edge.vertex_start_id,
+    vertexEndId: edge.vertex_end_id,
     distance,
   };
 }
 
-function parseRouteRestrictionGroup(group) {
+function parseRoute(route) {
+  const vertexMap = route.vertex_map;
+  Object.keys(route.vertex_map).forEach(key => {
+    vertexMap[key] = parseRouteVertex(vertexMap[key]);
+  });
+
+  const edgeMap = route.edge_map;
+  Object.keys(route.edge_map).forEach(key => {
+    edgeMap[key] = parseRouteEdge(edgeMap[key], vertexMap);
+  });
+
   return {
-    id: group.id,
-    name: group.name,
-    assetTypeIds: group.asset_type_ids,
+    id: route.id,
+    startTime: toUtcDate(route.start_time),
+    endTime: toUtcDate(route.endTime),
+    vertexMap,
+    edgeMap,
+    elementIds: route.element_ids,
+    restrictionGroups: route.restriction_groups.map(parseRouteRestrictionGroup),
   };
 }
 
-function parseRoute(route) {
+function parseRouteRestrictionGroup(g) {
   return {
-    id: route.route_id,
-    restrictionGroupId: route.restriction_group_id,
-    startTime: toUtcDate(route.start_time),
-    endTime: toUtcDate(route.end_time),
-    edgeIds: route.edge_ids,
+    id: g.id,
+    name: g.name,
+    edgeIds: g.edge_ids,
+    assetTypeIds: g.asset_type_ids,
   };
 }
 
@@ -426,10 +439,9 @@ const state = {
   preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
-  routes: Array(),
+  activeRoute: null,
   routeNodes: Array(),
   routeEdges: Array(),
-  routeRestrictionGroups: Array(),
 };
 
 const getters = {
@@ -576,12 +588,11 @@ const actions = {
   },
   setRoutingData({ commit }, data) {
     data = data || {};
-    const nodes = (data.nodes || []).map(parseRouteNode);
-    const nodeLookup = toLookup(nodes, e => e.id);
-    const edges = (data.edges || []).map(e => parseRouteEdge(e, nodeLookup));
-    const restrictionGroups = (data.restriction_groups || []).map(parseRouteRestrictionGroup);
-    const routes = (data.routes || []).map(parseRoute);
-    commit('setRoutingData', { nodes, edges, restrictionGroups, routes });
+    const vertices = (data.vertices || []).map(parseRouteVertex);
+    const vertexLookup = toLookup(vertices, e => e.id);
+    const edges = (data.edges || []).map(e => parseRouteEdge(e, vertexLookup));
+    const activeRoute = data.active_route ? parseRoute(data.active_route) : null;
+    commit('setRoutingData', { vertices, edges, activeRoute });
   },
 };
 
@@ -666,11 +677,10 @@ const mutations = {
   setPreStartControlCategories(state, types = []) {
     state.preStartControlCategories = types;
   },
-  setRoutingData(state, { nodes, edges, restrictionGroups, routes }) {
-    state.routes = routes;
-    state.routeNodes = nodes;
+  setRoutingData(state, { vertices, edges, activeRoute }) {
+    state.activeRoute = activeRoute;
+    state.routeVertices = vertices;
     state.routeEdges = edges;
-    state.routeRestrictionGroups = restrictionGroups;
   },
 };
 

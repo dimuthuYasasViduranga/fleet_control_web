@@ -1,28 +1,28 @@
 defmodule Dispatch.RoutingAgent.Validation do
   @type vertex :: %{
-          ref_id: integer,
+          id: integer,
           lat: number,
           lng: number
         }
 
   @type edge :: %{
-          ref_id: integer,
-          vertex_start_ref_id: integer,
-          vertex_end_ref_id: integer
+          id: integer,
+          vertex_start_id: integer,
+          vertex_end_id: integer
         }
 
   @type restriction_group :: %{
           name: String.t(),
           asset_type_ids: list(integer),
-          edge_ref_ids: list(integer)
+          edge_ids: list(integer)
         }
 
   @spec(validate(list(vertex), list(edge), list(restriction_group)) :: :ok, {:error, term})
   def validate(vertices, edges, restriction_groups) do
     %{
-      vertices: vertices,
-      edges: edges,
-      restriction_groups: restriction_groups
+      vertices: vertices || [],
+      edges: edges || [],
+      restriction_groups: restriction_groups || []
     }
     |> abortable_chain([
       &validate_vertices/1,
@@ -37,7 +37,7 @@ defmodule Dispatch.RoutingAgent.Validation do
 
   defp to_map(list) do
     list
-    |> Enum.map(&{&1.ref_id, &1})
+    |> Enum.map(&{&1.id, &1})
     |> Enum.into(%{})
   end
 
@@ -70,8 +70,8 @@ defmodule Dispatch.RoutingAgent.Validation do
       !is_nil(invalid_vertex_reason) ->
         invalid_vertex_reason
 
-      has_duplicates?(Enum.map(state.vertices, & &1.ref_id)) ->
-        {:error, :duplicate_ref_ids}
+      has_duplicates?(Enum.map(state.vertices, & &1.id)) ->
+        {:error, :duplicate_ids}
 
       true ->
         {:ok, state}
@@ -80,7 +80,7 @@ defmodule Dispatch.RoutingAgent.Validation do
 
   defp validate_vertex(n) do
     cond do
-      is_nil(n.ref_id) -> {:error, :nil_ref_id}
+      is_nil(n.id) -> {:error, :nil_id}
       is_nil(n.lat) -> {:error, :invalid_latitude}
       is_nil(n.lng) -> {:error, :invalid_longitude}
       true -> :ok
@@ -96,8 +96,8 @@ defmodule Dispatch.RoutingAgent.Validation do
       !is_nil(invalid_edge_reason) ->
         invalid_edge_reason
 
-      has_duplicates?(Enum.map(state.edges, & &1.ref_id)) ->
-        {:error, :duplicate_ref_ids}
+      has_duplicates?(Enum.map(state.edges, & &1.id)) ->
+        {:error, :duplicate_ids}
 
       true ->
         {:ok, state}
@@ -106,9 +106,9 @@ defmodule Dispatch.RoutingAgent.Validation do
 
   defp validate_edge(edge, vertex_map) do
     cond do
-      is_nil(edge.ref_id) -> {:error, :nil_ref_id}
-      is_nil(vertex_map[edge.vertex_start_ref_id]) -> {:error, :invalid_start_ref_id}
-      is_nil(vertex_map[edge.vertex_end_ref_id]) -> {:error, :invalid_end_ref_id}
+      is_nil(edge.id) -> {:error, :nil_id}
+      is_nil(vertex_map[edge.vertex_start_id]) -> {:error, :invalid_start_id}
+      is_nil(vertex_map[edge.vertex_end_id]) -> {:error, :invalid_end_id}
       true -> :ok
     end
   end
@@ -119,6 +119,9 @@ defmodule Dispatch.RoutingAgent.Validation do
     all_asset_type_ids = Enum.flat_map(state.restriction_groups, & &1.asset_type_ids)
 
     cond do
+      length(state.restriction_groups) == 0 ->
+        {:error, :no_restriction_groups}
+
       !is_nil(invalid_group_reason) ->
         invalid_group_reason
 
@@ -134,9 +137,9 @@ defmodule Dispatch.RoutingAgent.Validation do
     cond do
       (group.name || "") == "" -> {:error, :invalid_name}
       Enum.any?(group.asset_type_ids, &is_nil/1) -> {:error, :nil_asset_type_id}
-      Enum.any?(group.edge_ref_ids, &is_nil/1) -> {:error, :nil_edge_ref_id}
+      Enum.any?(group.edge_ids, &is_nil/1) -> {:error, :nil_edge_id}
       has_duplicates?(group.asset_type_ids) -> {:error, :duplicate_asset_type_ids}
-      has_duplicates?(group.edge_ref_ids) -> {:error, :duplicate_edge_ref_ids}
+      has_duplicates?(group.edge_ids) -> {:error, :duplicate_edge_ids}
       true -> :ok
     end
   end
