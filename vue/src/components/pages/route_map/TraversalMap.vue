@@ -66,11 +66,11 @@
 
           <!-- draw route as polyline -->
           <gmap-polyline
-            :path="route.path"
+            :path="journey.path"
             :options="{
-              strokeColor: route.color,
-              strokeWeight: route.width,
-              strokeOpacity: route.opacity,
+              strokeColor: journey.color,
+              strokeWeight: journey.width,
+              strokeOpacity: journey.opacity,
               zIndex: 5,
             }"
           />
@@ -86,20 +86,30 @@ import { gmapApi } from 'gmap-vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
-import { getUniqPaths, getClosestVertex } from '@/code/graph';
-import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal.js';
 import { attachControl } from '@/components/gmap/gmapControls';
+import { fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
+import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
 
-const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
-const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
-
+const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_UNUSED_COLOR = 'black';
 const ROUTE_UNUSED_OPACITY = 0.75;
 const ROUTE_USED_COLOR = 'darkred';
 const ROUTE_USED_OPACITY = 1;
 const ROUTE_WIDTH = 10;
+const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
+const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
 
-const DRAG_UPDATE_INTERVAL = 100;
+function createLink(graph, marker, color) {
+  const startPoint = { ...marker.position };
+  const closestVertex = getClosestVertex(startPoint, graph.getVerticesList());
+
+  if (closestVertex) {
+    const endPoint = { lat: closestVertex.data.lat, lng: closestVertex.data.lng };
+    return { path: [startPoint, endPoint], color, width: ROUTE_WIDTH };
+  }
+
+  return null;
+}
 
 function graphToPolylines(graph) {
   const adjacency = graph.adjacency;
@@ -125,27 +135,16 @@ function graphToPolylines(graph) {
   });
 }
 
-function createLink(graph, marker, color) {
-  const startPoint = { ...marker.position };
-  const closestVertex = getClosestVertex(startPoint, graph.getVerticesList());
-
-  if (closestVertex) {
-    const endPoint = { lat: closestVertex.data.lat, lng: closestVertex.data.lng };
-    return { path: [startPoint, endPoint], color, width: ROUTE_WIDTH };
-  }
-
-  return null;
-}
-
 export default {
-  name: 'TraveralMap',
+  name: 'TraversalMap',
   components: {
     GMapGeofences,
     PolygonIcon,
   },
   props: {
-    graph: { type: Object, required: true },
+    assetTypes: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
+    route: { type: Object },
   },
   data: () => {
     return {
@@ -157,7 +156,6 @@ export default {
       zoom: 0,
       markerStart: { position: { lat: 0, lng: 0 }, icon: START_ICON_URL, pendingPosition: null },
       markerEnd: { position: { lat: 0, lng: 0 }, icon: END_ICON_URL, pendingPosition: null },
-      routePolylines: [],
       showLocations: true,
     };
   },
@@ -168,6 +166,13 @@ export default {
       defaultCenter: ({ mapCenter }) => ({ lat: mapCenter.latitude, lng: mapCenter.longitude }),
       defaultZoom: state => state.mapZoom,
     }),
+    graph() {
+      // this is created based on asset type selection
+      return fromRoute(this.route);
+    },
+    routePolylines() {
+      return graphToPolylines(this.graph);
+    },
     markerStartLink() {
       return createLink(this.graph, this.markerStart, 'green');
     },
@@ -180,7 +185,7 @@ export default {
     markerEndVertex() {
       return getClosestVertex(this.markerEnd.position, this.graph.getVerticesList());
     },
-    route() {
+    journey() {
       const vertexMap = this.graph.vertices;
       const adjacency = this.graph.adjacency;
 
@@ -207,21 +212,12 @@ export default {
       };
     },
   },
-  watch: {
-    graph: {
-      immediate: true,
-      handler() {
-        this.refreshRoutePolylines();
-      },
-    },
-  },
   mounted() {
-    // configure the start and end markers to be the map center
     this.markerStart.position = {
       lat: this.defaultCenter.lat,
-      lng: this.defaultCenter.lng + 0.01,
+      lng: this.defaultCenter.lng - 0.01,
     };
-    this.markerEnd.position = { lat: this.defaultCenter.lat, lng: this.defaultCenter.lng - 0.01 };
+    this.markerEnd.position = { lat: this.defaultCenter.lat, lng: this.defaultCenter.lng + 0.01 };
 
     this.reCenter();
     this.resetZoom();
@@ -237,9 +233,6 @@ export default {
     gPromise() {
       return this.$refs.gmap.$mapPromise;
     },
-    refreshRoutePolylines() {
-      this.routePolylines = graphToPolylines(this.graph, this.routeVertexIds);
-    },
     reCenter() {
       this.moveTo(this.defaultCenter);
     },
@@ -251,6 +244,9 @@ export default {
     },
     resetZoom() {
       this.zoom = this.defaultZoom;
+    },
+    toggleShowLocations() {
+      this.showLocations = !this.showLocations;
     },
     onMarkerDrag(marker, event) {
       if (!marker.interval) {
@@ -266,14 +262,14 @@ export default {
       marker.interval = clearInterval(marker.interval);
       marker.position = { lat: event.latLng.lat(), lng: event.latLng.lng() };
     },
-    toggleShowLocations() {
-      this.showLocations = !this.showLocations;
-    },
   },
 };
 </script>
 
-<style>
+<style >
+.traversal-map {
+  height: 60vh;
+}
 .traversal-map .map-wrapper {
   position: relative;
   height: 100%;

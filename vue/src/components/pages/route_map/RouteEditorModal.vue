@@ -137,7 +137,6 @@ export default {
     ...mapState('constants', {
       assetTypes: state => state.assetTypes,
       locations: state => state.locations,
-      nodes: state => state.routeNodes,
       edges: state => state.routeEdges,
       activeRoute: state => state.activeRoute,
     }),

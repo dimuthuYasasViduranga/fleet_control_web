@@ -9,7 +9,6 @@
       :disabled="!canEditName"
       @change="onNameChange"
     />
-    {{ edgeIds }}
     <button
       v-if="canRemove && assetTypes.length === 0"
       class="hx-btn"
