@@ -40,8 +40,6 @@ defmodule Dispatch.RoutingAgent do
 
   @spec update(list(map), list(map), list(map)) :: {:ok, term} | {:error, term}
   def update(vertices, edges, restriction_groups) do
-    IO.inspect("---- create route")
-
     {vertices, edges, restriction_groups} = parse(vertices, edges, restriction_groups)
 
     case Validation.validate(vertices, edges, restriction_groups) do
@@ -59,7 +57,8 @@ defmodule Dispatch.RoutingAgent do
         %{
           id: n["id"],
           lat: n["lat"],
-          lng: n["lng"]
+          lng: n["lng"],
+          alt: n["alt"],
         }
       end)
 

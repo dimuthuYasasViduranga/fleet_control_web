@@ -19,19 +19,19 @@ defmodule DispatchWeb.MixProject do
     ]
   end
 
-  def application, do: application(Mix.env())
+  def application do
+    case Mix.env() do
+      :test ->
+        [
+          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
+        ]
 
-  defp application(:test) do
-    [
-      extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-    ]
-  end
-
-  defp application(_) do
-    [
-      mod: {DispatchWeb.Application, []},
-      extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-    ]
+      _ ->
+        [
+          mod: {DispatchWeb.Application, []},
+          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
+        ]
+    end
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]

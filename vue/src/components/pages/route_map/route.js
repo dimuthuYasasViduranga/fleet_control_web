@@ -23,7 +23,7 @@ export function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
 
 function addOrGetVertex(graph, vertices, point, snapDistance) {
   const existingV = vertices.find(v => haversineDistanceM(point, v.data) < snapDistance);
-  return existingV || graph.addVertex({ lat: point.lat, lng: point.lng, nodeId: NodeDbIds.next() });
+  return existingV || graph.addVertex({ lat: point.lat, lng: point.lng, vertexId: NodeDbIds.next() });
 }
 
 function addOrGetEdge(graph, v1, v2) {
@@ -88,7 +88,7 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
     return {
       id: -index - 1,
       data: {
-        nodeId: null,
+        vertexId: null,
         lat: p.lat,
         lng: p.lng,
       },
@@ -151,7 +151,7 @@ function applyChanges(sourceGraph, addedVertices, addedEdges, maybeRemovedVertic
   // need a id map lookup for edges
   const idMap = addedVertices.reduce((acc, v) => {
     const data = {
-      nodeId: NodeDbIds.next(),
+      vertexId: NodeDbIds.next(),
       lat: v.data.lat,
       lng: v.data.lng,
     };
