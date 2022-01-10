@@ -6,6 +6,8 @@ defmodule Dispatch.RoutingAgent.Data do
 
   alias Ecto.Multi
 
+  @type state :: map()
+
   def fetch_data() do
     vertices = pull_vertices()
     edges = pull_edges()
@@ -96,7 +98,7 @@ defmodule Dispatch.RoutingAgent.Data do
     |> Map.put(:vertex_end, Route.Vertex.to_map(elem.vertex_end))
   end
 
-  @spec update(map, list(map), list(map), list(map)) :: {:ok, term} | {:error, term}
+  @spec update(state, list(map), list(map), list(map)) :: {:ok, state} | {{:error, term}, state}
   def update(state, vertices, edges, restriction_groups) do
     now = NaiveDateTime.utc_now()
 
@@ -111,8 +113,12 @@ defmodule Dispatch.RoutingAgent.Data do
     |> m_insert_restriction_groups(restriction_groups)
     |> Repo.transaction()
     |> case do
-      {:ok, _} -> {:ok, fetch_data()}
-      error -> error
+      {:ok, _} ->
+        new_state = fetch_data()
+        {{:ok, new_state}, new_state}
+
+      error ->
+        {error, state}
     end
   end
 

@@ -145,7 +145,7 @@ export default {
           'set pre-start categories',
           data => dispatch('constants/setPreStartControlCategories', data.categories),
         ],
-        ['set routing data', data => dispatch('constants/setRoutingData', data)],
+        ['set routing data', data => dispatch('constants/setRoutingData', data.routing)],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],

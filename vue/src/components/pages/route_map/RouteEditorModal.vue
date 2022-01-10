@@ -225,7 +225,7 @@ export default {
       this.segments = graphToSegments(this.graph, this.segments);
     },
     reloadRestrictionGroups() {
-      const groups = this.routeRestrictionGroups.slice();
+      let groups = this.routeRestrictionGroups.slice();
       if (groups.length === 0) {
         groups = [
           {
@@ -332,15 +332,12 @@ export default {
         };
       });
 
-      // will need some form of checksum/list of node, edge and restriction group ids
-      // to help defend against user races
       const payload = {
+        route_id: this.activeRoute?.id,
         vertices: formattedVertices,
         edges: formattedEdges,
         restriction_groups: restrictionGroups,
       };
-
-      console.dir(payload);
 
       const loading = this.$modal.create(
         LoadingModal,
@@ -353,14 +350,18 @@ export default {
         .receive('ok', () => {
           this.$toaster.info('Route update successful');
           loading.close();
-          // this.close();
+          this.close();
         })
         .receive('error', error => {
           console.error(error);
-          this.$toaster.error(error.error);
           loading.close();
+          if (error.error === 'race') {
+            this.$toaster.error('Route updated by another user, please try again');
+            this.close();
+            return;
+          }
+          this.$toaster.error(error.error);
         })
-
         .receive('timeout', () => {
           this.$toaster.noComms('unable to update routes at this time');
           loading.close();

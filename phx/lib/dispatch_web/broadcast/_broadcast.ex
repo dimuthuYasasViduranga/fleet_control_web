@@ -35,7 +35,8 @@ defmodule DispatchWeb.Broadcast do
     CalendarAgent,
     HaulAgent,
     PreStartAgent,
-    PreStartSubmissionAgent
+    PreStartSubmissionAgent,
+    RoutingAgent
   }
 
   @spec get_assignment(map) :: {map, map, map} | {map} | nil
@@ -179,6 +180,15 @@ defmodule DispatchWeb.Broadcast do
 
     Endpoint.broadcast(@dispatch, "set location data", payload)
     broadcast_all_operators("set location data", payload)
+  end
+
+  def send_routing_data() do
+    payload = %{
+      routing: RoutingAgent.get()
+    }
+
+    Endpoint.broadcast(@dispatch, "set routing data", payload)
+    broadcast_all_operators("set routing data", payload)
   end
 
   def send_asset_data_to_all() do

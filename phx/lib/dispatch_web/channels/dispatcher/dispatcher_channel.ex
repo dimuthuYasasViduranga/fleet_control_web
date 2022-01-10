@@ -518,9 +518,19 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   def handle_in("routing:update", payload, socket) do
-    RoutingAgent.update(payload["vertices"], payload["edges"], payload["restriction_groups"])
+    case RoutingAgent.update(
+           payload["route_id"],
+           payload["vertices"],
+           payload["edges"],
+           payload["restriction_groups"]
+         ) do
+      {:ok, _state} ->
+        Broadcast.send_routing_data()
+        {:reply, :ok, socket}
 
-    {:reply, :ok, socket}
+      error ->
+        {:reply, to_error(error), socket}
+    end
   end
 
   def handle_in(

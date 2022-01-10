@@ -38,13 +38,22 @@ defmodule Dispatch.RoutingAgent do
   @spec get() :: data
   def get(), do: Agent.get(__MODULE__, & &1)
 
-  @spec update(list(map), list(map), list(map)) :: {:ok, term} | {:error, term}
-  def update(vertices, edges, restriction_groups) do
+  @spec update(integer | nil, list(map), list(map), list(map)) ::
+          {:ok, data} | {:error, :race | term}
+  def update(route_id, vertices, edges, restriction_groups) do
     {vertices, edges, restriction_groups} = parse(vertices, edges, restriction_groups)
 
     case Validation.validate(vertices, edges, restriction_groups) do
       :ok ->
-        Agent.get_and_update(__MODULE__, &Data.update(&1, vertices, edges, restriction_groups))
+        Agent.get_and_update(__MODULE__, fn state ->
+          case route_id == state.active_route[:id] do
+            false ->
+              {{:error, :race}, state}
+
+            true ->
+              Data.update(state, vertices, edges, restriction_groups)
+          end
+        end)
 
       error ->
         error
@@ -58,7 +67,7 @@ defmodule Dispatch.RoutingAgent do
           id: n["id"],
           lat: n["lat"],
           lng: n["lng"],
-          alt: n["alt"],
+          alt: n["alt"]
         }
       end)
 
