@@ -82,9 +82,9 @@
             :key="`polyline-${index}`"
             :path="poly.path"
             :options="{
-              strokeColor: poly.color,
-              strokeWeight: poly.width,
-              strokeOpacity: poly.opacity,
+              strokeColor: 'black',
+              strokeWeight: 6,
+              icons: poly.icons,
             }"
           />
 
@@ -114,11 +114,12 @@ import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
-import { fromRestrictedRoute, fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
+import { fromRestrictedRoute, fromRoute, getClosestVertex } from '@/code/graph';
 import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
 import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
 import turf from '@/code/turf';
 import { closestPoint } from '@/code/distance';
+import { graphToSegments, segmentsToPolylines } from './common';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_UNUSED_COLOR = 'black';
@@ -136,30 +137,6 @@ function createLink(position, vertex, color) {
   }
 
   return null;
-}
-
-function graphToPolylines(graph) {
-  const adjacency = graph.adjacency;
-  const vertices = graph.vertices;
-
-  const uniqPaths = getUniqPaths(adjacency);
-
-  return uniqPaths.map(path => {
-    const points = path.map(id => {
-      const data = vertices[id].data;
-      return {
-        lat: data.lat,
-        lng: data.lng,
-      };
-    });
-    return {
-      path: points,
-      color: ROUTE_UNUSED_COLOR,
-      opacity: ROUTE_UNUSED_OPACITY,
-      width: ROUTE_WIDTH,
-      vertices: path,
-    };
-  });
 }
 
 function createLocationToVerticesLookup(locations, graph) {
@@ -199,6 +176,59 @@ function findVertex(locationToVerticesLookup, vertexList, locationId, position) 
   return {
     id,
     data: rest,
+  };
+}
+
+function edgesToSegments(graph, edgeIds) {
+  const edgeLookup = edgeIds.reduce((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {});
+
+  return graphToSegments(graph)
+    .map(s => {
+      const aId = s.edges.find(e => e.endVertexId === s.vertexBId)?.data?.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.vertexAId)?.data?.edgeId;
+
+      const e1 = edgeLookup[aId];
+      const e2 = edgeLookup[bId];
+
+      if (!e1 && !e2) {
+        return;
+      }
+
+      if (e1 && !e2) {
+        s.direction = 'positive';
+      } else if (!e1 && e2) {
+        s.direction = 'negative';
+      }
+
+      return s;
+    })
+    .filter(s => s);
+}
+
+function getJourney(graph, startVertex, endVertex) {
+  const vertexMap = graph.vertices;
+  const adjacency = graph.adjacency;
+
+  if (!startVertex || !endVertex) {
+    return [];
+  }
+  const result = dijkstra(vertexMap, adjacency, startVertex.id);
+  const vertices = dijkstraToVertices(result, endVertex.id);
+
+  const path = vertices.map(id => {
+    const data = vertexMap[id].data;
+    return { lat: data.lat, lng: data.lng };
+  });
+
+  return {
+    path,
+    color: ROUTE_USED_COLOR,
+    opacity: ROUTE_USED_OPACITY,
+    width: ROUTE_WIDTH,
+    vertices,
   };
 }
 
@@ -255,17 +285,20 @@ export default {
     locationToVerticesLookup() {
       return createLocationToVerticesLookup(this.locations, this.graph);
     },
-    routePolylines() {
-      return graphToPolylines(this.graph);
+    segments() {
+      return edgesToSegments(this.graph, this.route?.elementIds || []);
     },
-
+    routePolylines() {
+      const segments = segmentsToPolylines(this.segments);
+      segments.forEach(s => s.icons.forEach(i => (i.icon.fillColor = 'gray')));
+      return segments;
+    },
     markerStartLocation() {
       return locationFromPoint(this.locations, this.markerStart.position);
     },
     markerEndLocation() {
       return locationFromPoint(this.locations, this.markerEnd.position);
     },
-
     markerStartVertex() {
       return findVertex(
         this.locationToVerticesLookup,
@@ -289,30 +322,7 @@ export default {
       return createLink(this.markerEnd.position, this.markerEndVertex, 'red');
     },
     journey() {
-      const vertexMap = this.graph.vertices;
-      const adjacency = this.graph.adjacency;
-
-      const startVertex = this.markerStartVertex;
-      const endVertex = this.markerEndVertex;
-
-      if (!startVertex || !endVertex) {
-        return [];
-      }
-      const result = dijkstra(vertexMap, adjacency, startVertex.id);
-      const vertices = dijkstraToVertices(result, endVertex.id);
-
-      const path = vertices.map(id => {
-        const data = vertexMap[id].data;
-        return { lat: data.lat, lng: data.lng };
-      });
-
-      return {
-        path,
-        color: ROUTE_USED_COLOR,
-        opacity: ROUTE_USED_OPACITY,
-        width: ROUTE_WIDTH,
-        vertices,
-      };
+      return getJourney(this.graph, this.markerStartVertex, this.markerEndVertex);
     },
   },
   mounted() {
