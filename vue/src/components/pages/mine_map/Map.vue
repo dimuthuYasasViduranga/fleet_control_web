@@ -30,6 +30,12 @@
             :highlight="!showLabels"
             @click.native="toggleShowLabels()"
           />
+          <GmapRouteIcon
+            ref="route-control"
+            tooltip="right"
+            :highlight="!showRouting"
+            @click.native="toggleShowRouting()"
+          />
           <GmapMyPositionIcon ref="my-position-control" tooltip="left" />
           <RecenterIcon
             v-show="myLocation"
@@ -146,6 +152,15 @@
             @click="onAssetClick"
           />
 
+          <template v-if="showRouting">
+            <gmap-polyline
+              v-for="seg in routeSegments"
+              :key="seg.id"
+              :path="seg.path"
+              :options="{ strokeColor: 'saddlebrown', zIndex: -1 }"
+            />
+          </template>
+
           <g-map-my-position :value="myLocation" />
 
           <gmap-info-window
@@ -169,11 +184,13 @@
           </gmap-info-window>
         </GmapMap>
       </div>
+      <!-- <pre>{{ routeSegments }}</pre> -->
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 
 import Icon from 'hx-layout/Icon.vue';
@@ -191,6 +208,7 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GmapAlertIcon from '@/components/gmap/GmapAlertIcon.vue';
 import GmapClusterIcon from '@/components/gmap/GmapClusterIcon.vue';
 import GmapLabelIcon from '@/components/gmap/GmapLabelIcon.vue';
+import GmapRouteIcon from '@/components/gmap/GmapRouteIcon.vue';
 import GmapMyPositionIcon from '@/components/gmap/GmapMyPositionIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls.js';
@@ -201,6 +219,8 @@ import HaulTruckInfo from './info/HaulTruckInfo.vue';
 import DigUnitInfo from './info/DigUnitInfo.vue';
 import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
+import { fromRoute } from '@/code/graph';
+import { graphToSegments } from '../route_map/common';
 
 const DIG_UNIT_LOADING_RADIUS = 30;
 
@@ -230,13 +250,13 @@ export default {
     GmapClusterIcon,
     GmapLabelIcon,
     GmapMyPositionIcon,
+    GmapRouteIcon,
   },
   props: {
     assets: { type: Array, default: () => [] },
     assetTypes: { type: Array, default: () => [] },
     activeLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
-    icons: { type: Object, default: () => ({}) },
     shownAssetTypes: { type: Array, default: () => [] },
   },
   data: () => {
@@ -248,6 +268,7 @@ export default {
       useMapClusters: false,
       showAssetFilter: false,
       showLabels: true,
+      showRouting: true,
       defaults: {
         zoom: 0,
         center: {
@@ -284,9 +305,11 @@ export default {
   },
   computed: {
     google: gmapApi,
-    mapManifest() {
-      return this.$store.state.constants.mapManifest;
-    },
+    ...mapState('constants', {
+      mapManifest: state => state.mapManifest,
+      icons: state => state.icons || {},
+      activeRoute: state => state.activeRoute,
+    }),
     shownGeofences() {
       if (this.showAllGeofences) {
         return this.locations.filter(l => l.type !== 'closed');
@@ -300,13 +323,11 @@ export default {
       return null;
     },
     assetTypeIcons() {
-      const icons = this.$store.state.constants.icons || {};
-
       return this.assetTypes
         .map(t => {
           return {
             type: t.type,
-            icon: icons[t.type] || icons.Unknown,
+            icon: this.icons[t.type] || this.icons.Unknown,
           };
         })
         .sort((a, b) => (a.type || '').localeCompare(b.type || ''));
@@ -329,6 +350,12 @@ export default {
       return this.assets
         .filter(a => a.secondaryType === 'Dig Unit' && a.track?.position)
         .map(a => a.track?.position);
+    },
+    graph() {
+      return fromRoute(this.activeRoute);
+    },
+    routeSegments() {
+      return graphToSegments(this.graph);
     },
   },
   watch: {
@@ -375,6 +402,7 @@ export default {
       attachControl(map, this.google, this.$refs['alert-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['cluster-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['label-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['route-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['asset-type-filter-toggle'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['asset-type-filter'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['my-position-control'], 'RIGHT_BOTTOM');
@@ -431,6 +459,9 @@ export default {
     },
     toggleShowLabels() {
       this.showLabels = !this.showLabels;
+    },
+    toggleShowRouting() {
+      this.showRouting = !this.showRouting;
     },
     onGeofenceClick({ geofence, click }) {
       const selected = this.selected;
@@ -522,7 +553,7 @@ export default {
 }
 
 .g-control .asset-selector-control .gmap-dropdown {
-  width: 20rem;
+  width: 16rem;
 }
 
 /* asset filter and icons */

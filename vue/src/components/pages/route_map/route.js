@@ -143,7 +143,7 @@ function applyChanges(sourceGraph, addedVertices, addedEdges, maybeRemovedVertic
 
   // only remove orphaned vertices
   maybeRemovedVertices.forEach(v => {
-    if (graph.adjacency[v.id].length === 0) {
+    if (!graph.adjacency[v.id]?.length) {
       graph.removeVertex(v.id);
     }
   });
