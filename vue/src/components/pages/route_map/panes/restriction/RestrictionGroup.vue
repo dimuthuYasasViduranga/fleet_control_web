@@ -244,7 +244,12 @@ export default {
 
 <style>
 .restriction-group {
-  border: 1px solid orange;
+  border: 0.1px solid rgba(128, 128, 128, 0.45);
+}
+
+.restriction-group input {
+  border: 1px solid gray;
+  width: 11rem;
 }
 
 .restriction-group input[disabled] {

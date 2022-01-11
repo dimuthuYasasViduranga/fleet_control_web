@@ -151,7 +151,7 @@ export default {
       );
       const active = this.activeRoute || {};
       return (active.restrictionGroups || []).map(r => {
-        const assetTypes = r.assetTypeIds.map(id => lookup[id]);
+        const assetTypes = r.assetTypeIds.map(id => lookup[id]).sort((a, b) => a.localeCompare(b));
 
         return {
           id: r.id,

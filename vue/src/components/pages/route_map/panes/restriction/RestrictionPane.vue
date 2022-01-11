@@ -16,7 +16,7 @@
       @remove="onRemove(index)"
       @edges-changed="onEdgesChanged(index, $event)"
     />
-    <button class="hx-btn" @click="onAddGroup">Add</button>
+    <button class="hx-btn add-group" @click="onAddGroup">Add Group</button>
   </div>
 </template>
 
@@ -80,4 +80,7 @@ export default {
 </script>
 
 <style>
+.restriction-pane .add-group {
+  margin-top: 0.5rem;
+}
 </style>

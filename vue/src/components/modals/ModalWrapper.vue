@@ -14,7 +14,7 @@
       >
         <div
           class="modal-container"
-          @mousedown.stop="setInsideClick()"
+          @mousedown="setInsideClick()"
           @click.stop="clearInsideClick()"
         >
           <component ref="modal" :is="component" v-bind="componentProps" @close="triggerClose" />
