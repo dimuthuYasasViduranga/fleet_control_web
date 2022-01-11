@@ -113,17 +113,9 @@
                 clickable: false,
                 zIndex: 20,
                 strokeOpacity: 0.5,
-                strokeWeight: 12,
+                strokeWeight: 5,
               }"
             />
-
-            <GMapLabel
-              v-for="(circle, index) in circles"
-              :key="`segment-circle-label-${index}`"
-              :position="circle.center"
-            >
-              {{ circle.id }}
-            </GMapLabel>
           </template>
         </GmapMap>
       </div>
@@ -138,7 +130,6 @@ import { gmapApi } from 'gmap-vue';
 import GMapDrawingControls from '@/components/gmap/GMapDrawingControls.vue';
 import GMapEditable from '@/components/gmap/GMapEditable.vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
-import GMapLabel from '@/components/gmap/GMapLabel.vue';
 import RouteImport from './RouteImport.vue';
 
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
@@ -233,7 +224,6 @@ export default {
     GMapDrawingControls,
     GMapEditable,
     GMapGeofences,
-    GMapLabel,
     PolygonIcon,
     RecenterIcon,
     ResetZoomIcon,

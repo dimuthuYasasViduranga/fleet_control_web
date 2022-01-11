@@ -111,21 +111,18 @@ function edgesToSegments(graph, edgeIds) {
     acc[id] = true;
     return acc;
   }, {});
+
   return graphToSegments(graph).map(s => {
-    if (s.edges.length === 2) {
-      s.direction = 'both';
-    } else {
-      const aId = s.edges.find(e => e.endVertexId === s.vertexBId)?.data.edgeId;
-      const bId = s.edges.find(e => e.endVertexId === s.vertexAId)?.data.edgeId;
+    const aId = s.edges.find(e => e.endVertexId === s.vertexBId)?.data.edgeId;
+    const bId = s.edges.find(e => e.endVertexId === s.vertexAId)?.data.edgeId;
 
-      const e1 = edgeLookup[aId];
-      const e2 = edgeLookup[bId];
+    const e1 = edgeLookup[aId];
+    const e2 = edgeLookup[bId];
 
-      if (e1 && !e2) {
-        s.direction = 'positive';
-      } else if (!e1 && e2) {
-        s.direction = 'negative';
-      }
+    if (e1 && !e2) {
+      s.direction = 'positive';
+    } else if (!e1 && e2) {
+      s.direction = 'negative';
     }
 
     return s;
