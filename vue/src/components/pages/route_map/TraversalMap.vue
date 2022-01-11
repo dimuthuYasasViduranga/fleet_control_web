@@ -20,6 +20,9 @@
               @change="onSelectAssetType"
             />
           </div>
+          <div v-show="hasNoJourney" ref="alert-control" class="g-control alert-control">
+            No Route
+          </div>
         </div>
         <GmapMap
           ref="gmap"
@@ -122,8 +125,6 @@ import { closestPoint } from '@/code/distance';
 import { graphToSegments, segmentsToPolylines } from './common';
 
 const DRAG_UPDATE_INTERVAL = 50;
-const ROUTE_UNUSED_COLOR = 'black';
-const ROUTE_UNUSED_OPACITY = 0.75;
 const ROUTE_USED_COLOR = 'darkred';
 const ROUTE_USED_OPACITY = 1;
 const ROUTE_WIDTH = 10;
@@ -324,6 +325,10 @@ export default {
     journey() {
       return getJourney(this.graph, this.markerStartVertex, this.markerEndVertex);
     },
+    hasNoJourney() {
+      const vertices = this.journey?.vertices || [];
+      return vertices.length === 0;
+    },
   },
   mounted() {
     this.markerStart.position = {
@@ -340,6 +345,7 @@ export default {
       map.setOptions({ gestureHandling: 'greedy' });
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['asset-type-selector-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['alert-control'], 'BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -422,5 +428,10 @@ export default {
   color: black;
   padding: 5px;
   white-space: nowrap;
+}
+
+/* alert */
+.traversal-map .g-control .alert-control {
+  padding: 0 0.25rem;
 }
 </style>
