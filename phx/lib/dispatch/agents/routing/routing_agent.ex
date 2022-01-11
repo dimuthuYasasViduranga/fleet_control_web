@@ -76,7 +76,8 @@ defmodule Dispatch.RoutingAgent do
         %{
           id: e["id"],
           vertex_start_id: e["vertex_start_id"],
-          vertex_end_id: e["vertex_end_id"]
+          vertex_end_id: e["vertex_end_id"],
+          distance: e["distance"] / 1,
         }
       end)
 

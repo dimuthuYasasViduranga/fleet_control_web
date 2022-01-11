@@ -85,6 +85,7 @@ function segmentToEdges(seg, vertices) {
         edgeId: e.data.edgeId,
         vertexStartId: vertices[e.startVertexId].data.vertexId,
         vertexEndId: vertices[e.endVertexId].data.vertexId,
+        distance: e.data.distance,
       };
     });
   }
@@ -97,6 +98,7 @@ function segmentToEdges(seg, vertices) {
         edgeId: edge.data.edgeId,
         vertexStartId: vertices[edge.startVertexId].data.vertexId,
         vertexEndId: vertices[edge.endVertexId].data.vertexId,
+        distance: edge.data.distance,
       },
     ];
   }
@@ -108,6 +110,7 @@ function segmentToEdges(seg, vertices) {
       edgeId: edge.data.edgeId,
       vertexStartId: vertices[edge.startVertexId].data.vertexId,
       vertexEndId: vertices[edge.endVertexId].data.vertexId,
+      distance: edge.data.distance,
     },
   ];
 }
@@ -328,6 +331,7 @@ export default {
           id: e.edgeId,
           vertex_start_id: e.vertexStartId,
           vertex_end_id: e.vertexEndId,
+          distance: e.distance,
         };
       });
 

@@ -230,6 +230,7 @@ function getJourney(graph, startVertex, endVertex) {
     opacity: ROUTE_USED_OPACITY,
     width: ROUTE_WIDTH,
     vertices,
+    distance: result[endVertex.id],
   };
 }
 

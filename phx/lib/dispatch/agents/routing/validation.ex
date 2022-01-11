@@ -107,6 +107,7 @@ defmodule Dispatch.RoutingAgent.Validation do
   defp validate_edge(edge, vertex_map) do
     cond do
       is_nil(edge.id) -> {:error, :nil_id}
+      is_nil(edge.distance) -> {:error, :invalid_distance}
       is_nil(vertex_map[edge.vertex_start_id]) -> {:error, :invalid_start_id}
       is_nil(vertex_map[edge.vertex_end_id]) -> {:error, :invalid_end_id}
       true -> :ok

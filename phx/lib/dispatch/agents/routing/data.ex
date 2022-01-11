@@ -200,8 +200,7 @@ defmodule Dispatch.RoutingAgent.Data do
           %{
             vertex_start_id: vertex_lookup[e.vertex_start_id],
             vertex_end_id: vertex_lookup[e.vertex_end_id],
-            # TODO: need to calculate this
-            distance: 0.0,
+            distance: e.distance,
             deleted: false
           }
         end)
