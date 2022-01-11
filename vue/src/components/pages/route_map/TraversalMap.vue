@@ -20,8 +20,9 @@
               @change="onSelectAssetType"
             />
           </div>
-          <div v-show="hasNoJourney" ref="alert-control" class="g-control alert-control">
-            No Route
+          <div ref="alert-control" class="g-control alert-control">
+            <div v-if="journey.distance === Infinity">No Route</div>
+            <div v-else>Distance: ~{{ (journey.distance / 1000).toFixed(1) }} km</div>
           </div>
         </div>
         <GmapMap
@@ -67,18 +68,6 @@
             </div>
           </GMapLabel>
 
-          <!-- draw marker links -->
-          <gmap-polyline
-            v-for="(poly, index) in [markerEndLink, markerStartLink].filter(m => m)"
-            :key="`link-${index}`"
-            :path="poly.path"
-            :options="{
-              strokeColor: poly.color,
-              strokeWeight: poly.width,
-              strokeOpacity: poly.opacity,
-            }"
-          />
-
           <!-- draw the graph as polylines -->
           <gmap-polyline
             v-for="(poly, index) in routePolylines"
@@ -101,6 +90,11 @@
               zIndex: 5,
             }"
           />
+
+          <!-- debug node ids -->
+          <!-- <GMapLabel v-for="v in graph.getVerticesList()" :key="v.id" :position="v.data">
+            {{ v.id }}
+          </GMapLabel> -->
         </GmapMap>
       </div>
     </div>
@@ -121,7 +115,7 @@ import { fromRestrictedRoute, fromRoute, getClosestVertex } from '@/code/graph';
 import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
 import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
 import turf from '@/code/turf';
-import { closestPoint } from '@/code/distance';
+import { closestPoint, haversineDistanceM } from '@/code/distance';
 import { graphToSegments, segmentsToPolylines } from './common';
 
 const DRAG_UPDATE_INTERVAL = 50;
@@ -130,15 +124,8 @@ const ROUTE_USED_OPACITY = 1;
 const ROUTE_WIDTH = 10;
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
-
-function createLink(position, vertex, color) {
-  if (vertex) {
-    const endPoint = { lat: vertex.data.lat, lng: vertex.data.lng };
-    return { path: [position, endPoint], color, width: ROUTE_WIDTH };
-  }
-
-  return null;
-}
+// allow shortcut if the total distance is 'x' times bigger than the shortcut
+const SHORTCUT_FACTOR = 2;
 
 function createLocationToVerticesLookup(locations, graph) {
   if (!graph || locations.length === 0) {
@@ -209,9 +196,15 @@ function edgesToSegments(graph, edgeIds) {
     .filter(s => s);
 }
 
-function getJourney(graph, startVertex, endVertex) {
+function getJourney(graph, start, end) {
   const vertexMap = graph.vertices;
   const adjacency = graph.adjacency;
+
+  const startVertex = start.vertex;
+  const endVertex = end.vertex;
+
+  const startPos = { lat: start.position.lat, lng: start.position.lng };
+  const endPos = { lat: end.position.lat, lng: end.position.lng };
 
   if (!startVertex || !endVertex) {
     return [];
@@ -224,13 +217,37 @@ function getJourney(graph, startVertex, endVertex) {
     return { lat: data.lat, lng: data.lng };
   });
 
+  path.unshift(startPos);
+  path.push(endPos);
+
+  const graphDistance = result[endVertex.id].distance;
+  const startToGraph = haversineDistanceM(start.position, start.vertex.data);
+  const endToGraph = haversineDistanceM(end.position, end.vertex.data);
+
+  const totalDistance = graphDistance + startToGraph + endToGraph;
+
+  if (start.locationId === end.locationId) {
+    const shortcutDistance = haversineDistanceM(start.position, end.position);
+
+    if (shortcutDistance < totalDistance / SHORTCUT_FACTOR) {
+      return {
+        path: [startPos, endPos],
+        color: ROUTE_USED_COLOR,
+        opacity: ROUTE_USED_OPACITY,
+        width: ROUTE_WIDTH,
+        vertices: [],
+        distance: shortcutDistance,
+      };
+    }
+  }
+
   return {
     path,
     color: ROUTE_USED_COLOR,
     opacity: ROUTE_USED_OPACITY,
     width: ROUTE_WIDTH,
     vertices,
-    distance: result[endVertex.id],
+    distance: totalDistance,
   };
 }
 
@@ -317,18 +334,20 @@ export default {
         this.markerEnd.position,
       );
     },
-    markerStartLink() {
-      return createLink(this.markerStart.position, this.markerStartVertex, 'green');
-    },
-    markerEndLink() {
-      return createLink(this.markerEnd.position, this.markerEndVertex, 'red');
-    },
     journey() {
-      return getJourney(this.graph, this.markerStartVertex, this.markerEndVertex);
-    },
-    hasNoJourney() {
-      const vertices = this.journey?.vertices || [];
-      return vertices.length === 0;
+      const start = {
+        position: this.markerStart.position,
+        locationId: this.markerStartLocation?.id,
+        vertex: this.markerStartVertex,
+      };
+
+      const end = {
+        position: this.markerEnd.position,
+        locationId: this.markerEndLocation?.id,
+        vertex: this.markerEndVertex,
+      };
+
+      return getJourney(this.graph, start, end);
     },
   },
   mounted() {
