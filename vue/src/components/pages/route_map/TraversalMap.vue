@@ -116,7 +116,9 @@ import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
 import { fromRestrictedRoute, fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
 import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
-import { locationFromPoint } from '@/code/turfHelpers';
+import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
+import turf from '@/code/turf';
+import { closestPoint } from '@/code/distance';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_UNUSED_COLOR = 'black';
@@ -127,13 +129,10 @@ const ROUTE_WIDTH = 10;
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
 
-function createLink(graph, marker, color) {
-  const startPoint = { ...marker.position };
-  const closestVertex = getClosestVertex(startPoint, graph.getVerticesList());
-
-  if (closestVertex) {
-    const endPoint = { lat: closestVertex.data.lat, lng: closestVertex.data.lng };
-    return { path: [startPoint, endPoint], color, width: ROUTE_WIDTH };
+function createLink(position, vertex, color) {
+  if (vertex) {
+    const endPoint = { lat: vertex.data.lat, lng: vertex.data.lng };
+    return { path: [position, endPoint], color, width: ROUTE_WIDTH };
   }
 
   return null;
@@ -161,6 +160,46 @@ function graphToPolylines(graph) {
       vertices: path,
     };
   });
+}
+
+function createLocationToVerticesLookup(locations, graph) {
+  if (!graph || locations.length === 0) {
+    return {};
+  }
+
+  const vertices = graph.getVerticesList().map(v => {
+    return {
+      point: turf.point([v.data.lng, v.data.lat]),
+      data: {
+        id: v.id,
+        vertexId: v.data.vertexId,
+        lat: v.data.lat,
+        lng: v.data.lng,
+      },
+    };
+  });
+  return locations.reduce((acc, l) => {
+    const coords = coordsObjsToCoordArrays(l.geofence);
+    const polygon = turf.polygon([coords]);
+    acc[l.id] = vertices.filter(v => turf.booleanWithin(v.point, polygon)).map(v => v.data);
+    return acc;
+  }, {});
+}
+
+function findVertex(locationToVerticesLookup, vertexList, locationId, position) {
+  const verticesInLoc = locationToVerticesLookup[locationId] || [];
+
+  if (verticesInLoc.length === 0) {
+    return getClosestVertex(position, vertexList);
+  }
+
+  const closest = closestPoint(verticesInLoc, position);
+
+  const { id, ...rest } = closest;
+  return {
+    id,
+    data: rest,
+  };
 }
 
 export default {
@@ -213,26 +252,41 @@ export default {
       }
       return fromRestrictedRoute(this.route, this.selectedAssetTypeId);
     },
+    locationToVerticesLookup() {
+      return createLocationToVerticesLookup(this.locations, this.graph);
+    },
     routePolylines() {
       return graphToPolylines(this.graph);
     },
-    markerStartLink() {
-      return createLink(this.graph, this.markerStart, 'green');
-    },
+
     markerStartLocation() {
       return locationFromPoint(this.locations, this.markerStart.position);
     },
     markerEndLocation() {
       return locationFromPoint(this.locations, this.markerEnd.position);
     },
-    markerEndLink() {
-      return createLink(this.graph, this.markerEnd, 'red');
-    },
+
     markerStartVertex() {
-      return getClosestVertex(this.markerStart.position, this.graph.getVerticesList());
+      return findVertex(
+        this.locationToVerticesLookup,
+        this.graph.getVerticesList(),
+        this.markerStartLocation?.id,
+        this.markerStart.position,
+      );
     },
     markerEndVertex() {
-      return getClosestVertex(this.markerEnd.position, this.graph.getVerticesList());
+      return findVertex(
+        this.locationToVerticesLookup,
+        this.graph.getVerticesList(),
+        this.markerEndLocation?.id,
+        this.markerEnd.position,
+      );
+    },
+    markerStartLink() {
+      return createLink(this.markerStart.position, this.markerStartVertex, 'green');
+    },
+    markerEndLink() {
+      return createLink(this.markerEnd.position, this.markerEndVertex, 'red');
     },
     journey() {
       const vertexMap = this.graph.vertices;
