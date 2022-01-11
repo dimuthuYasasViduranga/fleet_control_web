@@ -125,7 +125,7 @@ const ROUTE_WIDTH = 10;
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
 // allow shortcut if the total distance is 'x' times bigger than the shortcut
-const SHORTCUT_FACTOR = 2;
+const SHORTCUT_FACTOR = 4;
 
 function createLocationToVerticesLookup(locations, graph) {
   if (!graph || locations.length === 0) {
@@ -228,8 +228,9 @@ function getJourney(graph, start, end) {
 
   if (start.locationId === end.locationId) {
     const shortcutDistance = haversineDistanceM(start.position, end.position);
+    const compDistance = start.locationId == null ? totalDistance / SHORTCUT_FACTOR : totalDistance;
 
-    if (shortcutDistance < totalDistance / SHORTCUT_FACTOR) {
+    if (startVertex.id === endVertex.id || shortcutDistance < compDistance) {
       return {
         path: [startPos, endPos],
         color: ROUTE_USED_COLOR,
