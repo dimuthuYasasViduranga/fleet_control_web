@@ -39,8 +39,8 @@
 
           <!-- draw markers -->
           <gmap-marker
-            v-for="(marker, index) in [markerEnd, markerStart]"
-            :key="index"
+            v-for="marker in [markerEnd, markerStart]"
+            :key="`marker-${marker.name}`"
             :position="marker.position"
             :options="{
               clickable: true,
@@ -50,6 +50,19 @@
             @drag="onMarkerDrag(marker, $event)"
             @dragend="onMarkerDragEnd(marker, $event)"
           />
+
+          <GMapLabel
+            v-for="[marker, loc] in [
+              [markerEnd, markerEndLocation],
+              [markerStart, markerStartLocation],
+            ]"
+            :key="`label-${marker.name}`"
+            :position="marker.position"
+          >
+            <div v-if="loc" class="label">
+              {{ loc.extendedName }}
+            </div>
+          </GMapLabel>
 
           <!-- draw marker links -->
           <gmap-polyline
@@ -97,11 +110,13 @@ import { gmapApi } from 'gmap-vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
+import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
 import { fromRestrictedRoute, fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
 import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
+import { locationFromPoint } from '@/code/turfHelpers';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_UNUSED_COLOR = 'black';
@@ -154,6 +169,7 @@ export default {
     GMapGeofences,
     PolygonIcon,
     GMapDropDown,
+    GMapLabel,
   },
   props: {
     assetTypes: { type: Array, default: () => [] },
@@ -168,8 +184,18 @@ export default {
         lng: 0,
       },
       zoom: 0,
-      markerStart: { position: { lat: 0, lng: 0 }, icon: START_ICON_URL, pendingPosition: null },
-      markerEnd: { position: { lat: 0, lng: 0 }, icon: END_ICON_URL, pendingPosition: null },
+      markerStart: {
+        name: 'start',
+        position: { lat: 0, lng: 0 },
+        icon: START_ICON_URL,
+        pendingPosition: null,
+      },
+      markerEnd: {
+        name: 'end',
+        position: { lat: 0, lng: 0 },
+        icon: END_ICON_URL,
+        pendingPosition: null,
+      },
       showLocations: true,
       selectedAssetTypeId: null,
     };
@@ -192,6 +218,12 @@ export default {
     },
     markerStartLink() {
       return createLink(this.graph, this.markerStart, 'green');
+    },
+    markerStartLocation() {
+      return locationFromPoint(this.locations, this.markerStart.position);
+    },
+    markerEndLocation() {
+      return locationFromPoint(this.locations, this.markerEnd.position);
     },
     markerEndLink() {
       return createLink(this.graph, this.markerEnd, 'red');
@@ -307,16 +339,24 @@ export default {
 }
 
 /* asset selector */
-.g-control .asset-type-selector-control {
+.traversal-map .g-control .asset-type-selector-control {
   display: flex;
   background-color: white;
 }
 
-.g-control .asset-type-selector-control:hover {
+.traversal-map .g-control .asset-type-selector-control:hover {
   background-color: white;
 }
 
-.g-control .asset-type-selector-control .gmap-dropdown {
+.traversal-map .g-control .asset-type-selector-control .gmap-dropdown {
   width: 20rem;
+}
+
+/* labels */
+.traversal-map .g-map-label .label {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: black;
+  padding: 5px;
+  white-space: nowrap;
 }
 </style>

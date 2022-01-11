@@ -1,6 +1,6 @@
 <template>
-  <div class="g-map-label">
-    <div ref="container" class="g-map-label-container">
+  <div>
+    <div ref="container" class="g-map-label">
       <div class="wrapper" :style="`transform: ${transform}`">
         <slot></slot>
       </div>
@@ -108,7 +108,7 @@ export default MapElementFactory({
 </script>
 
 <style>
-.g-map-label-container > .wrapper {
+.g-map-label > .wrapper {
   position: absolute;
 }
 </style>
