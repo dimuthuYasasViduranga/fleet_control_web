@@ -440,7 +440,7 @@ const state = {
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
   activeRoute: null,
-  routeNodes: Array(),
+  routeVertices: Array(),
   routeEdges: Array(),
 };
 

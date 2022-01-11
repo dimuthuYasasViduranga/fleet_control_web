@@ -20,15 +20,52 @@ export function fromGraph(vertices, adjacency) {
 }
 
 export function fromRoute(route) {
-  if (!route) {
-    return new Graph();
-  }
-
   const graph = new Graph();
+
+  if (!route) {
+    return graph;
+  }
 
   const graphVId = {};
 
   route.elementIds.forEach(edgeId => {
+    const edge = route.edgeMap[edgeId];
+    const { vertexStartId, vertexEndId } = edge;
+
+    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
+
+    vertices.forEach(v => {
+      if (graphVId[v.id] == null) {
+        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+        graphVId[v.id] = insertedV.id;
+      }
+    });
+
+    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+      edgeId,
+      distance: edge.distance,
+    });
+  });
+
+  return graph;
+}
+
+export function fromRestrictedRoute(route, assetTypeId) {
+  const graph = new Graph();
+
+  if (!route) {
+    return graph;
+  }
+
+  const graphVId = {};
+
+  const restrictionGroup = route.restrictionGroups.find(r => r.assetTypeIds.includes(assetTypeId));
+
+  if (!restrictionGroup) {
+    return graph;
+  }
+
+  restrictionGroup.edgeIds.forEach(edgeId => {
     const edge = route.edgeMap[edgeId];
     const { vertexStartId, vertexEndId } = edge;
 

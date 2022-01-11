@@ -2,7 +2,7 @@
   <div class="route-map-page">
     <hxCard title="Route Map" :icon="lineIcon">
       <button class="hx-btn" @click="onOpenEditor()">Edit</button>
-      <TraversalMap :locations="locations" :route="activeRoute" />
+      <TraversalMap :assetTypes="assetTypes" :locations="locations" :route="activeRoute" />
     </hxCard>
   </div>
 </template>
@@ -27,7 +27,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      assetTypes: state => state.assetTypes,
+      assetTypes: state => state.assetTypes.slice().sort((a, b) => a.type.localeCompare(b.type)),
       locations: state => state.locations,
       activeRoute: state => state.activeRoute,
     }),

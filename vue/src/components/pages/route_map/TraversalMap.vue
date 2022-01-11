@@ -9,6 +9,17 @@
             :highlight="!showLocations"
             @click.native="toggleShowLocations()"
           />
+          <div ref="asset-type-selector-control" class="g-control asset-type-selector-control">
+            <GMapDropDown
+              :value="selectedAssetTypeId"
+              :items="assetTypes"
+              label="type"
+              :useScrollLock="true"
+              placeholder="Set Asset Type"
+              direction="down"
+              @change="onSelectAssetType"
+            />
+          </div>
         </div>
         <GmapMap
           ref="gmap"
@@ -85,9 +96,11 @@ import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
+import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
+
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
-import { fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
+import { fromRestrictedRoute, fromRoute, getClosestVertex, getUniqPaths } from '@/code/graph';
 import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
 
 const DRAG_UPDATE_INTERVAL = 50;
@@ -140,6 +153,7 @@ export default {
   components: {
     GMapGeofences,
     PolygonIcon,
+    GMapDropDown,
   },
   props: {
     assetTypes: { type: Array, default: () => [] },
@@ -157,6 +171,7 @@ export default {
       markerStart: { position: { lat: 0, lng: 0 }, icon: START_ICON_URL, pendingPosition: null },
       markerEnd: { position: { lat: 0, lng: 0 }, icon: END_ICON_URL, pendingPosition: null },
       showLocations: true,
+      selectedAssetTypeId: null,
     };
   },
   computed: {
@@ -167,8 +182,10 @@ export default {
       defaultZoom: state => state.mapZoom,
     }),
     graph() {
-      // this is created based on asset type selection
-      return fromRoute(this.route);
+      if (!this.selectedAssetTypeId) {
+        return fromRoute(this.route);
+      }
+      return fromRestrictedRoute(this.route, this.selectedAssetTypeId);
     },
     routePolylines() {
       return graphToPolylines(this.graph);
@@ -226,6 +243,7 @@ export default {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-selector-control'], 'TOP_LEFT');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -262,6 +280,9 @@ export default {
       marker.interval = clearInterval(marker.interval);
       marker.position = { lat: event.latLng.lat(), lng: event.latLng.lng() };
     },
+    onSelectAssetType(assetTypeId) {
+      this.selectedAssetTypeId = assetTypeId;
+    },
   },
 };
 </script>
@@ -283,5 +304,19 @@ export default {
 
 .traversal-map .gmap-map .vue-map-container {
   height: 100%;
+}
+
+/* asset selector */
+.g-control .asset-type-selector-control {
+  display: flex;
+  background-color: white;
+}
+
+.g-control .asset-type-selector-control:hover {
+  background-color: white;
+}
+
+.g-control .asset-type-selector-control .gmap-dropdown {
+  width: 20rem;
 }
 </style>
