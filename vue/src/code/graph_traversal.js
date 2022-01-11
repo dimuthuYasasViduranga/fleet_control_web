@@ -1,5 +1,3 @@
-import { groupBy } from './helpers';
-
 const UNVISITED = -1;
 
 export function dijkstra(vertexMap, adjacency, sourceId) {
@@ -12,7 +10,6 @@ export function dijkstra(vertexMap, adjacency, sourceId) {
     queue.push(id);
   });
   dist[sourceId] = 0;
-
   while (queue.length !== 0) {
     const curId = getNextVertex(queue, dist);
 

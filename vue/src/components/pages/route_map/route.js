@@ -7,11 +7,8 @@ const EdgeDbIds = new IdGen(-1, -1);
 
 export function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
   const snapDistance = zoom == null ? 1 : pixelsToMeters(snapDistancePx, zoom);
-  const existingVertices = graph.getVerticesList();
 
-  const usedVertices = path.map(point =>
-    addOrGetVertex(graph, existingVertices, point, snapDistance),
-  );
+  const usedVertices = path.map(point => addOrGetVertex(graph, point, snapDistance));
 
   chunkEvery(usedVertices, 2, 1, 'discard').forEach(([v1, v2]) => {
     addOrGetEdge(graph, v1, v2);
@@ -21,8 +18,11 @@ export function addPolylineToGraph(graph, path, zoom, snapDistancePx) {
   return graph.copy();
 }
 
-function addOrGetVertex(graph, vertices, point, snapDistance) {
-  const existingV = vertices.find(v => haversineDistanceM(point, v.data) < snapDistance);
+function addOrGetVertex(graph, point, snapDistance) {
+  const existingV = graph
+    .getVerticesList()
+    .find(v => haversineDistanceM(point, v.data) < snapDistance);
+
   return (
     existingV || graph.addVertex({ lat: point.lat, lng: point.lng, vertexId: NodeDbIds.next() })
   );
@@ -65,8 +65,6 @@ function findVertexInRange(vertices, point, threshold) {
 export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
   const snapDistance = pixelsToMeters(snapDistancePx, zoom);
 
-  const existingVertices = graph.getVerticesList();
-
   // convert paths into vertices
   const oldVertices = oldPath.map(p => {
     return {
@@ -81,7 +79,7 @@ export function editGraph(graph, newPath, oldPath, zoom, snapDistancePx) {
 
   // get new/existing vertices
   const newVertices = newPath.map((p, index) => {
-    const existingVertex = findVertexInRange(existingVertices, p, snapDistance);
+    const existingVertex = findVertexInRange(graph.getVerticesList(), p, snapDistance);
 
     if (existingVertex) {
       return copy(existingVertex);
