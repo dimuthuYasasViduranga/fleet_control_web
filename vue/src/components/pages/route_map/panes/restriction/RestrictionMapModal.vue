@@ -98,9 +98,9 @@ function initialiseSelectedSegments(segments, edgeIds) {
 function getSegmentEdgeIds(graph, segment) {
   switch (segment.direction) {
     case 'positive':
-      return [graph.getEdge(segment.nodeAId, segment.nodeBId)?.data?.edgeId];
+      return [graph.getEdge(segment.vertexAId, segment.vertexBId)?.data?.edgeId];
     case 'negative':
-      return [graph.getEdge(segment.nodeBId, segment.nodeAId)?.data?.edgeId];
+      return [graph.getEdge(segment.vertexBId, segment.vertexAId)?.data?.edgeId];
     default:
       return segment.edges.map(e => e.data.edgeId);
   }
@@ -115,10 +115,8 @@ function edgesToSegments(graph, edgeIds) {
     if (s.edges.length === 2) {
       s.direction = 'both';
     } else {
-      // TODO: something is not producing the edge correctly
-
-      const aId = s.edges.find(e => e.endVertexId === s.nodeBId)?.data.edgeId;
-      const bId = s.edges.find(e => e.endVertexId === s.nodeAId)?.data.edgeId;
+      const aId = s.edges.find(e => e.endVertexId === s.vertexBId)?.data.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.vertexAId)?.data.edgeId;
 
       const e1 = edgeLookup[aId];
       const e2 = edgeLookup[bId];

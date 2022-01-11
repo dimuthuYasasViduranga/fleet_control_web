@@ -90,7 +90,7 @@ function segmentToEdges(seg, vertices) {
   }
 
   if (seg.direction === 'positive') {
-    const edge = seg.edges.find(e => e.endVertexId === seg.endVertexId);
+    const edge = seg.edges.find(e => e.endVertexId === seg.vertexBId);
     return [
       {
         id: edge.id,
@@ -101,7 +101,7 @@ function segmentToEdges(seg, vertices) {
     ];
   }
 
-  const edge = seg.edges.find(e => e.endVertexId === seg.startVertexId);
+  const edge = seg.edges.find(e => e.endVertexId === seg.vertexAId);
   return [
     {
       id: edge.id,

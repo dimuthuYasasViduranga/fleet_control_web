@@ -79,11 +79,11 @@ function getSegmentColor(seg, groupLookup) {
     return 'darkgreen';
   }
 
-  if (groupLookup[seg.nodeAId] !== groupLookup[seg.nodeBId]) {
+  if (groupLookup[seg.vertexAId] !== groupLookup[seg.vertexBId]) {
     return '#444444';
   }
 
-  return SCC_COLORS[groupLookup[seg.nodeAId] % SCC_COLORS.length];
+  return SCC_COLORS[groupLookup[seg.vertexAId] % SCC_COLORS.length];
 }
 
 export function getNodeGroups(graph, segments) {
@@ -93,7 +93,8 @@ export function getNodeGroups(graph, segments) {
   const directionalSegments = segments
     .filter(s => s.direction !== 'both')
     .map(s => {
-      const [a, b] = s.direction === 'positive' ? [s.nodeAId, s.nodeBId] : [s.nodeBId, s.nodeAId];
+      const [a, b] =
+        s.direction === 'positive' ? [s.vertexAId, s.vertexBId] : [s.vertexBId, s.vertexAId];
       return {
         startId: a,
         endId: b,
@@ -129,7 +130,7 @@ export function nextDirection(dir) {
 export function graphToSegments(graph, existingSegments = []) {
   const existingDirections = new Dictionary();
   existingSegments.forEach(seg => {
-    existingDirections.add([seg.nodeAId, seg.nodeBId], seg.direction);
+    existingDirections.add([seg.vertexAId, seg.vertexBId], seg.direction);
   });
 
   // need to handle existing segments so that data is not lost
@@ -144,20 +145,21 @@ export function graphToSegments(graph, existingSegments = []) {
     });
   });
 
-  const segments = dict.map(([nodeAId, nodeBId], edges, index) => {
-    const nodeStartPosition = vertices[nodeAId].data;
-    const nodeEndPosition = vertices[nodeBId].data;
+  const segments = dict.map(([vertexAId, vertexBId], edges, index) => {
+    const nodeStartPosition = vertices[vertexAId].data;
+    const nodeEndPosition = vertices[vertexBId].data;
     const path = [nodeStartPosition, nodeEndPosition];
 
     const direction =
-      existingDirections.get([nodeAId, nodeBId]) || getEdgeDirection(graph, nodeAId, nodeBId);
+      existingDirections.get([vertexAId, vertexBId]) ||
+      getEdgeDirection(graph, vertexAId, vertexBId);
 
     return {
       id: index,
       edges: edges,
       direction,
-      nodeAId,
-      nodeBId,
+      vertexAId,
+      vertexBId,
       path,
     };
   });

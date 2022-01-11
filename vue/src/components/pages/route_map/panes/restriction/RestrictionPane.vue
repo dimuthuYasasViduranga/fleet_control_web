@@ -48,9 +48,9 @@ export default {
         .filter(s => s.direction !== 'both')
         .forEach(s => {
           if (s.direction === 'positive') {
-            graph.removeEdge(s.nodeBId, s.nodeAId);
+            graph.removeEdge(s.vertexBId, s.vertexAId);
           } else {
-            graph.removeEdge(s.nodeAId, s.nodeBId);
+            graph.removeEdge(s.vertexAId, s.vertexBId);
           }
         });
       return graph;
