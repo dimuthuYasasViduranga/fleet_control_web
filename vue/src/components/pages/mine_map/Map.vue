@@ -152,14 +152,21 @@
             @click="onAssetClick"
           />
 
-          <template v-if="showRouting">
+          <!-- <template v-if="showRouting">
             <gmap-polyline
               v-for="seg in routeSegments"
               :key="seg.id"
               :path="seg.path"
               :options="{ strokeColor: 'saddlebrown', zIndex: -1 }"
             />
-          </template>
+          </template> -->
+
+          <gmap-polyline
+            v-for="route in haulRoutes"
+            :key="route.name"
+            :path="route.path"
+            :options="{ strokeColor: 'green' }"
+          />
 
           <g-map-my-position :value="myLocation" />
 
@@ -184,7 +191,7 @@
           </gmap-info-window>
         </GmapMap>
       </div>
-      <!-- <pre>{{ routeSegments }}</pre> -->
+      {{ haulRoutes }}
     </div>
   </div>
 </template>
@@ -221,6 +228,7 @@ import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
 import { fromRoute } from '@/code/graph';
 import { graphToSegments } from '../route_map/common';
+import { createHaulRoutes } from '@/code/route_gen.js';
 
 const DIG_UNIT_LOADING_RADIUS = 30;
 
@@ -269,6 +277,7 @@ export default {
       showAssetFilter: false,
       showLabels: true,
       showRouting: true,
+      shownRoutes: {},
       defaults: {
         zoom: 0,
         center: {
@@ -307,8 +316,13 @@ export default {
     google: gmapApi,
     ...mapState('constants', {
       mapManifest: state => state.mapManifest,
+      mapCenter: state => state.mapCenter,
+      mapZoom: state => state.mapZoom,
       icons: state => state.icons || {},
       activeRoute: state => state.activeRoute,
+    }),
+    ...mapState('haulTruck', {
+      dispatches: state => state.currentDispatches,
     }),
     shownGeofences() {
       if (this.showAllGeofences) {
@@ -351,11 +365,18 @@ export default {
         .filter(a => a.secondaryType === 'Dig Unit' && a.track?.position)
         .map(a => a.track?.position);
     },
-    graph() {
-      return fromRoute(this.activeRoute);
-    },
     routeSegments() {
-      return graphToSegments(this.graph);
+      return graphToSegments(fromRoute(this.activeRoute));
+    },
+    haulRoutes() {
+      return createHaulRoutes(
+        this.dispatches,
+        this.digUnitActivites,
+        this.tracks,
+        this.assetTypes,
+        this.locations,
+        this.activeRoute,
+      );
     },
   },
   watch: {
@@ -381,13 +402,13 @@ export default {
     },
   },
   mounted() {
-    const center = this.$store.state.constants.mapCenter;
+    const center = this.mapCenter;
     this.defaults.center = {
       lat: center.latitude,
       lng: center.longitude,
     };
 
-    this.defaults.zoom = this.$store.state.constants.mapZoom;
+    this.defaults.zoom = this.mapZoom;
 
     this.reCenter();
     this.resetZoom();
@@ -403,10 +424,13 @@ export default {
       attachControl(map, this.google, this.$refs['cluster-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['label-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['route-control'], 'LEFT_TOP');
-      attachControl(map, this.google, this.$refs['asset-type-filter-toggle'], 'LEFT_TOP');
-      attachControl(map, this.google, this.$refs['asset-type-filter'], 'LEFT_TOP');
+
+      attachControl(map, this.google, this.$refs['asset-type-filter-toggle'], 'RIGHT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-filter'], 'RIGHT_TOP');
+
       attachControl(map, this.google, this.$refs['my-position-control'], 'RIGHT_BOTTOM');
       attachControl(map, this.google, this.$refs['my-position-recenter-control'], 'RIGHT_BOTTOM');
+
       attachControl(map, this.google, this.$refs['asset-selector-control'], 'TOP_LEFT');
       attachControl(map, this.google, this.$refs['debug-control'], 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
