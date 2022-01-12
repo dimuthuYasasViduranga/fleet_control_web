@@ -1,6 +1,15 @@
 <template>
   <div class="g-map-custom-polyline">
     <GMapLabel :position="labelCoord"><slot></slot></GMapLabel>
+    <gmap-polyline
+      :path="path"
+      :options="{
+        ...options,
+        strokeWeight: borderTotalWeight,
+        strokeColor: borderColor,
+        zIndex: (this.options.zIndex || 0) - 1,
+      }"
+    />
   </div>
 </template>
 
@@ -180,6 +189,20 @@ export default MapElementFactory({
   computed: {
     labelCoord() {
       return pointAlong(this.path, this.labelPosition);
+    },
+    borderTotalWeight() {
+      const borderWeight = this.options.borderWeight;
+      if (!borderWeight) {
+        return;
+      }
+
+      return borderWeight + (this.options.strokeWeight || 5);
+    },
+    drawBorder() {
+      return this.borderTotalWeight > 0;
+    },
+    borderColor() {
+      return this.options.borderColor || 'black';
     },
   },
 });
