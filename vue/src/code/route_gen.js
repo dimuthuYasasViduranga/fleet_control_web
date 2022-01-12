@@ -4,14 +4,18 @@ import { attributeFromList, Dictionary } from './helpers';
 import turf from './turf';
 import { coordsObjsToCoordArrays } from './turfHelpers';
 
-export function createRoute(
-  startLocationIdOrPosition,
-  endLocationIdOrPosition,
-  locations,
-  activeRoute,
-  assetTypeId,
-) {
-  console.dir('--------- create route');
+const COLORS = [
+  '#0B84A5',
+  '#F6C85F',
+  '#6F4E7C',
+  '#9DD866',
+  '#CA472F',
+  '#FFA056',
+  '#8DDDD0',
+  '#47E6D7',
+];
+
+export function createRoute(startSource, endSource, locations, activeRoute, assetTypeId) {
   // create a graph for the given asset type (no type is taken as free roam)
   const graph = assetTypeId
     ? fromRestrictedRoute(activeRoute, assetTypeId)
@@ -22,8 +26,8 @@ export function createRoute(
   const locToV = createLocationToVerticesLookup(locs, graph.getVerticesList());
 
   // create a unifor start and end characteristic
-  const start = convert(startLocationIdOrPosition, graph, locs, locToV);
-  const end = convert(endLocationIdOrPosition, graph, locs, locToV);
+  const start = convert(startSource, graph, locs, locToV);
+  const end = convert(endSource, graph, locs, locToV);
 
   if (!start?.vertexId || !end?.vertexId) {
     return;
@@ -86,11 +90,16 @@ function createLocationToVerticesLookup(locations, vertices) {
   });
 }
 
-function convert(locationIdOrPosition, graph, locations, locToV) {
-  if (typeof locationIdOrPosition === 'number') {
-    return convertLocationId(locationIdOrPosition, locToV);
+function convert(source, graph, locations, locToV) {
+  const type = source?.type;
+
+  if (type === 'locationId') {
+    return convertLocationId(source.value, locToV);
   }
-  return convertPosition(locationIdOrPosition, locations, locToV, graph.getVerticesList());
+
+  if (type === 'position') {
+    return convertPosition(source.value, locations, locToV, graph.getVerticesList());
+  }
 }
 
 function convertLocationId(locationId, locToV) {
@@ -127,6 +136,7 @@ export function createHaulRoutes(
   tracks,
   assetTypes,
   locations,
+  assets,
   activeRoute,
 ) {
   const haulTruckTypeId = attributeFromList(assetTypes, 'type', 'Haul Truck', 'id');
@@ -139,8 +149,7 @@ export function createHaulRoutes(
   const routes = dict
     .map(([loadId, digUnitId, dumpId], assetIds) => {
       if (loadId) {
-        return createHaulRoute(
-          `${loadId}->${dumpId}`,
+        return createHaulRouteFromLocation(
           loadId,
           dumpId,
           assetIds,
@@ -150,38 +159,86 @@ export function createHaulRoutes(
         );
       }
 
-      // TODO:
-      console.error('--- dig unit ids not implemented yet');
-      // get the position of the dig unit
-      // if no position, get the assigned location
-      // else return null
-      return;
-      // return createHaulRoute
+      return createHaulRouteFromDigUnit(
+        digUnitId,
+        dumpId,
+        assetIds,
+        haulTruckTypeId,
+        locations,
+        assets,
+        digUnitActivities,
+        tracks,
+        activeRoute,
+      );
     })
     .filter(r => r);
 
-  console.dir('----- haul routes');
-  console.dir(routes);
+  routes.forEach((r, index) => {
+    r.color = COLORS[index % COLORS.length];
+  });
+
   return routes;
 }
 
-function createHaulRoute(
-  name,
-  locationIdOrPosition,
+function createHaulRouteFromLocation(
+  loadId,
   dumpId,
   assetIds,
-  assetTypeId,
+  haulTruckTypeId,
   locations,
   activeRoute,
 ) {
+  const loadName = attributeFromList(locations, 'id', loadId, 'extendedName');
+  return createHaulRoute(
+    { type: 'locationId', value: loadId, name: loadName },
+    dumpId,
+    assetIds,
+    haulTruckTypeId,
+    locations,
+    activeRoute,
+  );
+}
+
+function createHaulRouteFromDigUnit(
+  digUnitId,
+  dumpId,
+  assetIds,
+  haulTruckTypeId,
+  locations,
+  assets,
+  digUnitActivities,
+  tracks,
+  activeRoute,
+) {
+  const locationId = attributeFromList(digUnitActivities, 'assetId', digUnitId, 'locationId');
+  const digUnitName = attributeFromList(assets, 'id', digUnitId, 'name');
+
+  let source;
+  if (locationId) {
+    const loadName = attributeFromList(locations, 'id', locationId, 'name');
+    source = { type: 'locationId', value: locationId, name: `${digUnitName} [${loadName}]` };
+  } else {
+    const position = attributeFromList(tracks, 'assetId', digUnitId, 'position');
+    source = { type: 'position', value: position, name: digUnitName };
+  }
+
+  return createHaulRoute(source, dumpId, assetIds, haulTruckTypeId, locations, activeRoute);
+}
+
+function createHaulRoute(loadSource, dumpId, assetIds, assetTypeId, locations, activeRoute) {
   if (!dumpId) {
     return;
   }
 
-  const route = createRoute(locationIdOrPosition, dumpId, locations, activeRoute, assetTypeId);
+  const dumpName = attributeFromList(locations, 'id', dumpId, 'extendedName');
+  const dumpSource = { type: 'locationId', value: dumpId };
+  const route = createRoute(loadSource, dumpSource, locations, activeRoute, assetTypeId);
+
+  const name = `${loadSource.name} -> ${dumpName}`;
 
   return {
     name,
     ...route,
+    assetIds,
   };
 }

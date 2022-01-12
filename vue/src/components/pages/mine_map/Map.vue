@@ -126,7 +126,24 @@
           @dragstart="propogateEvent('dragstart')"
           @dragend="propogateEvent('dragend')"
         >
-          <g-map-geofences :geofences="shownGeofences" @click="onGeofenceClick" />
+          <GMapLegend
+            v-if="showRouting"
+            :value="routingLegendItems"
+            :selectable="true"
+            position="LEFT_BOTTOM"
+            @select="onRouteSelect"
+          >
+            <div class="legend-actions">
+              <button class="g-control" @click="onSelectAllRoutes">Select All</button>
+              <button class="g-control" @click="onClearAllRoutes">Clear All</button>
+            </div>
+          </GMapLegend>
+
+          <g-map-geofences
+            :geofences="shownGeofences"
+            @click="onGeofenceClick"
+            :options="{ zIndex: 0 }"
+          />
 
           <gmap-circle
             v-for="(center, index) in loadingZones"
@@ -152,21 +169,35 @@
             @click="onAssetClick"
           />
 
-          <!-- <template v-if="showRouting">
-            <gmap-polyline
-              v-for="seg in routeSegments"
-              :key="seg.id"
-              :path="seg.path"
-              :options="{ strokeColor: 'saddlebrown', zIndex: -1 }"
-            />
-          </template> -->
+          <template v-if="showRouting">
+            <template v-if="shownRoutes['Base']">
+              <GMapCustomPolyline
+                v-for="seg in routeSegments"
+                :key="seg.id"
+                :path="seg.path"
+                :options="{
+                  strokeColor: 'white',
+                  strokeWeight: 2,
+                  borderColor: 'gray',
+                  borderWeight: 2,
+                  zIndex: 1,
+                }"
+              />
+            </template>
 
-          <gmap-polyline
-            v-for="route in haulRoutes"
-            :key="route.name"
-            :path="route.path"
-            :options="{ strokeColor: 'green' }"
-          />
+            <GMapCustomPolyline
+              v-for="route in shownHaulRoutes"
+              :key="route.name"
+              :path="route.path"
+              :options="{
+                strokeColor: route.color,
+                strokeWeight: 5,
+                borderColor: 'black',
+                borderWeight: 4,
+                zIndex: 2,
+              }"
+            />
+          </template>
 
           <g-map-my-position :value="myLocation" />
 
@@ -191,7 +222,6 @@
           </gmap-info-window>
         </GmapMap>
       </div>
-      {{ haulRoutes }}
     </div>
   </div>
 </template>
@@ -217,6 +247,8 @@ import GmapClusterIcon from '@/components/gmap/GmapClusterIcon.vue';
 import GmapLabelIcon from '@/components/gmap/GmapLabelIcon.vue';
 import GmapRouteIcon from '@/components/gmap/GmapRouteIcon.vue';
 import GmapMyPositionIcon from '@/components/gmap/GmapMyPositionIcon.vue';
+import GMapCustomPolyline from '@/components/gmap/GMapCustomPolyline.vue';
+import GMapLegend from '@/components/gmap/GMapLegend.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles.js';
@@ -259,6 +291,8 @@ export default {
     GmapLabelIcon,
     GmapMyPositionIcon,
     GmapRouteIcon,
+    GMapCustomPolyline,
+    GMapLegend,
   },
   props: {
     assets: { type: Array, default: () => [] },
@@ -277,7 +311,9 @@ export default {
       showAssetFilter: false,
       showLabels: true,
       showRouting: true,
-      shownRoutes: {},
+      shownRoutes: {
+        Base: true,
+      },
       defaults: {
         zoom: 0,
         center: {
@@ -323,6 +359,12 @@ export default {
     }),
     ...mapState('haulTruck', {
       dispatches: state => state.currentDispatches,
+    }),
+    ...mapState('digUnit', {
+      digUnitActivites: state => state.currentActivities,
+    }),
+    ...mapState('trackStore', {
+      tracks: state => state.tracks,
     }),
     shownGeofences() {
       if (this.showAllGeofences) {
@@ -375,8 +417,29 @@ export default {
         this.tracks,
         this.assetTypes,
         this.locations,
+        this.assets,
         this.activeRoute,
       );
+    },
+    shownHaulRoutes() {
+      return this.haulRoutes.filter(r => this.shownRoutes[r.name]);
+    },
+    routingLegendItems() {
+      const items = this.haulRoutes.map(r => {
+        return {
+          selected: this.shownRoutes[r.name] || false,
+          label: r.name,
+          color: r.color,
+        };
+      });
+
+      items.unshift({
+        selected: this.shownRoutes['Base'],
+        label: 'Base',
+        color: 'gray',
+      });
+
+      return items;
     },
   },
   watch: {
@@ -545,6 +608,17 @@ export default {
     hideAllAssetTypes() {
       this.$emit('hide-all-asset-types');
     },
+    onRouteSelect(item) {
+      this.shownRoutes = { ...this.shownRoutes, [item.label]: !item.selected };
+    },
+    onSelectAllRoutes() {
+      const shown = { Base: true };
+      this.haulRoutes.forEach(r => (shown[r.name] = true));
+      this.shownRoutes = shown;
+    },
+    onClearAllRoutes() {
+      this.shownRoutes = {};
+    },
   },
 };
 </script>
@@ -623,6 +697,19 @@ export default {
 
 .g-control .asset-type-filter .hx-icon svg {
   stroke: black;
+}
+
+/* legend */
+.gmap-legend-control .legend-actions {
+  margin-top: 0.5rem;
+  display: flex;
+}
+
+.gmap-legend-control .legend-actions button {
+  width: 100%;
+  height: 1.25rem;
+  font-size: 1rem;
+  line-height: 1rem;
 }
 
 @media screen and (max-width: 560px) {

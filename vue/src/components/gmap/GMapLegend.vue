@@ -8,6 +8,7 @@
         <div class="square" :style="`background-color: ${item.color}`"></div>
         {{ item.label }}
       </div>
+      <slot></slot>
     </div>
   </div>
 </template>
