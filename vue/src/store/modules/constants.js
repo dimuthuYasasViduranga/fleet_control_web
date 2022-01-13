@@ -440,8 +440,6 @@ const state = {
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
   activeRoute: null,
-  routeVertices: Array(),
-  routeEdges: Array(),
 };
 
 const getters = {
@@ -587,12 +585,8 @@ const actions = {
     commit('setPreStartControlCategories', formattedTypes);
   },
   setRoutingData({ commit }, data) {
-    data = data || {};
-    const vertices = (data.vertices || []).map(parseRouteVertex);
-    const vertexLookup = toLookup(vertices, e => e.id);
-    const edges = (data.edges || []).map(e => parseRouteEdge(e, vertexLookup));
-    const activeRoute = data.active_route ? parseRoute(data.active_route) : null;
-    commit('setRoutingData', { vertices, edges, activeRoute });
+    const activeRoute = data?.active_route ? parseRoute(data.active_route) : null;
+    commit('setRoutingData', activeRoute);
   },
 };
 
@@ -677,10 +671,8 @@ const mutations = {
   setPreStartControlCategories(state, types = []) {
     state.preStartControlCategories = types;
   },
-  setRoutingData(state, { vertices, edges, activeRoute }) {
+  setRoutingData(state, activeRoute) {
     state.activeRoute = activeRoute;
-    state.routeVertices = vertices;
-    state.routeEdges = edges;
   },
 };
 
