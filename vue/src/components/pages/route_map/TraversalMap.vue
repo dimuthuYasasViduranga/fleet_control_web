@@ -20,15 +20,18 @@
               @change="onSelectAssetType"
             />
           </div>
+          <div ref="reset-markers" class="g-control reset-markers" @click="resetMarkers()">
+            Reset Markers
+          </div>
           <div ref="alert-control" class="g-control alert-control">
-            <div v-if="journey.distance === Infinity">No Route</div>
+            <div v-if="journey.distance === Infinity || journey.distance == null">No Route</div>
             <div v-else>Distance: ~{{ (journey.distance / 1000).toFixed(1) }} km</div>
           </div>
         </div>
         <GmapMap
           ref="gmap"
           :map-type-id="mapType"
-          :center="center"
+          :center="{ lat: 0, lng: 0 }"
           :zoom="zoom"
           @zoom_changed="zoomChanged"
           :options="{
@@ -268,10 +271,6 @@ export default {
   data: () => {
     return {
       mapType: 'satellite',
-      center: {
-        lat: 0,
-        lng: 0,
-      },
       zoom: 0,
       markerStart: {
         name: 'start',
@@ -352,20 +351,16 @@ export default {
     },
   },
   mounted() {
-    this.markerStart.position = {
-      lat: this.defaultCenter.lat,
-      lng: this.defaultCenter.lng - 0.01,
-    };
-    this.markerEnd.position = { lat: this.defaultCenter.lat, lng: this.defaultCenter.lng + 0.01 };
-
     this.reCenter();
     this.resetZoom();
+    this.resetMarkers();
 
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['asset-type-selector-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['reset-markers'], 'TOP_LEFT');
       attachControl(map, this.google, this.$refs['alert-control'], 'BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
@@ -385,6 +380,19 @@ export default {
     },
     resetZoom() {
       this.zoom = this.defaultZoom;
+    },
+    resetMarkers() {
+      this.gPromise().then(map => {
+        const center = {
+          lat: map.center.lat(),
+          lng: map.center.lng(),
+        };
+        this.markerStart.position = {
+          lat: center.lat,
+          lng: center.lng - 0.01,
+        };
+        this.markerEnd.position = { lat: center.lat, lng: center.lng + 0.01 };
+      });
     },
     toggleShowLocations() {
       this.showLocations = !this.showLocations;

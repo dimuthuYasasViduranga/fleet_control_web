@@ -117,7 +117,16 @@ function convertPosition(pos, locations, locToV, vertices) {
 
   const locationId = locations.find(l => turf.booleanWithin(turfPoint, l.turfPolygon))?.id;
 
-  let vertexId = (locToV[locationId] || [])[0]?.id;
+  const locationVertices = (locToV[locationId] || []).map(v => {
+    return {
+      id: v.id,
+      data: {
+        lat: v.lat,
+        lng: v.lng,
+      },
+    };
+  });
+  let vertexId = getClosestVertex(pos, locationVertices)?.id;
 
   if (!vertexId) {
     vertexId = getClosestVertex(pos, vertices)?.id;
@@ -139,6 +148,9 @@ export function createHaulRoutes(
   assets,
   activeRoute,
 ) {
+  if (!activeRoute) {
+    return [];
+  }
   const haulTruckTypeId = attributeFromList(assetTypes, 'type', 'Haul Truck', 'id');
 
   const dict = new Dictionary();

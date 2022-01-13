@@ -362,17 +362,13 @@ function parseRouteVertex(v) {
   };
 }
 
-function parseRouteEdge(edge, vertexLookup) {
-  const edgeStart = vertexLookup[edge.vertex_start_id];
-  const edgeEnd = vertexLookup[edge.vertex_end_id];
-
-  const distance = haversineDistanceM(edgeStart, edgeEnd);
+function parseRouteEdge(edge) {
 
   return {
     id: edge.id,
     vertexStartId: edge.vertex_start_id,
     vertexEndId: edge.vertex_end_id,
-    distance,
+    distance: edge.distance,
   };
 }
 
@@ -384,7 +380,7 @@ function parseRoute(route) {
 
   const edgeMap = route.edge_map;
   Object.keys(route.edge_map).forEach(key => {
-    edgeMap[key] = parseRouteEdge(edgeMap[key], vertexMap);
+    edgeMap[key] = parseRouteEdge(edgeMap[key]);
   });
 
   return {

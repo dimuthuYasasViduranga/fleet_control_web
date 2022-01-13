@@ -127,7 +127,7 @@
           @dragend="propogateEvent('dragend')"
         >
           <GMapLegend
-            v-if="showRouting"
+            v-if="activeRoute && showRouting"
             :value="routingLegendItems"
             :selectable="true"
             position="LEFT_BOTTOM"
@@ -701,6 +701,7 @@ export default {
 
 /* legend */
 .gmap-legend-control .legend-actions {
+  min-width: 16rem;
   margin-top: 0.5rem;
   display: flex;
 }
