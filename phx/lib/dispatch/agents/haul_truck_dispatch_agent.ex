@@ -67,6 +67,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
         group_id: d.group_id,
         asset_id: a.asset_id,
         dig_unit_id: d.dig_unit_id,
+        load_location_id: d.load_location_id,
         dump_location_id: d.dump_location_id,
         server_timestamp: d.server_timestamp,
         timestamp: d.timestamp,
