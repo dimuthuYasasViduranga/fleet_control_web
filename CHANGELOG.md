@@ -2,6 +2,13 @@
 
 ## pending [unreleased]
 
+## 0.12.1
+- ✨ Added routing system
+  - ability to create a routing network (including directional roads)
+    - these can also me imported from files
+  - can restrict assets types to different sections of the mine
+- 🐛 fixed dispatches with load being lost on server restart
+
 ## 0.12.0
 - 💥 using next version of hps_data
   - fleetops agent uses haul instead of fleet
