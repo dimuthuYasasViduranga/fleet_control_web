@@ -11,6 +11,20 @@
             :highlight="!showLocations"
             @click.native="toggleShowLocations()"
           />
+          <SelectIcon
+            ref="select-control"
+            tooltip="right"
+            :highlight="dragMode === 'select'"
+            @click.native="setDragMode('select')"
+          />
+
+          <DeselectIcon
+            ref="deselect-control"
+            tooltip="right"
+            :highlight="dragMode === 'deselect'"
+            @click.native="setDragMode('deselect')"
+          />
+
           <button ref="selection-all-control" class="g-button" @click="onSelectAll()">
             Select All
           </button>
@@ -28,6 +42,16 @@
             tilt: 0,
           }"
         >
+          <GMapDragRegion
+            v-if="dragMode === 'select'"
+            :options="{ fillColor: 'green' }"
+            @select="onDragSelect('select', $event)"
+          />
+          <GMapDragRegion
+            v-if="dragMode === 'deselect'"
+            :options="{ fillColor: 'red' }"
+            @select="onDragSelect('deselect', $event)"
+          />
           <g-map-geofences
             v-if="showLocations"
             :geofences="locations"
@@ -62,10 +86,13 @@ import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 
 import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
+import GMapDragRegion from '@/components/gmap/GMapDragRegion.vue';
 
 import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
+import SelectIcon from '@/components/gmap/SelectIcon.vue';
+import DeselectIcon from '@/components/gmap/DeselectIcon.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
@@ -129,6 +156,14 @@ function edgesToSegments(graph, edgeIds) {
   });
 }
 
+function findEnclosedSegments(segments, bounds) {
+  return segments.filter(s => s.path.every(p => pointInBounds(p, bounds)));
+}
+
+function pointInBounds(point, { north, south, east, west }) {
+  return point.lat < north && point.lat > south && point.lng < east && point.lng > west;
+}
+
 export default {
   name: 'RestrictionMapModal',
   components: {
@@ -136,6 +171,9 @@ export default {
     PolygonIcon,
     RecenterIcon,
     ResetZoomIcon,
+    SelectIcon,
+    DeselectIcon,
+    GMapDragRegion,
   },
   props: {
     graph: { type: Object, required: true },
@@ -153,6 +191,7 @@ export default {
       showLocations: true,
       segments: [],
       selectedSegments: {},
+      dragMode: null,
     };
   },
   computed: {
@@ -195,6 +234,9 @@ export default {
       attachControl(map, this.google, this.$refs['recenter-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['reset-zoom-control'], 'LEFT_TOP');
       attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['select-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['deselect-control'], 'LEFT_TOP');
+
       attachControl(map, this.google, this.$refs['selection-all-control'], 'TOP_LEFT');
       attachControl(map, this.google, this.$refs['selection-clear-control'], 'TOP_LEFT');
       setMapTypeOverlay(map, this.google, this.mapManifest);
@@ -262,6 +304,27 @@ export default {
     onClearSelected() {
       this.segments.filter(s => s.edges.length === 2).forEach(s => (s.direction = 'both'));
       this.selectedSegments = {};
+    },
+    setDragMode(mode) {
+      if (this.dragMode === mode) {
+        this.dragMode = null;
+      } else {
+        this.dragMode = mode;
+      }
+    },
+    onDragSelect(action, bounds) {
+      this.dragMode = null;
+      const enclosedSegments = findEnclosedSegments(this.segments, bounds);
+
+      const selectedSegments = { ...this.selectedSegments };
+
+      if (action === 'select') {
+        enclosedSegments.forEach(s => (selectedSegments[s.id] = true));
+      } else {
+        enclosedSegments.forEach(s => delete selectedSegments[s.id]);
+      }
+
+      this.selectedSegments = selectedSegments;
     },
   },
 };
