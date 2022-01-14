@@ -202,6 +202,7 @@ function createHaulRouteFromLocation(
 ) {
   const loadName = attributeFromList(locations, 'id', loadId, 'extendedName');
   return createHaulRoute(
+    { loadId: loadId, digUnitId: null, dumpId },
     { type: 'locationId', value: loadId, name: loadName },
     dumpId,
     assetIds,
@@ -234,10 +235,18 @@ function createHaulRouteFromDigUnit(
     source = { type: 'position', value: position, name: digUnitName };
   }
 
-  return createHaulRoute(source, dumpId, assetIds, haulTruckTypeId, locations, activeRoute);
+  return createHaulRoute(
+    { loadId: null, digUnitId, dumpId },
+    source,
+    dumpId,
+    assetIds,
+    haulTruckTypeId,
+    locations,
+    activeRoute,
+  );
 }
 
-function createHaulRoute(loadSource, dumpId, assetIds, assetTypeId, locations, activeRoute) {
+function createHaulRoute(info, loadSource, dumpId, assetIds, assetTypeId, locations, activeRoute) {
   if (!dumpId) {
     return;
   }
@@ -250,6 +259,7 @@ function createHaulRoute(loadSource, dumpId, assetIds, assetTypeId, locations, a
 
   return {
     name,
+    info,
     ...route,
     assetIds,
   };

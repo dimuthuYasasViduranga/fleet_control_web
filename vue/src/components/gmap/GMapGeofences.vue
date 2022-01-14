@@ -27,8 +27,8 @@ const DEFAULT_COLORS = {
 
 const DEFAULT_OPTIONS = {
   unselectedOpacity: 0.25,
-  fillOpacity: 0.5,
-  strokeOpacity: 1,
+  fillOpacity: 0.35,
+  strokeOpacity: 0.5,
   strokeWeight: 3,
 };
 
