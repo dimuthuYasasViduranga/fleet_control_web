@@ -1,19 +1,89 @@
-import { hasOrderedSubArray } from '@/code/helpers';
-import { haversineDistanceM } from '@/code/distance';
+import { hasOrderedSubArray } from './helpers';
+import { haversineDistanceM } from './distance';
 
 export function fromGraph(vertices, adjacency) {
+  vertices = vertices || {};
+  adjacency = adjacency || {};
   const vertexIds = Object.values(vertices).map(v => v.id);
 
   const adjacencyIds = Object.values(adjacency)
     .map(edges => edges.map(e => e.id))
     .flat();
   const allIds = vertexIds.concat(adjacencyIds);
-  const nextId = Math.max(...allIds);
+  const nextId = Math.max(...allIds, 1);
 
   const graph = new Graph();
   graph.vertices = vertices;
   graph.adjacency = adjacency;
   graph._nextId = nextId;
+  return graph;
+}
+
+export function fromRoute(route) {
+  const graph = new Graph();
+
+  if (!route) {
+    return graph;
+  }
+
+  const graphVId = {};
+
+  route.elementIds.forEach(edgeId => {
+    const edge = route.edgeMap[edgeId];
+    const { vertexStartId, vertexEndId } = edge;
+
+    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
+
+    vertices.forEach(v => {
+      if (graphVId[v.id] == null) {
+        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+        graphVId[v.id] = insertedV.id;
+      }
+    });
+
+    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+      edgeId,
+      distance: edge.distance,
+    });
+  });
+
+  return graph;
+}
+
+export function fromRestrictedRoute(route, assetTypeId) {
+  const graph = new Graph();
+
+  if (!route) {
+    return graph;
+  }
+
+  const graphVId = {};
+
+  const restrictionGroup = route.restrictionGroups.find(r => r.assetTypeIds.includes(assetTypeId));
+
+  if (!restrictionGroup) {
+    return graph;
+  }
+
+  restrictionGroup.edgeIds.forEach(edgeId => {
+    const edge = route.edgeMap[edgeId];
+    const { vertexStartId, vertexEndId } = edge;
+
+    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
+
+    vertices.forEach(v => {
+      if (graphVId[v.id] == null) {
+        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+        graphVId[v.id] = insertedV.id;
+      }
+    });
+
+    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+      edgeId,
+      distance: edge.distance,
+    });
+  });
+
   return graph;
 }
 
@@ -48,23 +118,28 @@ export class Graph {
     }
 
     delete this.vertices[id];
+    delete this.adjacency[id];
 
     Object.keys(this.adjacency).map(id => {
-      this.adjacency[id] = this.adjacency[id].filter(edge => edge.endVertexId === id);
+      this.adjacency[id] = this.adjacency[id].filter(edge => edge.endVertexId !== id);
     });
   }
 
   removeOrphanVertices() {
-    Object.keys(this.adjacency).forEach(id => {
-      if (this.adjacency[id].length === 0) {
-        delete this.adjacency[id];
+    const edges = Object.values(this.adjacency).flat();
+    Object.keys(this.vertices).forEach(vId => {
+      // if there are connections from the vertex
+      if (this.adjacency[vId].length) {
+        return;
       }
-    });
 
-    Object.keys(this.vertices).forEach(id => {
-      if ((this.adjacency[id] || []).length === 0) {
-        delete this.vertices[id];
+      // if there are any connections to the vertex
+      if (edges.some(e => e.endVertexId === vId)) {
+        return;
       }
+
+      delete this.adjacency[vId];
+      delete this.vertices[vId];
     });
   }
 
@@ -102,66 +177,10 @@ export class Graph {
   }
 }
 
-export function dijkstra(vertexMap, adjacency, source) {
-  let queue = [];
-  const dist = {};
-  const prev = {};
-
-  Object.values(vertexMap).forEach(({ id }) => {
-    dist[id] = Infinity;
-    queue.push(id);
-  });
-  dist[source.id] = 0;
-
-  while (queue.length !== 0) {
-    const curId = getNextVertex(queue, dist);
-
-    queue = queue.filter(id => id !== curId);
-
-    const neighbours = getNeighbours(queue, curId, adjacency);
-
-    for (let neighbour of neighbours) {
-      const endId = neighbour.endVertexId;
-      const alternateDist = dist[curId] + (neighbour.data.distance || Infinity);
-      if (alternateDist < dist[endId]) {
-        dist[endId] = alternateDist;
-        prev[endId] = { id: curId, edge: neighbour };
-      }
-    }
-  }
-
-  return Object.entries(dist).reduce((acc, [id, distance]) => {
-    const prevData = prev[id] || {};
-    acc[id] = { id, distance, parentVertexId: prevData.id, edge: prevData.edge };
-    return acc;
-  }, {});
-}
-
-export function dijkstraToVertices(djk, targetId, path = []) {
-  const parentId = djk[targetId].parentVertexId;
-  path.push(targetId);
-
-  if (!parentId) {
-    return path.reverse();
-  }
-
-  return dijkstraToVertices(djk, parentId, path);
-}
-
-function getNextVertex(queue, dist) {
-  const available = queue.map(vId => ({ id: vId, dist: dist[vId] }));
-  available.sort((a, b) => a.dist - b.dist);
-  return available[0].id;
-}
-
-function getNeighbours(queue, vertexId, adjacency) {
-  return (adjacency[vertexId] || []).filter(edge => queue.includes(edge.endVertexId));
-}
-
-export function getUniqPaths(adjacency, vertices) {
+export function getUniqPaths(adjacency) {
   const paths = Object.keys(adjacency)
     .map(startVertexId => {
-      const paths = createAllPathsFrom(adjacency, parseInt(startVertexId, 10), vertices);
+      const paths = createAllPathsFrom(adjacency, parseInt(startVertexId, 10));
 
       return paths;
     })
@@ -202,7 +221,6 @@ export function getUniqPaths(adjacency, vertices) {
 
 function createAllPathsFrom(adjacency, startVId) {
   const neighbours = adjacency[startVId] || [];
-
   return neighbours.map(edge => createPathUntil(adjacency, edge.endVertexId, startVId, [startVId]));
 }
 

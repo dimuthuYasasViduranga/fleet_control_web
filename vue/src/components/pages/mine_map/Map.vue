@@ -4,42 +4,48 @@
       <div class="gmap-map">
         <!-- buttons to attach -->
         <div style="display: none">
-          <RecenterIcon class="recenter-control" tooltip="right" @click.native="reCenter" />
-          <ResetZoomIcon class="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
+          <RecenterIcon ref="recenter-control" tooltip="right" @click.native="reCenter" />
+          <ResetZoomIcon ref="reset-zoom-control" tooltip="right" @click.native="resetZoom" />
           <PolygonIcon
-            class="geofence-control"
+            ref="geofence-control"
             tooltip="right"
             :highlight="!showAllGeofences"
             @click.native="toggleAllGeofences()"
           />
           <GmapAlertIcon
-            class="alert-control"
+            ref="alert-control"
             tooltip="right"
             :highlight="!showAlerts"
             @click.native="toggleShowAlerts()"
           />
           <GmapClusterIcon
-            class="cluster-control"
+            ref="cluster-control"
             tooltip="right"
             :highlight="!useMapClusters"
             @click.native="toggleUseMapClusters()"
           />
           <GmapLabelIcon
-            class="label-control"
+            ref="label-control"
             tooltip="right"
             :highlight="!showLabels"
             @click.native="toggleShowLabels()"
           />
-          <GmapMyPositionIcon class="my-position-control" tooltip="left" />
+          <GmapRouteIcon
+            ref="route-control"
+            tooltip="right"
+            :highlight="!showRouting"
+            @click.native="toggleShowRouting()"
+          />
+          <GmapMyPositionIcon ref="my-position-control" tooltip="left" />
           <RecenterIcon
             v-show="myLocation"
-            class="my-position-recenter-control"
+            ref="my-position-recenter-control"
             label="Find My Location"
             tooltip="left"
             @click.native="recenterMyLocation()"
           />
 
-          <div class="g-control asset-selector-control">
+          <div ref="asset-selector-control" class="g-control asset-selector-control">
             <GMapDropDown
               :value="selectedAssetId"
               :items="assetOptions"
@@ -50,7 +56,7 @@
               @change="onFindAsset"
             />
           </div>
-          <div class="g-control asset-type-filter-toggle">
+          <div ref="asset-type-filter-toggle" class="g-control asset-type-filter-toggle">
             <Icon
               v-tooltip="{
                 classes: ['google-tooltip'],
@@ -63,7 +69,7 @@
               @click="showAssetFilter = !showAssetFilter"
             />
           </div>
-          <div v-show="showAssetFilter" class="g-control asset-type-filter">
+          <div v-show="showAssetFilter" ref="asset-type-filter" class="g-control asset-type-filter">
             <Icon
               v-tooltip="{
                 classes: ['google-tooltip'],
@@ -100,7 +106,12 @@
               @click="onToggleAssetTypeVisibility(assetType.type)"
             />
           </div>
-          <div class="debug-control" :class="{ show: debug }" @click="onDebugControl"></div>
+          <div
+            ref="debug-control"
+            class="debug-control"
+            :class="{ show: debug }"
+            @click="onDebugControl"
+          ></div>
         </div>
         <!-- GMap Element -->
         <GmapMap
@@ -115,7 +126,24 @@
           @dragstart="propogateEvent('dragstart')"
           @dragend="propogateEvent('dragend')"
         >
-          <g-map-geofences :geofences="shownGeofences" @click="onGeofenceClick" />
+          <GMapLegend
+            v-if="activeRoute && showRouting"
+            :value="routingLegendItems"
+            :selectable="true"
+            position="LEFT_BOTTOM"
+            @select="onRouteSelect"
+          >
+            <div class="legend-actions">
+              <button class="g-control" @click="onSelectAllRoutes">Select All</button>
+              <button class="g-control" @click="onClearAllRoutes">Clear All</button>
+            </div>
+          </GMapLegend>
+
+          <g-map-geofences
+            :geofences="shownGeofences"
+            @click="onGeofenceClick"
+            :options="{ zIndex: 0 }"
+          />
 
           <gmap-circle
             v-for="(center, index) in loadingZones"
@@ -140,6 +168,36 @@
             :draggable="debug"
             @click="onAssetClick"
           />
+
+          <template v-if="showRouting">
+            <template v-if="shownRoutes['Base']">
+              <GMapCustomPolyline
+                v-for="seg in routeSegments"
+                :key="seg.id"
+                :path="seg.path"
+                :options="{
+                  strokeColor: 'white',
+                  strokeWeight: 2,
+                  borderColor: 'gray',
+                  borderWeight: 2,
+                  zIndex: 1,
+                }"
+              />
+            </template>
+
+            <GMapCustomPolyline
+              v-for="route in shownHaulRoutes"
+              :key="route.name"
+              :path="route.path"
+              :options="{
+                strokeColor: route.color,
+                strokeWeight: 5,
+                borderColor: 'black',
+                borderWeight: 4,
+                zIndex: 2,
+              }"
+            />
+          </template>
 
           <g-map-my-position :value="myLocation" />
 
@@ -169,6 +227,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
 
 import Icon from 'hx-layout/Icon.vue';
@@ -186,7 +245,10 @@ import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
 import GmapAlertIcon from '@/components/gmap/GmapAlertIcon.vue';
 import GmapClusterIcon from '@/components/gmap/GmapClusterIcon.vue';
 import GmapLabelIcon from '@/components/gmap/GmapLabelIcon.vue';
+import GmapRouteIcon from '@/components/gmap/GmapRouteIcon.vue';
 import GmapMyPositionIcon from '@/components/gmap/GmapMyPositionIcon.vue';
+import GMapCustomPolyline from '@/components/gmap/GMapCustomPolyline.vue';
+import GMapLegend from '@/components/gmap/GMapLegend.vue';
 
 import { attachControl } from '@/components/gmap/gmapControls.js';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles.js';
@@ -196,6 +258,9 @@ import HaulTruckInfo from './info/HaulTruckInfo.vue';
 import DigUnitInfo from './info/DigUnitInfo.vue';
 import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
+import { fromRoute } from '@/code/graph';
+import { graphToSegments } from '../route_map/common';
+import { createHaulRoutes } from '@/code/route_gen.js';
 
 const DIG_UNIT_LOADING_RADIUS = 30;
 
@@ -204,6 +269,27 @@ function fromLatLng(latLng) {
     lat: latLng.lat(),
     lng: latLng.lng(),
   };
+}
+
+function toDisplayAsset(asset, legend) {
+  const base = { ...asset };
+
+  if (base.type === 'Haul Truck') {
+    const item = legend.find(l => (l.assetIds || []).includes(asset.id));
+    if (item && item.selected) {
+      base.glow = { radius: '0.5rem', color: item.color };
+    }
+  }
+
+  if (base.secondaryType === 'Dig Unit') {
+    const item = legend.find(l => l.digUnitId === asset.id);
+
+    if (item && item.selected) {
+      base.glow = { radius: '0.2rem', color: 'blue' };
+    }
+  }
+
+  return base;
 }
 
 export default {
@@ -225,13 +311,15 @@ export default {
     GmapClusterIcon,
     GmapLabelIcon,
     GmapMyPositionIcon,
+    GmapRouteIcon,
+    GMapCustomPolyline,
+    GMapLegend,
   },
   props: {
     assets: { type: Array, default: () => [] },
     assetTypes: { type: Array, default: () => [] },
     activeLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
-    icons: { type: Object, default: () => ({}) },
     shownAssetTypes: { type: Array, default: () => [] },
   },
   data: () => {
@@ -243,6 +331,10 @@ export default {
       useMapClusters: false,
       showAssetFilter: false,
       showLabels: true,
+      showRouting: true,
+      shownRoutes: {
+        Base: true,
+      },
       defaults: {
         zoom: 0,
         center: {
@@ -279,9 +371,22 @@ export default {
   },
   computed: {
     google: gmapApi,
-    mapManifest() {
-      return this.$store.state.constants.mapManifest;
-    },
+    ...mapState('constants', {
+      mapManifest: state => state.mapManifest,
+      mapCenter: state => state.mapCenter,
+      mapZoom: state => state.mapZoom,
+      icons: state => state.icons || {},
+      activeRoute: state => state.activeRoute,
+    }),
+    ...mapState('haulTruck', {
+      dispatches: state => state.currentDispatches,
+    }),
+    ...mapState('digUnit', {
+      digUnitActivites: state => state.currentActivities,
+    }),
+    ...mapState('trackStore', {
+      tracks: state => state.tracks,
+    }),
     shownGeofences() {
       if (this.showAllGeofences) {
         return this.locations.filter(l => l.type !== 'closed');
@@ -295,13 +400,11 @@ export default {
       return null;
     },
     assetTypeIcons() {
-      const icons = this.$store.state.constants.icons || {};
-
       return this.assetTypes
         .map(t => {
           return {
             type: t.type,
-            icon: icons[t.type] || icons.Unknown,
+            icon: this.icons[t.type] || this.icons.Unknown,
           };
         })
         .sort((a, b) => (a.type || '').localeCompare(b.type || ''));
@@ -324,6 +427,42 @@ export default {
       return this.assets
         .filter(a => a.secondaryType === 'Dig Unit' && a.track?.position)
         .map(a => a.track?.position);
+    },
+    routeSegments() {
+      return graphToSegments(fromRoute(this.activeRoute));
+    },
+    haulRoutes() {
+      return createHaulRoutes(
+        this.dispatches,
+        this.digUnitActivites,
+        this.tracks,
+        this.assetTypes,
+        this.locations,
+        this.assets,
+        this.activeRoute,
+      );
+    },
+    shownHaulRoutes() {
+      return this.haulRoutes.filter(r => this.shownRoutes[r.name]);
+    },
+    routingLegendItems() {
+      const items = this.haulRoutes.map(r => {
+        return {
+          ...r.info,
+          assetIds: r.assetIds,
+          selected: this.shownRoutes[r.name] || false,
+          label: r.name,
+          color: r.color,
+        };
+      });
+
+      items.unshift({
+        selected: this.shownRoutes['Base'],
+        label: 'Base',
+        color: 'gray',
+      });
+
+      return items;
     },
   },
   watch: {
@@ -349,13 +488,13 @@ export default {
     },
   },
   mounted() {
-    const center = this.$store.state.constants.mapCenter;
+    const center = this.mapCenter;
     this.defaults.center = {
       lat: center.latitude,
       lng: center.longitude,
     };
 
-    this.defaults.zoom = this.$store.state.constants.mapZoom;
+    this.defaults.zoom = this.mapZoom;
 
     this.reCenter();
     this.resetZoom();
@@ -364,18 +503,22 @@ export default {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
 
-      attachControl(map, this.google, '.recenter-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.reset-zoom-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.geofence-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.alert-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.cluster-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.label-control', 'LEFT_TOP');
-      attachControl(map, this.google, '.asset-type-filter-toggle', 'LEFT_TOP');
-      attachControl(map, this.google, '.asset-type-filter', 'LEFT_TOP');
-      attachControl(map, this.google, '.my-position-control', 'RIGHT_BOTTOM');
-      attachControl(map, this.google, '.my-position-recenter-control', 'RIGHT_BOTTOM');
-      attachControl(map, this.google, '.asset-selector-control', 'TOP_LEFT');
-      attachControl(map, this.google, '.debug-control', 'LEFT_BOTTOM');
+      attachControl(map, this.google, this.$refs['recenter-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['reset-zoom-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['alert-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['cluster-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['label-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['route-control'], 'LEFT_TOP');
+
+      attachControl(map, this.google, this.$refs['asset-type-filter-toggle'], 'RIGHT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-filter'], 'RIGHT_TOP');
+
+      attachControl(map, this.google, this.$refs['my-position-control'], 'RIGHT_BOTTOM');
+      attachControl(map, this.google, this.$refs['my-position-recenter-control'], 'RIGHT_BOTTOM');
+
+      attachControl(map, this.google, this.$refs['asset-selector-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['debug-control'], 'LEFT_BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
@@ -426,6 +569,9 @@ export default {
     },
     toggleShowLabels() {
       this.showLabels = !this.showLabels;
+    },
+    toggleShowRouting() {
+      this.showRouting = !this.showRouting;
     },
     onGeofenceClick({ geofence, click }) {
       const selected = this.selected;
@@ -485,6 +631,17 @@ export default {
     hideAllAssetTypes() {
       this.$emit('hide-all-asset-types');
     },
+    onRouteSelect(item) {
+      this.shownRoutes = { ...this.shownRoutes, [item.label]: !item.selected };
+    },
+    onSelectAllRoutes() {
+      const shown = { Base: true };
+      this.haulRoutes.forEach(r => (shown[r.name] = true));
+      this.shownRoutes = shown;
+    },
+    onClearAllRoutes() {
+      this.shownRoutes = {};
+    },
   },
 };
 </script>
@@ -502,66 +659,81 @@ export default {
   width: 100%;
 }
 
-.map-wrapper .gmap-map .vue-map-container {
+.mine-map .map-wrapper .gmap-map .vue-map-container {
   height: 100%;
 }
 
-.grey-out {
-  filter: grayscale(75%);
-}
-
-.asset-selector-control {
+/* asset selector */
+.g-control .asset-selector-control {
   display: flex;
   background-color: white;
 }
 
-.asset-selector-control:hover {
+.g-control .asset-selector-control:hover {
   background-color: white;
 }
 
-.asset-selector-control .gmap-dropdown {
-  width: 20rem;
+.g-control .asset-selector-control .gmap-dropdown {
+  width: 16rem;
 }
 
-.asset-type-filter-toggle {
+/* asset filter and icons */
+.g-control .asset-type-filter-toggle {
   margin: 0;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 }
 
-.asset-type-filter-toggle .hx-icon {
+.g-control .asset-type-filter-toggle .hx-icon {
   width: 100%;
   height: 100%;
   padding: 5px 0;
 }
 
-.asset-type-filter-toggle .hx-icon svg {
+.g-control .asset-type-filter-toggle .hx-icon svg {
   stroke: black;
 }
 
-.asset-type-filter {
+.g-control .asset-type-filter {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-content: center;
-  justify-content: space-between;
-  width: 84px;
+  align-content: flex-start;
+  justify-content: flex-start;
+  width: 80px;
   margin-left: -1px;
   margin-right: -1px;
   height: auto;
 }
 
-
-
-.asset-type-filter-toggle .hx-icon:hover,
-.asset-type-filter-toggle .hx-icon.highlight,
-.asset-type-filter .hx-icon:hover,
-.asset-type-filter .hx-icon.highlight {
+.g-control .asset-type-filter-toggle .hx-icon:hover,
+.g-control .asset-type-filter-toggle .hx-icon.highlight,
+.g-control .asset-type-filter .hx-icon:hover,
+.g-control .asset-type-filter .hx-icon.highlight {
   background-color: rgb(189, 189, 189);
 }
 
-.asset-type-filter .hx-icon svg {
+.g-control .asset-type-filter .hx-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.g-control .asset-type-filter .hx-icon svg {
   stroke: black;
+}
+
+/* legend */
+.gmap-legend-control .legend-actions {
+  min-width: 16rem;
+  margin-top: 0.5rem;
+  display: flex;
+}
+
+.gmap-legend-control .legend-actions button {
+  width: 100%;
+  height: 1.25rem;
+  font-size: 1rem;
+  line-height: 1rem;
 }
 
 @media screen and (max-width: 560px) {

@@ -19,19 +19,19 @@ defmodule DispatchWeb.MixProject do
     ]
   end
 
-  def application, do: application(Mix.env())
+  def application do
+    case Mix.env() do
+      :test ->
+        [
+          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
+        ]
 
-  defp application(:test) do
-    [
-      extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-    ]
-  end
-
-  defp application(_) do
-    [
-      mod: {DispatchWeb.Application, []},
-      extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-    ]
+      _ ->
+        [
+          mod: {DispatchWeb.Application, []},
+          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
+        ]
+    end
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
@@ -60,7 +60,7 @@ defmodule DispatchWeb.MixProject do
       {:poison, "~> 3.0"},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "next"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
 
       # test
       {:mix_test_watch, "~> 0.9", only: :dev, runtime: false},

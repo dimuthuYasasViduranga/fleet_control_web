@@ -4,9 +4,19 @@
     <div v-if="body" class="separator"></div>
 
     <p class="body">{{ body }}</p>
-    <div class="answers">
+    <div v-if="actions.length === 0" class="answers">
       <button class="hx-btn ok" @click="onAnswer(ok)">{{ ok }}</button>
       <button class="hx-btn cancel" @click="onAnswer(cancel)">{{ cancel }}</button>
+    </div>
+    <div v-else class="actions">
+      <button
+        class="hx-btn"
+        v-for="(action, index) in actions"
+        :key="index"
+        @click="onAnswer(action)"
+      >
+        {{ action }}
+      </button>
     </div>
   </div>
 </template>
@@ -20,6 +30,7 @@ export default {
     body: { type: String, default: '' },
     ok: { type: String, default: 'ok' },
     cancel: { type: String, default: 'cancel' },
+    actions: { type: Array, default: () => [] },
   },
   methods: {
     onAnswer(answer) {
@@ -48,19 +59,28 @@ h1 {
   border-bottom: 1px solid #677e8c;
 }
 
-.answers {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .body {
   white-space: pre-line;
   font-size: 1.25rem;
 }
 
-.hx-btn {
+.answers {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.answers .hx-btn {
   margin-left: 0.1rem;
   width: 6rem;
   text-transform: capitalize;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actions .hx-btn {
+  margin-left: 0.1rem;
 }
 </style>

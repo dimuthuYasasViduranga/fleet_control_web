@@ -2,20 +2,52 @@
   <div class="traversal-map">
     <div class="map-wrapper">
       <div class="gmap-map">
+        <div style="display: none">
+          <PolygonIcon
+            ref="geofence-control"
+            tooltip="right"
+            :highlight="!showLocations"
+            @click.native="toggleShowLocations()"
+          />
+          <div ref="asset-type-selector-control" class="g-control asset-type-selector-control">
+            <GMapDropDown
+              :value="selectedAssetTypeId"
+              :items="assetTypes"
+              label="type"
+              :useScrollLock="true"
+              placeholder="Set Asset Type"
+              direction="down"
+              @change="onSelectAssetType"
+            />
+          </div>
+          <div ref="reset-markers" class="g-control reset-markers" @click="resetMarkers()">
+            Reset Markers
+          </div>
+          <div ref="alert-control" class="g-control alert-control">
+            <div v-if="journey.distance === Infinity || journey.distance == null">No Route</div>
+            <div v-else>Distance: ~{{ (journey.distance / 1000).toFixed(1) }} km</div>
+          </div>
+        </div>
         <GmapMap
           ref="gmap"
           :map-type-id="mapType"
-          :center="center"
+          :center="{ lat: 0, lng: 0 }"
           :zoom="zoom"
           @zoom_changed="zoomChanged"
           :options="{
             tilt: 0,
           }"
         >
+          <g-map-geofences
+            v-if="showLocations"
+            :geofences="locations"
+            :options="{ zIndex: -1, fillOpacity: 0.2, strokeOpacity: 0.2 }"
+          />
+
           <!-- draw markers -->
           <gmap-marker
-            v-for="(marker, index) in [markerEnd, markerStart]"
-            :key="index"
+            v-for="marker in [markerEnd, markerStart]"
+            :key="`marker-${marker.name}`"
             :position="marker.position"
             :options="{
               clickable: true,
@@ -26,17 +58,18 @@
             @dragend="onMarkerDragEnd(marker, $event)"
           />
 
-          <!-- draw marker links -->
-          <gmap-polyline
-            v-for="(poly, index) in [markerEndLink, markerStartLink].filter(m => m)"
-            :key="`link-${index}`"
-            :path="poly.path"
-            :options="{
-              strokeColor: poly.color,
-              strokeWeight: poly.width,
-              strokeOpacity: poly.opacity,
-            }"
-          />
+          <GMapLabel
+            v-for="[marker, loc] in [
+              [markerEnd, markerEndLocation],
+              [markerStart, markerStartLocation],
+            ]"
+            :key="`label-${marker.name}`"
+            :position="marker.position"
+          >
+            <div v-if="loc" class="label">
+              {{ loc.extendedName }}
+            </div>
+          </GMapLabel>
 
           <!-- draw the graph as polylines -->
           <gmap-polyline
@@ -44,22 +77,27 @@
             :key="`polyline-${index}`"
             :path="poly.path"
             :options="{
-              strokeColor: poly.color,
-              strokeWeight: poly.width,
-              strokeOpacity: poly.opacity,
+              strokeColor: 'black',
+              strokeWeight: 6,
+              icons: poly.icons,
             }"
           />
 
           <!-- draw route as polyline -->
           <gmap-polyline
-            :path="route.path"
+            :path="journey.path"
             :options="{
-              strokeColor: route.color,
-              strokeWeight: route.width,
-              strokeOpacity: route.opacity,
+              strokeColor: journey.color,
+              strokeWeight: journey.width,
+              strokeOpacity: journey.opacity,
               zIndex: 5,
             }"
           />
+
+          <!-- debug node ids -->
+          <!-- <GMapLabel v-for="v in graph.getVerticesList()" :key="v.id" :position="v.data">
+            {{ v.id }}
+          </GMapLabel> -->
         </GmapMap>
       </div>
     </div>
@@ -69,72 +107,185 @@
 <script>
 import { mapState } from 'vuex';
 import { gmapApi } from 'gmap-vue';
+import GMapGeofences from '@/components/gmap/GMapGeofences.vue';
+import PolygonIcon from '@/components/gmap/PolygonIcon.vue';
+import GMapDropDown from '@/components/gmap/GMapDropDown.vue';
+import GMapLabel from '@/components/gmap/GMapLabel.vue';
+
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
-import { getUniqPaths, getClosestVertex, dijkstra, dijkstraToVertices } from './graph';
+import { attachControl } from '@/components/gmap/gmapControls';
+import { fromRestrictedRoute, fromRoute, getClosestVertex } from '@/code/graph';
+import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
+import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
+import turf from '@/code/turf';
+import { closestPoint, haversineDistanceM } from '@/code/distance';
+import { graphToSegments, segmentsToPolylines } from './common';
 
-const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
-const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
-
-const ROUTE_UNUSED_COLOR = 'black';
-const ROUTE_UNUSED_OPACITY = 0.75;
+const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_USED_COLOR = 'darkred';
 const ROUTE_USED_OPACITY = 1;
 const ROUTE_WIDTH = 10;
+const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
+const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
+// allow shortcut if the total distance is 'x' times bigger than the shortcut
+const SHORTCUT_FACTOR = 4;
 
-const DRAG_UPDATE_INTERVAL = 100;
-
-function graphToPolylines(graph) {
-  const adjacency = graph.adjacency;
-  const vertices = graph.vertices;
-
-  const uniqPaths = getUniqPaths(adjacency, vertices);
-
-  return uniqPaths.map(path => {
-    const points = path.map(id => {
-      const data = vertices[id].data;
-      return {
-        lat: data.lat,
-        lng: data.lng,
-      };
-    });
-    return {
-      path: points,
-      color: ROUTE_UNUSED_COLOR,
-      opacity: ROUTE_UNUSED_OPACITY,
-      width: ROUTE_WIDTH,
-      vertices: path,
-    };
-  });
-}
-
-function createLink(graph, marker, color) {
-  const startPoint = { ...marker.position };
-  const closestVertex = getClosestVertex(startPoint, graph.getVerticesList());
-
-  if (closestVertex) {
-    const endPoint = { lat: closestVertex.data.lat, lng: closestVertex.data.lng };
-    return { path: [startPoint, endPoint], color, width: ROUTE_WIDTH };
+function createLocationToVerticesLookup(locations, graph) {
+  if (!graph || locations.length === 0) {
+    return {};
   }
 
-  return null;
+  const vertices = graph.getVerticesList().map(v => {
+    return {
+      point: turf.point([v.data.lng, v.data.lat]),
+      data: {
+        id: v.id,
+        vertexId: v.data.vertexId,
+        lat: v.data.lat,
+        lng: v.data.lng,
+      },
+    };
+  });
+  return locations.reduce((acc, l) => {
+    const coords = coordsObjsToCoordArrays(l.geofence);
+    const polygon = turf.polygon([coords]);
+    acc[l.id] = vertices.filter(v => turf.booleanWithin(v.point, polygon)).map(v => v.data);
+    return acc;
+  }, {});
+}
+
+function findVertex(locationToVerticesLookup, vertexList, locationId, position) {
+  const verticesInLoc = locationToVerticesLookup[locationId] || [];
+
+  if (verticesInLoc.length === 0) {
+    return getClosestVertex(position, vertexList);
+  }
+
+  const closest = closestPoint(verticesInLoc, position);
+
+  const { id, ...rest } = closest;
+  return {
+    id,
+    data: rest,
+  };
+}
+
+function edgesToSegments(graph, edgeIds) {
+  const edgeLookup = edgeIds.reduce((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {});
+
+  return graphToSegments(graph)
+    .map(s => {
+      const aId = s.edges.find(e => e.endVertexId === s.vertexBId)?.data?.edgeId;
+      const bId = s.edges.find(e => e.endVertexId === s.vertexAId)?.data?.edgeId;
+
+      const e1 = edgeLookup[aId];
+      const e2 = edgeLookup[bId];
+
+      if (!e1 && !e2) {
+        return;
+      }
+
+      if (e1 && !e2) {
+        s.direction = 'positive';
+      } else if (!e1 && e2) {
+        s.direction = 'negative';
+      }
+
+      return s;
+    })
+    .filter(s => s);
+}
+
+function getJourney(graph, start, end) {
+  const vertexMap = graph.vertices;
+  const adjacency = graph.adjacency;
+
+  const startVertex = start.vertex;
+  const endVertex = end.vertex;
+
+  const startPos = { lat: start.position.lat, lng: start.position.lng };
+  const endPos = { lat: end.position.lat, lng: end.position.lng };
+
+  if (!startVertex || !endVertex) {
+    return [];
+  }
+  const result = dijkstra(vertexMap, adjacency, startVertex.id);
+  const vertices = dijkstraToVertices(result, endVertex.id);
+
+  const path = vertices.map(id => {
+    const data = vertexMap[id].data;
+    return { lat: data.lat, lng: data.lng };
+  });
+
+  path.unshift(startPos);
+  path.push(endPos);
+
+  const graphDistance = result[endVertex.id].distance;
+  const startToGraph = haversineDistanceM(start.position, start.vertex.data);
+  const endToGraph = haversineDistanceM(end.position, end.vertex.data);
+
+  const totalDistance = graphDistance + startToGraph + endToGraph;
+
+  if (start.locationId === end.locationId) {
+    const shortcutDistance = haversineDistanceM(start.position, end.position);
+    const compDistance = start.locationId == null ? totalDistance / SHORTCUT_FACTOR : totalDistance;
+
+    if (startVertex.id === endVertex.id || shortcutDistance < compDistance) {
+      return {
+        path: [startPos, endPos],
+        color: ROUTE_USED_COLOR,
+        opacity: ROUTE_USED_OPACITY,
+        width: ROUTE_WIDTH,
+        vertices: [],
+        distance: shortcutDistance,
+      };
+    }
+  }
+
+  return {
+    path,
+    color: ROUTE_USED_COLOR,
+    opacity: ROUTE_USED_OPACITY,
+    width: ROUTE_WIDTH,
+    vertices,
+    distance: totalDistance,
+  };
 }
 
 export default {
-  name: 'TraveralMap',
+  name: 'TraversalMap',
+  components: {
+    GMapGeofences,
+    PolygonIcon,
+    GMapDropDown,
+    GMapLabel,
+  },
   props: {
-    graph: { type: Object, required: true },
+    assetTypes: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
+    route: { type: Object },
   },
   data: () => {
     return {
       mapType: 'satellite',
-      center: {
-        lat: 0,
-        lng: 0,
-      },
       zoom: 0,
-      markerStart: { position: { lat: 0, lng: 0 }, icon: START_ICON_URL, pendingPosition: null },
-      markerEnd: { position: { lat: 0, lng: 0 }, icon: END_ICON_URL, pendingPosition: null },
-      routePolylines: [],
+      markerStart: {
+        name: 'start',
+        position: { lat: 0, lng: 0 },
+        icon: START_ICON_URL,
+        pendingPosition: null,
+      },
+      markerEnd: {
+        name: 'end',
+        position: { lat: 0, lng: 0 },
+        icon: END_ICON_URL,
+        pendingPosition: null,
+      },
+      showLocations: true,
+      selectedAssetTypeId: null,
     };
   },
   computed: {
@@ -144,73 +295,79 @@ export default {
       defaultCenter: ({ mapCenter }) => ({ lat: mapCenter.latitude, lng: mapCenter.longitude }),
       defaultZoom: state => state.mapZoom,
     }),
-    markerStartLink() {
-      return createLink(this.graph, this.markerStart, 'green');
+    graph() {
+      if (!this.selectedAssetTypeId) {
+        return fromRoute(this.route);
+      }
+      return fromRestrictedRoute(this.route, this.selectedAssetTypeId);
     },
-    markerEndLink() {
-      return createLink(this.graph, this.markerEnd, 'red');
+    locationToVerticesLookup() {
+      return createLocationToVerticesLookup(this.locations, this.graph);
+    },
+    segments() {
+      return edgesToSegments(this.graph, this.route?.elementIds || []);
+    },
+    routePolylines() {
+      const segments = segmentsToPolylines(this.segments);
+      segments.forEach(s => s.icons.forEach(i => (i.icon.fillColor = 'gray')));
+      return segments;
+    },
+    markerStartLocation() {
+      return locationFromPoint(this.locations, this.markerStart.position);
+    },
+    markerEndLocation() {
+      return locationFromPoint(this.locations, this.markerEnd.position);
     },
     markerStartVertex() {
-      return getClosestVertex(this.markerStart.position, this.graph.getVerticesList());
+      return findVertex(
+        this.locationToVerticesLookup,
+        this.graph.getVerticesList(),
+        this.markerStartLocation?.id,
+        this.markerStart.position,
+      );
     },
     markerEndVertex() {
-      return getClosestVertex(this.markerEnd.position, this.graph.getVerticesList());
+      return findVertex(
+        this.locationToVerticesLookup,
+        this.graph.getVerticesList(),
+        this.markerEndLocation?.id,
+        this.markerEnd.position,
+      );
     },
-    route() {
-      const vertexMap = this.graph.vertices;
-      const adjacency = this.graph.adjacency;
-
-      const startVertex = this.markerStartVertex;
-      const endVertex = this.markerEndVertex;
-
-      if (!startVertex || !endVertex) {
-        return [];
-      }
-      const result = dijkstra(vertexMap, adjacency, startVertex);
-      const vertices = dijkstraToVertices(result, endVertex.id);
-
-      const path = vertices.map(id => {
-        const data = vertexMap[id].data;
-        return { lat: data.lat, lng: data.lng };
-      });
-
-      return {
-        path,
-        color: ROUTE_USED_COLOR,
-        opacity: ROUTE_USED_OPACITY,
-        width: ROUTE_WIDTH,
-        vertices,
+    journey() {
+      const start = {
+        position: this.markerStart.position,
+        locationId: this.markerStartLocation?.id,
+        vertex: this.markerStartVertex,
       };
-    },
-  },
-  watch: {
-    graph: {
-      immediate: true,
-      handler() {
-        this.refreshRoutePolylines();
-      },
+
+      const end = {
+        position: this.markerEnd.position,
+        locationId: this.markerEndLocation?.id,
+        vertex: this.markerEndVertex,
+      };
+
+      return getJourney(this.graph, start, end);
     },
   },
   mounted() {
-    // configure the start and end markers to be the map center
-    this.markerStart.position = { lat: -32.847896, lng: 116.0596581 };
-    this.markerEnd.position = { lat: -32.852, lng: 116.065 };
-
     this.reCenter();
     this.resetZoom();
+    this.resetMarkers();
 
     this.gPromise().then(map => {
       // set greedy mode so that scroll is enabled anywhere on the page
       map.setOptions({ gestureHandling: 'greedy' });
+      attachControl(map, this.google, this.$refs['geofence-control'], 'LEFT_TOP');
+      attachControl(map, this.google, this.$refs['asset-type-selector-control'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['reset-markers'], 'TOP_LEFT');
+      attachControl(map, this.google, this.$refs['alert-control'], 'BOTTOM');
       setMapTypeOverlay(map, this.google, this.mapManifest);
     });
   },
   methods: {
     gPromise() {
       return this.$refs.gmap.$mapPromise;
-    },
-    refreshRoutePolylines() {
-      this.routePolylines = graphToPolylines(this.graph, this.routeVertexIds);
     },
     reCenter() {
       this.moveTo(this.defaultCenter);
@@ -223,6 +380,22 @@ export default {
     },
     resetZoom() {
       this.zoom = this.defaultZoom;
+    },
+    resetMarkers() {
+      this.gPromise().then(map => {
+        const center = {
+          lat: map.center.lat(),
+          lng: map.center.lng(),
+        };
+        this.markerStart.position = {
+          lat: center.lat,
+          lng: center.lng - 0.01,
+        };
+        this.markerEnd.position = { lat: center.lat, lng: center.lng + 0.01 };
+      });
+    },
+    toggleShowLocations() {
+      this.showLocations = !this.showLocations;
     },
     onMarkerDrag(marker, event) {
       if (!marker.interval) {
@@ -238,11 +411,17 @@ export default {
       marker.interval = clearInterval(marker.interval);
       marker.position = { lat: event.latLng.lat(), lng: event.latLng.lng() };
     },
+    onSelectAssetType(assetTypeId) {
+      this.selectedAssetTypeId = assetTypeId;
+    },
   },
 };
 </script>
 
-<style>
+<style >
+.traversal-map {
+  height: 60vh;
+}
 .traversal-map .map-wrapper {
   position: relative;
   height: 100%;
@@ -252,5 +431,36 @@ export default {
 .traversal-map .gmap-map {
   height: 100%;
   width: 100%;
+}
+
+.traversal-map .gmap-map .vue-map-container {
+  height: 100%;
+}
+
+/* asset selector */
+.traversal-map .g-control .asset-type-selector-control {
+  display: flex;
+  background-color: white;
+}
+
+.traversal-map .g-control .asset-type-selector-control:hover {
+  background-color: white;
+}
+
+.traversal-map .g-control .asset-type-selector-control .gmap-dropdown {
+  width: 20rem;
+}
+
+/* labels */
+.traversal-map .g-map-label .label {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: black;
+  padding: 5px;
+  white-space: nowrap;
+}
+
+/* alert */
+.traversal-map .g-control .alert-control {
+  padding: 0 0.25rem;
 }
 </style>

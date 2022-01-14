@@ -30,3 +30,16 @@ export function pixelsToMeters(pixels, zoom) {
   const metersPerPx = 156543 / Math.pow(2, zoom);
   return pixels * metersPerPx;
 }
+
+export function closestPoint(points, point) {
+  const orderedPoints = points
+    .map(p => {
+      return {
+        p,
+        distance: haversineDistanceM(p, point),
+      };
+    })
+    .sort((a, b) => a.distance - b.distance);
+
+  return orderedPoints[0]?.p;
+}

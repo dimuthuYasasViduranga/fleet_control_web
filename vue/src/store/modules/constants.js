@@ -1,5 +1,5 @@
 import { toUtcDate } from '@/code/time.js';
-import { attributeFromList, uniq } from '@/code/helpers.js';
+import { attributeFromList, toLookup, uniq } from '@/code/helpers.js';
 
 import UnknownIcon from '@/components/icons/asset_icons/Unknown.vue';
 import HaulTruckIcon from '@/components/icons/asset_icons/HaulTruck.vue';
@@ -15,6 +15,7 @@ import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vu
 import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
 import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
 import Timely from '@/code/timely';
+import { haversineDistanceM } from '@/code/distance';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['load', 'load|dump'];
@@ -352,6 +353,56 @@ function parseQuickMessage(message) {
   };
 }
 
+function parseRouteVertex(v) {
+  return {
+    id: v.id,
+    lat: v.lat,
+    lng: v.lng,
+    alt: v.alt,
+  };
+}
+
+function parseRouteEdge(edge) {
+
+  return {
+    id: edge.id,
+    vertexStartId: edge.vertex_start_id,
+    vertexEndId: edge.vertex_end_id,
+    distance: edge.distance,
+  };
+}
+
+function parseRoute(route) {
+  const vertexMap = route.vertex_map;
+  Object.keys(route.vertex_map).forEach(key => {
+    vertexMap[key] = parseRouteVertex(vertexMap[key]);
+  });
+
+  const edgeMap = route.edge_map;
+  Object.keys(route.edge_map).forEach(key => {
+    edgeMap[key] = parseRouteEdge(edgeMap[key]);
+  });
+
+  return {
+    id: route.id,
+    startTime: toUtcDate(route.start_time),
+    endTime: toUtcDate(route.endTime),
+    vertexMap,
+    edgeMap,
+    elementIds: route.element_ids,
+    restrictionGroups: route.restriction_groups.map(parseRouteRestrictionGroup),
+  };
+}
+
+function parseRouteRestrictionGroup(g) {
+  return {
+    id: g.id,
+    name: g.name,
+    edgeIds: g.edge_ids,
+    assetTypeIds: g.asset_type_ids,
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
@@ -384,6 +435,7 @@ const state = {
   preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
+  activeRoute: null,
 };
 
 const getters = {
@@ -528,6 +580,10 @@ const actions = {
     const formattedTypes = types.map(parsePreStartControlCategory);
     commit('setPreStartControlCategories', formattedTypes);
   },
+  setRoutingData({ commit }, data) {
+    const activeRoute = data?.active_route ? parseRoute(data.active_route) : null;
+    commit('setRoutingData', activeRoute);
+  },
 };
 
 const mutations = {
@@ -610,6 +666,9 @@ const mutations = {
   },
   setPreStartControlCategories(state, types = []) {
     state.preStartControlCategories = types;
+  },
+  setRoutingData(state, activeRoute) {
+    state.activeRoute = activeRoute;
   },
 };
 

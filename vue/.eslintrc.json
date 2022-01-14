@@ -19,7 +19,8 @@
       }
     ],
     "no-undef": "error",
-    "eqeqeq": ["error", "smart"]
+    "eqeqeq": ["error", "smart"],
+    "vue/no-unused-components": "warn"
   },
   "globals": {
     "module": "readonly",

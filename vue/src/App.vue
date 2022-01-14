@@ -145,6 +145,7 @@ export default {
           'set pre-start categories',
           data => dispatch('constants/setPreStartControlCategories', data.categories),
         ],
+        ['set routing data', data => dispatch('constants/setRoutingData', data.routing)],
 
         // shared
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
@@ -209,6 +210,7 @@ export default {
         ['constants/setPreStartForms', resp.pre_start_forms],
         ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
         ['constants/setPreStartControlCategories', resp.pre_start_control_categories],
+        ['constants/setRoutingData', resp.routing],
 
         // devices
         ['deviceStore/setDevices', resp.devices],
@@ -279,7 +281,7 @@ a[href^='#/gap'] div {
   background-color: #121f26;
 }
 
-.nav-bar .hx-icon .svg {
+g.custom-icon {
   stroke-width: 1;
 }
 </style>

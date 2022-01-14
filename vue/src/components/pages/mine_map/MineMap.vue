@@ -6,7 +6,6 @@
       :assetTypes="assetTypes"
       :activeLocations="activeLocations"
       :locations="locations"
-      :icons="icons"
       :shownAssetTypes="shownAssetTypes"
       @dragstart="onDragStart()"
       @dragend="onDragEnd()"
@@ -93,7 +92,6 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      icons: state => state.icons,
       locations: state => state.locations,
       assetTypes: state => state.assetTypes,
     }),

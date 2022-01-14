@@ -14,7 +14,7 @@
       >
         <div
           class="modal-container"
-          @mousedown.stop="setInsideClick()"
+          @mousedown="setInsideClick()"
           @click.stop="clearInsideClick()"
         >
           <component ref="modal" :is="component" v-bind="componentProps" @close="triggerClose" />
@@ -25,12 +25,8 @@
 </template>
 
 <script>
-import ClickOutside from 'vue-click-outside';
 export default {
   name: 'Modal',
-  directives: {
-    ClickOutside,
-  },
   props: {
     component: { type: Object, required: true },
     componentProps: { type: Object, required: true },
@@ -80,7 +76,7 @@ export default {
     },
     onEsc() {
       if (this.escToClose) {
-        this.triggerClose();
+        this.onOuterClick();
       }
     },
     setInsideClick() {
@@ -91,10 +87,17 @@ export default {
     },
     onOuterClick() {
       if (this.loaded && this.clickOutsideClose && !this.hasClickedInside) {
-        const onOuterClick = this.$refs.modal.outerClickIntercept;
+        const modal = this.$refs.modal;
+        const payload = { ignore: false };
+        const outerClickIntercept = modal.outerClickIntercept || (() => null);
 
-        const answer = onOuterClick ? onOuterClick() : undefined;
-        this.triggerClose(answer);
+        Promise.resolve(outerClickIntercept(payload)).then(answer => {
+          if (payload.ignore) {
+            return;
+          }
+
+          this.triggerClose(answer);
+        });
       }
       this.clearInsideClick();
     },

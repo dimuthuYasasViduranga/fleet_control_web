@@ -1,5 +1,5 @@
 <template>
-  <g id="service_vehicle_icon" style="">
+  <g id="service_vehicle_icon" class="custom-icon">
     <circle r="3.2258651" cy="21.35511" cx="24.017502" id="wheel-back-1" />
     <circle r="3.2258651" cy="21.345995" cx="13.489084" id="wheel-back-1-0" />
     <circle r="3.2258651" cy="21.332031" cx="7.0776091" id="wheel-back-1-0-6" />

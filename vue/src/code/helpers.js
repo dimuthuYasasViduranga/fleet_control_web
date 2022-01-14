@@ -212,6 +212,10 @@ export class Dictionary {
     this._hasher = hasher;
   }
 
+  get length() {
+    return Object.keys(this._entries).length;
+  }
+
   get(keys) {
     return (this._entries[this._hasher(keys)] || {}).value;
   }
@@ -284,4 +288,33 @@ export class Dictionary {
     }
     return match;
   }
+}
+
+export function toLookup(arr, on = e => e.id, mapper = e => e) {
+  return arr.reduce((acc, elem) => {
+    acc[on(elem)] = mapper(elem);
+    return acc;
+  }, {});
+}
+
+export class IdGen {
+  constructor(start = 0, step = 1) {
+    this._start = start;
+    this._step = step;
+    this._id = start;
+  }
+
+  next() {
+    const id = this._id;
+    this._id += this._step;
+    return id;
+  }
+
+  reset() {
+    this._id = this._start;
+  }
+}
+
+export function approx(a, b, epsilon = 0.0001) {
+  return Math.abs(a - b) < epsilon;
 }

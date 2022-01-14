@@ -127,6 +127,10 @@ export default {
   padding: 0.5rem;
 }
 
+.contact .asset-icon .custom-icon {
+  stroke-width: 1.5;
+}
+
 .contact .bubble-wrapper {
   height: 1.5rem;
   width: 1.5rem;

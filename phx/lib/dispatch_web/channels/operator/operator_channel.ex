@@ -31,7 +31,8 @@ defmodule DispatchWeb.OperatorChannel do
     PreStartAgent,
     PreStartSubmissionAgent,
     DigUnitActivityAgent,
-    MapTileAgent
+    MapTileAgent,
+    RoutingAgent
   }
 
   alias Phoenix.Socket
@@ -447,7 +448,8 @@ defmodule DispatchWeb.OperatorChannel do
         historic: PreStartSubmissionAgent.historic(asset_id)
       },
       map_manifest: MapTileAgent.get(),
-      send_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false)
+      send_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false),
+      routing: RoutingAgent.get()
     }
 
     # get asset type is defined through using Topics

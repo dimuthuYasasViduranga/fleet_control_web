@@ -19,6 +19,7 @@ import Timely from './code/timely.js';
 import Toaster from './code/toaster.js';
 import ContextMenu from './code/context_menu.js';
 import Geolocation from './code/geolocation.js';
+import { startFullscreenObserver } from './code/tooltip';
 
 import 'vue-datetime/dist/vue-datetime.css';
 
@@ -37,6 +38,8 @@ axios.defaults.withCredentials = true;
 Vue.use(VTooltip);
 Vue.use(VueResizeObserver);
 Vue.use(Vue2TouchEvents);
+
+startFullscreenObserver();
 
 // Create an event bug
 Vue.prototype.$eventBus = new Vue();

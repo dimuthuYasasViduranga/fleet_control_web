@@ -1,6 +1,6 @@
 <template>
-  <div style="display: none">
-    <div class="drawing-controls" v-show="show">
+  <div ref="hidden" style="display: none">
+    <div ref="drawing-controls" class="drawing-controls" v-show="show">
       <svg
         class="drawing-mode hand-mode"
         v-tooltip="{
@@ -129,6 +129,8 @@ export default MapElementFactory({
       localShapes: [],
       drawingManager: null,
       controls: null,
+      map: null,
+      google: null,
     };
   },
   computed: {
@@ -144,15 +146,44 @@ export default MapElementFactory({
       return this.localShapes.filter(s => s.type === 'polygon');
     },
   },
+  beforeDestroy() {
+    this.setMode(null);
+    this.resetControls();
+  },
   methods: {
     init(map, google, drawingManager) {
+      this.map = map;
+      this.google = google;
+
       drawingManager.setOnOverlayComplete(this.onOverlayCreate);
       this.drawingManager = drawingManager;
 
+      this.setControls();
+    },
+    resetControls() {
+      // moves the controls out of the googleControl pane and back into component
+      if (this.controls) {
+        const googlePane = this.google.maps.ControlPosition[this.position];
+        const googleControls = this.map.controls[googlePane];
+        const index = googleControls.getArray().indexOf(this.controls);
+        if (index !== -1) {
+          googleControls.removeAt(index);
+          const parent = this.$refs.hidden;
+          if (parent) {
+            parent.appendChild(this.controls);
+          } else {
+            this.controls = null;
+          }
+        }
+      }
+    },
+    setControls() {
+      this.resetControls();
       // mount controls
-      const controls = document.querySelector('.drawing-controls');
+      const controls = this.$refs['drawing-controls'];
 
-      map.controls[google.maps.ControlPosition[this.position]].push(controls);
+      const googlePane = this.google.maps.ControlPosition[this.position];
+      this.map.controls[googlePane].push(controls);
       this.controls = controls;
     },
     onOverlayCreate(shape) {

@@ -12,14 +12,34 @@
 </template>
 
 <script>
-function getGeofenceColor(colors, options, geofence, unselected) {
+const DEFAULT_COLORS = {
+  parkup: 'red',
+  maintenance: '#555555',
+  fuel_bay: 'orange',
+  load: 'green',
+  'load|dump': 'darkorange',
+  dump: 'blue',
+  closed: 'black',
+  changeover_bay: 'darkred',
+  obstruction: 'black',
+  default: 'black',
+};
+
+const DEFAULT_OPTIONS = {
+  unselectedOpacity: 0.25,
+  fillOpacity: 0.35,
+  strokeOpacity: 0.5,
+  strokeWeight: 3,
+};
+
+function getGeofenceOptions(colors, options, geofence, unselected) {
   const unselectedFillOpacity = options.unselectedOpacity || options.fillOpacity;
   const unselectedStrokeOpacity = options.unselectedOpacity || options.strokeOpacity;
 
   const fillColor = colors[geofence.type] || colors.default;
   const fillOpacity = unselected ? unselectedFillOpacity : options.fillOpacity;
 
-  const strokeColor = fillColor;
+  const strokeColor = options.strokeColor || fillColor;
   const strokeOpacity = unselected ? unselectedStrokeOpacity : options.strokeOpacity;
   const strokeWeight = options.strokeWeight;
 
@@ -29,31 +49,6 @@ function getGeofenceColor(colors, options, geofence, unselected) {
     strokeColor,
     strokeOpacity,
     strokeWeight,
-  };
-}
-
-function defaultColors() {
-  return {
-    parkup: 'red',
-    maintenance: 'darkgrey',
-    fuel_bay: 'orange',
-    load: 'green',
-    'load|dump': 'darkorange',
-    dump: 'blue',
-    closed: 'black',
-    changeover_bay: 'darkred',
-    obstruction: 'black',
-    default: 'black',
-  };
-}
-
-function defaultOptions() {
-  return {
-    unselectedOpacity: 0.25,
-
-    fillOpacity: 0.5,
-    strokeOpacity: 1,
-    strokeWeight: 3,
   };
 }
 
@@ -74,14 +69,18 @@ function within(arr, key, value) {
   return index !== -1;
 }
 
+function merge(a, b) {
+  return { ...(a || {}), ...(b || {}) };
+}
+
 export default {
   title: 'GMapGeofences',
   components: {},
   props: {
     highlightPits: { type: Array, default: () => [] },
     geofences: { type: Array, default: () => [] },
-    options: { type: Object, default: () => defaultOptions() },
-    colors: { type: Object, default: () => defaultColors() },
+    options: { type: Object },
+    colors: { type: Object },
   },
   data: () => {
     return {
@@ -122,8 +121,9 @@ export default {
         unselect = true;
       }
 
-      const colors = getGeofenceColor(this.colors, this.options, geofence, unselect);
-      return colors;
+      const colorOpts = merge(DEFAULT_COLORS, this.colors);
+      const opts = merge(DEFAULT_OPTIONS, this.options);
+      return getGeofenceOptions(colorOpts, opts, geofence, unselect);
     },
     getPath(location) {
       return parseGeofence(location.geofence);

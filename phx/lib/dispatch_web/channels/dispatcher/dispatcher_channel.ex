@@ -43,7 +43,8 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackAgent,
     ManualCycleAgent,
     PreStartAgent,
-    PreStartSubmissionAgent
+    PreStartSubmissionAgent,
+    RoutingAgent
   }
 
   alias Phoenix.Socket
@@ -72,6 +73,7 @@ defmodule DispatchWeb.DispatcherChannel do
       dispatchers: DispatcherAgent.all(),
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
       pre_start_control_categories: PreStartAgent.categories(),
+      routing: RoutingAgent.get(),
 
       # devices
       devices: DeviceAgent.safe_all(),
@@ -512,6 +514,22 @@ defmodule DispatchWeb.DispatcherChannel do
         }
 
         {:reply, {:ok, payload}, socket}
+    end
+  end
+
+  def handle_in("routing:update", payload, socket) do
+    case RoutingAgent.update(
+           payload["route_id"],
+           payload["vertices"],
+           payload["edges"],
+           payload["restriction_groups"]
+         ) do
+      {:ok, _state} ->
+        Broadcast.send_routing_data()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
     end
   end
 

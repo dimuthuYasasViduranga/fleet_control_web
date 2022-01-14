@@ -103,8 +103,6 @@ export default {
       clearTimeout(this.mouseDownTimeout);
     },
     onMouseMove(event) {
-      console.log('move');
-
       this.moved = true;
       const { top, bottom, left, right } = getPosition(event, this.width, this.height);
       this.top = top;
