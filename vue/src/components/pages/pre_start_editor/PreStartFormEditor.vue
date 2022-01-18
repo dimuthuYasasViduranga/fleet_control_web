@@ -131,7 +131,12 @@ export default {
       section.controls.push(control);
     },
     onRemoveControl(section, control) {
-      section.controls = section.controls.filter(c => c !== control);
+      const controls = section.controls.filter(c => c !== control);
+      if (controls.length === 0) {
+        controls.push(createControl());
+      }
+
+      section.controls = controls;
     },
     onSectionDrop({ addedIndex, removedIndex }) {
       if (addedIndex !== null && removedIndex !== null) {
