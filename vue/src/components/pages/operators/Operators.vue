@@ -1,7 +1,6 @@
 <template>
   <div class="operators-page">
     <hxCard style="width: auto" :title="title" :icon="manIcon">
-      <EditOperator :show="!!pendingOperator" :operator="pendingOperator" @close="onEditClose" />
       <loaded>
         <div class="heading">
           <button class="hx-btn add-new-btn" @click="onAdd">Add New Operator</button>
@@ -18,9 +17,9 @@ import hxCard from 'hx-layout/Card.vue';
 import ManIcon from '../../icons/Man.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import EditOperator from './EditOperator.vue';
 import OperatorTable from './OperatorTable.vue';
 import Loaded from '../../Loaded.vue';
+import EditOperatorModal from './EditOperatorModal.vue';
 
 export default {
   name: 'Operators',
@@ -28,14 +27,12 @@ export default {
     hxCard,
     OperatorTable,
     Loaded,
-    EditOperator,
   },
   data: () => {
     return {
       title: 'Operators',
       manIcon: ManIcon,
       addIcon: AddIcon,
-      pendingOperator: null,
     };
   },
   computed: {
@@ -50,9 +47,6 @@ export default {
     clearError() {
       this.error = '';
     },
-    onEditClose() {
-      this.pendingOperator = null;
-    },
     onSetActive(operatorId, enabled) {
       const payload = {
         id: operatorId,
@@ -65,20 +59,26 @@ export default {
         .receive('timeout', () => this.onError('No Connection - Cannot edit enabled status'));
     },
     onAdd() {
-      this.pendingOperator = {
-        id: null,
-        name: null,
-        nickname: null,
-        employeeId: null,
+      const opts = {
+        title: 'Add Operator',
+        operators: this.operators,
+        operator: {
+          id: null,
+          name: null,
+          nickname: null,
+          employeeId: null,
+        },
       };
+
+      this.$modal.create(EditOperatorModal, opts);
     },
     onEdit(operator) {
-      this.pendingOperator = {
-        id: operator.id,
-        name: operator.name,
-        nickname: operator.nickname,
-        employeeId: operator.employeeId,
+      const opts = {
+        title: 'Edit Operator',
+        operators: this.operators,
+        operator: { ...operator },
       };
+      this.$modal.create(EditOperatorModal, opts);
     },
     onError(msg) {
       this.$toaster.error(msg);
