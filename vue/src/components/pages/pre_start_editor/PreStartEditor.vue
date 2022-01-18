@@ -12,6 +12,7 @@
           {{ mode }}
         </button>
       </div>
+
       <div v-if="selectedMode === 'forms'" class="form-editor-wrapper">
         <div class="actions">
           <DropDown
@@ -26,7 +27,10 @@
             <button class="hx-btn" @click="onReset()">Reset</button>
           </template>
         </div>
-        <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+        <template v-if="assetTypeId">
+          <button class="hx-btn" @click="onCopyFrom()">Copy From</button>
+          <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+        </template>
       </div>
       <PreStartCategoryEditor v-else />
     </hxCard>
@@ -43,6 +47,7 @@ import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 import DropDown from '@/components/dropdown/DropDown.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
+import CopyFromModal from './CopyFromModal.vue';
 
 function getFirstValidationError(form) {
   if (form.sections.length === 0) {
@@ -128,6 +133,7 @@ export default {
     ...mapState('constants', {
       assetTypes: state => [{ type: 'Select Asset' }].concat(state.assetTypes),
       preStartForms: state => state.preStartForms,
+      categories: state => state.preStartControlCategories,
     }),
   },
   methods: {
@@ -141,6 +147,19 @@ export default {
     },
     onReset() {
       this.onAssetTypeChange(this.assetTypeId);
+    },
+    onCopyFrom() {
+      const opts = {
+        preStartForms: this.preStartForms,
+        assetTypes: this.assetTypes,
+        categories: this.categories,
+      };
+
+      this.$modal.create(CopyFromModal, opts).onClose(resp => {
+        if (resp) {
+          this.form = toForm(resp);
+        }
+      });
     },
     onConfirmSubmit() {
       this.$modal
