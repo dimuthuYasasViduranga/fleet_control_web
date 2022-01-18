@@ -30,7 +30,7 @@ defmodule Dispatch.RoutingAgent do
 
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
-  def init(), do: Data.fetch_data() |> IO.inspect()
+  def init(), do: Data.fetch_data()
 
   @spec refresh!() :: :ok
   def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
@@ -77,7 +77,7 @@ defmodule Dispatch.RoutingAgent do
           id: e["id"],
           vertex_start_id: e["vertex_start_id"],
           vertex_end_id: e["vertex_end_id"],
-          distance: e["distance"] / 1,
+          distance: e["distance"] / 1
         }
       end)
 

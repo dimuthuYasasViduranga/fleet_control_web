@@ -2,6 +2,11 @@
 
 ## pending [unreleased]
 
+## 0.12.2
+- ✨ added bulk operator uploads from csv file
+- 🚸 pre-starts can be copied between assets (saves a lot of re-writting)
+- 🐛 can no longer remove all controls from a pre-start
+
 ## 0.12.1
 - ✨ Added routing system
   - ability to create a routing network (including directional roads)
