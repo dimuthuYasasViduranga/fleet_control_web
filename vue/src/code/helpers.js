@@ -177,6 +177,18 @@ export function uniq(list) {
   return [...new Set(list)];
 }
 
+export function uniqBy(list, predicate) {
+  const set = new Map();
+  list.forEach(i => {
+    const v = predicate(i);
+    if (!set.has(v)) {
+      set.set(v, i);
+    }
+  });
+
+  return [...set.values()];
+}
+
 export function hasOrderedSubArray(arr, subarr) {
   const arrLength = arr.length;
   const subLength = subarr.length;
@@ -317,4 +329,20 @@ export class IdGen {
 
 export function approx(a, b, epsilon = 0.0001) {
   return Math.abs(a - b) < epsilon;
+}
+
+export function lowifyKeys(obj) {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    const lKey = typeof key === 'string' ? key.toLowerCase() : key;
+    acc[lKey] = value;
+    return acc;
+  }, {});
+}
+
+export function anyOf(obj, keys) {
+  for (const key of keys) {
+    if (obj[key]) {
+      return obj[key];
+    }
+  }
 }

@@ -389,6 +389,29 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   @decorate authorized(:can_edit_operators)
+  def handle_in("bulk add operators", %{"operators" => operators}, socket) do
+    operators =
+      Enum.map(operators, fn o ->
+        %{
+          name: o["name"],
+          nickname: o["nickname"],
+          employee_id: o["employee_id"]
+        }
+      end)
+
+    case OperatorAgent.bulk_add(operators) do
+      {:ok, _operators} ->
+        Broadcast.send_operators_to_all()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+
+    {:reply, :ok, socket}
+  end
+
+  @decorate authorized(:can_edit_operators)
   def handle_in("set operator enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
     case enabled do
       true ->

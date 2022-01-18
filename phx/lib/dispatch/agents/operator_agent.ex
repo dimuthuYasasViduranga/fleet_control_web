@@ -65,6 +65,30 @@ defmodule Dispatch.OperatorAgent do
     end)
   end
 
+  @spec bulk_add(list(map)) :: {:ok, list(map)} | {:error, term}
+  def buld_add([]), do: {:ok, []}
+
+  def bulk_add(operators) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      count = length(operators)
+
+      case Repo.insert_all(Operator, operators, returning: true) do
+        {^count, operators} ->
+          operators = Enum.map(operators, &Operator.to_map/1)
+
+          operator_map =
+            operators
+            |> Enum.map(&{&1.employee_id, &1})
+            |> Enum.into(%{})
+
+          {{:ok, operators}, Map.merge(state, operator_map)}
+
+        _ ->
+          {{:error, :invalid_operators}, state}
+      end
+    end)
+  end
+
   @spec update(integer, String.t(), String.t()) ::
           {:ok, operator} | {:error, :invalid_id | term}
   def update(id, name, nickname) do

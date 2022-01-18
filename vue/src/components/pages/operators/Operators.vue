@@ -2,8 +2,9 @@
   <div class="operators-page">
     <hxCard style="width: auto" :title="title" :icon="manIcon">
       <loaded>
-        <div class="heading">
-          <button class="hx-btn add-new-btn" @click="onAdd">Add New Operator</button>
+        <div class="actions">
+          <button class="hx-btn add-new-btn" @click="onAdd()">Add New</button>
+          <button class="hx-btn add-new-btn" @click="onBulkAdd()">Bulk Add</button>
         </div>
         <operator-table :operators="operators" @edit="onEdit" @setActive="onSetActive" />
       </loaded>
@@ -12,14 +13,16 @@
 </template>
 
 <script >
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 
-import ManIcon from '../../icons/Man.vue';
-import AddIcon from '../../icons/Add.vue';
+import ManIcon from '@/components/icons/Man.vue';
+import AddIcon from '@/components/icons/Add.vue';
 
 import OperatorTable from './OperatorTable.vue';
-import Loaded from '../../Loaded.vue';
+import Loaded from '@/components/Loaded.vue';
 import EditOperatorModal from './EditOperatorModal.vue';
+import BulkAddOperatorModal from './BulkAddOperatorModal.vue';
 
 export default {
   name: 'Operators',
@@ -36,17 +39,11 @@ export default {
     };
   },
   computed: {
-    operators() {
-      return this.$store.state.constants.operators;
-    },
+    ...mapState('constants', {
+      operators: state => state.operators,
+    }),
   },
   methods: {
-    setError(reason) {
-      this.error = reason;
-    },
-    clearError() {
-      this.error = '';
-    },
     onSetActive(operatorId, enabled) {
       const payload = {
         id: operatorId,
@@ -55,8 +52,8 @@ export default {
 
       this.$channel
         .push('set operator enabled', payload)
-        .receive('error', resp => this.onError(resp.error))
-        .receive('timeout', () => this.onError('No Connection - Cannot edit enabled status'));
+        .receive('error', resp => this.$toaster.error(resp.error))
+        .receive('timeout', () => this.$toaster.noComms('Unable to change status at this time'));
     },
     onAdd() {
       const opts = {
@@ -80,8 +77,9 @@ export default {
       };
       this.$modal.create(EditOperatorModal, opts);
     },
-    onError(msg) {
-      this.$toaster.error(msg);
+    onBulkAdd() {
+      const opts = { operators: this.operators };
+      this.$modal.create(BulkAddOperatorModal, opts);
     },
   },
 };
@@ -91,7 +89,11 @@ export default {
 @import '../../../assets/table.css';
 @import '../../../assets/hxInput.css';
 
-.operators-page .heading {
+.operators-page .actions {
+  display: flex;
   padding-bottom: 1rem;
+}
+.operators-page .actions * {
+  margin-right: 0.25rem;
 }
 </style>
