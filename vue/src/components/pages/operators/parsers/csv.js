@@ -7,9 +7,9 @@ const CSV_NOTES = [
   ['optional', ['shortname']],
 ];
 
-const CSV_EXAMPLE = `"name","shortname","employe_id"
+const CSV_EXAMPLE = `"name","shortname","employee ID"
 "Operator A","","0001"
-"Operator B", "OP B","5136"`;
+"Operator B","OP B","5136"`;
 
 export function getDefinition() {
   return {

@@ -1,6 +1,42 @@
 <template>
   <div class="bulk-add-operator-modal">
     <h1>Upload Operators</h1>
+    <div>Supported files</div>
+    <div class="supported-definitions">
+      <button
+        class="hx-btn"
+        v-for="(definition, index) in definitions"
+        :key="index"
+        :class="{ selected: definition === selectedDefinition }"
+        @click="onSetDefinition(definition)"
+      >
+        {{ definition.type }}
+      </button>
+    </div>
+    <div v-if="selectedDefinition" class="definition">
+      <div class="extensions">Expected extensions: {{ selectedDefinition.extensions }}</div>
+      <div class="notes">
+        <ul>
+          <li v-for="(item, index) in selectedDefinition.notes" :key="index">
+            <template v-if="Array.isArray(item)">
+              {{ item[0] }}
+              <ul>
+                <li v-for="(subItem, index) in item[1]" :key="`sub-${index}`">
+                  {{ subItem }}
+                </li>
+              </ul>
+            </template>
+            <template v-else>
+              {{ item }}
+            </template>
+          </li>
+        </ul>
+      </div>
+      <pre class="example">{{ selectedDefinition.example }}</pre>
+      <button class="hx-btn" @click="onDownloadExample(selectedDefinition)">
+        Download Example
+      </button>
+    </div>
     <FileInput
       :accepts="'.csv'"
       :multiple="true"
@@ -89,8 +125,6 @@ import { TableComponent, TableColumn } from 'vue-table-component';
 import { getDefinitions, parseFile } from './parsers/parser.js';
 import { Dictionary, toLookup, uniqBy } from '@/code/helpers.js';
 
-const DEFINITIONS = getDefinitions();
-
 export default {
   name: 'BulkAddOperatorModal',
   wrapperClass: 'bulk-add-operator-modal-wrapper',
@@ -108,6 +142,8 @@ export default {
       processingFile: false,
       pendingOperators: [],
       crossIcon: CrossIcon,
+      definitions: getDefinitions(),
+      selectedDefinition: null,
     };
   },
   computed: {
@@ -142,9 +178,19 @@ export default {
     close(resp) {
       this.$emit('close', resp);
     },
+    onSetDefinition(definition) {
+      if (this.selectedDefinition === definition) {
+        this.selectedDefinition = null;
+      } else {
+        this.selectedDefinition = definition;
+      }
+    },
+    onDownloadExample(definition) {
+      definition.download();
+    },
     onUploadFile(files) {
       this.processingFile = true;
-      Promise.all(files.map(f => parseFile(f, DEFINITIONS)))
+      Promise.all(files.map(f => parseFile(f, this.definitions)))
         .then(resps => {
           this.processingFile = false;
           const operators = resps.flat().filter(o => o.employeeId && o.name);
@@ -218,6 +264,47 @@ export default {
   text-align: center;
 }
 
+/* examples */
+.bulk-add-operator-modal .supported-definitions {
+  display: flex;
+}
+
+.bulk-add-operator-modal .supported-definitions button {
+  opacity: 0.9;
+  border: 1px solid #364c59;
+}
+
+.bulk-add-operator-modal .supported-definitions button.selected {
+  border-color: #b6c3cc;
+  opacity: 1;
+}
+
+.bulk-add-operator-modal .definition {
+  border-bottom: 1px solid #677e8c;
+  margin-top: 1rem;
+  padding-left: 1rem;
+}
+
+.bulk-add-operator-modal .definition .notes {
+  margin-top: 0.5rem;
+}
+
+.bulk-add-operator-modal .definition .notes li {
+  padding: 0.1rem 0;
+}
+
+.bulk-add-operator-modal .definition .example {
+  padding: 0.5rem;
+  background-color: #2c404c;
+  overflow-x: auto;
+}
+
+/* file input */
+.bulk-add-operator-modal .file-input {
+  margin-top: 2rem;
+}
+
+/* table */
 .bulk-add-operator-modal input.missing,
 .bulk-add-operator-modal input.duplicate {
   background-color: darkred;
@@ -237,6 +324,7 @@ export default {
   stroke: #ff6565;
 }
 
+/* actions */
 .bulk-add-operator-modal .actions {
   display: flex;
 }
