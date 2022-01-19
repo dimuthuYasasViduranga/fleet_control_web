@@ -280,7 +280,7 @@ function submissionToPDFFormat(submission, assets, operators, ticketTypes) {
       operator: operatorName,
       timestamp: submission.timestamp,
     },
-    comments: submission.comment.split('\n'),
+    comments: (submission.comment || '').split('\n'),
     sections: sections,
   };
 }
