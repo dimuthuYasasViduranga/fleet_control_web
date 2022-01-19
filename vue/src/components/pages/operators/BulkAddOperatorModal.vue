@@ -247,7 +247,7 @@ export default {
       const payload = { operators };
       this.$channel
         .push('bulk add operators', payload)
-        .receive('ok', () => this.onClose())
+        .receive('ok', () => this.close())
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to bulk update at this time'));
     },
