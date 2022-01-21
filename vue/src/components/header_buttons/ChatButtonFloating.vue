@@ -1,6 +1,7 @@
 <template>
   <div
     class="chat-button-floating"
+    :class="{ floating: moveable }"
     :style="`${transform}`"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
@@ -50,6 +51,7 @@ export default {
   },
   data: () => {
     return {
+      moveable: false,
       mouseDownTimeout: null,
       moved: false,
       width: 0,
@@ -86,6 +88,7 @@ export default {
     setMouseDownTimeout() {
       this.clearMouseDownTimeout();
       this.mouseDownTimeout = setTimeout(() => {
+        this.moveable = true;
         this.height = window.innerHeight;
         this.width = window.innerWidth;
         this.setListeners();
@@ -100,7 +103,7 @@ export default {
       document.removeEventListener('mouseup', this.onMouseUp);
     },
     clearMouseDownTimeout() {
-      clearTimeout(this.mouseDownTimeout);
+      this.mouseDownTimeout = clearTimeout(this.mouseDownTimeout);
     },
     onMouseMove(event) {
       this.moved = true;
@@ -111,6 +114,7 @@ export default {
       this.right = right;
     },
     onMouseUp() {
+      this.moveable = false;
       this.clearMouseDownTimeout();
       this.clearListeners();
 
@@ -153,6 +157,10 @@ export default {
   background-color: #0c1419;
   color: black;
   font-weight: bold;
+}
+
+.chat-button-floating.floating .outer-circle {
+  border: 3px solid orange;
 }
 
 @media screen and (max-width: 820px) {
