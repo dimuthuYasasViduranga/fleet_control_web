@@ -120,6 +120,7 @@ import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
 import turf from '@/code/turf';
 import { closestPoint, haversineDistanceM } from '@/code/distance';
 import { graphToSegments, segmentsToPolylines } from './common';
+import { JourneySelector } from '@/code/journey_selector.js';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_USED_COLOR = 'darkred';
@@ -335,19 +336,34 @@ export default {
       );
     },
     journey() {
-      const start = {
-        position: this.markerStart.position,
-        locationId: this.markerStartLocation?.id,
-        vertex: this.markerStartVertex,
+      const source = {
+        type: 'position',
+        value: this.markerStart.position,
       };
 
-      const end = {
-        position: this.markerEnd.position,
-        locationId: this.markerEndLocation?.id,
-        vertex: this.markerEndVertex,
+      const destination = {
+        type: 'position',
+        value: this.markerEnd.position,
       };
 
-      return getJourney(this.graph, start, end);
+      const selector = this.journeySelector;
+      const route = selector.between(source, destination);
+
+      if (!route) {
+        return;
+      }
+
+      return {
+        path: route.spatialPath,
+        color: ROUTE_USED_COLOR,
+        opacity: ROUTE_USED_OPACITY,
+        width: ROUTE_WIDTH,
+        vertices: route.vertexPath,
+        distance: route.totalDistance,
+      };
+    },
+    journeySelector() {
+      return new JourneySelector(this.graph, this.locations);
     },
   },
   mounted() {

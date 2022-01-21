@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fast-csv/parse": "^4.3.6",
+    "@turf/boolean-intersects": "^6.5.0",
     "@turf/boolean-within": "^6.5.0",
     "@turf/helpers": "^6.5.0",
     "@types/phoenix": "^0.0.4",
