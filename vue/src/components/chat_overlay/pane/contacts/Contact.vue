@@ -18,7 +18,11 @@
         </td>
       </tr>
       <tr class="operator-row">
-        <td colspan="3" class="operator-name" :class="{ 'has-operator': asset.operator.shortname }">
+        <td
+          colspan="3"
+          class="operator-name"
+          :class="{ 'has-operator': asset.operator.shortname && asset.present }"
+        >
           {{ asset.operator.shortname || '\u200B' }}
         </td>
       </tr>
