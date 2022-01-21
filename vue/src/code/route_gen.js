@@ -15,26 +15,6 @@ const COLORS = [
   '#47E6D7',
 ];
 
-export function create(graph, locations, rawSource, rawDest, options) {
-  const opts = options || {};
-  console.dir('---- create');
-  console.dir(rawSource);
-  console.dir(rawDest);
-
-  if (!graph) {
-    throw 'Graph required to create route';
-  }
-
-  const locs = locations.map(formatLocations);
-  const locToV = createLocationToVerticesLookup(locs, graph.getVerticesList());
-
-  const source = convert(rawSource, graph, locs, locToV);
-  const destination = convert(rawDest, graph, locs, locToV);
-
-  console.dir(source);
-  console.dir(destination);
-}
-
 export function createRoute(startSource, endSource, locations, activeRoute, assetTypeId) {
   // create a graph for the given asset type (no type is taken as free roam)
   const graph = assetTypeId

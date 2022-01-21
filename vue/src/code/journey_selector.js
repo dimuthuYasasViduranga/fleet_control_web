@@ -29,12 +29,10 @@ export class JourneySelector {
   }
 
   between(rawSource, rawDestination, opts) {
-    console.dir('---- between');
     const source = convertMarker(rawSource, this._graph, this._locations, this._locToV);
     const destination = convertMarker(rawDestination, this._graph, this._locations, this._locToV);
 
     if (!source || !destination) {
-      console.dir('---- ignored');
       return;
     }
 
@@ -92,11 +90,12 @@ function positionToMarker(pos, locations, locToV, vertices) {
 }
 
 function formatLocations(loc) {
-  // need to add line of site graphs here
+  const coordArray = coordsObjsToCoordArrays(loc.geofence);
+
   return {
     id: loc.id,
     name: loc.name,
-    turfPolygon: turf.polygon([coordsObjsToCoordArrays(loc.geofence)]),
+    turfPolygon: turf.polygon([coordArray]),
     polygonGraph: graphFromPolygon(loc.geofence),
   };
 }
@@ -140,32 +139,21 @@ function distanceFromPath(path) {
   }, 0);
 }
 
-function createJourney(source, dest, graph, locations, locToV, opts) {
-  if (source.locationId === dest.locationId) {
-    // do a line of sight analysis
+function createJourney(source, dest, graph, locations) {
+  if (source.locationId != null && source.locationId === dest.locationId) {
+    return createJourneyWithinLocation(source, dest, graph, locations);
   }
 
-  // this section will become more complicated
   const vertexPath = findVertexPath(graph, source, dest);
 
-  // includes the source and dest locations if given
   const spatialPath = vertexPathToSpatial(graph, source, dest, vertexPath);
 
   const routedDistance = distanceFromPath(spatialPath);
 
-  if (source.locationId == null && dest.locationId == null && source.position && dest.position) {
-    const shortcutDistance = haversineDistanceM(source.position, dest.position);
+  const noLocationRoute = createJourneyForNoLocations(source, dest, routedDistance, locations);
 
-    const noLocationsBetween = !areThereLocationsBetween(locations, source.position, dest.position);
-    if (shortcutDistance < routedDistance && noLocationsBetween) {
-      return {
-        source,
-        dest,
-        vertexPath: [],
-        spatialPath: [source.position, dest.position],
-        totalDistance: shortcutDistance,
-      };
-    }
+  if (noLocationRoute) {
+    return noLocationRoute;
   }
 
   return {
@@ -177,12 +165,63 @@ function createJourney(source, dest, graph, locations, locToV, opts) {
   };
 }
 
+function createJourneyWithinLocation(source, dest, graph, locations) {
+  let vertexPath = findVertexPath(graph, source, dest);
+
+  let spatialPath = vertexPathToSpatial(graph, source, dest, vertexPath);
+
+  const routedDistance = distanceFromPath(spatialPath);
+
+  const shortcutDistance = haversineDistanceM(source.position, dest.position);
+  const noLocationsBetween = !areThereLocationsBetween(locations, source.position, dest.position);
+
+  let totalDistance = routedDistance;
+
+  if (noLocationsBetween && shortcutDistance < routedDistance) {
+    vertexPath = [];
+    spatialPath = [source.position, dest.position];
+    totalDistance = shortcutDistance;
+  }
+
+  return {
+    source,
+    dest,
+    vertexPath,
+    spatialPath,
+    totalDistance,
+  };
+}
+
+function createJourneyForNoLocations(source, dest, routedDistance, locations) {
+  if (source.locationId != null || dest.locationId != null) {
+    return;
+  }
+
+  const shortcutDistance = haversineDistanceM(source.position, dest.position);
+
+  const locationsBetween = areThereLocationsBetween(locations, source.position, dest.position);
+
+  if (shortcutDistance > routedDistance || locationsBetween) {
+    return;
+  }
+
+  return {
+    source,
+    dest,
+    vertexPath: [],
+    spatialPath: [source.position, dest.position],
+    totalDistance: shortcutDistance,
+  };
+}
+
 function areThereLocationsBetween(locations, a, b) {
   const line = turf.lineString([
     [a.lng, a.lat],
     [b.lng, b.lat],
   ]);
-  return locations.some(l => turf.booleanIntersects(line, l.turfPolygon));
+  return locations.some(l => {
+    return turf.lineIntersect(line, l.turfPolygon).features.length;
+  });
 }
 
 function findVertexPath(graph, source, dest) {
