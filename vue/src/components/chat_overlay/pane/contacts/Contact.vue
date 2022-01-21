@@ -18,8 +18,8 @@
         </td>
       </tr>
       <tr class="operator-row">
-        <td colspan="3" class="operator-name">
-          {{ asset.operator.shortname || 'No Operator' }}
+        <td colspan="3" class="operator-name" :class="{ 'has-operator': asset.operator.shortname }">
+          {{ asset.operator.shortname || '\u200B' }}
         </td>
       </tr>
       <tr class="allocation-row">
@@ -119,6 +119,10 @@ export default {
 .contact .operator-name,
 .contact .active-allocation {
   text-align: center;
+}
+
+.contact .operator-name.has-operator {
+  background-color: #0080006e;
 }
 
 .contact .asset-icon {
