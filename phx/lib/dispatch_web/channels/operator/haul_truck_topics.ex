@@ -2,20 +2,14 @@ defmodule DispatchWeb.OperatorChannel.HaulTruckTopics do
   @moduledoc """
   Holds the haul truck specific topics to make the operator channel cleaner
   """
-
-  alias Dispatch.{Helper, HaulTruckDispatchAgent, ManualCycleAgent}
-  alias DispatchWeb.Broadcast
   require Logger
 
-  def get_asset_type_state(%{id: asset_id, type: "Haul Truck"}, operator_id) do
+  alias Dispatch.HaulTruckDispatchAgent
+  alias DispatchWeb.Broadcast
+
+  def get_asset_type_state(%{id: asset_id, type: "Haul Truck"}, _operator_id) do
     %{
-      dispatch: HaulTruckDispatchAgent.get(%{asset_id: asset_id}),
-      manual_cycles:
-        ManualCycleAgent.get_by(%{
-          asset_id: asset_id,
-          operator_id: operator_id,
-          deleted: false
-        })
+      dispatch: HaulTruckDispatchAgent.get(%{asset_id: asset_id})
     }
   end
 
@@ -45,49 +39,5 @@ defmodule DispatchWeb.OperatorChannel.HaulTruckTopics do
     Broadcast.HaulTruck.send_dispatch(%{device_id: device_id})
 
     {:reply, :ok, socket}
-  end
-
-  def handle_in("haul:submit manual cycles", cycles, socket) when is_list(cycles) do
-    Enum.each(cycles, fn cycle ->
-      ManualCycleAgent.add(cycle)
-
-      Broadcast.send_activity(
-        %{asset_id: cycle["asset_id"]},
-        "operator",
-        "Manual cycle submitted",
-        cycle["timestamp"]
-      )
-    end)
-
-    cycles
-    |> Enum.map(&%{asset_id: &1["asset_id"]})
-    |> Enum.uniq()
-    |> Enum.each(&Broadcast.HaulTruck.send_manual_cycles_to_asset/1)
-
-    Broadcast.HaulTruck.send_manual_cycles_to_dispatcher()
-
-    {:reply, :ok, socket}
-  end
-
-  def handle_in("haul:delete manual cycle", cycle_id, socket) do
-    now = Helper.naive_timestamp()
-
-    case ManualCycleAgent.delete(cycle_id, now) do
-      {:ok, cycle} ->
-        Broadcast.send_activity(
-          %{asset_id: cycle.asset_id},
-          "operator",
-          "Manual cycle delete",
-          now
-        )
-
-        Broadcast.HaulTruck.send_manual_cycles_to_asset(%{asset_id: cycle.asset_id})
-        Broadcast.HaulTruck.send_manual_cycles_to_dispatcher()
-
-        {:reply, :ok, socket}
-
-      _ ->
-        {:reply, {:error, %{error: "cannot delete cycle"}}}
-    end
   end
 end

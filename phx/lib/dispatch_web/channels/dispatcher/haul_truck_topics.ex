@@ -3,22 +3,22 @@ defmodule DispatchWeb.DispatcherChannel.HaulTruckTopics do
   Holds all haul truck specific topics to make the dispatcher channel cleaner
   """
 
+  use DispatchWeb.Authorization.Decorator
+
   alias Dispatch.{
-    Helper,
     HaulTruckDispatchAgent,
-    ManualCycleAgent,
-    CalendarAgent,
-    EngineHoursAgent,
     TrackAgent,
     Tracks
   }
 
   alias DispatchWeb.Broadcast
 
+  @decorate authorized(:can_dispatch)
   def handle_in("haul:set dispatch", payload, socket) do
     set_dispatch(payload, socket)
   end
 
+  @decorate authorized(:can_dispatch)
   def handle_in(
         "haul:set mass dispatch",
         %{"asset_ids" => asset_ids, "dispatch" => dispatch},
@@ -35,70 +35,6 @@ defmodule DispatchWeb.DispatcherChannel.HaulTruckTopics do
 
       error ->
         {:reply, to_error(error), socket}
-    end
-  end
-
-  def handle_in("haul:update manual cycle", cycle, socket) do
-    cycle = Map.put(cycle, "timestamp", Helper.naive_timestamp())
-
-    case ManualCycleAgent.add(cycle) do
-      {:ok, cycle} ->
-        Broadcast.send_activity(
-          %{asset_id: cycle["asset_id"]},
-          "dispatcher",
-          "Manual cycle updated",
-          cycle["timestamp"]
-        )
-
-        Broadcast.HaulTruck.send_manual_cycles_to_asset(%{asset_id: cycle.asset_id})
-        Broadcast.HaulTruck.send_manual_cycles_to_dispatcher()
-
-        {:reply, :ok, socket}
-
-      _ ->
-        {:reply, {:error, %{error: "invalid cycle"}}, socket}
-    end
-  end
-
-  def handle_in("haul:delete manual cycle", cycle_id, socket) do
-    now = Helper.naive_timestamp()
-
-    case ManualCycleAgent.delete(cycle_id, now) do
-      {:ok, cycle} ->
-        Broadcast.send_activity(
-          %{asset_id: cycle.asset_id},
-          "dispatcher",
-          "Manual cycle delete",
-          now
-        )
-
-        Broadcast.HaulTruck.send_manual_cycles_to_asset(%{asset_id: cycle.asset_id})
-        Broadcast.HaulTruck.send_manual_cycles_to_dispatcher()
-
-        {:reply, :ok, socket}
-
-      _ ->
-        {:reply, {:error, %{error: "cannot delete cycle"}}}
-    end
-  end
-
-  def handle_in("haul:get manual cycle data", calendar_id, socket) do
-    case CalendarAgent.get(%{id: calendar_id}) do
-      nil ->
-        {:reply, {:error, %{error: "shift does not exist"}}, socket}
-
-      shift ->
-        range = %{start_time: shift.shift_start, end_time: shift.shift_end}
-        engine_hours = EngineHoursAgent.fetch_by_range!(range)
-        cycles = ManualCycleAgent.fetch_by_range!(range)
-
-        payload = %{
-          shift: shift,
-          engine_hours: engine_hours,
-          cycles: cycles
-        }
-
-        {:reply, {:ok, payload}, socket}
     end
   end
 

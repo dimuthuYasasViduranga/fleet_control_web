@@ -41,7 +41,6 @@ defmodule DispatchWeb.DispatcherChannel do
     CalendarAgent,
     HaulAgent,
     TrackAgent,
-    ManualCycleAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
     RoutingAgent
@@ -66,6 +65,7 @@ defmodule DispatchWeb.DispatcherChannel do
     }
 
     resp = %{
+      permissions: socket.assigns.permissions,
       # constants
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(),
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
@@ -107,8 +107,7 @@ defmodule DispatchWeb.DispatcherChannel do
         dispatches: %{
           current: HaulTruckDispatchAgent.current(),
           historic: HaulTruckDispatchAgent.historic()
-        },
-        manual_cycles: ManualCycleAgent.get() |> Enum.reject(&(&1.deleted == true))
+        }
       },
 
       # dig unit
@@ -230,6 +229,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_devices)
   def handle_in("set assigned asset", payload, socket) do
     %{"device_id" => device_id, "asset_id" => asset_id} = payload
 
@@ -336,19 +336,6 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
-  def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
-    case TimeAllocationAgent.add(allocation) do
-      {:ok, _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
-        Broadcast.send_allocations_to_dispatcher()
-
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
   @decorate authorized(:can_edit_operators)
   def handle_in("add operator", payload, socket) do
     %{
@@ -431,6 +418,20 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
+    case TimeAllocationAgent.add(allocation) do
+      {:ok, _} ->
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  @decorate authorized(:can_edit_time_allocations)
   def handle_in("edit time allocations", allocations, socket) do
     TimeAllocationAgent.update_all(allocations)
     |> case do
@@ -449,6 +450,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_lock_time_allocations)
   def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
@@ -472,6 +474,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_lock_time_allocations)
   def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
     case TimeAllocationAgent.unlock(ids) do
       {:ok, %{new: []}} ->
@@ -540,6 +543,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_routing)
   def handle_in("routing:update", payload, socket) do
     case RoutingAgent.update(
            payload["route_id"],
@@ -608,6 +612,7 @@ defmodule DispatchWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
+  @decorate authorized(:can_edit_devices)
   def handle_in("set device details", %{"device_id" => device_id, "details" => details}, socket) do
     case DeviceAgent.update_details(device_id, details) do
       {:ok, _} ->
@@ -619,9 +624,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
-  @spec set_assigned_asset(integer, integer) ::
-          :ok | {:error, :invalid_device_id | :invalid_asset_id | term}
-  def set_assigned_asset(device_id, new_asset_id) do
+  defp set_assigned_asset(device_id, new_asset_id) do
     case valid_device_and_asset(device_id, new_asset_id) do
       :ok ->
         nil

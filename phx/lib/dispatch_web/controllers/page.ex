@@ -19,7 +19,7 @@ defmodule DispatchWeb.PageController do
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
     user = get_session(conn, :current_user)
-    permissions = conn.assigns.permissions
+    authorized = Map.get(conn.assigns.permissions, :authorized, false)
 
     {conn, token} = get_token(conn)
 
@@ -29,7 +29,7 @@ defmodule DispatchWeb.PageController do
         whitelist: Authorization.Whitelist.get(user[:user_id]),
         user_token: token,
         user: user,
-        permissions: permissions
+        authorized: authorized
       }
       |> Jason.encode!()
 
@@ -53,7 +53,7 @@ defmodule DispatchWeb.PageController do
   defp get_user(conn) do
     case Application.get_env(:dispatch_web, :bypass_auth, false) do
       true ->
-        {:ok, user} = DispatcherAgent.add(-1, "dev")
+        {:ok, user} = DispatcherAgent.add(nil, "dev")
 
         conn =
           conn

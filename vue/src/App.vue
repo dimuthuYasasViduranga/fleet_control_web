@@ -183,7 +183,6 @@ export default {
             dispatch('haulTruck/setHistoricDispatches', data.historic);
           },
         ],
-        ['haul:set manual cycles', data => dispatch('haulTruck/setManualCycles', data.cycles)],
       ]);
 
       // dig unit specific calls
@@ -201,6 +200,7 @@ export default {
       const dispatch = this.$store.dispatch;
 
       [
+        ['constants/setPermissions', resp.permissions],
         // semi-constants
         ['constants/setTimeCodeTreeElements', resp.time_code_tree_elements],
         ['constants/setOperatorMessageTypeTree', resp.operator_message_type_tree],
@@ -234,7 +234,6 @@ export default {
         // haul truck specific
         ['haulTruck/setCurrentDispatches', resp.haul_truck.dispatches.current],
         ['haulTruck/setHistoricDispatches', resp.haul_truck.dispatches.historic],
-        ['haulTruck/setManualCycles', resp.haul_truck.manual_cycles],
 
         // dig unit specific
         ['digUnit/setCurrentActivities', resp.dig_unit.activities.current],

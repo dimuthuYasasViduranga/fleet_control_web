@@ -17,25 +17,6 @@ function parseDispatch(dispatch) {
   };
 }
 
-export function parseManualCycle(cycle) {
-  return {
-    id: cycle.id,
-    assetId: cycle.asset_id,
-    operatorId: cycle.operator_id,
-    startTime: toUtcDate(cycle.start_time),
-    endTime: toUtcDate(cycle.end_time),
-    timestamp: toUtcDate(cycle.timestamp),
-    serverTimestamp: toUtcDate(cycle.server_timestamp),
-    loadUnitId: cycle.load_unit_id,
-    loadLocationId: cycle.load_location_id,
-    relativeLevel: cycle.relative_level,
-    shot: cycle.shot,
-    materialTypeId: cycle.material_type_id,
-    dumpLocationId: cycle.dump_location_id,
-    deleted: cycle.deleted,
-  };
-}
-
 export function isMissingException(activeAllocation, locationType, timestamp) {
   if (activeAllocation.isReady !== true || !locationType || !timestamp) {
     return false;
@@ -49,7 +30,6 @@ export function isMissingException(activeAllocation, locationType, timestamp) {
 const state = {
   currentDispatches: Array(),
   historicDispatches: Array(),
-  manualCycles: Array(),
 };
 
 const getters = {};
@@ -63,10 +43,6 @@ const actions = {
     const formattedDispatches = dispatches.map(parseDispatch);
     commit('setHistoricDispatches', formattedDispatches);
   },
-  setManualCycles({ commit }, cycles = []) {
-    const formattedCycles = cycles.map(parseManualCycle);
-    commit('setManualCycles', formattedCycles);
-  },
 };
 
 const mutations = {
@@ -75,9 +51,6 @@ const mutations = {
   },
   setHistoricDispatches(state, dispatches = []) {
     state.historicDispatches = dispatches;
-  },
-  setManualCycles(state, cycles = []) {
-    state.manualCycles = cycles;
   },
 };
 

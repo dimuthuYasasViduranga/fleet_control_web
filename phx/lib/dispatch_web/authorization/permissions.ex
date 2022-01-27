@@ -5,11 +5,15 @@ defmodule DispatchWeb.Authorization.Permissions do
   def default_permissions() do
     %{
       authorized: false,
+      can_dispatch: false,
+      can_edit_devices: false,
       can_edit_operators: false,
       can_edit_time_allocations: false,
+      can_lock_time_allocations: false,
       can_edit_time_codes: false,
       can_edit_messages: false,
       can_refresh_agents: false,
+      can_edit_routing: false,
       can_edit_pre_starts: false,
       can_edit_asset_roster: false
     }

@@ -1,5 +1,5 @@
 import { toUtcDate } from '@/code/time.js';
-import { attributeFromList, toLookup, uniq } from '@/code/helpers.js';
+import { attributeFromList, uniq } from '@/code/helpers.js';
 
 import UnknownIcon from '@/components/icons/asset_icons/Unknown.vue';
 import HaulTruckIcon from '@/components/icons/asset_icons/HaulTruck.vue';
@@ -15,7 +15,6 @@ import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vu
 import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
 import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
 import Timely from '@/code/timely';
-import { haversineDistanceM } from '@/code/distance';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['load', 'load|dump'];
@@ -363,7 +362,6 @@ function parseRouteVertex(v) {
 }
 
 function parseRouteEdge(edge) {
-
   return {
     id: edge.id,
     vertexStartId: edge.vertex_start_id,
@@ -406,6 +404,7 @@ function parseRouteRestrictionGroup(g) {
 /* ---------------------- module --------------------- */
 
 const state = {
+  permissions: Object(),
   user: Object(),
   mapKey: String(),
   assets: Array(),
@@ -466,6 +465,7 @@ const actions = {
 
     // all in constants
     [
+      ['setUser', staticData.user],
       ['setLocationData', data.locations],
       ['setQuickMessages', data.quick_messages],
       ['setMapConfig', data.map_config],
@@ -484,6 +484,9 @@ const actions = {
 
     dispatch('connection/setUserToken', staticData.user_token, { root: true });
     Timely.setSiteZone(data.timezone);
+  },
+  setPermissions({ commit }, permissions) {
+    commit('setPermissions', permissions);
   },
   setUser({ commit }, user) {
     user = user || {};
@@ -587,6 +590,10 @@ const actions = {
 };
 
 const mutations = {
+  setPermissions(state, permissions) {
+    console.dir(permissions);
+    state.permissions = permissions || {};
+  },
   setUser(state, user) {
     state.user = user;
   },

@@ -13,7 +13,6 @@ import MessageEditorPage from '../components/pages/message_editor/MessageEditorP
 import MineMap from '../components/pages/mine_map/MineMap.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
 import EngineHours from '../components/pages/engine_hours/EngineHours.vue';
-import CycleTally from '../components/pages/cycle_tally/CycleTally.vue';
 import Debug from '../components/pages/debug/Debug.vue';
 import Agents from '../components/pages/agents/Agents.vue';
 import PreStartEditor from '../components/pages/pre_start_editor/PreStartEditor.vue';
@@ -25,7 +24,6 @@ import HaulTruckIcon from '../components/icons/asset_icons/HaulTruck.vue';
 import TabletIcon from '../components/icons/Tablet.vue';
 import LocationIcon from '../components/icons/Location.vue';
 import ManIcon from '../components/icons/Man.vue';
-import ListIcon from '../components/icons/List.vue';
 import LineIcon from '../components/icons/Line.vue';
 import ClockWithTruckIcon from '../components/icons/ClockWithTruck.vue';
 import ClockWithUserIcon from '../components/icons/ClockWithUser.vue';
@@ -154,13 +152,6 @@ export default function setupRouter(whitelist) {
       icon: ReportIcon,
     },
     { path: '/gap_3', gap: true },
-    {
-      name: 'Cycle Tally',
-      path: '/cycle_tally',
-      component: CycleTally,
-      icon: ListIcon,
-    },
-    { path: '/gap_4', gap: true },
     {
       name: 'Debug',
       path: '/debug',
