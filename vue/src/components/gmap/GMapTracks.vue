@@ -1,6 +1,10 @@
 <template>
   <div class="gmap-tracks">
-    <gmap-cluster :gridSize="clusterSize" :zoomOnClick="zoomOnClick">
+    <gmap-cluster
+      :gridSize="clusterSize"
+      :zoomOnClick="zoomOnClick"
+      imagePath="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m"
+    >
       <div v-for="asset in assetsWithTracks" :key="asset.id">
         <gmap-custom-marker
           :class="getMarkerClass(asset)"
