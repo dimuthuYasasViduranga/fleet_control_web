@@ -6,7 +6,7 @@
         <td class="time-code-column">Time Code</td>
         <td class="start-time-column">Start Time</td>
         <td class="end-time-column">End Time</td>
-        <td class="action-column"></td>
+        <td v-if="!readonly" class="action-column"></td>
       </tr>
     </table>
 
@@ -16,6 +16,7 @@
         :key="index"
         :class="getRowClass(timeSpan)"
         :style="rowStyle"
+        :readonly="readonly"
         :prevTimeSpan="prevTimeSpan"
         :timeSpan="timeSpan"
         :nextTimeSpan="nextTimeSpan"
@@ -30,7 +31,7 @@
         @end="ontimeSpanEnd"
       />
     </scrollable>
-    <div class="show-time-codes-check">
+    <div v-if="!readonly" class="show-time-codes-check">
       <input v-model="showAllTimeCodes" type="checkbox" />All time codes
     </div>
   </div>
@@ -60,6 +61,7 @@ export default {
     TimelineTableRow,
   },
   props: {
+    readonly: Boolean,
     timeSpans: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },

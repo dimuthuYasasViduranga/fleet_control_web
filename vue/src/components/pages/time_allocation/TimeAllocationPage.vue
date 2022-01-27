@@ -86,6 +86,7 @@
           cycles,
         } in filteredAssetData"
         :key="asset.name"
+        :readonly="readonly"
         :asset="asset"
         :timeAllocations="timeAllocations"
         :deviceAssignments="deviceAssignments"
@@ -203,6 +204,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_time_allocations,
       assets: state => state.assets,
       assetTypes: state => state.assetTypes,
       operators: state => state.operators,

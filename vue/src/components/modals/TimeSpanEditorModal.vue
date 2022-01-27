@@ -17,6 +17,8 @@
       :shiftId="shiftId"
       :shifts="shifts"
       :shiftTypes="shiftTypes"
+      :canEdit="canEdit"
+      :canLock="canLock"
       @submit="close('submit')"
       @cancel="close('cancel')"
       @update="close('update')"
@@ -27,6 +29,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import TimeSpanEditor from '@/components/pages/time_allocation/TimeSpanEditor.vue';
 
 export default {
@@ -51,6 +54,12 @@ export default {
     shifts: { type: Array, default: () => [] },
     shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
+  },
+  computed: {
+    ...mapState('constants', {
+      canEdit: state => state.permissions.can_edit_time_allocations,
+      canLock: state => state.permissions.can_lock_time_allocations,
+    }),
   },
   methods: {
     close(resp) {

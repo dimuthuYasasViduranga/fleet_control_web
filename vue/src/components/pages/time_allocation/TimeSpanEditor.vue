@@ -52,6 +52,7 @@
             Timeline
           </button>
           <button
+            v-if="canEdit"
             class="hx-btn errors"
             :class="{ selected: pane === 'errors' }"
             :disabled="errorCount === 0"
@@ -60,6 +61,7 @@
             Errors ({{ errorCount }})
           </button>
           <button
+            v-if="canEdit"
             class="hx-btn errors"
             :class="{ selected: pane === 'new' }"
             @click="setPane('new')"
@@ -98,6 +100,7 @@
 
           <TimelinePane
             v-else
+            :readonly="!canEdit"
             :height="paneHeight"
             :maxShown="paneMaxItems"
             :timeSpans="level0AllocationTimeSpans"
@@ -113,11 +116,11 @@
           />
         </div>
         <div class="gap"></div>
-        <div class="buttons" v-if="shiftId">
+        <div v-if="canLock && shiftId" class="buttons">
           <button class="hx-btn lock" @click="onConfirmLock">Lock All</button>
           <button class="hx-btn unlock" @click="onConfirmUnlock">Unlock All</button>
         </div>
-        <div class="buttons">
+        <div v-if="canEdit || canLock" class="buttons">
           <button class="hx-btn update" @click="onUpdate">Submit Changes</button>
           <button class="hx-btn cancel" @click="onCancel">Cancel</button>
           <button class="hx-btn reset" @click="onReset">Reset</button>
@@ -387,6 +390,8 @@ export default {
     shifts: { type: Array, default: () => [] },
     shiftTypes: { type: Array, default: () => [] },
     shiftId: { type: Number, default: null },
+    canEdit: Boolean,
+    canLock: Boolean,
   },
   data: () => {
     return {

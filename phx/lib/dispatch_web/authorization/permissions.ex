@@ -15,6 +15,7 @@ defmodule DispatchWeb.Authorization.Permissions do
       can_refresh_agents: false,
       can_edit_routing: false,
       can_edit_pre_starts: false,
+      can_edit_pre_start_tickets: false,
       can_edit_asset_roster: false
     }
   end

@@ -35,7 +35,7 @@
         :sortable="false"
         :filterable="false"
         cell-class="table-btn-cel"
-        :hidden="readonly || true"
+        :hidden="readonly"
       >
         <template slot-scope="row">
           <Icon
