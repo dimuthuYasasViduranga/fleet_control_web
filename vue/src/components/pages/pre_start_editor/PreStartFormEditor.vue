@@ -13,9 +13,14 @@
         :get-child-payload="index => value.sections[index]"
         @drop="onSectionDrop"
       >
-        <Draggable v-for="(section, sIndex) in value.sections" :key="`section-${sIndex}`">
+        <Draggable
+          v-for="(section, sIndex) in value.sections"
+          :key="`section-${sIndex}`"
+          :disabled="readonly"
+        >
           <PreStartSection
             :data="section"
+            :readonly="readonly"
             @sectionRemove="onRemoveSection(section)"
             @controlAdd="onAddControl(section, $event)"
             @controlRemove="onRemoveControl(section, $event)"
@@ -24,6 +29,7 @@
         </Draggable>
       </Container>
       <div
+        v-if="!readonly"
         class="add-new-section"
         tabindex="0"
         @click="onAddSection()"
@@ -36,8 +42,9 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
 
+import Draggable from '@/components/pages/location_assignment/dnd/Draggable.vue';
 import PreStartSection from './PreStartSection.vue';
 
 const ENTER = 13;
@@ -95,6 +102,7 @@ export default {
     PreStartSection,
   },
   props: {
+    readonly: Boolean,
     value: { type: Object },
     existingElements: { type: Array, default: () => [] },
   },

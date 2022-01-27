@@ -29,26 +29,36 @@
       <tr>
         <td class="key">Reference</td>
         <td class="value">
-          <input type="text" class="typeable" placeholder="--" v-model="localReference" />
+          <input
+            type="text"
+            class="typeable"
+            placeholder="--"
+            v-model="localReference"
+            :disabled="readonly"
+          />
         </td>
       </tr>
       <tr>
         <td class="key">Details</td>
         <td class="value">
-          <AutoSizeTextArea v-model="localDetails" placeholder="Extra information" />
+          <AutoSizeTextArea
+            v-model="localDetails"
+            placeholder="Extra information"
+            :disabled="readonly"
+          />
         </td>
       </tr>
       <tr>
         <td class="key">Status</td>
         <td class="value">
-          <DropDown v-model="localStatusTypeId" :items="statusTypes" />
+          <DropDown v-model="localStatusTypeId" :items="statusTypes" :disabled="readonly" />
         </td>
       </tr>
     </table>
 
     <div class="separator"></div>
 
-    <div class="actions">
+    <div v-if="!readonly" class="actions">
       <button class="hx-btn" @click="onSubmit()">{{ submitName }}</button>
       <button class="hx-btn" @click="close()">Cancel</button>
     </div>
@@ -56,6 +66,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import DropDown from '@/components/dropdown/DropDown.vue';
 import AutoSizeTextArea from '@/components/AutoSizeTextArea.vue';
 import { attributeFromList } from '@/code/helpers';
@@ -85,9 +96,10 @@ export default {
     };
   },
   computed: {
-    statusTypes() {
-      return this.$store.state.constants.preStartTicketStatusTypes;
-    },
+    ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_pre_start_tickets,
+      statusTypes: state => state.preStartTicketStatusTypes,
+    }),
   },
   mounted() {
     this.localReference = this.reference;

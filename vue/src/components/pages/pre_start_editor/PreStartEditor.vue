@@ -22,17 +22,17 @@
             label="type"
             @change="onAssetTypeChange"
           />
-          <template v-if="assetTypeId">
+          <template v-if="!readonly && assetTypeId">
             <button class="hx-btn" @click="onConfirmSubmit()">Submit</button>
             <button class="hx-btn" @click="onReset()">Reset</button>
           </template>
         </div>
         <template v-if="assetTypeId">
-          <button class="hx-btn" @click="onCopyFrom()">Copy From</button>
-          <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+          <button v-if="!readonly" class="hx-btn" @click="onCopyFrom()">Copy From</button>
+          <PreStartFormEditor v-if="assetTypeId" v-model="form" :readonly="readonly" />
         </template>
       </div>
-      <PreStartCategoryEditor v-else />
+      <PreStartCategoryEditor v-else :readonly="readonly" />
     </hxCard>
   </div>
 </template>
@@ -131,6 +131,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_pre_starts,
       assetTypes: state => [{ type: 'Select Asset' }].concat(state.assetTypes),
       preStartForms: state => state.preStartForms,
       categories: state => state.preStartControlCategories,

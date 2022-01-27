@@ -1,6 +1,6 @@
 <template>
   <div ref="replica" class="auto-size-text-area">
-    <textarea :value="value" @input="onInput" />
+    <textarea :value="value" @input="onInput" :disabled="disabled" />
     <div v-show="!value && placeholder" class="placeholder">{{placeholder}}</div>
   </div>
 </template>
@@ -11,6 +11,7 @@ export default {
   props: {
     value: { type: String },
     placeholder: { type: String },
+    disabled: {type: Boolean, default: false}
   },
   methods: {
     onInput(event) {
