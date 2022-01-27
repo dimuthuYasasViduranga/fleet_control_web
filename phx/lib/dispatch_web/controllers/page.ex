@@ -39,15 +39,13 @@ defmodule DispatchWeb.PageController do
   end
 
   defp get_token(conn) do
-    {conn, user} = get_user(conn)
-
-    case user do
-      nil ->
+    case get_user(conn) do
+      {conn, nil} ->
         {conn, nil}
 
-      data ->
-        user = Map.take(data, [:id, :user_id])
-        token = Phoenix.Token.sign(conn, "user socket", user)
+      {conn, user} ->
+        data = Map.take(user, [:id, :user_id])
+        token = Phoenix.Token.sign(conn, "user socket", data)
         {conn, token}
     end
   end
@@ -55,7 +53,7 @@ defmodule DispatchWeb.PageController do
   defp get_user(conn) do
     case Application.get_env(:dispatch_web, :bypass_auth, false) do
       true ->
-        {:ok, user} = DispatcherAgent.add(nil, "dev")
+        {:ok, user} = DispatcherAgent.add(-1, "dev")
 
         conn =
           conn

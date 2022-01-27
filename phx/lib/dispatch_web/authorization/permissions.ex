@@ -1,6 +1,7 @@
 defmodule DispatchWeb.Authorization.Permissions do
   alias DispatchWeb.Authorization.AzureGraph
 
+  @spec default_permissions() :: map()
   def default_permissions() do
     %{
       authorized: false,
@@ -10,8 +11,15 @@ defmodule DispatchWeb.Authorization.Permissions do
       can_edit_messages: false,
       can_refresh_agents: false,
       can_edit_pre_starts: false,
-      can_edit_asset_roster: false,
+      can_edit_asset_roster: false
     }
+  end
+
+  @spec full_permissions() :: map()
+  def full_permissions() do
+    default_permissions()
+    |> Enum.map(fn {key, _} -> {key, true} end)
+    |> Enum.into(%{})
   end
 
   @spec fetch_permissions(user_id :: String.t()) :: map
@@ -19,7 +27,7 @@ defmodule DispatchWeb.Authorization.Permissions do
 
   def fetch_permissions(user_id) do
     assigned_groups = AzureGraph.group_ids(user_id)
-    config = Application.get_env(:dispatch_web, :auth_permissions, %{})
+    config = Application.get_env(:dispatch_web, :permissions, %{})
 
     generate_permissions(config, assigned_groups)
   end

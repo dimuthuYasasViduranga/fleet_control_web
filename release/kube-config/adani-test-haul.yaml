@@ -100,15 +100,15 @@ spec:
                   ],
                   use_gps_device: false,
                   track_method: :gps_gate,
-                  auth_permissions: [
-                    authorized: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"],
-                    can_edit_operators: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_edit_time_allocations: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_edit_time_codes: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_edit_messages: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_refresh_agents: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"], 
-                    can_edit_pre_starts: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"],
-                    can_edit_asset_roster: ["088a5add-3952-4fbe-8388-2cb3cb50ad10"]
+                  permissions: [
+                    authorized: :any,
+                    can_edit_operators: :any, 
+                    can_edit_time_allocations: :any, 
+                    can_edit_time_codes: :any, 
+                    can_edit_messages: :any, 
+                    can_refresh_agents: :any, 
+                    can_edit_pre_starts: :any,
+                    can_edit_asset_roster: :any
                   ],
                   route_white_list: %{
                     :default => [

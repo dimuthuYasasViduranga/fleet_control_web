@@ -17,7 +17,7 @@ defmodule DispatchWeb.Authorization.Socket do
 
   def get_permissions(user_id) do
     assigned_groups = AzureGraph.group_ids(user_id)
-    config = Application.get_env(:dispatch_web, :auth_permissions, %{})
+    config = Application.get_env(:dispatch_web, :permissions, %{})
 
     generate_permissions(config, assigned_groups)
   end
@@ -29,6 +29,8 @@ defmodule DispatchWeb.Authorization.Socket do
     end)
     |> Enum.into(%{})
   end
+
+  defp is_member_of?(:any, _), do: true
 
   defp is_member_of?(nil, _), do: false
 
