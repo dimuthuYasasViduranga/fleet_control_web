@@ -45,6 +45,8 @@ defmodule DispatchWeb.Authorization.Permissions do
     |> Enum.into(%{})
   end
 
+  defp is_member_of?(:any, _), do: true
+
   defp is_member_of?(nil, _), do: false
 
   defp is_member_of?(_, nil), do: false

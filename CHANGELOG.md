@@ -2,6 +2,26 @@
 
 ## pending [unreleased]
 
+## 0.12.3
+- ✨ routing
+- 🔒 added multiple authorization levels
+  - authorized (general view)
+  - dispatch (can give assignments)
+  - edit devices (access devices, assign assets to devices)
+  - time allocation editing
+  - time allocation locking
+  - message editing (ie pre-defined messages for operators)
+  - routing
+  - pre-starts
+  - pre-start tickets (add and update)
+  - asset roster (which assets are shown)
+- 🔧 ability to statically set channel secret base (so that restarts reconnect users)
+- 🚸 contacts logged in with operators are now highlighted 
+- 🚸 chat head changes color when it is in moveable mode
+- 🐛 fixed debug page splitting nulled string
+- 🐛 fixed bulk add operators not closing on success
+- 🔥 removed manual cycles (not being used)
+
 ## 0.12.2
 - ✨ added bulk operator uploads from csv file
 - 🚸 pre-starts can be copied between assets (saves a lot of re-writting)
