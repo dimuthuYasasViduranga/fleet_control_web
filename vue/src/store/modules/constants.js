@@ -487,6 +487,10 @@ const actions = {
   },
   setPermissions({ commit }, permissions) {
     commit('setPermissions', permissions);
+    if (!permissions.authorized) {
+      console.error('You are no longer authorized');
+      window.location.reload();
+    }
   },
   setUser({ commit }, user) {
     user = user || {};
