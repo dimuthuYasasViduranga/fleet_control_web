@@ -8,7 +8,7 @@
       :timeCodeCategories="timeCodeCategories"
       @close="onEditorClose"
     />
-    <button class="hx-btn" @click="onSetEdit()">Create New</button>
+    <button v-if="!readonly" class="hx-btn" @click="onSetEdit()">Create New</button>
     <table-component
       table-wrapper="#content"
       table-class="table"

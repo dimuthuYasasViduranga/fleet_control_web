@@ -50,7 +50,6 @@
 
       <table-column
         label="Enabled"
-        :hidden="readonly"
         :sortable="false"
         :filterable="false"
         cell-class="table-btn-cel action-cel"
@@ -60,6 +59,7 @@
             :css-colors="true"
             :value="!row.deleted"
             :sync="true"
+            :disabled="readonly"
             @input="onToggleActive(row, $event)"
           />
         </template>
@@ -174,5 +174,9 @@ export default {
 
 .operator-table .edit-icon:hover {
   stroke: orange;
+}
+
+.operator-table .vue-js-switch.disabled {
+  opacity: 1;
 }
 </style>

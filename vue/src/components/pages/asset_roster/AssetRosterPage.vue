@@ -29,13 +29,13 @@
           :sortable="false"
           :filterable="false"
           cell-class="table-btn-cel action-cel"
-          :hidden="readonly"
         >
           <template slot-scope="row">
             <toggle-button
               :css-colors="true"
               :value="row.enabled"
               :sync="true"
+              :disabled="readonly"
               @input="onToggle(row, $event)"
             />
           </template>
@@ -141,5 +141,9 @@ export default {
 
 .asset-roster-page .table-icon-cel {
   width: 0.1rem;
+}
+
+.asset-roster-page .vue-js-switch.disabled {
+  opacity: 1 !important;
 }
 </style>

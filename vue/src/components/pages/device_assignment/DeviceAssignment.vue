@@ -16,23 +16,25 @@
           @logout="onForceLogout"
           @revoke="onRevoke"
         />
-        <button class="hx-btn accept-new-devices" @click="onOpenDeviceWindow">
-          Accept New Devices
-        </button>
-        <button class="hx-btn" v-if="timeRemaining > 0" @click="onCloseDeviceWindow">
-          Expire Now
-        </button>
-        <div class="remaining" v-if="timeRemaining > 0">
-          Expires in: {{ timeRemaining }} seconds
-        </div>
-        <div style="height: 1em"></div>
-        <PendingDeviceTable
-          v-if="!readonly"
-          :timeRemaining="timeRemaining"
-          :devices="pendingDevices"
-          @authorize="onAuthorize"
-          @reject="onReject"
-        />
+        <template v-if="!readonly">
+          <button class="hx-btn accept-new-devices" @click="onOpenDeviceWindow">
+            Accept New Devices
+          </button>
+          <button class="hx-btn" v-if="timeRemaining > 0" @click="onCloseDeviceWindow">
+            Expire Now
+          </button>
+          <div class="remaining" v-if="timeRemaining > 0">
+            Expires in: {{ timeRemaining }} seconds
+          </div>
+          <div style="height: 1em"></div>
+          <PendingDeviceTable
+            v-if="!readonly"
+            :timeRemaining="timeRemaining"
+            :devices="pendingDevices"
+            @authorize="onAuthorize"
+            @reject="onReject"
+          />
+        </template>
       </loaded>
     </hxCard>
   </div>
