@@ -35,7 +35,7 @@ spec:
       containers:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
-          imagePullPolicy: 'Always'
+          imagePullPolicy: "Always"
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-adani-test-haul
@@ -102,12 +102,17 @@ spec:
                   track_method: :gps_gate,
                   permissions: [
                     authorized: :any,
-                    can_edit_operators: :any, 
-                    can_edit_time_allocations: :any, 
-                    can_edit_time_codes: :any, 
-                    can_edit_messages: :any, 
-                    can_refresh_agents: :any, 
+                    can_dispatch: :any,
+                    can_edit_devices: :any,
+                    can_edit_operators: :any,
+                    can_edit_time_allocations: :any,
+                    can_lock_time_allocations: :any,
+                    can_edit_time_codes: :any,
+                    can_edit_messages: :any,
+                    can_refresh_agents: :any,
+                    can_edit_routing: :any,
                     can_edit_pre_starts: :any,
+                    can_edit_pre_start_tickets: :any,
                     can_edit_asset_roster: :any
                   ],
                   route_white_list: %{
@@ -125,11 +130,11 @@ spec:
                       "/time_code_editor",
                       "/message_editor",
                       "/engine_hours",
-                      "/debug",
                       "/agents",
                       "/route_map",
                       "/pre_start_editor",
-                      "/pre_start_submissions"
+                      "/pre_start_submissions",
+                      "/asset_overview"
                     ],
                   },
                   map_center: %{
