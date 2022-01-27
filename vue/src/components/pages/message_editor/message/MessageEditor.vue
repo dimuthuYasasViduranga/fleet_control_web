@@ -1,7 +1,7 @@
 <template>
   <div class="message-editor">
     <MessageEditorModal :show="showEditModal" :messageType="pendingType" @close="onEditorClose" />
-    <button class="hx-btn" @click="onSetEdit()">Create New</button>
+    <button v-if="!readonly" class="hx-btn" @click="onSetEdit()">Create New</button>
     <table-component
       table-wrapper="#content"
       table-class="table"
@@ -26,7 +26,7 @@
               :labels="{ checked: 'Enabled', unchecked: 'Disabled' }"
             />
             <Icon
-              v-if="!row.deleted"
+              v-if="!readonly && !row.deleted"
               v-tooltip="'Edit'"
               class="edit-icon"
               :icon="editIcon"
@@ -64,6 +64,7 @@ export default {
     ToggleButton,
   },
   props: {
+    readonly: Boolean,
     messageTypes: { type: Array, default: () => [] },
   },
   data: () => {
@@ -98,6 +99,9 @@ export default {
       };
     },
     onToggleRow(row) {
+      if (this.readonly) {
+        return;
+      }
       const type = row || {};
       this.pendingType = {
         id: type.id,

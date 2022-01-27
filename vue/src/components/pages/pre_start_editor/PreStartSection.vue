@@ -10,10 +10,17 @@
             ref="section-title-input"
             v-model="data.title"
             placeholder="Title"
+            :disabled="readonly"
           />
-          <input class="details typeable" v-model="data.details" placeholder="Details" />
+          <input
+            class="details typeable"
+            v-model="data.details"
+            placeholder="Details"
+            :disabled="readonly"
+          />
         </div>
         <Icon
+          v-if="!readonly"
           v-tooltip="'Remove'"
           class="remove-icon"
           :icon="crossIcon"
@@ -32,22 +39,30 @@
           :get-child-payload="index => data.controls[index]"
           @drop="onDrop"
         >
-          <Draggable v-for="(control, index) in data.controls" :key="`control-${index}`">
+          <Draggable
+            v-for="(control, index) in data.controls"
+            :key="`control-${index}`"
+            :disabled="readonly"
+          >
             <PreStartControl
               :data="control"
+              :readonly="readonly"
               @remove="onRemoveControl(control)"
               @enter="onEnter(index)"
             />
           </Draggable>
         </Container>
-        <div class="add-new-control" @click="onAddControl()">Add Criteria</div>
+        <div v-if="!readonly" class="add-new-control" @click="onAddControl()">Add Criteria</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
+
+import Draggable from '@/components/pages/location_assignment/dnd/Draggable.vue';
+
 import PreStartControl from './PreStartControl.vue';
 
 import Icon from 'hx-layout/Icon.vue';
@@ -63,6 +78,7 @@ export default {
     PreStartControl,
   },
   props: {
+    readonly: Boolean,
     data: { type: Object, required: true },
   },
   data: () => {

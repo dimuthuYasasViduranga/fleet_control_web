@@ -6,6 +6,7 @@
       ref="control-input"
       class="label typeable"
       placeholder="Criteria"
+      :disabled="readonly"
       v-model="data.label"
       @keydown="onKeyDown"
     />
@@ -20,6 +21,7 @@
       label="fullname"
       selectedLabel="name"
       placeholder="Category"
+      :disabled="readonly"
     />
     <Icon
       class="comment-toggle"
@@ -28,7 +30,13 @@
       :icon="commentIcon"
       @click="onToggleRequiresComment()"
     />
-    <Icon v-tooltip="'Remove'" class="remove-icon" :icon="crossIcon" @click="onRemove()" />
+    <Icon
+      v-if="!readonly"
+      v-tooltip="'Remove'"
+      class="remove-icon"
+      :icon="crossIcon"
+      @click="onRemove()"
+    />
   </div>
 </template>
 
@@ -49,6 +57,7 @@ export default {
     DropDown,
   },
   props: {
+    readonly: Boolean,
     data: { type: Object, required: true },
   },
   data: () => {
@@ -88,6 +97,9 @@ export default {
       }
     },
     onToggleRequiresComment() {
+      if (this.readonly) {
+        return;
+      }
       // eslint-disable-next-line vue/no-mutating-props
       this.data.requiresComment = !this.data.requiresComment;
     },

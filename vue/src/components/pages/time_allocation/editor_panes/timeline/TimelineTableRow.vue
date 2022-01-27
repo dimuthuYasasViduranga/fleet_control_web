@@ -4,19 +4,16 @@
       <td class="selector-column" @click="onRowSelect"></td>
       <td class="time-code-column">
         <TimeAllocationDropDown
-          v-if="canEditTimeCode"
           :value="timeSpan.data.timeCodeId"
           :allowedTimeCodeIds="allowedTimeCodeIds"
           :showAll="showAllTimeCodes"
+          :disabled="readonly || !canEditTimeCode"
           @change="onTimeCodeChange"
         />
-        <div v-else>
-          {{ timeCode }}
-        </div>
       </td>
       <td class="start-time-column">
         <Dately
-          v-if="canEditStart"
+          v-if="!readonly && canEditStart"
           v-model="startTime"
           :minDatetime="minStartTime"
           :maxDatetime="maxStartTime"
@@ -28,20 +25,20 @@
       </td>
       <td class="end-time-column">
         <Dately
-          v-if="canEditEnd"
+          v-if="!readonly && canEditEnd"
           v-model="endTime"
           :minDatetime="minEndTime"
           :maxDatetime="maxEndTime"
           :timezone="timezone"
         />
-        <div v-else-if="!timeSpan.endTime">
+        <div v-else-if="!readonly && !timeSpan.endTime">
           <LockableButton @click="onEndtimeSpan">End</LockableButton>
         </div>
         <div v-else>
           {{ formatDate(timeSpan.endTime, '%d %b %Y %HH:%MM:%SS') }}
         </div>
       </td>
-      <td class="action-column">
+      <td v-if="!readonly" class="action-column">
         <div class="action-buttons-wrapper">
           <Icon
             v-if="hasGapBefore && !isLocked"
@@ -78,12 +75,12 @@ import Dately from '@/components/dately/Dately.vue';
 import LockableButton from '@/components/LockableButton.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
 
-import ExpandIcon from '../../../../icons/Expand.vue';
-import TrashIcon from '../../../../icons/Trash.vue';
-import SplitIcon from '../../../../icons/Split.vue';
+import ExpandIcon from '@/components/icons/Expand.vue';
+import TrashIcon from '@/components/icons/Trash.vue';
+import SplitIcon from '@/components/icons/Split.vue';
 
-import { formatDate, copyDate } from '../../../../../code/time.js';
-import { attributeFromList } from '../../../../../code/helpers';
+import { formatDate, copyDate } from '@//code/time.js';
+import { attributeFromList } from '@/code/helpers';
 import { coverage } from '../../timeSpan';
 
 function copyTimeSpan(span) {
@@ -112,6 +109,7 @@ export default {
     Icon,
   },
   props: {
+    readonly: Boolean,
     timeSpan: { type: Object, required: true },
     prevTimeSpan: { type: Object, default: null },
     nextTimeSpan: { type: Object, default: null },

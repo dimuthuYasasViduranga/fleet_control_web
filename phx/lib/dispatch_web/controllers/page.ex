@@ -19,7 +19,7 @@ defmodule DispatchWeb.PageController do
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
     user = get_session(conn, :current_user)
-    permissions = conn.assigns.permissions
+    authorized = Map.get(conn.assigns.permissions, :authorized, false)
 
     {conn, token} = get_token(conn)
 
@@ -29,7 +29,7 @@ defmodule DispatchWeb.PageController do
         whitelist: Authorization.Whitelist.get(user[:user_id]),
         user_token: token,
         user: user,
-        permissions: permissions
+        authorized: authorized
       }
       |> Jason.encode!()
 
@@ -39,15 +39,13 @@ defmodule DispatchWeb.PageController do
   end
 
   defp get_token(conn) do
-    {conn, user} = get_user(conn)
-
-    case user do
-      nil ->
+    case get_user(conn) do
+      {conn, nil} ->
         {conn, nil}
 
-      data ->
-        user = Map.take(data, [:id, :user_id])
-        token = Phoenix.Token.sign(conn, "user socket", user)
+      {conn, user} ->
+        data = Map.take(user, [:id, :user_id])
+        token = Phoenix.Token.sign(conn, "user socket", data)
         {conn, token}
     end
   end

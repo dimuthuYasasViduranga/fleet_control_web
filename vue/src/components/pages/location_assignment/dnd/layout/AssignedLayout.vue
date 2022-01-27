@@ -6,6 +6,7 @@
         <RouteV
           v-for="(route, index) in groupedRoutes"
           :key="index"
+          :readonly="readonly"
           :digUnitId="route.digUnitId"
           :loadId="route.loadId"
           :dumpIds="route.dumpIds"
@@ -33,6 +34,7 @@
       <RouteH
         v-for="(route, index) in groupedRoutes"
         :key="index"
+        :readonly="readonly"
         :digUnitId="route.digUnitId"
         :loadId="route.loadId"
         :dumpIds="route.dumpIds"
@@ -93,6 +95,7 @@ export default {
     RouteV,
   },
   props: {
+    readonly: Boolean,
     orientation: { type: String, default: 'vertical' },
     layoutSettings: { type: Object, default: () => ({ vertical: {}, horizontal: {} }) },
     structure: { type: Object, required: true },

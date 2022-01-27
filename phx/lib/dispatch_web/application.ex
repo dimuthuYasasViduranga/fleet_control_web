@@ -25,7 +25,6 @@ defmodule DispatchWeb.Application do
       Dispatch.LoadStyleAgent,
       Dispatch.MapTileAgent,
       Dispatch.HaulAgent,
-      Dispatch.ManualCycleAgent,
       Dispatch.MaterialTypeAgent,
       Dispatch.PreStartAgent,
       Dispatch.PreStartSubmissionAgent,

@@ -2,11 +2,16 @@
   <div class="operators-page">
     <hxCard style="width: auto" :title="title" :icon="manIcon">
       <loaded>
-        <div class="actions">
+        <div v-if="!readonly" class="actions">
           <button class="hx-btn add-new-btn" @click="onAdd()">Add New</button>
           <button class="hx-btn add-new-btn" @click="onBulkAdd()">Bulk Add</button>
         </div>
-        <operator-table :operators="operators" @edit="onEdit" @setActive="onSetActive" />
+        <operator-table
+          :operators="operators"
+          :readonly="readonly"
+          @edit="onEdit"
+          @setActive="onSetActive"
+        />
       </loaded>
     </hxCard>
   </div>
@@ -40,6 +45,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_operators,
       operators: state => state.operators,
     }),
   },

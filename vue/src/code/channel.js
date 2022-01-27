@@ -62,8 +62,9 @@ class PushFailure {
   receive(status, callback) {
     if (status === 'error') {
       console.error('Channel does not exist to push on');
-      callback({ reason: 'Channel does not exist' });
+      callback({ error: 'Channel does not exist' });
     }
+    return this;
   }
 }
 

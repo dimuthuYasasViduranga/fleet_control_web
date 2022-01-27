@@ -51,33 +51,31 @@
             :items="locationOptions"
             label="name"
             @change="setActivity(row)"
+            :disabled="readonly"
           />
         </template>
       </table-column>
 
-      <!-- <table-column label="Material Type" cell-class="table-cel">
+      <table-column label="Material Type" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
             v-model="row.materialTypeId"
             :items="materialTypeOptions"
             label="commonName"
+            placeholder="None"
             @change="setActivity(row)"
+            :disabled="readonly"
           />
         </template>
-      </table-column> -->
+      </table-column>
 
-      <!-- <table-column label="Dig Style" cell-class="table-cel">
-        <template slot-scope="row">
-          <DropDown
-            v-model="row.loadStyleId"
-            :items="loadStyleOptions"
-            label="style"
-            @change="setActivity(row)"
-          />
-        </template>
-      </table-column> -->
-
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
         <template slot-scope="row">
           <a :id="`${row.device_id}`" @click="onClearActivity(row)">Clear</a>
         </template>
@@ -110,6 +108,9 @@ export default {
     TableComponent,
     TableColumn,
   },
+  props: {
+    readonly: Boolean,
+  },
   data: () => {
     return {
       editIcon: EditIcon,
@@ -120,7 +121,9 @@ export default {
       icons: state => state.icons,
       locations: state => state.locations,
       materialTypes: state => state.materialTypes,
-      loadStyles: state => state.loadStyles,
+    }),
+    ...mapState('digUnit', {
+      digUnitActivities: state => state.currentActivities,
     }),
     locationOptions() {
       return [{ id: null, name: 'None' }].concat(this.locations);
@@ -128,11 +131,8 @@ export default {
     materialTypeOptions() {
       return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
     },
-    loadStyleOptions() {
-      return [{ id: null, style: 'None' }].concat(this.loadStyles);
-    },
     digUnits() {
-      const activities = this.$store.state.digUnit.currentActivities;
+      const activities = this.digUnitActivities;
       return this.$store.getters.fullAssets
         .filter(fa => fa.secondaryType === 'Dig Unit')
         .map(asset => {

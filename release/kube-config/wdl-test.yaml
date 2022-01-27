@@ -100,7 +100,7 @@ spec:
                   ],
                   use_gps_device: false,
                   track_method: :gps_gate,
-                  auth_permissions: [
+                  permissions: [
                     authorized: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
                     can_edit_operators: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
                     can_edit_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 

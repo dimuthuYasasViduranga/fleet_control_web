@@ -129,7 +129,7 @@ async function startUnknownError(error) {
 axios
   .get(`${hostname}/api/static_data`)
   .then(resp => {
-    if (resp.data.permissions.authorized) {
+    if (resp.data.authorized) {
       startApp(resp.data);
       return;
     }

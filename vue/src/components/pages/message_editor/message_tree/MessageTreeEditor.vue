@@ -10,7 +10,9 @@
           {{ a.type }}
         </option>
       </select>
-      <button v-show="selectedAssetTypeId" class="hx-btn submit" @click="onSubmit">Submit</button>
+      <button v-show="!readonly && selectedAssetTypeId" class="hx-btn submit" @click="onSubmit">
+        Submit
+      </button>
     </div>
     <div v-if="selectedAssetTypeId" class="message-list">
       <div class="column source">
@@ -22,7 +24,7 @@
           :get-child-payload="sourcePayload"
           @drop="onDrop('source', $event)"
         >
-          <Draggable v-for="item in sourceItems" :key="item.id">
+          <Draggable v-for="item in sourceItems" :key="item.id" :disabled="readonly">
             {{ item.type }}
           </Draggable>
         </Container>
@@ -36,7 +38,7 @@
           :get-child-payload="targetPayload"
           @drop="onDrop('target', $event)"
         >
-          <Draggable v-for="item in targetItems" :key="item.id">
+          <Draggable v-for="item in targetItems" :key="item.id" :disabled="readonly">
             {{ item.type }}
           </Draggable>
         </Container>
@@ -46,7 +48,9 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
+
+import Draggable from '@/components/pages/location_assignment/dnd/Draggable.vue';
 import LoadingModal from '../../../modals/LoadingModal.vue';
 
 function applyDrag(arr, { removedIndex, addedIndex, payload }) {
@@ -69,7 +73,9 @@ function applyDrag(arr, { removedIndex, addedIndex, payload }) {
 }
 
 function getUnassignedTypes(messageTree, availableTypes, assetTypeId) {
-  const assignedTypeIds = messageTree.filter(e => e.assetTypeId === assetTypeId).map(e => e.messageTypeId);
+  const assignedTypeIds = messageTree
+    .filter(e => e.assetTypeId === assetTypeId)
+    .map(e => e.messageTypeId);
 
   const unassignedTypes = availableTypes.filter(m => !assignedTypeIds.includes(m.id));
   unassignedTypes.sort((a, b) => a.type.localeCompare(b.type));
@@ -91,6 +97,7 @@ export default {
     Draggable,
   },
   props: {
+    readonly: Boolean,
     messageTypes: { type: Array, default: () => [] },
     messageTree: { type: Array, default: () => [] },
     assetTypes: { type: Array, default: () => [] },
@@ -208,7 +215,7 @@ export default {
 }
 
 /* ------ drag and drop wrappers ----- */
-.message-tree-editor .smooth-dnd-draggable-wrapper {
+.message-tree-editor .message-item > * {
   cursor: pointer;
   background-color: #2c404c;
   width: 100%;
@@ -219,6 +226,10 @@ export default {
   border-top: 0.001em solid #677e8c;
   border-bottom: 0.001em solid #677e8c;
   margin: 10px 0;
+}
+
+.message-tree-editor .message-item > *[disabled] {
+  cursor: default;
 }
 
 .message-tree-editor .tile-drop-preview {

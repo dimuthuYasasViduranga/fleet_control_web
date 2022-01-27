@@ -14,7 +14,7 @@
     >
       <table-column cell-class="table-cel" label="Name" show="name" />
       <table-column cell-class="table-cel" label="Alias" show="alias" />
-      <table-column cell-class="table-cel icon-cel">
+      <table-column cell-class="table-cel icon-cel" :hidden="readonly">
         <template slot-scope="row">
           <div class="edit-wrapper">
             <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onSetEdit(row)" />
@@ -40,6 +40,7 @@ export default {
     TimeCodeGroupEditorModal,
   },
   props: {
+    readonly: Boolean,
     timeCodeGroups: { type: Array, default: () => [] },
   },
   data: () => {

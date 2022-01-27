@@ -114,12 +114,11 @@ import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
-import { fromRestrictedRoute, fromRoute, getClosestVertex } from '@/code/graph';
-import { dijkstra, dijkstraToVertices } from '@/code/graph_traversal';
+import { fromRestrictedRoute, fromRoute } from '@/code/graph';
 import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
 import turf from '@/code/turf';
-import { closestPoint, haversineDistanceM } from '@/code/distance';
 import { graphToSegments, segmentsToPolylines } from './common';
+import { JourneySelector } from '@/code/journey_selector.js';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_USED_COLOR = 'darkred';
@@ -127,8 +126,6 @@ const ROUTE_USED_OPACITY = 1;
 const ROUTE_WIDTH = 10;
 const START_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/go.png`;
 const END_ICON_URL = `http://maps.google.com/mapfiles/kml/paddle/stop.png`;
-// allow shortcut if the total distance is 'x' times bigger than the shortcut
-const SHORTCUT_FACTOR = 4;
 
 function createLocationToVerticesLookup(locations, graph) {
   if (!graph || locations.length === 0) {
@@ -152,22 +149,6 @@ function createLocationToVerticesLookup(locations, graph) {
     acc[l.id] = vertices.filter(v => turf.booleanWithin(v.point, polygon)).map(v => v.data);
     return acc;
   }, {});
-}
-
-function findVertex(locationToVerticesLookup, vertexList, locationId, position) {
-  const verticesInLoc = locationToVerticesLookup[locationId] || [];
-
-  if (verticesInLoc.length === 0) {
-    return getClosestVertex(position, vertexList);
-  }
-
-  const closest = closestPoint(verticesInLoc, position);
-
-  const { id, ...rest } = closest;
-  return {
-    id,
-    data: rest,
-  };
 }
 
 function edgesToSegments(graph, edgeIds) {
@@ -197,62 +178,6 @@ function edgesToSegments(graph, edgeIds) {
       return s;
     })
     .filter(s => s);
-}
-
-function getJourney(graph, start, end) {
-  const vertexMap = graph.vertices;
-  const adjacency = graph.adjacency;
-
-  const startVertex = start.vertex;
-  const endVertex = end.vertex;
-
-  const startPos = { lat: start.position.lat, lng: start.position.lng };
-  const endPos = { lat: end.position.lat, lng: end.position.lng };
-
-  if (!startVertex || !endVertex) {
-    return [];
-  }
-  const result = dijkstra(vertexMap, adjacency, startVertex.id);
-  const vertices = dijkstraToVertices(result, endVertex.id);
-
-  const path = vertices.map(id => {
-    const data = vertexMap[id].data;
-    return { lat: data.lat, lng: data.lng };
-  });
-
-  path.unshift(startPos);
-  path.push(endPos);
-
-  const graphDistance = result[endVertex.id].distance;
-  const startToGraph = haversineDistanceM(start.position, start.vertex.data);
-  const endToGraph = haversineDistanceM(end.position, end.vertex.data);
-
-  const totalDistance = graphDistance + startToGraph + endToGraph;
-
-  if (start.locationId === end.locationId) {
-    const shortcutDistance = haversineDistanceM(start.position, end.position);
-    const compDistance = start.locationId == null ? totalDistance / SHORTCUT_FACTOR : totalDistance;
-
-    if (startVertex.id === endVertex.id || shortcutDistance < compDistance) {
-      return {
-        path: [startPos, endPos],
-        color: ROUTE_USED_COLOR,
-        opacity: ROUTE_USED_OPACITY,
-        width: ROUTE_WIDTH,
-        vertices: [],
-        distance: shortcutDistance,
-      };
-    }
-  }
-
-  return {
-    path,
-    color: ROUTE_USED_COLOR,
-    opacity: ROUTE_USED_OPACITY,
-    width: ROUTE_WIDTH,
-    vertices,
-    distance: totalDistance,
-  };
 }
 
 export default {
@@ -318,36 +243,35 @@ export default {
     markerEndLocation() {
       return locationFromPoint(this.locations, this.markerEnd.position);
     },
-    markerStartVertex() {
-      return findVertex(
-        this.locationToVerticesLookup,
-        this.graph.getVerticesList(),
-        this.markerStartLocation?.id,
-        this.markerStart.position,
-      );
-    },
-    markerEndVertex() {
-      return findVertex(
-        this.locationToVerticesLookup,
-        this.graph.getVerticesList(),
-        this.markerEndLocation?.id,
-        this.markerEnd.position,
-      );
+    journeySelector() {
+      return new JourneySelector(this.graph, this.locations);
     },
     journey() {
-      const start = {
-        position: this.markerStart.position,
-        locationId: this.markerStartLocation?.id,
-        vertex: this.markerStartVertex,
+      const source = {
+        type: 'position',
+        value: this.markerStart.position,
       };
 
-      const end = {
-        position: this.markerEnd.position,
-        locationId: this.markerEndLocation?.id,
-        vertex: this.markerEndVertex,
+      const destination = {
+        type: 'position',
+        value: this.markerEnd.position,
       };
 
-      return getJourney(this.graph, start, end);
+      const selector = this.journeySelector;
+      const route = selector.between(source, destination);
+
+      if (!route) {
+        return;
+      }
+
+      return {
+        path: route.spatialPath,
+        color: ROUTE_USED_COLOR,
+        opacity: ROUTE_USED_OPACITY,
+        width: ROUTE_WIDTH,
+        vertices: route.vertexPath,
+        distance: route.totalDistance,
+      };
     },
   },
   mounted() {

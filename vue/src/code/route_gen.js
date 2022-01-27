@@ -87,7 +87,7 @@ function createLocationToVerticesLookup(locations, vertices) {
   return locations.reduce((acc, l) => {
     acc[l.id] = turfVertices.filter(v => turf.booleanWithin(v.turfPoint, l.turfPolygon));
     return acc;
-  });
+  }, {});
 }
 
 function convert(source, graph, locations, locToV) {

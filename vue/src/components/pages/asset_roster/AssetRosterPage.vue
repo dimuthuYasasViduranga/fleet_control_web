@@ -35,6 +35,7 @@
               :css-colors="true"
               :value="row.enabled"
               :sync="true"
+              :disabled="readonly"
               @input="onToggle(row, $event)"
             />
           </template>
@@ -72,6 +73,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_asset_roster,
       assets: state => state.allAssets.slice().sort((a, b) => a.name.localeCompare(b.name)),
       assetIcons: state => state.icons,
     }),
@@ -139,5 +141,9 @@ export default {
 
 .asset-roster-page .table-icon-cel {
   width: 0.1rem;
+}
+
+.asset-roster-page .vue-js-switch.disabled {
+  opacity: 1 !important;
 }
 </style>

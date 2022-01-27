@@ -42,7 +42,7 @@ export function dijkstra(vertexMap, adjacency, sourceId) {
 
 export function dijkstraToVertices(djk, targetId) {
   const target = djk[targetId];
-  if (target.distance === Infinity) {
+  if (!target || target.distance === Infinity) {
     return [];
   }
 

@@ -12,7 +12,7 @@ defmodule DispatchWeb.Authorization.Decorator do
 
       socket
       |> Map.get(:assigns, %{})
-      |> Map.get(:auth_permissions, %{})
+      |> Map.get(:permissions, %{})
       |> Map.get(permission, false)
       |> case do
         true ->

@@ -1,6 +1,6 @@
 <template>
   <div class="pre-start-category-editor">
-    <div class="actions">
+    <div v-if="!readonly" class="actions">
       <button class="hx-btn" @click="onReset()">Reset</button>
       <button class="hx-btn" @click="onSubmit()">Submit</button>
     </div>
@@ -20,14 +20,14 @@
         lock-axis="y"
         @drop="onDrop"
       >
-        <Draggable v-for="(item, index) in localCategories" :key="index">
+        <Draggable v-for="(item, index) in localCategories" :key="index" :disabled="readonly">
           <table class="item">
             <tr>
               <td class="name">{{ item.name }}</td>
               <td class="action" :class="{ italic: !item.action }">
                 {{ item.action || '-- No Action --' }}
               </td>
-              <td class="edit">
+              <td v-if="!readonly" class="edit">
                 <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit(item)" />
               </td>
             </tr>
@@ -36,12 +36,15 @@
       </Container>
     </div>
     <div class="notice">* Dropdowns are ordered as submitted</div>
-    <button class="hx-btn" @click="onAddNew()">Add New</button>
+    <button v-if="!readonly" class="hx-btn" @click="onAddNew()">Add New</button>
   </div>
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
+
+import Draggable from '@/components/pages/location_assignment/dnd/Draggable.vue';
+
 import Icon from 'hx-layout/Icon.vue';
 import CategoryEditorModal from './CategoryEditorModal.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal';
@@ -78,6 +81,9 @@ export default {
     Container,
     Draggable,
     Icon,
+  },
+  props: {
+    readonly: Boolean,
   },
   data: () => {
     return {
@@ -226,7 +232,7 @@ export default {
 }
 
 /* ------ drag and drop wrappers ----- */
-.pre-start-category-editor .smooth-dnd-draggable-wrapper {
+.pre-start-category-editor .category-container > * {
   cursor: pointer;
   background-color: #283741;
   width: 100%;
@@ -236,6 +242,10 @@ export default {
   border-top: 0.001em solid #677e8c;
   border-bottom: 0.001em solid #677e8c;
   margin: 10px 0;
+}
+
+.pre-start-category-editor .category-container > *[disabled] {
+  cursor: default;
 }
 
 .pre-start-category-editor .tile-drop-preview {
