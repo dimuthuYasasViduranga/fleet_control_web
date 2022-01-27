@@ -39,6 +39,7 @@
               :items="dropdownAssets"
               label="label"
               :useScrollLock="false"
+              :disabled="readonly"
               @change="onChange(row)"
             />
             <Icon
@@ -64,7 +65,7 @@
         show="operatorName"
       />
 
-      <table-column cell-class="table-action-cel">
+      <table-column cell-class="table-action-cel" :hidden="readonly">
         <template slot-scope="row">
           <div class="action-cel">
             <div class="actions">
@@ -126,6 +127,7 @@ export default {
     LockableButton,
   },
   props: {
+    readonly: Boolean,
     assignments: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
     allocations: { type: Array, default: () => [] },

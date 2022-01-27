@@ -88,8 +88,14 @@
         </template>
       </table-column>
 
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
-        <template v-if="!readonly" slot-scope="row">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
+        <template slot-scope="row">
           <a :id="`${row.device_id}`" @click="clearHaulTruckDispatch(row)">Clear</a>
         </template>
       </table-column>
@@ -306,16 +312,6 @@ export default {
 .haul-truck-table .dropdown-wrapper {
   width: 100%;
   height: 2rem;
-}
-
-.haul-truck-table .dropdown-wrapper[disabled] {
-  opacity: 0.8;
-  cursor: default;
-  pointer-events: none;
-}
-
-.haul-truck-table .dropdown-wrapper[disabled] .dd-right {
-  display: none;
 }
 
 .haul-truck-table .table-edit-cel {

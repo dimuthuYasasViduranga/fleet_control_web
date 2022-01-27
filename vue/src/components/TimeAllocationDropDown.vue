@@ -6,6 +6,7 @@
       label="name"
       :direction="direction"
       :useScrollLock="useScrollLock"
+      :disabled="disabled"
       @change="onChange"
     />
   </div>
@@ -27,6 +28,7 @@ export default {
     showAll: { type: Boolean, default: false },
     direction: { type: String, default: 'auto' },
     useScrollLock: { type: Boolean, default: false },
+    disabled: { type: Boolean, deafult: false },
   },
   computed: {
     ...mapState('constants', {

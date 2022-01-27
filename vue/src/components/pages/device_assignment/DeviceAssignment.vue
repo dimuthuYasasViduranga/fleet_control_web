@@ -11,6 +11,7 @@
           :icons="assetIcons"
           :fullTimeCodes="fullTimeCodes"
           :highlightUUIDs="recentlyAuthorized"
+          :readonly="readonly"
           @change="onChange"
           @logout="onForceLogout"
           @revoke="onRevoke"
@@ -26,6 +27,7 @@
         </div>
         <div style="height: 1em"></div>
         <PendingDeviceTable
+          v-if="!readonly"
           :timeRemaining="timeRemaining"
           :devices="pendingDevices"
           @authorize="onAuthorize"
@@ -82,6 +84,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_devices,
       assets: state => state.assets,
       assetIcons: state => state.icons,
       operators: state => state.operators,

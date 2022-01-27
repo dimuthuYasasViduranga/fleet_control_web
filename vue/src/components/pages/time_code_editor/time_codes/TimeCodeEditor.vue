@@ -24,7 +24,7 @@
       <table-column cell-class="table-cel" label="Name" show="name" />
       <table-column cell-class="table-cel" label="Group" show="groupName" />
       <table-column cell-class="table-cel" label="Category" show="categoryName" />
-      <table-column cell-class="table-cel icon-cel">
+      <table-column cell-class="table-cel icon-cel" :hidden="readonly">
         <template slot-scope="row">
           <div class="edit-wrapper">
             <Icon
@@ -58,6 +58,7 @@ export default {
     TimeCodeEditorModal,
   },
   props: {
+    readonly: Boolean,
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     timeCodeCategories: { type: Array, default: () => [] },

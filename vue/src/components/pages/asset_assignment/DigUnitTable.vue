@@ -69,8 +69,14 @@
         </template>
       </table-column>
 
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
-        <template v-if="!readonly" slot-scope="row">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
+        <template slot-scope="row">
           <a :id="`${row.device_id}`" @click="onClearActivity(row)">Clear</a>
         </template>
       </table-column>
@@ -226,16 +232,6 @@ export default {
 .dig-unit-table .dropdown-wrapper {
   width: 100%;
   height: 2rem;
-}
-
-.dig-unit-table .dropdown-wrapper[disabled] {
-  opacity: 0.8;
-  cursor: default;
-  pointer-events: none;
-}
-
-.dig-unit-table .dropdown-wrapper[disabled] .dd-right {
-  display: none;
 }
 
 .dig-unit-table .table-edit-cel {

@@ -29,6 +29,7 @@
           :sortable="false"
           :filterable="false"
           cell-class="table-btn-cel action-cel"
+          :hidden="readonly"
         >
           <template slot-scope="row">
             <toggle-button
@@ -72,6 +73,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_asset_roster,
       assets: state => state.allAssets.slice().sort((a, b) => a.name.localeCompare(b.name)),
       assetIcons: state => state.icons,
     }),

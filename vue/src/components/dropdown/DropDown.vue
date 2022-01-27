@@ -1,6 +1,6 @@
 <template>
-  <div class="dropdown-wrapper">
-    <div class="dd-right">
+  <div class="dropdown-wrapper" :disabled="disabled">
+    <div v-if="!disabled" class="dd-right">
       <div class="caret-down"></div>
     </div>
     <div class="dd-body">
@@ -64,6 +64,7 @@ export default {
     direction: { type: String, default: 'auto' },
     useScrollLock: { type: Boolean, default: true },
     value: [Number, String],
+    disabled: Boolean,
   },
   data: () => {
     return {
@@ -129,6 +130,12 @@ export default {
   border-right: 3px solid transparent;
   border-top: 7px solid white;
   margin: 0 auto;
+}
+
+.dropdown-wrapper[disabled] {
+  opacity: 0.8;
+  cursor: default;
+  pointer-events: none;
 }
 </style>
 

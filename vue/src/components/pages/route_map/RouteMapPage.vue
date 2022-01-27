@@ -1,7 +1,9 @@
 <template>
   <div class="route-map-page">
     <hxCard title="Route Map" :icon="lineIcon">
-      <button class="hx-btn" @click="onOpenEditor()">Edit</button>
+      <button v-if="permissions.can_edit_routing" class="hx-btn" @click="onOpenEditor()">
+        Edit
+      </button>
       <TraversalMap :assetTypes="assetTypes" :locations="locations" :route="activeRoute" />
     </hxCard>
   </div>
@@ -27,6 +29,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      permissions: state => state.permissions,
       assetTypes: state => state.assetTypes.slice().sort((a, b) => a.type.localeCompare(b.type)),
       locations: state => state.locations,
       activeRoute: state => state.activeRoute,

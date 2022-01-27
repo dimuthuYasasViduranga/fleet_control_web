@@ -3,14 +3,15 @@
     :is="node.parentId === null ? 'div' : Draggable"
     class="tree-node"
     :class="{ 'is-root': node.parentId === null }"
+    :disabled="readonly"
   >
     <div class="node" :class="getClass" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
       <span class="tree-node-caret-wrapper" :class="caretPointerClass" @click="toggleOpen">
         <span v-if="hasChildren" class="tree-node-caret" :class="caretClass"></span>
       </span>
 
-      <Icon class="node-icon folder-icon" v-if="!node.isLeaf" :icon="addNodeIcon" />
-      <Icon class="node-icon hyphen-icon" v-else :icon="hyphenIcon" />
+        <Icon class="node-icon folder-icon" v-if="!node.isLeaf" :icon="addNodeIcon" />
+        <Icon class="node-icon hyphen-icon" v-else :icon="hyphenIcon" />
 
       <div class="row-body-wrapper">
         <slot v-if="node.isLeaf" name="row-body-leaf" class="row-body-leaf" :node="node">
@@ -53,7 +54,7 @@
 
       <div class="padding"></div>
 
-      <div class="tree-node-buttons" v-if="isHighlighted">
+      <div class="tree-node-buttons" v-if="!readonly && isHighlighted">
         <Icon
           class="node-icon add-node-icon"
           v-if="!node.isLeaf"
@@ -91,6 +92,7 @@
         <tree-node
           v-for="node in children"
           :key="node.id"
+          :readonly="readonly"
           :node="node"
           :canDeleteRoots="canDeleteRoots"
           :addNodeText="addNodeText"
@@ -117,8 +119,9 @@
 </template>
 
 <script>
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
 
+import Draggable from '@/components/pages/location_assignment/dnd/Draggable.vue';
 import Icon from 'hx-layout/Icon.vue';
 
 import AddIcon from '@/components/icons/Add.vue';
@@ -138,6 +141,7 @@ export default {
     Draggable,
   },
   props: {
+    readonly: Boolean,
     node: { type: Object, required: true },
     canDeleteRoots: { type: Boolean, default: false },
     canEditRoots: { type: Boolean, default: true },
@@ -219,7 +223,7 @@ export default {
       this.isHighlighted = false;
     },
     onEditName(ref) {
-      if (this.canEditRoots === false) {
+      if (this.readonly || this.canEditRoots === false) {
         return;
       }
       this.isEditing = true;

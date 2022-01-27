@@ -30,7 +30,13 @@
         </template>
       </table-column>
 
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly || true"
+      >
         <template slot-scope="row">
           <Icon
             v-if="!row.deleted"
@@ -44,6 +50,7 @@
 
       <table-column
         label="Enabled"
+        :hidden="readonly"
         :sortable="false"
         :filterable="false"
         cell-class="table-btn-cel action-cel"
@@ -88,6 +95,7 @@ export default {
     ToggleButton,
   },
   props: {
+    readonly: Boolean,
     operators: { type: Array, default: () => [] },
     maxLength: { type: Number, default: 255 },
     error: { type: String, default: '' },
