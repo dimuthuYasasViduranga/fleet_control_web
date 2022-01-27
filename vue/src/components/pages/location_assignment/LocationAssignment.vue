@@ -18,6 +18,7 @@
         :dumpLocations="dumpLocations"
         :digUnitActivities="digUnitActivities"
         :haulTruckDispatches="haulTruckDispatches"
+        :readonly="!permissions.can_dispatch"
         @set-haul-truck="onUpdateHaulTruck"
         @mass-set-haul-trucks="onMassUpdateHaulTrucks"
         @set-dig-unit="onSetDigUnit"
@@ -51,6 +52,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      permissions: state => state.permissions,
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,

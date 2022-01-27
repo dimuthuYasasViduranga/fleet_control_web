@@ -1,6 +1,9 @@
 <template>
   <div class="route-v">
-    <div v-tooltip="'Change Source'" class="heading" @click="onMoveDumps">
+    <div v-if="readonly" class="heading" readonly>
+      {{ heading }}
+    </div>
+    <div v-else v-tooltip="'Change Source'" class="heading" @click="onMoveDumps">
       {{ heading }}
     </div>
 
@@ -23,7 +26,7 @@
               @drop="onDropIntoDigUnit"
               @drag-end="onDragEnd()"
             >
-              <Draggable>
+              <Draggable :disabled="readonly">
                 <AssetTile
                   v-if="digUnit && !draggingDigUnit"
                   class="dig-unit-tile"
@@ -35,7 +38,7 @@
         </div>
       </div>
       <div class="actions">
-        <template v-if="hovering">
+        <template v-if="!readonly && hovering">
           <Icon
             v-if="assignedHaulTrucks.length"
             v-tooltip="'Clear All'"
@@ -60,6 +63,7 @@
       <DumpV
         v-for="dump in dumps"
         :key="dump.id"
+        :readonly="readonly"
         :dumpId="dump.id"
         :dumpName="dump.extendedName"
         :haulTrucks="assignedHaulTrucks"
@@ -77,9 +81,10 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
 
 import AssetTile from '../../asset_tile/AssetTile.vue';
+import Draggable from '../../Draggable.vue';
 import DumpV from './DumpV.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
@@ -100,6 +105,7 @@ export default {
     Draggable,
   },
   props: {
+    readonly: Boolean,
     digUnitId: { type: [Number, String] },
     loadId: { type: [Number, String] },
     dumpIds: { type: Array, default: () => [] },
@@ -259,6 +265,14 @@ export default {
   opacity: 0.75;
 }
 
+.heading[readonly] {
+  cursor: default;
+}
+
+.heading[readonly]:hover {
+  opacity: 1;
+}
+
 .target-load {
   background-color: #111c22;
 }
@@ -279,7 +293,7 @@ export default {
   border: 1px dashed rgb(66, 66, 66);
 }
 
-.target-load .dig-unit-tile-wrapper .dig-unit-container .asset-tile {
+.target-load .dig-unit-tile-wrapper .dig-unit-container :not([disabled]) .asset-tile {
   cursor: move;
 }
 

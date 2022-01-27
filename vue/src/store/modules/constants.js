@@ -595,7 +595,6 @@ const actions = {
 
 const mutations = {
   setPermissions(state, permissions) {
-    console.dir(permissions);
     state.permissions = permissions || {};
   },
   setUser(state, user) {

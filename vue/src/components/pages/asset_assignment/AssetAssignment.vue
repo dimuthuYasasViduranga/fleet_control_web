@@ -2,13 +2,13 @@
   <div class="asset-assignment">
     <hxCard style="width: auto" title="Haul Trucks" :icon="truckIcon">
       <loaded>
-        <HaulTruckTable />
+        <HaulTruckTable :readonly="readonly" />
       </loaded>
     </hxCard>
 
     <hxCard style="width: auto" title="Dig Units" :icon="excavatorIcon">
       <loaded>
-        <DigUnitTable />
+        <DigUnitTable :readonly="readonly" />
       </loaded>
     </hxCard>
 
@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 
 import Loaded from '../../Loaded.vue';
@@ -48,6 +49,11 @@ export default {
       excavatorIcon: ExcavatorIcon,
       tabletIcon: TabletIcon,
     };
+  },
+  computed: {
+    ...mapState('constants', {
+      readonly: state => !state.permissions.can_dispatch,
+    }),
   },
 };
 </script>

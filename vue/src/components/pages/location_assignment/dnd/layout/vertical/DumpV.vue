@@ -1,11 +1,14 @@
 <template>
   <div class="dump-v" @mouseleave="hovering = false" @mouseenter="hovering = true">
-    <div v-tooltip="'Move Trucks'" class="heading" @click="onMoveTrucks()">
+    <div v-if="readonly" class="heading" readonly>
+      {{ dumpName || 'No Dump' }}
+    </div>
+    <div v-else v-tooltip="'Move Trucks'" class="heading" @click="onMoveTrucks()">
       {{ dumpName || 'No Dump' }}
     </div>
     <div class="haul-trucks">
       <div class="actions">
-        <template v-if="hovering">
+        <template v-if="!readonly && hovering">
           <template v-if="assignedHaulTrucks.length">
             <Icon
               v-tooltip="'Clear Trucks'"
@@ -38,7 +41,7 @@
         @drop="onDropIntoHaulTruck"
         @drag-end="onDragEnd()"
       >
-        <Draggable v-for="haulTruck in assignedHaulTrucks" :key="haulTruck.id">
+        <Draggable v-for="haulTruck in assignedHaulTrucks" :key="haulTruck.id" :disabled="readonly">
           <AssetTile :asset="haulTruck" />
         </Draggable>
       </Container>
@@ -48,7 +51,9 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
+
+import Draggable from '../../Draggable.vue';
 import AssetTile from '../../asset_tile/AssetTile.vue';
 
 import TrashIcon from '@/components/icons/Trash.vue';
@@ -64,6 +69,7 @@ export default {
     AssetTile,
   },
   props: {
+    readonly: Boolean,
     dumpId: { type: [String, Number] },
     dumpName: { type: String, default: '' },
     haulTrucks: { type: Array, default: () => [] },
@@ -152,6 +158,14 @@ export default {
 
 .heading:hover {
   opacity: 0.75;
+}
+
+.heading[readonly] {
+  cursor: default;
+}
+
+.heading[readonly]:hover {
+  opacity: 1;
 }
 
 /* --- assets ---- */
