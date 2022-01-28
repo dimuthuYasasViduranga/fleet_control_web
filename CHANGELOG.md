@@ -2,6 +2,13 @@
 
 ## pending [unreleased]
 
+## 0.12.4
+- ✨ added global actions
+  - added mass time allocation changes
+- 🔒 added readonly mode for entire shift locking
+- 💄 fixed google map cluster appearing as a blank icon
+- 💄 added device UUID to asset tiles
+
 ## 0.12.3
 - ✨ routing
 - 🔒 added multiple authorization levels
