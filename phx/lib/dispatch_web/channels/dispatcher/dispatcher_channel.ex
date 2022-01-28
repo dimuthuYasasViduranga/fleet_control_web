@@ -431,6 +431,25 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in(
+        "mass set allocations",
+        %{"time_code_id" => time_code_id, "asset_ids" => asset_ids},
+        socket
+      ) do
+    asset_ids = Enum.uniq(asset_ids)
+
+    case TimeAllocationAgent.mass_add(time_code_id, asset_ids) do
+      {:ok, _, _, _} ->
+        Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
+        Broadcast.send_allocations_to_dispatcher()
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
   @decorate authorized(:can_edit_time_allocations)
   def handle_in("edit time allocations", allocations, socket) do
     TimeAllocationAgent.update_all(allocations)

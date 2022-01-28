@@ -1,6 +1,6 @@
 defmodule Dispatch.TimeAllocationAgent.Add do
   alias Dispatch.Helper, as: DHelper
-  alias Dispatch.TimeAllocationAgent.Helper
+  alias Dispatch.TimeAllocationAgent.{Helper, Update}
 
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
@@ -95,7 +95,7 @@ defmodule Dispatch.TimeAllocationAgent.Add do
               |> Multi.insert(:completed, completed)
               |> Multi.insert(:new_current, new_current)
               |> Repo.transaction()
-              |> Update.update_agent_from_commits(
+              |> update_agent_from_commits(
                 [:deleted_current, :completed, :new_current],
                 state
               )
@@ -111,4 +111,14 @@ defmodule Dispatch.TimeAllocationAgent.Add do
     |> Repo.insert()
     |> Update.update_agent(state)
   end
+
+  defp update_agent_from_commits({:ok, _}, [], state), do: {[], state}
+
+  defp update_agent_from_commits({:ok, commits}, [key | keys], state) do
+    {resp, state} = update_agent_from_commits({:ok, commits}, keys, state)
+    {alloc, state} = Update.update_agent({:ok, commits[key]}, state)
+    {[alloc | resp], state}
+  end
+
+  defp update_agent_from_commits(error, _, state), do: {error, state}
 end

@@ -5,7 +5,7 @@ defmodule Dispatch.TimeAllocationAgent do
   """
 
   alias Dispatch.{Culling, AgentHelper}
-  alias __MODULE__.{Data, Add, Update, Lock, Unlock}
+  alias __MODULE__.{Data, Add, MassAdd, Update, Lock, Unlock}
 
   use Agent
 
@@ -68,8 +68,12 @@ defmodule Dispatch.TimeAllocationAgent do
     Add.add(__MODULE__, alloc)
   end
 
-  @spec mass_add(integer, list(integer)) :: {:ok, list(allocation) | {:error, term}}
+  @spec mass_add(integer, list(integer)) ::
+          {:ok, list(deleted_alloc), list(completed_alloc), list(new_active_alloc) | nil}
   def mass_add(time_code_id, asset_ids) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      MassAdd.add(time_code_id, asset_ids, state)
+    end)
   end
 
   @spec lock(list[integer], integer, integer) ::
