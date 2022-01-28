@@ -2,8 +2,14 @@
   <div>
     <Layout :routes="routes" :username="username" :logout="logout" :login="login">
       <template slot="header">
-        <TimezoneSelector />
-        <ChatButton />
+        <TimezoneSelector v-tooltip="'Set Timezone'" />
+        <ChatButton v-tooltip="'Chat'" />
+        <Icon
+          v-tooltip="'Global Actions'"
+          class="global-action-icon"
+          :icon="cellTowerIcon"
+          @click="onOpenGlobalActions()"
+        />
       </template>
     </Layout>
     <!-- This is persistent and a fixed overlay -->
@@ -17,6 +23,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import Icon from 'hx-layout/Icon.vue';
 import Layout from 'hx-layout/Layout.vue';
 
 import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
@@ -26,11 +33,14 @@ import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
 import LiveTimeAllocationModal from './components/live_time_allocation_modal/LiveTimeAllocationModal.vue';
+import CellTowerIcon from './components/icons/CellTower.vue';
+import GlobalActionsModal from './components/modals/GlobalActionsModal.vue';
 
 export default {
   name: 'app',
   components: {
     Layout,
+    Icon,
     TimezoneSelector,
     ChatButton,
     ChatOverlay,
@@ -43,6 +53,11 @@ export default {
     routes: Array,
     logout: Function,
     login: Function,
+  },
+  data: () => {
+    return {
+      cellTowerIcon: CellTowerIcon,
+    };
   },
   computed: {
     ...mapState('connection', {
@@ -167,7 +182,7 @@ export default {
         [
           'set time allocations',
           data => {
-            dispatch('setActiveTimeAllocations', data.active);
+            dispatch('setActiveTimeAllocations', { allocations: data.active, action: data.action });
             dispatch('setHistoricTimeAllocations', data.historic);
           },
         ],
@@ -223,7 +238,10 @@ export default {
         ['setOperatorMessages', resp.operator_messages],
         ['setDispatcherMessages', resp.dispatcher_messages],
         ['setHistoricTimeAllocations', resp.time_allocations.historic],
-        ['setActiveTimeAllocations', resp.time_allocations.active],
+        [
+          'setActiveTimeAllocations',
+          { allocations: resp.time_allocations.active, action: resp.action },
+        ],
         ['setCurrentEngineHours', resp.engine_hours.current],
         ['setHistoricEngineHours', resp.engine_hours.historic],
         ['setFleetOpsData', resp.fleetops_data],
@@ -239,6 +257,9 @@ export default {
         ['digUnit/setCurrentActivities', resp.dig_unit.activities.current],
         ['digUnit/setHistoricActivities', resp.dig_unit.activities.historic],
       ].map(([path, data]) => dispatch(path, data));
+    },
+    onOpenGlobalActions() {
+      this.$modal.create(GlobalActionsModal);
     },
   },
 };
@@ -282,5 +303,18 @@ a[href^='#/gap'] div {
 
 g.custom-icon {
   stroke-width: 1;
+}
+
+.global-action-icon {
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.global-action-icon.hx-icon svg {
+  stroke-width: 1.3;
+}
+
+.global-action-icon:hover {
+  opacity: 0.75;
 }
 </style>

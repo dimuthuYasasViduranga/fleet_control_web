@@ -84,7 +84,9 @@ defmodule Dispatch.TimeAllocationAgent.Update do
 
         active_element = Map.get(state.active, asset_id)
 
-        {new_allocs, ids_to_delete} = get_update_changes(updates, active_element, state.no_task_id)
+        {new_allocs, ids_to_delete} =
+          get_update_changes(updates, active_element, state.no_task_id)
+
         new_allocs = Enum.map(new_allocs, &Map.put(&1, :inserted_at, now))
 
         delete_query = Data.delete_query(ids_to_delete)
@@ -123,7 +125,8 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   end
 
   defp get_update_changes(updates, active, no_task_id) do
-    {changes_to_active, new_active, accepted_updates} = separate_updates(updates, active, no_task_id)
+    {changes_to_active, new_active, accepted_updates} =
+      separate_updates(updates, active, no_task_id)
 
     all_updates =
       [changes_to_active, new_active | accepted_updates]
@@ -224,18 +227,6 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     {{:ok, commit}, state} = update_agent({:ok, commit}, state)
     {[commit | resp], state}
   end
-
-  @spec update_agent_from_commits({:ok, map} | term, list(atom), map) ::
-          {list(allocation) | term, map}
-  def update_agent_from_commits({:ok, _}, [], state), do: {[], state}
-
-  def update_agent_from_commits({:ok, commits}, [key | keys], state) do
-    {resp, state} = update_agent_from_commits({:ok, commits}, keys, state)
-    {alloc, state} = update_agent({:ok, commits[key]}, state)
-    {[alloc | resp], state}
-  end
-
-  def update_agent_from_commits(error, _, state), do: {error, state}
 
   @spec update_agent({:ok, %TimeAllocation{} | map} | term, map) ::
           {{:ok, allocation} | term, map}

@@ -4,6 +4,7 @@
       :value="value"
       :items="timeCodeOptions"
       label="name"
+      :placeholder="placeholder"
       :direction="direction"
       :useScrollLock="useScrollLock"
       :disabled="disabled"
@@ -28,6 +29,7 @@ export default {
     showAll: { type: Boolean, default: false },
     direction: { type: String, default: 'auto' },
     useScrollLock: { type: Boolean, default: false },
+    placeholder: {type: String, default: 'Select'},
     disabled: { type: Boolean, deafult: false },
   },
   computed: {

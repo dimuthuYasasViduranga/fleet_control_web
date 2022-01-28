@@ -361,10 +361,11 @@ defmodule DispatchWeb.Broadcast do
     end
   end
 
-  def send_allocations_to_dispatcher() do
+  def send_allocations_to_dispatcher(action \\ :alert) do
     payload = %{
       historic: TimeAllocationAgent.historic(),
-      active: TimeAllocationAgent.active()
+      active: TimeAllocationAgent.active(),
+      action: action
     }
 
     Endpoint.broadcast(@dispatch, "set time allocations", payload)
