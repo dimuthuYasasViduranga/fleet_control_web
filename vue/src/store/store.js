@@ -491,9 +491,9 @@ const actions = {
     const formattedHours = engineHours.map(parseEngineHour);
     commit('setHistoricEngineHours', formattedHours);
   },
-  setActiveTimeAllocations({ commit }, allocs = []) {
-    const formattedAllocations = allocs.map(parseTimeAllocation);
-    commit('setActiveTimeAllocations', formattedAllocations);
+  setActiveTimeAllocations({ commit }, { allocations, action }) {
+    const formattedAllocations = (allocations || []).map(parseTimeAllocation);
+    commit('setActiveTimeAllocations', { allocations: formattedAllocations, action });
   },
   setHistoricTimeAllocations({ commit }, allocs = []) {
     const formattedAllocations = allocs.map(parseTimeAllocation);
@@ -539,9 +539,11 @@ const mutations = {
   setHistoricEngineHours(state, engineHours = []) {
     state.historicEngineHours = engineHours;
   },
-  setActiveTimeAllocations(state, allocs = []) {
-    notifyActiveTimeAllocationChanges(state, allocs);
-    state.activeTimeAllocations = allocs;
+  setActiveTimeAllocations(state, { allocations, action }) {
+    if (action === 'alert') {
+      notifyActiveTimeAllocationChanges(state, allocations);
+    }
+    state.activeTimeAllocations = allocations;
   },
   setHistoricTimeAllocations(state, allocs = []) {
     state.historicTimeAllocations = allocs;

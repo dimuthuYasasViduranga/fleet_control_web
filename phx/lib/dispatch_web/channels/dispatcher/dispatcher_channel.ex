@@ -441,7 +441,7 @@ defmodule DispatchWeb.DispatcherChannel do
     case TimeAllocationAgent.mass_add(time_code_id, asset_ids) do
       {:ok, _, _, _} ->
         Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
-        Broadcast.send_allocations_to_dispatcher()
+        Broadcast.send_allocations_to_dispatcher(:no_alert)
 
         {:reply, :ok, socket}
 

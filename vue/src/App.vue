@@ -182,7 +182,7 @@ export default {
         [
           'set time allocations',
           data => {
-            dispatch('setActiveTimeAllocations', data.active);
+            dispatch('setActiveTimeAllocations', { allocations: data.active, action: data.action });
             dispatch('setHistoricTimeAllocations', data.historic);
           },
         ],
@@ -238,7 +238,10 @@ export default {
         ['setOperatorMessages', resp.operator_messages],
         ['setDispatcherMessages', resp.dispatcher_messages],
         ['setHistoricTimeAllocations', resp.time_allocations.historic],
-        ['setActiveTimeAllocations', resp.time_allocations.active],
+        [
+          'setActiveTimeAllocations',
+          { allocations: resp.time_allocations.active, action: resp.action },
+        ],
         ['setCurrentEngineHours', resp.engine_hours.current],
         ['setHistoricEngineHours', resp.engine_hours.historic],
         ['setFleetOpsData', resp.fleetops_data],

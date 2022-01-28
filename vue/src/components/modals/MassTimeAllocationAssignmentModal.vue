@@ -58,7 +58,10 @@ export default {
 
       this.$channel
         .push('mass set allocations', payload)
-        .receive('ok', () => this.close())
+        .receive('ok', () => {
+          this.$toaster.info(`Mass Allocations | ${payload.asset_ids.length} affected`);
+          this.close();
+        })
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to set allocations at this time'));
     },
