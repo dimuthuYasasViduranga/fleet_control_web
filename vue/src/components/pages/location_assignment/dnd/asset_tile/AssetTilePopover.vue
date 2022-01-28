@@ -57,6 +57,10 @@
         </td>
         <td v-else class="value red-text">{{ formatDate(track.timestamp) || '--' }}</td>
       </tr>
+      <tr v-if="uuid" class="uuid-row">
+        <td class="key">Device UUID</td>
+        <td class="value">{{ uuid }}</td>
+      </tr>
     </table>
 
     <div v-if="asset.status === 'requires-update'" class="alert-info">
@@ -69,7 +73,7 @@
 <script>
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
-import { attributeFromList } from '@/code/helpers';
+import { attributeFromList, formatDeviceUUID } from '@/code/helpers';
 import {
   formatSeconds,
   formatDateRelativeToIn,
@@ -183,6 +187,9 @@ export default {
       const styleClass = getAgoClass(ago);
       return { duration: ago, class: styleClass };
     },
+    uuid() {
+      return formatDeviceUUID(this.asset.deviceUUID);
+    },
   },
   methods: {
     getColor(bool, colorOnTrue, colorOnFalse) {
@@ -233,5 +240,9 @@ export default {
 .asset-tile-popover .alert-info .alert-icon svg {
   stroke: orange;
   stroke-width: 1.5;
+}
+
+.asset-tile-popover .uuid-row {
+  opacity: 0.3;
 }
 </style>
