@@ -25,7 +25,6 @@ export class JourneySelector {
 
   markerFrom(raw) {
     return convertMarker(raw, this._graph, this._locations, this._locToV);
-    // return convertMarker(this._graph)
   }
 
   between(rawSource, rawDestination, opts) {

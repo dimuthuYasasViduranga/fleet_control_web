@@ -1,9 +1,10 @@
+const R_METERS = 6371000;
+
 function toRad(x) {
   return (x * Math.PI) / 180;
 }
 
 export function haversineDistanceM(posA, posB) {
-  const R = 6371000;
 
   const latA = posA.lat;
   const lngA = posA.lng;
@@ -23,7 +24,7 @@ export function haversineDistanceM(posA, posB) {
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c;
+  return R_METERS * c;
 }
 
 export function pixelsToMeters(pixels, zoom) {
