@@ -43,7 +43,7 @@ defmodule DispatchWeb.DispatcherChannel.TrackTopics do
   @decorate authorized(:can_refresh_agents)
   def set_use_device_gps("track:set use device gps", %{"state" => bool}, socket)
       when is_boolean(bool) do
-    Settings.set(:send_device_gps, bool)
+    Settings.set(:use_device_gps, bool)
     Broadcast.send_settings_to_all()
     {:reply, {:ok, bool}, socket}
   end

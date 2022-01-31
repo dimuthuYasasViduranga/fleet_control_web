@@ -65,7 +65,7 @@ export default {
   computed: {
     ...mapState('settings', {
       settings: state => state,
-      useDeviceGPS: state => state.send_device_gps,
+      useDeviceGPS: state => state.use_device_gps,
     }),
   },
   methods: {

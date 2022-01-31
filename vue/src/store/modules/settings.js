@@ -1,6 +1,6 @@
 const state = {
   use_pre_starts: false,
-  send_device_gps: false,
+  use_device_gps: false,
   prompt_exception_on_logout: false,
   prompt_hngine_hours_on_login: false,
   prompt_pre_start_on_login: false,

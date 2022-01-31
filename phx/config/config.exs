@@ -31,7 +31,7 @@ config :dispatch_web,
   map_tile_endpoint: nil,
   track_method: :gps_gate,
   settings: [
-    send_device_gps: false,
+    use_device_gps: false,
     use_pre_starts: false,
     prompt_exception_on_logout: true,
     prompt_engine_hours_on_login: false,
