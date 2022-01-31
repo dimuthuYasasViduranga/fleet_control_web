@@ -43,7 +43,6 @@ const state = {
   tracks: Array(),
   pendingTracks: Object(),
   pendingInterval: null,
-  useDeviceGPS: false,
 };
 
 const getters = {};
@@ -64,9 +63,6 @@ const actions = {
     if (track) {
       commit('addTrack', parseTrack(track));
     }
-  },
-  setUseDeviceGPS({ commit }, bool) {
-    commit('setUseDeviceGPS', bool);
   },
 };
 
@@ -89,9 +85,6 @@ const mutations = {
   },
   addTrack(state, track) {
     state.pendingTracks[track.assetId] = track;
-  },
-  setUseDeviceGPS(state, bool = false) {
-    state.useDeviceGPS = bool;
   },
 };
 

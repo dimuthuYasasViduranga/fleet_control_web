@@ -87,7 +87,7 @@ export default {
   methods: {
     initialiseChannel() {
       const channel = this.$channel;
-      const dispatch = this.$store.dispatch;
+      const { dispatch, commit } = this.$store;
 
       channel.setOnConnect(this.onJoin);
       dispatch('connection/attachMonitor', channel);
@@ -96,6 +96,9 @@ export default {
       channel.create(this.$hostname, this.userToken, presenceSyncCallback);
 
       channel.setOns([
+        // settings
+        ['set settings', data => commit('settings/set', data)],
+
         // devices
         ['set devices', data => dispatch('deviceStore/setDevices', data.devices)],
         [
@@ -186,7 +189,6 @@ export default {
             dispatch('setHistoricTimeAllocations', data.historic);
           },
         ],
-        ['set use device gps', data => dispatch('trackStore/setUseDeviceGPS', data.state)],
       ]);
 
       // haul truck specific calls
@@ -212,10 +214,13 @@ export default {
       ]);
     },
     onJoin(resp) {
-      const dispatch = this.$store.dispatch;
+      const { dispatch, commit } = this.$store;
+
+      commit('settings/set', resp.settings);
 
       [
         ['constants/setPermissions', resp.permissions],
+
         // semi-constants
         ['constants/setTimeCodeTreeElements', resp.time_code_tree_elements],
         ['constants/setOperatorMessageTypeTree', resp.operator_message_type_tree],
@@ -247,7 +252,6 @@ export default {
         ['setFleetOpsData', resp.fleetops_data],
         ['setCurrentPreStartSubmissions', resp.current_pre_start_submissions],
         ['trackStore/setTracks', resp.tracks],
-        ['trackStore/setUseDeviceGPS', resp.use_device_gps],
 
         // haul truck specific
         ['haulTruck/setCurrentDispatches', resp.haul_truck.dispatches.current],

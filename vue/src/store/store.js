@@ -15,6 +15,7 @@ import TimeIcon from '@/components/icons/Time.vue';
 
 import connection from './modules/connection.js';
 import constants from './modules/constants.js';
+import settings from './modules/settings.js';
 import deviceStore from './modules/device_store.js';
 import trackStore from './modules/track_store.js';
 
@@ -584,6 +585,7 @@ export default new Vuex.Store({
   modules: {
     connection,
     constants,
+    settings,
     deviceStore,
     trackStore,
     haulTruck,
