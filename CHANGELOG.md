@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.12.5
+- 🔧 added tablet settings as config
+
 ## 0.12.4
 - ✨ added global actions
   - added mass time allocation changes
