@@ -8,7 +8,7 @@ defmodule DispatchWeb.OperatorChannel do
 
   alias __MODULE__.{HaulTruckTopics, DigUnitTopics, WaterCartTopics}
 
-  alias DispatchWeb.{Presence, Broadcast}
+  alias DispatchWeb.{Settings, Presence, Broadcast}
 
   alias Dispatch.{
     Helper,
@@ -416,6 +416,7 @@ defmodule DispatchWeb.OperatorChannel do
     other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
 
     common_state = %{
+      settings: Settings.get(),
       device_id: assignment[:device_id],
       asset_id: asset_id,
       operator_id: operator_id,
@@ -448,7 +449,6 @@ defmodule DispatchWeb.OperatorChannel do
         historic: PreStartSubmissionAgent.historic(asset_id)
       },
       map_manifest: MapTileAgent.get(),
-      send_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false),
       routing: RoutingAgent.get()
     }
 

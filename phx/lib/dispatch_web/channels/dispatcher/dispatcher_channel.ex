@@ -17,7 +17,7 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackTopics
   }
 
-  alias DispatchWeb.Broadcast
+  alias DispatchWeb.{Settings, Broadcast}
 
   alias Dispatch.{
     Helper,
@@ -66,6 +66,7 @@ defmodule DispatchWeb.DispatcherChannel do
 
     resp = %{
       permissions: socket.assigns.permissions,
+      settings: Settings.get(),
       # constants
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(),
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
@@ -100,7 +101,6 @@ defmodule DispatchWeb.DispatcherChannel do
       pre_start_forms: PreStartAgent.all(),
       current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
-      use_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false),
 
       # haul truck
       haul_truck: %{

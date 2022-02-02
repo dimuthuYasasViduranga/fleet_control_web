@@ -14,7 +14,7 @@ defmodule DispatchWeb.Broadcast do
 
   require Logger
 
-  alias DispatchWeb.{Presence, Endpoint}
+  alias DispatchWeb.{Settings, Presence, Endpoint}
 
   alias Dispatch.{
     Helper,
@@ -432,14 +432,11 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("other track", payload, &(&1.id != track.asset_id))
   end
 
-  def send_use_device_gps_to_all() do
-    payload = %{
-      state: Application.get_env(:dispatch_web, :use_device_gps, false)
-    }
+  def send_settings_to_all() do
+    settings = Settings.get()
 
-    Endpoint.broadcast(@dispatch, "set use device gps", payload)
-
-    broadcast_all_operators("set send device gps", payload)
+    Endpoint.broadcast(@dispatch, "set settings", settings)
+    broadcast_all_operators("set settings", settings)
   end
 
   def send_activity(nil, source, activity_type, timestamp) do

@@ -1,7 +1,7 @@
 defmodule DispatchWeb.DispatcherChannel.TrackTopics do
   alias Dispatch.{Helper, Tracks, TrackAgent}
   use DispatchWeb.Authorization.Decorator
-  alias DispatchWeb.Broadcast
+  alias DispatchWeb.{Settings, Broadcast}
 
   import DispatchWeb.DispatcherChannel, only: [to_error: 1]
 
@@ -43,8 +43,8 @@ defmodule DispatchWeb.DispatcherChannel.TrackTopics do
   @decorate authorized(:can_refresh_agents)
   def set_use_device_gps("track:set use device gps", %{"state" => bool}, socket)
       when is_boolean(bool) do
-    Application.put_env(:dispatch_web, :use_device_gps, bool)
-    Broadcast.send_use_device_gps_to_all()
+    Settings.set(:use_device_gps, bool)
+    Broadcast.send_settings_to_all()
     {:reply, {:ok, bool}, socket}
   end
 

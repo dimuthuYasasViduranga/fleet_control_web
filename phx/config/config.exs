@@ -30,7 +30,14 @@ config :dispatch_web,
   },
   map_tile_endpoint: nil,
   track_method: :gps_gate,
-  use_device_gps: false,
+  settings: [
+    use_device_gps: false,
+    use_pre_starts: false,
+    prompt_exception_on_logout: true,
+    prompt_engine_hours_on_login: false,
+    prompt_engine_hours_on_logout: false,
+    prompt_pre_starts_on_login: false
+  ],
   bypass_auth: false,
   location_update_interval: 3600,
   secondary_types: %{
