@@ -321,4 +321,21 @@ g.custom-icon {
 .global-action-icon:hover {
   opacity: 0.75;
 }
+
+/* this fixes box-sizing sizing not behaving correctly */
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.error .card-wrapper .hx-icon {
+  stroke: #ff6565;
+}
+
+.error .card-wrapper .hxCardHeaderWrapper {
+  color: #ff6565;
+}
 </style>
