@@ -79,8 +79,6 @@ export default {
         return;
       }
 
-      console.dir(this.form);
-
       const payload = {
         name: this.form.name,
         nickname: this.form.nickname,

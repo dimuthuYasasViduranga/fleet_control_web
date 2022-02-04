@@ -68,12 +68,7 @@ export default {
       this.$modal.create(AddOperatorModal, { employeeIds });
     },
     onEdit(operator) {
-      const opts = {
-        title: 'Edit Operator',
-        operators: this.operators,
-        operator: { ...operator },
-      };
-      this.$modal.create(EditOperatorModal, opts);
+      this.$modal.create(EditOperatorModal, { operator });
     },
     onBulkAdd() {
       const opts = { operators: this.operators };
