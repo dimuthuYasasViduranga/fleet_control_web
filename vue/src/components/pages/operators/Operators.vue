@@ -28,6 +28,7 @@ import OperatorTable from './OperatorTable.vue';
 import Loaded from '@/components/Loaded.vue';
 import EditOperatorModal from './EditOperatorModal.vue';
 import BulkAddOperatorModal from './BulkAddOperatorModal.vue';
+import AddOperatorModal from './AddOperatorModal.vue';
 
 export default {
   name: 'Operators',
@@ -62,18 +63,9 @@ export default {
         .receive('timeout', () => this.$toaster.noComms('Unable to change status at this time'));
     },
     onAdd() {
-      const opts = {
-        title: 'Add Operator',
-        operators: this.operators,
-        operator: {
-          id: null,
-          name: null,
-          nickname: null,
-          employeeId: null,
-        },
-      };
+      const employeeIds = this.operators.map(o => o.employeeId);
 
-      this.$modal.create(EditOperatorModal, opts);
+      this.$modal.create(AddOperatorModal, { employeeIds });
     },
     onEdit(operator) {
       const opts = {
@@ -99,7 +91,7 @@ export default {
   display: flex;
   padding-bottom: 1rem;
 }
-.operators-page .actions * {
+.operators-page .actions > * {
   margin-right: 0.25rem;
 }
 </style>
