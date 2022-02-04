@@ -1,7 +1,7 @@
 import Vue from 'vue';
 const TERM_PAYLOAD = 'TERMINATE';
 
-import ModalWrapper from '../components/modals/ModalWrapper.vue';
+import ModalWrapper from '@/components/modals/ModalWrapper.vue';
 
 class ModalInstance {
   constructor(instance, onRemove) {
@@ -52,27 +52,23 @@ class ModalInstance {
 }
 
 class Modal {
-  constructor() {
+  constructor(store) {
     this.openModals = [];
     this.TERMINATE = TERM_PAYLOAD;
-    this._store;
-  }
-
-  set store(val) {
-    this._store = val;
+    this.store = store;
   }
 
   create(component, componentProps = {}, options = {}) {
     // create a div to mount over
     const modalElement = document.createElement('div');
-    document.body.appendChild(modalElement);
+    (document.fullscreenElement || document.body).appendChild(modalElement);
 
     // mount component and listen to the close event
     const modal = new Vue({
       ...ModalWrapper,
       propsData: { component, componentProps, ...options },
     });
-    modal.$store = this._store;
+    modal.$store = this.store;
     modal.$mount(modalElement);
 
     const modalInstance = new ModalInstance(modal, m => this.handleRemove(m));

@@ -73,6 +73,10 @@ export function copyDate(date) {
   return date ? new Date(date) : null;
 }
 
+export function toEpoch(date) {
+  return date ? date.getTime() : null;
+}
+
 export function addJsDate(date, durationMs) {
   if (!date) {
     return null;
