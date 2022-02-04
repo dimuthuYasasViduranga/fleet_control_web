@@ -39,6 +39,7 @@
     "vue-js-toggle-button": "^1.3.3",
     "vue-resize-observer": "^1.0.32",
     "vue-router": "^3.5.0",
+    "vue-select": "3.12.1",
     "vue-simple-context-menu": "^3.4.1",
     "vue-smooth-dnd": "^0.8.1",
     "vue-table-component": "git+https://git@github.com/jonHaultrax/vue-table-component.git#remove_moment",
