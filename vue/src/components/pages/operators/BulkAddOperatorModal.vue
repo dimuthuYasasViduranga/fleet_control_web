@@ -239,12 +239,13 @@ export default {
       const operators = this.pendingOperators.map(o => {
         return {
           name: o.name,
-          nickname: o.name,
+          nickname: o.nickname,
           employee_id: o.employeeId,
         };
       });
 
       const payload = { operators };
+
       this.$channel
         .push('bulk add operators', payload)
         .receive('ok', () => this.close())

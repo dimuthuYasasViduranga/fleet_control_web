@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.12.6
+- 🐛 fixed bulk imports of operators using name as nickname
+
 ## 0.12.5
 - 🔧 added tablet settings as config
 
