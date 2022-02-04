@@ -56,6 +56,12 @@
         :show-filter="false"
         sort-by="name"
       >
+        <table-column cell-class="table-cel" label="Employee ID">
+          <template slot-scope="row">
+            {{ row.employeeId }}
+          </template>
+        </table-column>
+
         <table-column cell-class="table-cel" label="Legal Name">
           <template slot-scope="row">
             <input
@@ -78,23 +84,6 @@
               placeholder="Short Name (optional)"
               type="text"
               autocomplete="off"
-            />
-          </template>
-        </table-column>
-
-        <table-column cell-class="table-cel" label="Employee ID">
-          <template slot-scope="row">
-            <input
-              v-tooltip="{ content: row.employeeId ? '' : 'Missing employeeId' }"
-              class="typeable"
-              :class="{ missing: !row.employeeId, duplicate: employeeIdCount[row.employeeId] > 1 }"
-              v-model="row.employeeId"
-              placeholder="Employee Id"
-              type="number"
-              autocomplete="off"
-              pattern="\d+"
-              min="0"
-              step="1"
             />
           </template>
         </table-column>
