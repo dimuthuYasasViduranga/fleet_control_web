@@ -1,6 +1,6 @@
 <template>
-  <div class="bulk-add-operator-modal">
-    <h1>Upload Operators</h1>
+  <div class="bulk-add-time-code-modal">
+    <h1>Upload Time Codes</h1>
     <div>Supported files</div>
     <div class="supported-definitions">
       <button
@@ -44,64 +44,66 @@
       @upload="onUploadFile"
     />
 
-    <template v-if="pendingOperators.length">
+    <template v-if="pendingTimeCodes.length">
       <table-component
         table-wrapper="#content"
         table-class="table"
         tbody-class="table-body"
         thead-class="table-head"
         filterNoResults="No Operators to upload"
-        :data="pendingOperators"
+        :data="pendingTimeCodes"
         :show-caption="false"
         :show-filter="false"
         sort-by="name"
       >
-        <table-column cell-class="table-cel" label="Legal Name">
+        <table-column cell-class="table-cel" label="Code">
           <template slot-scope="row">
-            <input
-              v-tooltip="{ content: row.name ? '' : 'Missing name' }"
-              class="typeable"
-              :class="{ missing: !row.name }"
-              v-model="row.name"
-              placeholder="Legal Name"
-              type="text"
-              autocomplete="off"
-            />
+            {{ row.code }}
           </template>
         </table-column>
 
         <table-column cell-class="table-cel" label="Name">
           <template slot-scope="row">
             <input
+              v-tooltip="{ content: row.name ? '' : 'Missing name' }"
               class="typeable"
-              v-model="row.nickname"
-              placeholder="Short Name (optional)"
+              :class="{ missing: !row.name }"
+              v-model="row.name"
+              placeholder="Name"
               type="text"
               autocomplete="off"
             />
           </template>
         </table-column>
 
-        <table-column cell-class="table-cel" label="Employee ID">
+        <table-column cell-class="table-cel" label="Group">
           <template slot-scope="row">
-            <input
-              v-tooltip="{ content: row.employeeId ? '' : 'Missing employeeId' }"
-              class="typeable"
-              :class="{ missing: !row.employeeId, duplicate: employeeIdCount[row.employeeId] > 1 }"
-              v-model="row.employeeId"
-              placeholder="Employee Id"
-              type="number"
-              autocomplete="off"
-              pattern="\d+"
-              min="0"
-              step="1"
+            <DropDown
+              v-tooltip="{ content: row.groupId ? '' : 'Missing Group' }"
+              :class="{ missing: !row.groupId }"
+              value-is-id
+              v-model="row.groupId"
+              :options="timeCodeGroups"
+              keyLabel="siteName"
+              :clearable="false"
+            />
+          </template>
+        </table-column>
+
+        <table-column cell-class="table-cel" label="Category">
+          <template slot-scope="row">
+            <DropDown
+              value-is-id
+              v-model="row.categoryId"
+              :options="timeCodeCategories"
+              keyLabel="name"
             />
           </template>
         </table-column>
 
         <table-column :sortable="false" :filterable="false" cell-class="table-btn-cel action-cel">
           <template slot-scope="row">
-            <Icon class="delete-icon" :icon="crossIcon" @click="onRemove(row.employeeId)" />
+            <Icon class="delete-icon" :icon="crossIcon" @click="onRemove(row.code)" />
           </template>
         </table-column>
       </table-component>
@@ -120,57 +122,84 @@ import Icon from 'hx-layout/Icon.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import FileInput from '@/components/FileInput.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
-
+import DropDown from '@/components/dropdown/DropDown.vue';
 import { getDefinitions, parseFile } from './parsers/parser.js';
-import { Dictionary, toLookup, uniqBy } from '@/code/helpers.js';
+import { toLookup, uniq } from '@/code/helpers.js';
+
+function linkTimeCodes(newTimeCodes, timeCodes, groups, categories) {
+  const timeCodeLookup = toLookup(
+    timeCodes,
+    tc => tc.code.toLowerCase(),
+    () => true,
+  );
+
+  const groupLookup = toLookup(
+    groups,
+    g => g.name.toLowerCase(),
+    g => g.id,
+  );
+  const catLookup = toLookup(
+    categories,
+    c => c.name.toLowerCase(),
+    c => c.id,
+  );
+
+  return newTimeCodes
+    .filter(tc => !timeCodeLookup[(tc.code || '').toLowerCase()])
+    .map(tc => {
+      const groupName = (tc.group || '').toLowerCase();
+      const categoryName = (tc.category || '').toLowerCase();
+      return {
+        name: tc.name,
+        code: `${tc.code}`,
+        groupId: groupLookup[groupName],
+        categoryId: catLookup[categoryName],
+      };
+    });
+}
 
 export default {
-  name: 'BulkAddOperatorModal',
-  wrapperClass: 'bulk-add-operator-modal-wrapper',
+  name: 'BulkAddTimeCodeModal',
+  wrapperClass: 'bulk-add-time-code-modal-wrapper',
   components: {
     FileInput,
     TableComponent,
     TableColumn,
     Icon,
+    DropDown,
   },
   props: {
-    operators: { type: Array, default: () => [] },
+    timeCodes: { type: Array, default: () => [] },
+    timeCodeGroups: { type: Array, default: () => [] },
+    timeCodeCategories: { type: Array, default: () => [] },
   },
   data: () => {
     return {
       processingFile: false,
-      pendingOperators: [],
+      pendingTimeCodes: [],
       crossIcon: CrossIcon,
       definitions: getDefinitions(),
       selectedDefinition: null,
     };
   },
   computed: {
-    existingEmployeeIds() {
+    existingTimeCodes() {
       return toLookup(
-        this.operators,
-        o => o.employeeId,
+        this.timeCodes,
+        tc => tc.code,
         () => true,
       );
     },
-    employeeIdCount() {
-      const dict = new Dictionary();
-      this.operators.forEach(o => dict.append(o.employeeId));
-
-      this.pendingOperators.forEach(o => dict.append(o.employeeId));
-
-      return dict.reduce((acc, key, arr) => {
-        acc[key] = arr.length;
-        return acc;
-      }, {});
-    },
     dataValid() {
-      const hasData = this.pendingOperators.length !== 0;
-      const hasNames = this.pendingOperators.every(o => o.name);
-      const hasEmployeeIds = this.pendingOperators.every(o => o.employeeId);
-      const uniqEmployeeIds = Object.values(this.employeeIdCount).every(count => count === 1);
+      const hasData = this.pendingTimeCodes.length !== 0;
+      const hasNames = this.pendingTimeCodes.every(tc => tc.name);
+      const hasGroups = this.pendingTimeCodes.every(tc => tc.groupId);
 
-      return hasData && hasNames && hasEmployeeIds && uniqEmployeeIds;
+      const codes = this.pendingTimeCodes.map(tc => tc.code);
+      const hasUniqCodes =
+        uniq(codes).length === codes.length && codes.every(c => !this.existingTimeCodes[c]);
+
+      return hasData && hasNames && hasGroups && hasUniqCodes;
     },
   },
   methods: {
@@ -191,28 +220,27 @@ export default {
       this.processingFile = true;
       Promise.all(files.map(f => parseFile(f, this.definitions)))
         .then(resps => {
-          this.processingFile = false;
-          const operators = resps.flat().filter(o => o.employeeId && o.name);
-          const uniqOperators = uniqBy(operators, o => o.employeeId);
+          const rawTimeCodes = resps.flat().filter(tc => tc.name && tc.code);
 
-          if (uniqOperators.length === 0) {
+          if (rawTimeCodes.length === 0) {
             this.$toaster.error('No valid data found in the files');
             return;
           }
 
-          const culledOperators = uniqOperators.filter(
-            o => this.existingEmployeeIds[o.employeeId] !== true,
+          const timeCodes = linkTimeCodes(
+            rawTimeCodes,
+            this.timeCodes,
+            this.timeCodeGroups,
+            this.timeCodeCategories,
           );
+          this.processingFile = false;
 
-          if (culledOperators.length === 0) {
-            this.$toaster.info(
-              'Data source only contained duplicates of existing operators',
-              'long',
-            );
+          if (timeCodes.length === 0) {
+            this.$toaster.info('Data source only contained duplicates');
             return;
           }
 
-          this.pendingOperators = culledOperators;
+          this.pendingTimeCodes = timeCodes;
         })
         .catch(error => {
           this.processingFiles = false;
@@ -225,28 +253,29 @@ export default {
           console.error(error);
         });
     },
-    onRemove(employeeId) {
-      this.pendingOperators = this.pendingOperators.filter(o => o.employeeId !== employeeId);
+    onRemove(code) {
+      this.pendingTimeCodes = this.pendingTimeCodes.filter(o => o.code !== code);
     },
     onClear() {
-      this.pendingOperators = [];
+      this.pendingTimeCodes = [];
     },
     onCancel() {
       this.close();
     },
     onSubmit() {
-      const operators = this.pendingOperators.map(o => {
+      const timeCodes = this.pendingTimeCodes.map(tc => {
         return {
-          name: o.name,
-          nickname: o.nickname,
-          employee_id: o.employeeId,
+          name: tc.name,
+          code: tc.code,
+          group_id: tc.groupId,
+          category_id: tc.categoryId || null,
         };
       });
 
-      const payload = { operators };
+      const payload = { time_codes: timeCodes };
 
       this.$channel
-        .push('bulk add operators', payload)
+        .push('bulk add time codes', payload)
         .receive('ok', () => this.close())
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to bulk update at this time'));
@@ -256,94 +285,94 @@ export default {
 </script>
 
 <style>
-.bulk-add-operator-modal-wrapper .modal-container {
+.bulk-add-time-code-modal-wrapper .modal-container {
   max-width: 45rem;
 }
 
-.bulk-add-operator-modal h1 {
+.bulk-add-time-code-modal h1 {
   text-align: center;
 }
 
 /* examples */
-.bulk-add-operator-modal .supported-definitions {
+.bulk-add-time-code-modal .supported-definitions {
   display: flex;
 }
 
-.bulk-add-operator-modal .supported-definitions button {
+.bulk-add-time-code-modal .supported-definitions button {
   opacity: 0.9;
   border: 1px solid #364c59;
 }
 
-.bulk-add-operator-modal .supported-definitions button.selected {
+.bulk-add-time-code-modal .supported-definitions button.selected {
   border-color: #b6c3cc;
   opacity: 1;
 }
 
-.bulk-add-operator-modal .definition {
+.bulk-add-time-code-modal .definition {
   border-bottom: 1px solid #677e8c;
   margin-top: 1rem;
   padding-left: 1rem;
 }
 
-.bulk-add-operator-modal .definition .notes {
+.bulk-add-time-code-modal .definition .notes {
   margin-top: 0.5rem;
 }
 
-.bulk-add-operator-modal .definition .notes li {
+.bulk-add-time-code-modal .definition .notes li {
   padding: 0.1rem 0;
 }
 
-.bulk-add-operator-modal .definition .example {
+.bulk-add-time-code-modal .definition .example {
   padding: 0.5rem;
   background-color: #2c404c;
   overflow-x: auto;
 }
 
 /* file input */
-.bulk-add-operator-modal .file-input {
+.bulk-add-time-code-modal .file-input {
   margin-top: 2rem;
 }
 
 /* table */
-.bulk-add-operator-modal input.missing,
-.bulk-add-operator-modal input.duplicate {
+.bulk-add-time-code-modal input.missing,
+.bulk-add-time-code-modal input.duplicate {
   background-color: darkred;
 }
 
-.bulk-add-operator-modal input.missing:focus,
-.bulk-add-operator-modal input.duplicate:focus {
+.bulk-add-time-code-modal input.missing:focus,
+.bulk-add-time-code-modal input.duplicate:focus {
   color: #b6c3cc;
 }
 
-.bulk-add-operator-modal .delete-icon {
+.bulk-add-time-code-modal .delete-icon {
   cursor: pointer;
   height: 1.5rem;
 }
 
-.bulk-add-operator-modal .delete-icon:hover svg {
+.bulk-add-time-code-modal .delete-icon:hover svg {
   stroke: #ff6565;
 }
 
 /* actions */
-.bulk-add-operator-modal .actions {
+.bulk-add-time-code-modal .actions {
   display: flex;
 }
 
-.bulk-add-operator-modal .actions .hx-btn {
+.bulk-add-time-code-modal .actions .hx-btn {
   width: 100%;
   margin-left: 0.25rem;
 }
 
-.bulk-add-operator-modal .actions .hx-btn:first-child {
+.bulk-add-time-code-modal .actions .hx-btn:first-child {
   margin-left: 0;
 }
 
-.bulk-add-operator-modal .actions .hx-btn[disabled] {
+.bulk-add-time-code-modal .actions .hx-btn[disabled] {
   cursor: default;
   opacity: 0.5;
 }
 
-.bulk-add-operator-modal .actions .hx-btn[disabled]:hover {
+.bulk-add-time-code-modal .actions .hx-btn[disabled]:hover {
   background-color: #425866;
 }
 </style>

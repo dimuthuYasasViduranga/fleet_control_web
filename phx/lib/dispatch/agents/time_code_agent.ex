@@ -216,6 +216,28 @@ defmodule Dispatch.TimeCodeAgent do
     end)
   end
 
+  @spec bulk_add_time_codes(list(map)) :: {:ok, list(map)} | {:error | :invalid_time_codes | term}
+  def bulk_add_time_codes([]), do: {:ok, []}
+
+  def bulk_add_time_codes(raw_time_codes) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      count = length(raw_time_codes)
+
+      case Repo.insert_all(TimeCode, raw_time_codes, returning: true) do
+        {^count, time_codes} ->
+          time_codes = Enum.map(time_codes, &TimeCode.to_map/1)
+
+          all_time_codes = state.time_codes ++ time_codes
+
+          state = Map.put(state, :time_codes, all_time_codes)
+          {{:ok, time_codes}, state}
+
+        _ ->
+          {{:error, :invalid_time_codes}, state}
+      end
+    end)
+  end
+
   @spec update_group(integer, String.t() | nil) ::
           {:ok, time_code_group()} | {:error, :invalid_id | term}
   def update_group(id, alias_name) do

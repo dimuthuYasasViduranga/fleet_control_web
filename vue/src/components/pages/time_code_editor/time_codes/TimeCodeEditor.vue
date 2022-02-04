@@ -48,6 +48,7 @@ import EditTimeCodeModal from './EditTimeCodeModal.vue';
 
 import EditIcon from '@/components/icons/Edit.vue';
 import { downloadFromText } from '@/code/io';
+import BulkAddTimeCodeModal from './BulkAddTimeCodeModal.vue';
 
 function exportAsCSV(timeCodes, groups, categories) {
   const groupLookup = toLookup(
@@ -141,7 +142,14 @@ export default {
 
       this.$modal.create(EditTimeCodeModal, opts);
     },
-    onBulkAdd() {},
+    onBulkAdd() {
+      const opts = {
+        timeCodes: this.timeCodes,
+        timeCodeGroups: this.timeCodeGroups,
+        timeCodeCategories: this.timeCodeCategories,
+      };
+      this.$modal.create(BulkAddTimeCodeModal, opts);
+    },
     onExport() {
       exportAsCSV(this.timeCodes, this.timeCodeGroups, this.timeCodeCategories);
     },
