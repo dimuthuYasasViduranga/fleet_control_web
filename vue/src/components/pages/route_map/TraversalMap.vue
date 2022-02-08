@@ -12,9 +12,8 @@
           <div ref="asset-type-selector-control" class="g-control asset-type-selector-control">
             <GMapDropDown
               :value="selectedAssetTypeId"
-              :items="assetTypes"
+              :options="assetTypes"
               label="type"
-              :useScrollLock="true"
               placeholder="Set Asset Type"
               direction="down"
               @change="onSelectAssetType"

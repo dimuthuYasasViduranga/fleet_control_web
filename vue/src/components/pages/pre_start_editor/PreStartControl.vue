@@ -17,12 +17,15 @@
       }"
       class="category"
       v-model="data.categoryId"
-      :items="categories"
+      :options="categories"
       label="fullname"
-      selectedLabel="name"
       placeholder="Category"
       :disabled="readonly"
-    />
+    >
+      <template slot="selected-option" slot-scope="data">
+        {{ data.name }}
+      </template>
+    </DropDown>
     <Icon
       class="comment-toggle"
       :class="{ dim: !data.requiresComment }"
@@ -43,8 +46,8 @@
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
+import { DropDown } from 'hx-vue';
 import HamburgerIcon from '@/components/icons/Hamburger.vue';
-import DropDown from '@/components/dropdown/DropDown.vue';
 import CommentIcon from '@/components/icons/Comment.vue';
 import { attributeFromList } from '@/code/helpers';
 

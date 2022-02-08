@@ -1,6 +1,8 @@
 <template>
   <div class="gmap-dropdown">
     <DropDown
+      class="g-drop-down"
+      :placeholder="placeholder"
       v-bind="$props"
       @input="propogate('input', $event)"
       @change="propogate('change', $event)"
@@ -10,24 +12,21 @@
 </template>
 
 <script>
-import DropDown from '../dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 export default {
   name: 'GMapDropDown',
   components: {
     DropDown,
   },
   props: {
+    value: Number,
     placeholder: { type: String, default: 'Select' },
-    keyName: { type: String, default: 'id' },
+    keyId: { type: String, default: 'id' },
     label: { type: String, default: 'name' },
-    items: { type: Array, default: () => [] },
-    useTouch: { type: Boolean, default: false },
-    maxItems: { type: Number, default: Infinity },
-    autofocus: { type: Boolean, default: true },
+    options: { type: Array, default: () => [] },
+    useTouch: Boolean,
     searchable: { type: Boolean, default: true },
     direction: { type: String, default: 'auto' },
-    useScrollLock: { type: Boolean, default: true },
-    value: Number,
   },
   methods: {
     propogate(name, value) {
@@ -46,45 +45,55 @@ export default {
   display: flex;
   width: 100%;
   height: 100%;
-  padding-bottom: 2px;
 }
 
-.gmap-dropdown .dropdown-wrapper {
-  height: 100%;
+.gmap-dropdown .drop-down {
   width: 100%;
+}
+
+.g-drop-down .v-select {
+  background-color: transparent;
+}
+
+.g-drop-down .vs__dropdown-menu {
   background-color: white;
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
 }
 
-.gmap-dropdown .dropdown-wrapper .sdd-wrapper .input-wrapper {
-  margin-top: -1px;
-  height: calc(100% + 1px);
+.g-drop-down .dd-option {
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
+  color: black;
+  height: 2rem;
+  line-height: 2rem;
 }
 
-.gmap-dropdown .caret-down {
-  border-top-color: black;
-}
-
-.gmap-dropdown .dd-button {
+.g-drop-down .vs__search {
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
   color: black;
   text-align: center;
 }
 
-.gmap-dropdown .sdd-wrapper .dd-option {
-  background-color: whitesmoke;
+.g-drop-down .vs__selected {
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
   color: black;
-  font-size: 1rem;
 }
 
-.gmap-dropdown .sdd-wrapper .dd-option:hover {
-  border-color: transparent;
-  box-shadow: none;
-  background-color: rgb(190, 190, 190);
+.g-drop-down .vs__search::placeholder {
+  opacity: 1;
 }
 
-.gmap-dropdown .sdd-wrapper input,
-.gmap-dropdown .sdd-wrapper button {
-  background-color: white;
-  color: black;
+.g-drop-down .vs__dropdown-toggle {
+  border: none;
+}
+
+.g-drop-down .vs__dropdown-option--selected,
+.g-drop-down .vs__dropdown-option--highlight,
+.g-drop-down .vs__dropdown-option:hover {
+  background-color: #bebebe;
 }
 
 .gmap-dropdown .x {

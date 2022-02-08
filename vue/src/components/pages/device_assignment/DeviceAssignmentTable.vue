@@ -36,9 +36,9 @@
           <div class="asset-selection">
             <DropDown
               v-model="row.assetId"
-              :items="dropdownAssets"
+              :options="dropdownAssets"
               label="label"
-              :useScrollLock="false"
+              placeholder="--"
               :disabled="readonly"
               @change="onChange(row)"
             />
@@ -99,12 +99,13 @@
 import Icon from 'hx-layout/Icon.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
+import { DropDown } from 'hx-vue';
+
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 import DeviceInfoModal from './DeviceInfoModal.vue';
 import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 import LockableButton from '../../LockableButton.vue';
-import DropDown from '../../dropdown/DropDown.vue';
 
 import TabletIcon from '../../icons/Tablet.vue';
 import InfoIcon from '../../icons/Info.vue';
@@ -240,7 +241,7 @@ export default {
 </script>
 
 <style>
-.device-assignment-table .dropdown-wrapper {
+.device-assignment-table .drop-down {
   width: 100%;
   height: 2rem;
 }
@@ -286,6 +287,8 @@ export default {
 
 .device-assignment-table .asset-selection {
   display: flex;
+  width: 100%;
+  height: 2rem;
 }
 
 .device-assignment-table .asset-selection .hx-icon {

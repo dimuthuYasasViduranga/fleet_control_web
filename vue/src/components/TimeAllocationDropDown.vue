@@ -88,7 +88,7 @@ export default {
 
 .tc-drop-down,
 .tc-drop-down .dd-option .tc {
-  border-left: 10px solid transparent;
+  border-left: 10px solid #425866;
 }
 
 .tc-drop-down .dd-option .tc .label {

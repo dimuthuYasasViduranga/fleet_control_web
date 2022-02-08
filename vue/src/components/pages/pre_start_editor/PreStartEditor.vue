@@ -16,10 +16,11 @@
       <div v-if="selectedMode === 'forms'" class="form-editor-wrapper">
         <div class="actions">
           <DropDown
-            placeholder="Select Asset"
             :value="assetTypeId"
-            :items="assetTypes"
+            :options="assetTypes"
+            placeholder="Select Asset"
             label="type"
+            clearable
             @change="onAssetTypeChange"
           />
           <template v-if="!readonly && assetTypeId">
@@ -40,11 +41,11 @@
 <script>
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
+import { DropDown } from 'hx-vue';
+
 import PreStartFormEditor from './PreStartFormEditor.vue';
 import PreStartCategoryEditor from './PreStartCategoryEditor.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
-
-import DropDown from '@/components/dropdown/DropDown.vue';
 
 import ReportIcon from '@/components/icons/Report.vue';
 import CopyFromModal from './CopyFromModal.vue';
@@ -132,7 +133,7 @@ export default {
   computed: {
     ...mapState('constants', {
       readonly: state => !state.permissions.can_edit_pre_starts,
-      assetTypes: state => [{ type: 'Select Asset' }].concat(state.assetTypes),
+      assetTypes: state => state.assetTypes,
       preStartForms: state => state.preStartForms,
       categories: state => state.preStartControlCategories,
     }),
@@ -216,7 +217,8 @@ export default {
   border: 1px solid #898f94;
 }
 
-.pre-start-editor .actions .dropdown-wrapper {
+.pre-start-editor .actions .drop-down {
+  display: inline-flex;
   width: 10rem;
 }
 

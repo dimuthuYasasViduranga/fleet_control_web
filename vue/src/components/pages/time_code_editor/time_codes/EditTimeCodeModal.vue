@@ -76,7 +76,7 @@ export default {
         groupId: {
           type: 'dropdown',
           label: 'Group',
-          props: { options: this.timeCodeGroups, keyLabel: 'siteName', valueIsId: true },
+          props: { options: this.timeCodeGroups, keyLabel: 'siteName' },
         },
         categoryId: {
           type: 'dropdown',
@@ -84,7 +84,6 @@ export default {
           props: {
             options: this.timeCodeCategories,
             keyLabel: 'name',
-            valueIsId: true,
             clearable: true,
           },
         },

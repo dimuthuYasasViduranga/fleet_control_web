@@ -81,23 +81,16 @@
             <DropDown
               v-tooltip="{ content: row.groupId ? '' : 'Missing Group' }"
               :class="{ missing: !row.groupId }"
-              value-is-id
               v-model="row.groupId"
               :options="timeCodeGroups"
-              keyLabel="siteName"
-              :clearable="false"
+              label="siteName"
             />
           </template>
         </table-column>
 
         <table-column cell-class="table-cel" label="Category">
           <template slot-scope="row">
-            <DropDown
-              value-is-id
-              v-model="row.categoryId"
-              :options="timeCodeCategories"
-              keyLabel="name"
-            />
+            <DropDown v-model="row.categoryId" :options="timeCodeCategories" label="name" />
           </template>
         </table-column>
 
@@ -122,7 +115,7 @@ import Icon from 'hx-layout/Icon.vue';
 import CrossIcon from 'hx-layout/icons/Error.vue';
 import FileInput from '@/components/FileInput.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import { getDefinitions, parseFile } from './parsers/parser.js';
 import { toLookup, uniq } from '@/code/helpers.js';
 
@@ -344,7 +337,7 @@ export default {
   color: #b6c3cc;
 }
 
-.bulk-add-time-code-modal .delete-icon {
+.bulk-add-time-code-modal .bulk-add-time-code-modal .delete-icon {
   cursor: pointer;
   height: 1.5rem;
 }

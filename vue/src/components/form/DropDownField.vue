@@ -3,14 +3,14 @@
     <DropDown
       :value="value"
       :keyId="keyId"
-      :keyLabel="keyLabel"
+      :label="keyLabel"
       :options="options"
       :placeholder="placeholder"
       :searchable="searchable"
       :selectable="selectable"
       :clearable="clearable"
       :useTouch="useTouch"
-      :valueIsId="valueIsId"
+      :valueIsObj="valueIsObj"
       @input="onInput"
     />
   </FieldWrapper>
@@ -18,7 +18,7 @@
 
 <script>
 import FieldWrapper from './FieldWrapper.vue';
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 
 export default {
   name: 'DropDownField',
@@ -34,11 +34,11 @@ export default {
     keyLabel: { type: String, default: 'label' },
     options: { type: Array, default: () => [] },
     placeholder: { type: String },
-    searchable: { type: Boolean, default: false },
     selectable: { type: Function },
-    clearable: { type: Boolean, default: false },
-    useTouch: { type: [Boolean, String], default: 'auto' },
-    valueIsId: { type: Boolean, default: false },
+    useTouch: Boolean,
+    searchable: Boolean,
+    clearable: Boolean,
+    valueIsObj: Boolean,
   },
   methods: {
     onInput(value) {

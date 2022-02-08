@@ -4,16 +4,15 @@
     <table>
       <tr>
         <td class="key">
-          <DropDown v-model="source" :items="sourceOptions" label="id" :useScrollLock="false" />
+          <DropDown v-model="source" :options="sourceOptions" label="id" />
         </td>
         <td class="value">
           <template v-if="source === 'Dig Unit'">
             <DropDown
               :value="localDigUnitId"
-              :items="digUnits"
+              :options="digUnits"
               label="fullname"
               selectedLabel="name"
-              :useScrollLock="false"
               placeholder="Select Asset"
               @change="onDigUnitChange"
             />
@@ -22,9 +21,8 @@
           <template v-else>
             <DropDown
               v-model="localLoadId"
-              :items="availableLoads"
+              :options="availableLoads"
               label="name"
-              :useScrollLock="false"
               placeholder="Select Location"
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localLoadId = null" />
@@ -36,9 +34,8 @@
         <td class="value">
           <DropDown
             v-model="localDigUnitLocationId"
-            :items="locations"
+            :options="locations"
             label="name"
-            :useScrollLock="false"
             placeholder="Target Location"
           />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDigUnitLocationId = null" />
@@ -47,12 +44,7 @@
       <tr v-if="!hideDump">
         <td class="key">Dump</td>
         <td class="value">
-          <DropDown
-            v-model="localDumpId"
-            :items="availableDumps"
-            label="extendedName"
-            :useScrollLock="false"
-          />
+          <DropDown v-model="localDumpId" :options="availableDumps" label="extendedName" />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDumpId = null" />
         </td>
       </tr>
@@ -71,7 +63,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import { attributeFromList, filterLocations } from '@/code/helpers';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
 
@@ -206,7 +198,7 @@ export default {
   font-size: 2rem;
 }
 
-.add-route-modal tr .key .dropdown-wrapper {
+.add-route-modal tr .key .drop-down {
   width: 100%;
   height: 2.5rem;
   font-size: 1.5rem;
@@ -219,7 +211,7 @@ export default {
   padding: 4px;
 }
 
-.add-route-modal tr .value .dropdown-wrapper {
+.add-route-modal tr .value .drop-down {
   width: 100%;
   height: 2.5rem;
 }

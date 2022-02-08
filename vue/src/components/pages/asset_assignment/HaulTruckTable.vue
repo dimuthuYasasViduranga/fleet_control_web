@@ -309,11 +309,6 @@ export default {
   width: 0.1em;
 }
 
-.haul-truck-table .dropdown-wrapper {
-  width: 100%;
-  height: 2rem;
-}
-
 .haul-truck-table .table-edit-cel {
   width: 2rem;
 }

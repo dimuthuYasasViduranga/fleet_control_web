@@ -233,7 +233,7 @@ export default {
   margin-left: 0.5rem;
 }
 
-.new-pane .new-pane-table .value .dropdown-wrapper {
+.new-pane .new-pane-table .value .drop-down {
   width: 13.5rem;
   height: 2rem;
 }

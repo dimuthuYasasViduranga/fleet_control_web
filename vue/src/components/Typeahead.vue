@@ -8,7 +8,7 @@
       :placeholder="placeholder"
       :clearable="clearable"
       :useTouch="useTouch"
-      :valueIsId="false"
+      :valueIsObj="true"
       @input="onInput"
     >
       <template slot-scope="option">
@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import DropDown from './dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import { orderedFuzzySort } from '@/code/sort';
 
 function toComparableOption(option, keyLabel) {

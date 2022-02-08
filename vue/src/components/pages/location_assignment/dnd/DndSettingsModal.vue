@@ -39,11 +39,7 @@
       <tr>
         <th>Order by</th>
         <td>
-          <DropDown
-            v-model="localSettings.horizontal.orderBy"
-            :items="orderByOptions"
-            :useScrollLock="false"
-          />
+          <DropDown v-model="localSettings.horizontal.orderBy" :options="orderByOptions" />
         </td>
       </tr>
     </table>
@@ -51,11 +47,7 @@
       <tr>
         <th>Order by</th>
         <td>
-          <DropDown
-            v-model="localSettings.vertical.orderBy"
-            :items="orderByOptions"
-            :useScrollLock="false"
-          />
+          <DropDown v-model="localSettings.vertical.orderBy" :options="orderByOptions" />
         </td>
       </tr>
       <tr>
@@ -77,7 +69,7 @@
 </template>
 
 <script>
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 
 const MAX_COLUMNS = 10;
 const MIN_COLUMNS = 2;
@@ -99,8 +91,8 @@ export default {
         horizontal: {},
       },
       orderByOptions: [
-        { id: 'dig-unit', name: 'Dig Unit' },
-        { id: 'location', name: 'Location' },
+        { id: 'dig-unit', label: 'Dig Unit' },
+        { id: 'location', label: 'Location' },
       ],
     };
   },
