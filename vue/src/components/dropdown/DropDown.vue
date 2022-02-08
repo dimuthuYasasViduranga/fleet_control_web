@@ -19,6 +19,7 @@
       :search.sync="search"
       :disabled="isDisabled"
       :options="filteredOptions"
+      :position="position"
       @input="onInput"
     >
       <template slot="option" slot-scope="slotData">
@@ -79,7 +80,6 @@ export default {
   },
   props: {
     value: { type: [String, Number, Object], default: null },
-    appendToBody: { type: [Boolean, String], default: false },
     useTouch: { type: [Boolean, String], default: 'auto' },
     keyLabel: { type: String, default: 'label' },
     keyId: { type: String, default: 'id' },
@@ -98,6 +98,7 @@ export default {
     paginationSize: { type: Number, default: Infinity },
     selectOnTab: { type: Boolean, default: false },
     ignoreMobileComposition: { type: Boolean, default: true },
+    position: { type: [Boolean, String], default: 'auto' },
     loading: { type: Boolean, default: false },
     valueIsId: { type: Boolean, default: false },
   },
@@ -167,98 +168,4 @@ export default {
 </script>
 
 <style>
-.drop-down {
-  font-family: 'GE Inspira Sans', sans-serif;
-  background-color: #1a2931;
-  border: 1px solid #677e8c;
-}
-
-.drop-down .v-select,
-.drop-down .drop-down-standard,
-.drop-down .drop-down-touch {
-  height: 100%;
-}
-
-.drop-down .vs--disabled {
-  background-color: #142025;
-  border-color: gray;
-}
-
-.drop-down .vs__clear {
-  background-color: transparent;
-}
-
-.drop-down .vs__dropdown-toggle {
-  border-radius: 0;
-  background-color: transparent;
-  height: 100%;
-}
-
-.drop-down .vs__dropdown-toggle .vs__selected-options {
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-
-.drop-down .vs__search {
-  color: #b6c3cc;
-}
-
-.drop-down input.vs__search::placeholder {
-  opacity: 0.5;
-}
-
-.drop-down .vs__search[disabled] {
-  background-color: transparent;
-  color: #b3b2b2;
-  font-style: italic;
-}
-
-.drop-down .vs__selected {
-  color: #b6c3cc;
-  background-color: transparent;
-  border: none;
-  white-space: nowrap;
-}
-
-/* controls action colors (clear and dropdown icon) */
-.drop-down .vs__actions svg {
-  fill: #9aa7b1;
-  background-color: transparent;
-}
-
-/* loading icon */
-.drop-down .vs__spinner {
-  height: 1.5rem;
-  width: 1.5rem;
-  border-color: #b5e5fd;
-  border-left-color: #007acc;
-  border-width: 3px;
-}
-
-/* dropdown menu */
-.vs__dropdown-menu {
-  font-family: 'GE Inspira Sans', sans-serif;
-  width: 100%;
-  background-color: #23343f;
-  border: 1px solid #b6c3cc;
-  border-radius: 0;
-  padding: 0;
-  max-height: 35vh;
-  z-index: 9999;
-}
-
-.vs__dropdown-menu .vs__dropdown-option {
-  color: #b6c3cc;
-}
-
-.vs__dropdown-menu .vs__dropdown-option--highlight,
-.vs__dropdown-menu .vs__dropdown-option:hover {
-  background-color: #08657a;
-}
-
-.vs__dropdown-menu .vs__no-options {
-  line-height: 2rem;
-  color: #b6c3cc;
-  font-style: italic;
-}
 </style>

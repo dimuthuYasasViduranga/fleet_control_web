@@ -47,11 +47,12 @@
       <table-column label="Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
+            value-is-id
             v-model="row.locationId"
-            :items="locationOptions"
+            :options="locationOptions"
             label="name"
-            @change="setActivity(row)"
             :disabled="readonly"
+            @change="setActivity(row)"
           />
         </template>
       </table-column>
@@ -60,11 +61,11 @@
         <template slot-scope="row">
           <DropDown
             v-model="row.materialTypeId"
-            :items="materialTypeOptions"
+            :options="materialTypeOptions"
             label="commonName"
             placeholder="None"
-            @change="setActivity(row)"
             :disabled="readonly"
+            @change="setActivity(row)"
           />
         </template>
       </table-column>
@@ -89,7 +90,7 @@ import { mapState } from 'vuex';
 
 import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '../../dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 

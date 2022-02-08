@@ -8,13 +8,14 @@ import VueResizeObserver from 'vue-resize-observer';
 import Vue2TouchEvents from 'vue2-touch-events';
 import Toasted from 'vue-toasted';
 
+import { Modal } from 'hx-vue';
+
 import setupRouter from './code/routes';
 import App from './App.vue';
 import UnauthorizedApp from './UnauthorizedApp.vue';
 import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
 import Channel from './code/channel.js';
-import Modal from './code/modal.js';
 import Timely from './code/timely.js';
 import Toaster from './code/toaster.js';
 import ContextMenu from './code/context_menu.js';

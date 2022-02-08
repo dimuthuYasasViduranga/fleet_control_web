@@ -4,7 +4,7 @@
       ref="base"
       :value="value"
       :label="keyLabel"
-      :appendToBody="appendToBody"
+      :appendToBody="true"
       :options="options"
       :placeholder="placeholder"
       :searchable="searchable"
@@ -73,6 +73,7 @@ export default {
     ignoreMobileComposition: { type: Boolean, default: true },
     detectMobile: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
+    position: { type: [Boolean, String], default: 'auto' },
   },
   computed: {
     passedSlots() {

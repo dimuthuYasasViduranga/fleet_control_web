@@ -104,16 +104,6 @@ export default {
   background-color: #23343f;
 }
 
-.drop-down-touch-wrapper .vs__dropdown-menu {
-  width: 100%;
-  position: inherit;
-  border: none;
-  box-shadow: none;
-  overflow: hidden;
-  height: auto;
-  max-height: 75vh;
-}
-
 .drop-down-touch-wrapper .vs__search {
   color: #b6c3cc;
   width: 100%;

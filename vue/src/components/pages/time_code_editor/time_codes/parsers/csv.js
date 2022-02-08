@@ -1,6 +1,6 @@
 import { parseString } from '@fast-csv/parse';
 import { textFromFile, downloadFromText } from '@/code/io';
-import { anyOf, lowifyKeys } from '@/code/helpers';
+import { lowifyKeys } from '@/code/helpers';
 
 const CSV_NOTES = [
   ['required', ['Name', 'Code', 'Group']],
