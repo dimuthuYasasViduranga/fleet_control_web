@@ -5,7 +5,7 @@ defmodule DispatchWeb.AuthErrorHandler do
   require Logger
 
   def auth_error(conn, {type, reason}, _opts) do
-    body = Poison.encode!(%{message: to_string(type)})
+    body = Jason.encode!(%{message: to_string(type)})
     Logger.warn("Auth Error: {type: #{type}, reason: #{reason}}")
 
     conn
