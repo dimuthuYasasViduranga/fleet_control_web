@@ -19,14 +19,17 @@ defmodule DispatchWeb.PageController do
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
     user = get_session(conn, :current_user)
-    authorized = Map.get(conn.assigns.permissions, :authorized, false)
+    permissions = conn.assigns.permissions
+    authorized = Map.get(permissions, :authorized, false)
 
     {conn, token} = get_token(conn)
+
+    whitelist = get_whitelist(user[:user_id], permissions)
 
     data =
       %{
         data: Dispatch.StaticData.fetch(),
-        whitelist: Authorization.Whitelist.get(user[:user_id]),
+        whitelist: whitelist,
         user_token: token,
         user: user,
         authorized: authorized
@@ -36,6 +39,16 @@ defmodule DispatchWeb.PageController do
     conn
     |> assign(:user_token, token)
     |> send_resp(200, data)
+  end
+
+  defp get_whitelist(user_id, permissions) do
+    whitelist = Authorization.Whitelist.get(user_id)
+
+    if !permissions.can_edit_pre_starts do
+      Enum.reject(whitelist, &(&1 == "/pre_start_editor" || &1 == "/pre_start_submissions"))
+    else
+      whitelist
+    end
   end
 
   defp get_token(conn) do
