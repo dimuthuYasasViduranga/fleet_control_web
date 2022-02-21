@@ -742,8 +742,12 @@ export default {
 }
 
 /* ------ dim all other assets when one is selected ------- */
-.mine-map .not-selected {
+.mine-map .gmap-track.not-selected {
   opacity: 0.6 !important;
+}
+
+.mine-map .gmap-track.no-operator {
+  filter: grayscale(65%);
 }
 
 @media screen and (max-width: 820px) {

@@ -7,8 +7,8 @@
     >
       <div v-for="asset in assetsWithTracks" :key="asset.id">
         <gmap-custom-marker
-          :class="getMarkerClass(asset)"
           class="gmap-track"
+          :class="getMarkerClasses(asset)"
           :marker="asset.track.position"
           alignment="center"
         >
@@ -119,12 +119,18 @@ export default {
     getMarker(asset) {
       return ICONS[asset.type] || DefaultMarker;
     },
-    getMarkerClass(asset) {
-      if (!this.selectedAssetId) {
-        return;
+    getMarkerClasses(asset) {
+      const classes = [];
+
+      if (this.selectedAssetId) {
+        const selectionClass = this.selectedAssetId === asset.id ? 'selected' : 'not-selected';
+        classes.push(selectionClass);
       }
 
-      return this.selectedAssetId === asset.id ? 'selected' : 'not-selected';
+      const operatorClass = asset.operatorName ? 'has-operator' : 'no-operator';
+      classes.push(operatorClass);
+
+      return classes;
     },
     getGlow(asset) {
       const glow = asset.glow;
