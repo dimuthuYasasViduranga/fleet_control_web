@@ -27,6 +27,7 @@
     "fuzzysort": "^1.1.4",
     "gmap-vue": "^1.5.0",
     "hx-layout": "ssh://git@github.com:Haultrax/hx-layout.git#peer-deps",
+    "hx-vue": "ssh://git@github.com:Haultrax/hx-vue.git#main",
     "jspdf": "^2.4.0",
     "luxon": "^1.26.0",
     "moment": "^2.29.0",
