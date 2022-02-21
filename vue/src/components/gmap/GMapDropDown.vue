@@ -53,6 +53,7 @@ export default {
 
 .g-drop-down .v-select {
   background-color: transparent;
+  height: 100%;
 }
 
 .g-drop-down .vs__dropdown-menu {
