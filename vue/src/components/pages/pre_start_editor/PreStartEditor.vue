@@ -219,7 +219,11 @@ export default {
 
 .pre-start-editor .actions .drop-down {
   display: inline-flex;
-  width: 10rem;
+  min-width: 10rem;
+}
+
+.pre-start-editor .actions .drop-down .v-select {
+  width: 100%;
 }
 
 .pre-start-editor .actions {
