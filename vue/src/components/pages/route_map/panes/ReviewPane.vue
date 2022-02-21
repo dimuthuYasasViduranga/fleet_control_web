@@ -88,4 +88,13 @@ export default {
 .review-pane .table-status-cel .cross-icon {
   stroke: rgb(255, 80, 80);
 }
+
+.review-pane .actions {
+  display: flex;
+}
+
+.review-pane .actions .hx-btn {
+  width: 100%;
+  margin-left: 0.25rem;
+}
 </style>
