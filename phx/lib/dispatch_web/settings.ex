@@ -4,6 +4,8 @@ defmodule DispatchWeb.Settings do
     Application.get_env(:dispatch_web, :settings, []) |> Enum.into(%{})
   end
 
+  def get(key, default \\ nil), do: Map.get(get(), key, default)
+
   @spec set(atom, boolean) :: :ok
   def set(key, bool) when is_boolean(bool) do
     settings =

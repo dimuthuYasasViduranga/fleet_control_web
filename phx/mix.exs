@@ -48,6 +48,7 @@ defmodule DispatchWeb.MixProject do
       # dispatch
       {:topo, "~> 0.4.0"},
       {:geo, "~> 3.1"},
+      {:distance, "~> 1.0"},
       {:joken, "~> 2.0"},
       {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.3"},
       {:eastar, "~> 0.5"},
@@ -76,7 +77,6 @@ defmodule DispatchWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/losses/test.exs",
         # fleet control seeds
         "run ./deps/hps_data/priv/repo/seeds/dispatch/pre_start_ticket_status_types/default.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/material_type/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
