@@ -389,15 +389,17 @@ export default {
         .sort((a, b) => (a.type || '').localeCompare(b.type || ''));
     },
     assetOptions() {
-      return this.assets.map(a => {
-        const fullname = a.type ? `${a.name} (${a.type})` : a.name;
-        return {
-          id: a.id,
-          name: a.name,
-          type: a.type,
-          fullname,
-        };
-      });
+      return this.assets
+        .filter(a => a.track)
+        .map(a => {
+          const fullname = a.type ? `${a.name} (${a.type})` : a.name;
+          return {
+            id: a.id,
+            name: a.name,
+            type: a.type,
+            fullname,
+          };
+        });
     },
     myLocation() {
       return this.$geolocation.position;
