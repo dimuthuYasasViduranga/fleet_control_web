@@ -233,7 +233,6 @@ import Dately from '@/components/dately/Dately.vue';
 import { formatDateIn } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
 import { AVPlayer } from '@/code/audio.js';
-import { attributeFromList } from '@/code/helpers';
 
 const ASSET_ICONS = [
   DozerIcon,

@@ -271,27 +271,6 @@ function fromLatLng(latLng) {
   };
 }
 
-function toDisplayAsset(asset, legend) {
-  const base = { ...asset };
-
-  if (base.type === 'Haul Truck') {
-    const item = legend.find(l => (l.assetIds || []).includes(asset.id));
-    if (item && item.selected) {
-      base.glow = { radius: '0.5rem', color: item.color };
-    }
-  }
-
-  if (base.secondaryType === 'Dig Unit') {
-    const item = legend.find(l => l.digUnitId === asset.id);
-
-    if (item && item.selected) {
-      base.glow = { radius: '0.2rem', color: 'blue' };
-    }
-  }
-
-  return base;
-}
-
 export default {
   name: 'Map',
   components: {
