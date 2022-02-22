@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.12.8
+- 🐛 fixed use_device_gps track acceptance
+- 🚸 mine map dropdown only shows assets with tracks
+
 ## 0.12.7
 - 🐛 fixed use_device_gps not working as expected
 
