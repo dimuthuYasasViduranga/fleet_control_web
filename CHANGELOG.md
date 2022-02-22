@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.12.7
+- 🐛 fixed use_device_gps not working as expected
+
 ## 0.12.6
 - 🐛 fixed bulk imports of operators using name as nickname
 
