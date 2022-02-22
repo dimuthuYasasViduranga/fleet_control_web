@@ -83,6 +83,12 @@ export default {
   color: black;
 }
 
+.g-drop-down .vs__no-options {
+  font-family: Roboto, Arial, sans-serif;
+  font-weight: 500;
+  color: black;
+}
+
 .g-drop-down .vs__search::placeholder {
   opacity: 1;
 }
