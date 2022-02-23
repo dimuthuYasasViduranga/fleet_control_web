@@ -41,7 +41,11 @@
               placeholder="--"
               :disabled="readonly"
               @change="onChange(row)"
-            />
+            >
+              <div class="asset-option" slot-scope="option" :disabled="option.disabled">
+                {{ option.label }}
+              </div>
+            </DropDown>
             <Icon
               v-if="row.hasMultipleAssignments"
               v-tooltip="getMultipleAssignmentTooltip(row)"
@@ -304,5 +308,10 @@ export default {
   .device-assignment-table .table-operator-cel {
     display: none;
   }
+}
+
+.asset-option[disabled] {
+  color: gray;
+  font-style: italic;
 }
 </style>
