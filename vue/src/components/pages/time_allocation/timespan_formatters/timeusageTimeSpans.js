@@ -16,6 +16,7 @@ const TU_COLORS = {
   NonProductiveTravel: 'silver',
   Parkup: 'red',
   CribOnHaul: 'darkred',
+  UnknownStationary: 'darkred',
   Refuelling: 'yellow',
   MEM: 'darkgrey',
   ChangeOverEmpty: 'darkred',

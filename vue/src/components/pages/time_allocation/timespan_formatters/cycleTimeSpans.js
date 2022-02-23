@@ -3,12 +3,8 @@ import { copyDate } from '../../../../code/time';
 
 const MISSING_COLOR = 'magenta';
 const COLORS = {
-  production: 'green',
-  stockpile: 'darkorange',
-  crusher: 'skyblue',
-  rehab: 'violet',
-  waste_dump: 'saddlebrown',
-  waste_stockpile: 'chocolate',
+  dump: 'skyblue',
+  'load|dump': 'darkorange',
 };
 
 export function toCycleTimeSpans(cycles) {

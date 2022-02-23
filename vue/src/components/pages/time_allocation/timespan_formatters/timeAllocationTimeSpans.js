@@ -1,6 +1,6 @@
 import { toTimeSpan, addDynamicLevels } from '../timeSpan';
-import { attributeFromList } from '../../../../code/helpers';
-import { copyDate } from '../../../../code/time';
+import { attributeFromList } from '@/code/helpers';
+import { copyDate } from '@/code/time';
 
 const COLORS = {
   Ready: 'green',
