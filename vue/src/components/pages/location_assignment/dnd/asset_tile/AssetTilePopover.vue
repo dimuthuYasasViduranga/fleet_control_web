@@ -38,10 +38,6 @@
           <td class="key">Material Type</td>
           <td class="value">{{ materialType || '--' }}</td>
         </tr>
-        <tr>
-          <td class="key">Load Style</td>
-          <td class="value">{{ loadStyle || '--' }}</td>
-        </tr>
       </template>
 
       <tr>
