@@ -94,9 +94,12 @@ spec:
               value: |
                 [
                   quick_messages: [
-                    "Smoko after tip",
-                    "Blasting about to start",
-                    ["Did you get this message", "Yes", "No"]
+                    "Please update your activity/delay",
+                    ["Are you feeling fatigued?", "Yes", "No"],
+                    "Last Load - Park up",
+                    "Go for Common Crib",
+                    "Please go in to Hot Seat",
+                    "Please go for fuel if you haven't already"
                   ],
                   track_method: :gps_gate,
                   permissions: [
