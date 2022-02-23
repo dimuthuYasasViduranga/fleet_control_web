@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.12.9
+- 🐛 fixed "move trucks" not working in dnd vertical layout
+
 ## 0.12.8
 - 🐛 fixed use_device_gps track acceptance
 - 🚸 mine map dropdown only shows assets with tracks
