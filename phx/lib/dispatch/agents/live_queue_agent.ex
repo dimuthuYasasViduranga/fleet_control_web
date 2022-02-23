@@ -51,7 +51,7 @@ defmodule Dispatch.LiveQueueAgent do
       }
       |> add_simplified_track(track_map, d.asset_id)
     end)
-    |> Enum.filter(&(&1.position && &1.dig_unit_id))
+    |> Enum.filter(&(&1[:position] && &1[:dig_unit_id]))
     |> Enum.group_by(& &1.dig_unit_id)
     |> Enum.map(fn {dig_unit_id, haul_trucks} ->
       %{
@@ -60,7 +60,7 @@ defmodule Dispatch.LiveQueueAgent do
       }
       |> add_simplified_track(track_map, dig_unit_id)
     end)
-    |> Enum.reject(&is_nil(&1.position))
+    |> Enum.reject(&is_nil(&1[:position]))
   end
 
   defp add_simplified_track(map, track_map, asset_id) do

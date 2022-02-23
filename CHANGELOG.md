@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.13.0-alpha-2
+- 🐛 fixed invalid filtering of dig units without tracks for live queue calculations
+
 ## 0.13.0-alpha-1
 - 📦 completely new dropdown
 - 📦 added slack logger
