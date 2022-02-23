@@ -118,7 +118,7 @@ spec:
                     can_edit_asset_roster: :any
                   ],
                   settings: [
-                    use_device_gps: false,
+                    use_device_gps: true,
                     use_pre_starts: false,
                     prompt_exception_on_logout: true,
                     prompt_engine_hours_on_login: true,
