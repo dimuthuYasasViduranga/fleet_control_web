@@ -13,13 +13,9 @@
         <td class="heading">Dig Location</td>
         <td class="value">{{ digLocation || '--' }}</td>
       </tr>
-      <!-- <tr>
+      <tr>
         <td class="heading">Material</td>
         <td class="value">{{ materialType || '--' }}</td>
-      </tr> -->
-      <tr>
-        <td class="heading">Load Style</td>
-        <td class="value">{{ loadStyle || '--' }}</td>
       </tr>
     </table>
   </div>

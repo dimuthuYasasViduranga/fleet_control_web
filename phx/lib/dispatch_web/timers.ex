@@ -3,6 +3,7 @@ defmodule DispatchWeb.Timers do
 
   alias DispatchWeb.DispatcherChannel.RefreshTopics
   alias Dispatch.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
+  alias DispatchWeb.Broadcast
 
   @default_calendar_interval 24 * 3600 * 1000
   @default_location_interval 30 * 60 * 1000
@@ -42,16 +43,15 @@ defmodule DispatchWeb.Timers do
   end
 
   def update_live_queue() do
-    IO.inspect("---- update live queueu")
+    haul_truck_dispatches = HaulTruckDispatchAgent.current()
+    track_map = TrackAgent.as_map()
 
-    LiveQueueAgent.update_tracks(HaulTruckDispatchAgent.current(), TrackAgent.as_map())
+    case LiveQueueAgent.update_tracks(haul_truck_dispatches, track_map) do
+      {:ok, :changed, queue} ->
+        Broadcast.send_live_queue(queue)
 
-    # get all tracks a map
-
-    # get all relevant info
-    # get haul dispatches
-    # get dig unit activities
-
-    # for each set, group with track and filter out if missing
+      _ ->
+        nil
+    end
   end
 end

@@ -36,6 +36,7 @@ defmodule DispatchWeb.Application do
       Dispatch.PreStartAgent,
       Dispatch.PreStartSubmissionAgent,
       Dispatch.RoutingAgent,
+      Dispatch.LiveQueueAgent,
 
       # agents that call other agents
       Dispatch.TimeAllocationAgent,
