@@ -89,6 +89,7 @@ function toLocalFullAsset(asset) {
     radioNumber: asset.radioNumber,
     hasDevice: asset.hasDevice,
     present: asset.present,
+    liveQueueInfo: asset.liveQueueInfo,
     synced: true,
     updatedExternally: false,
     status: asset.status,

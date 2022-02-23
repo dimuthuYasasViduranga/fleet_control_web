@@ -10,6 +10,12 @@ defmodule Dispatch.LiveQueueAgent do
           at_dumps: list(Queue.queue())
         }
 
+  @opts [
+    max_active: 1,
+    chain_distance: 100,
+    active_distance: 50
+  ]
+
   def start_link(_opts), do: Agent.start_link(fn -> init() end, name: __MODULE__)
 
   defp init(), do: %{}
@@ -22,7 +28,7 @@ defmodule Dispatch.LiveQueueAgent do
     pending_queue =
       haul_dispatches
       |> format_input(track_map)
-      |> LiveQueue.create()
+      |> LiveQueue.create(@opts)
 
     Agent.get_and_update(__MODULE__, fn old_queue ->
       new_queue = LiveQueue.extend(pending_queue, old_queue)

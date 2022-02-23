@@ -250,9 +250,9 @@ function parseTicket(ticket) {
 
 function parseLiveQueue(queue) {
   return Object.values(queue).map(queue => {
-    const active = parseLiveQueueElements(queue.active);
-    const queued = parseLiveQueueElements(queue.queued);
-    const outOfRange = parseLiveQueueElements(queue.out_of_range);
+    const active = parseLiveQueueElements(queue.active, queue.id, 'loading');
+    const queued = parseLiveQueueElements(queue.queued, queue.id, 'queued');
+    const outOfRange = parseLiveQueueElements(queue.out_of_range, queue.id, 'out_of_range');
     return {
       digUnitId: queue.id,
       lastVisited: toUtcDate(queue.last_visited),
@@ -264,10 +264,12 @@ function parseLiveQueue(queue) {
   });
 }
 
-function parseLiveQueueElements(elements = {}) {
+function parseLiveQueueElements(elements = {}, digUnitId, status) {
   return Object.values(elements).map(info => {
     return {
       assetId: info.id,
+      digUnitId,
+      status,
       startedAt: toUtcDate(info.started_at),
       lastUpdated: toUtcDate(info.last_updated),
       chainDistance: info.chain_distance,
@@ -402,8 +404,18 @@ const getters = {
     const { assets, operators, radioNumbers } = state.constants;
     const { devices, currentDeviceAssignments } = state.deviceStore;
     const { presence } = state.connection;
-    const { activeTimeAllocations } = state;
+    const { activeTimeAllocations, liveQueue } = state;
     const fullTimeCodes = getters['constants/fullTimeCodes'];
+
+    const liveQueueMap = {};
+
+    liveQueue.forEach(q => {
+      liveQueueMap[q.digUnitId] = q;
+
+      [q.active, q.queued, q.outOfRange].flat().forEach(e => {
+        liveQueueMap[e.assetId] = e;
+      });
+    });
 
     return assets.map(a =>
       Transforms.toFullAsset(
@@ -415,6 +427,7 @@ const getters = {
         presence,
         currentDeviceAssignments,
         activeTimeAllocations,
+        liveQueueMap,
       ),
     );
   },
