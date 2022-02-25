@@ -362,6 +362,10 @@ export default {
   width: 0.3rem;
 }
 
+.shift-selector .date-selector {
+  user-select: none;
+}
+
 .shift-selector .shift-button,
 .shift-selector .vdatetime-input {
   cursor: pointer;
@@ -413,5 +417,10 @@ export default {
   margin-left: 0.5rem;
   font-style: italic;
   line-height: 1.25rem;
+}
+
+.shift-selector .vdatetime-calendar__month {
+  height: 320px;
+  user-select: none;
 }
 </style>
