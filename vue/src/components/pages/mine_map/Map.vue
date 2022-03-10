@@ -452,15 +452,17 @@ export default {
         const assetId = selected.data.id;
         // find the asset within the new assets (in case the track has moved)
         const asset = newAssets.find(a => a.id === assetId);
+        const pos = asset?.track?.position;
 
         if (asset) {
           this.selected = {
             type: 'asset',
             data: asset,
           };
-          if (this.pUpShow === true) {
-            this.openPopup(asset.track.position);
-          }
+        }
+
+        if (pos && this.pUpShow) {
+          this.openPopup(pos);
         } else {
           this.closePopup();
         }
