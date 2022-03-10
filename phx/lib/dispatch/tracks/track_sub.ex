@@ -82,7 +82,7 @@ defmodule TrackSub do
 
           {:error, response} ->
             info = safe_response(response)
-            Logger.error("[TrackSub] Failed to fetch latest tracks. #{inspect(info)}")
+            Logger.warn("[TrackSub] Failed to fetch latest tracks. #{inspect(info)}")
         end
 
         schedule_work()
