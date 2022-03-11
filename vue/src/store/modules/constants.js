@@ -479,7 +479,6 @@ const actions = {
       ['setOperatorMessageTypes', data.operator_message_types],
       ['setLoadStyles', data.load_styles],
       ['setMaterialTypes', data.material_types],
-      ['setUser', staticData.user],
     ].forEach(([path, value]) => dispatch(path, value));
 
     dispatch('connection/setUserToken', staticData.user_token, { root: true });

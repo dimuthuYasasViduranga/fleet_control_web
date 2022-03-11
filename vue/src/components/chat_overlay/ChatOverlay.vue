@@ -127,8 +127,9 @@ export default {
         .filter(fa => fa.deviceId)
         .map(fa => {
           const asset = copyFullAsset(fa);
-          const nUnread = this.operatorMessages.filter(o => o.assetId === fa.id && !o.acknowledged)
-            .length;
+          const nUnread = this.operatorMessages.filter(
+            o => o.assetId === fa.id && !o.acknowledged,
+          ).length;
           asset.unreadMessages = nUnread;
           return asset;
         });

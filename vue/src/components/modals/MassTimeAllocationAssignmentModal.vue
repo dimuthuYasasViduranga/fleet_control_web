@@ -2,6 +2,7 @@
   <div class="mass-time-allocation-assignment-modal">
     <div class="title">Mass Time Allocation Assignment</div>
     <TimeAllocationDropDown
+      :class="{ unchanged: !selectedTimeCodeId }"
       v-model="selectedTimeCodeId"
       :showAll="true"
       placeholder="Select Time Code"
@@ -90,6 +91,10 @@ export default {
 
 .mass-time-allocation-assignment-modal .time-allocation-drop-down .dropdown-wrapper {
   width: 100%;
+}
+
+.mass-time-allocation-assignment-modal .time-allocation-drop-down.unchanged {
+  border: 1px solid orange;
 }
 
 .mass-time-allocation-assignment-modal .actions {

@@ -46,6 +46,11 @@ spec:
                 secretKeyRef:
                   name: secrets
                   key: APPSIGNAL_PUSH_API_KEY
+            - name: SLACK_LOGGER_WEBHOOK_URL 
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: SLACK_LOGGER_WEBHOOK_URL 
             - name: AZURE_ACTIVE_DIRECTORY
               valueFrom:
                 secretKeyRef:

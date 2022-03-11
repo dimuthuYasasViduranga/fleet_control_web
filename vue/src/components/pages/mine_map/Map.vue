@@ -48,9 +48,8 @@
           <div ref="asset-selector-control" class="g-control asset-selector-control">
             <GMapDropDown
               :value="selectedAssetId"
-              :items="assetOptions"
+              :options="assetOptions"
               label="fullname"
-              :useScrollLock="true"
               placeholder="Find Asset"
               direction="down"
               @change="onFindAsset"
@@ -453,15 +452,17 @@ export default {
         const assetId = selected.data.id;
         // find the asset within the new assets (in case the track has moved)
         const asset = newAssets.find(a => a.id === assetId);
+        const pos = asset?.track?.position;
 
         if (asset) {
           this.selected = {
             type: 'asset',
             data: asset,
           };
-          if (this.pUpShow === true) {
-            this.openPopup(asset.track.position);
-          }
+        }
+
+        if (pos && this.pUpShow) {
+          this.openPopup(pos);
         } else {
           this.closePopup();
         }
@@ -743,8 +744,12 @@ export default {
 }
 
 /* ------ dim all other assets when one is selected ------- */
-.mine-map .not-selected {
+.mine-map .gmap-track.not-selected {
   opacity: 0.6 !important;
+}
+
+.mine-map .gmap-track.no-operator {
+  filter: grayscale(65%);
 }
 
 @media screen and (max-width: 820px) {

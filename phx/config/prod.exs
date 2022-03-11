@@ -23,6 +23,11 @@ config :dispatch_web, DispatchWeb.Endpoint,
 config :dispatch_web, DispatchWeb.Guardian, secret_key: random_string.(64)
 
 # Do not print debug messages in production
-config :logger, level: :info
+config :logger,
+  level: :info,
+  compile_time_purge_matching: [
+    [application: :db_connection],
+    [module: DBConnection.Connection]
+  ]
 
 config :appsignal, :config, active: true, env: :prod

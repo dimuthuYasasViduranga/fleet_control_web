@@ -20,17 +20,12 @@ defmodule DispatchWeb.MixProject do
   end
 
   def application do
-    case Mix.env() do
-      :test ->
-        [
-          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-        ]
+    mod = {DispatchWeb.Application, []}
+    apps = [:logger, :runtime_tools]
 
-      _ ->
-        [
-          mod: {DispatchWeb.Application, []},
-          extra_applications: [:logger, :runtime_tools, :postgrex, :ecto]
-        ]
+    case Mix.env() do
+      :test -> [extra_applications: apps]
+      _ -> [mod: mod, extra_applications: apps]
     end
   end
 
@@ -43,27 +38,29 @@ defmodule DispatchWeb.MixProject do
       {:phoenix, "~> 1.5"},
       {:phoenix_pubsub, "~> 2.0"},
       {:gettext, "~> 0.18"},
-      {:jason, "~> 1.2"},
+      {:jason, "~> 1.3"},
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.1"},
-      {:guardian, "~> 1.1"},
+      {:guardian, "~> 2.2"},
       {:appsignal_phoenix, "~> 2.0"},
       {:decorator, "~> 1.2"},
 
       # dispatch
-      {:topo, "~> 0.3.0"},
+      {:topo, "~> 0.4.0"},
       {:geo, "~> 3.1"},
+      {:distance, "~> 1.0"},
       {:joken, "~> 2.0"},
       {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.3"},
       {:eastar, "~> 0.5"},
-      {:azure_ad_openid, "~> 0.2"},
-      {:poison, "~> 3.0"},
+      {:azure_ad_openid, "~> 0.3.2"},
+      {:slack_logger_backend,
+       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.2", only: [:prod]},
 
       # this overrides a dependency in cluster graph
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
 
       # test
-      {:mix_test_watch, "~> 0.9", only: :dev, runtime: false},
+      {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
       {:bureaucrat, "~> 0.2.7", only: :test}
     ]
@@ -80,7 +77,6 @@ defmodule DispatchWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/losses/test.exs",
         # fleet control seeds
         "run ./deps/hps_data/priv/repo/seeds/dispatch/pre_start_ticket_status_types/default.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/material_type/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",

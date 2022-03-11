@@ -72,3 +72,13 @@ config :dispatch_web, DispatchWeb.Endpoint,
 # conditionally set secret_key_base, if desired
 config :dispatch_web, DispatchWeb.Endpoint,
   secret_key_base: maybe_fetch_eval.("DISPATCH_SECRET_KEY_BASE", random_string.(64))
+
+# slack error logs
+config :logger, backends: [:console, SlackLoggerBackend.Logger]
+
+app_name = System.fetch_env!("APPSIGNAL_APP_NAME")
+
+config :slack_logger_backend,
+  debounce_seconds: 30,
+  deployment_name: app_name,
+  scrubber: {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"}

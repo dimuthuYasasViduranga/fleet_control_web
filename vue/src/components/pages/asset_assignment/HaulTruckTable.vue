@@ -56,10 +56,10 @@
         <template slot-scope="row">
           <DropDown
             :value="row.digUnitId"
-            :items="digUnitsWithLocations"
+            :options="digUnitsWithLocations"
             label="label"
-            @change="setDigUnitId(row, $event)"
             :disabled="readonly"
+            @change="setDigUnitId(row, $event)"
           />
         </template>
       </table-column>
@@ -68,10 +68,10 @@
         <template slot-scope="row">
           <DropDown
             :value="row.loadId"
-            :items="loadLocationOptions"
+            :options="loadLocationOptions"
             label="name"
-            @change="setLoadId(row, $event)"
             :disabled="readonly"
+            @change="setLoadId(row, $event)"
           />
         </template>
       </table-column>
@@ -80,10 +80,10 @@
         <template slot-scope="row">
           <DropDown
             v-model="row.dumpId"
-            :items="dumpLocationOptions"
+            :options="dumpLocationOptions"
             label="name"
-            @change="setHaulTruckDispatch(row)"
             :disabled="readonly"
+            @change="setHaulTruckDispatch(row)"
           />
         </template>
       </table-column>
@@ -106,7 +106,7 @@
 <script>
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '../../dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import NIcon from '@/components/NIcon.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
@@ -307,11 +307,6 @@ export default {
 <style>
 .haul-truck-table .table-icon-cel {
   width: 0.1em;
-}
-
-.haul-truck-table .dropdown-wrapper {
-  width: 100%;
-  height: 2rem;
 }
 
 .haul-truck-table .table-edit-cel {

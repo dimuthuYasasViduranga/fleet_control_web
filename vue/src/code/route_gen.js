@@ -113,6 +113,10 @@ function convertLocationId(locationId, locToV) {
 }
 
 function convertPosition(pos, locations, locToV, vertices) {
+  if (!pos || !pos.lat || !pos.lng) {
+    return;
+  }
+
   const turfPoint = turf.point([pos.lng, pos.lat]);
 
   const locationId = locations.find(l => turf.booleanWithin(turfPoint, l.turfPolygon))?.id;
@@ -232,7 +236,9 @@ function createHaulRouteFromDigUnit(
     source = { type: 'locationId', value: locationId, name: `${digUnitName} [${loadName}]` };
   } else {
     const position = attributeFromList(tracks, 'assetId', digUnitId, 'position');
-    source = { type: 'position', value: position, name: digUnitName };
+    if (position) {
+      source = { type: 'position', value: position, name: digUnitName };
+    }
   }
 
   return createHaulRoute(
@@ -247,7 +253,7 @@ function createHaulRouteFromDigUnit(
 }
 
 function createHaulRoute(info, loadSource, dumpId, assetIds, assetTypeId, locations, activeRoute) {
-  if (!dumpId) {
+  if (!loadSource || !dumpId) {
     return;
   }
 

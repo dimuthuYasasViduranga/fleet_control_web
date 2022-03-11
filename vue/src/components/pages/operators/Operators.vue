@@ -3,8 +3,9 @@
     <hxCard style="width: auto" :title="title" :icon="manIcon">
       <loaded>
         <div v-if="!readonly" class="actions">
-          <button class="hx-btn add-new-btn" @click="onAdd()">Add New</button>
-          <button class="hx-btn add-new-btn" @click="onBulkAdd()">Bulk Add</button>
+          <button class="hx-btn" @click="onAdd()">Add New</button>
+          <button class="hx-btn" @click="onBulkAdd()">Bulk Add</button>
+          <button class="hx-btn" @click="onExport()">Export as CSV</button>
         </div>
         <operator-table
           :operators="operators"
@@ -28,6 +29,25 @@ import OperatorTable from './OperatorTable.vue';
 import Loaded from '@/components/Loaded.vue';
 import EditOperatorModal from './EditOperatorModal.vue';
 import BulkAddOperatorModal from './BulkAddOperatorModal.vue';
+import AddOperatorModal from './AddOperatorModal.vue';
+import { writeToString } from '@fast-csv/format';
+import { downloadFromText } from '@/code/io';
+
+function exportAsCSV(operators) {
+  const formattedOperators = operators.map(o => {
+    return {
+      name: o.name,
+      short_name: o.nickname,
+      employee_id: o.employeeId,
+    };
+  });
+  const headers = ['name', 'short_name', 'employee_id'];
+  const rows = formattedOperators.map(o => headers.map(h => o[h]));
+
+  writeToString(rows, { headers }).then(text => {
+    downloadFromText(text, 'operators.csv');
+  });
+}
 
 export default {
   name: 'Operators',
@@ -62,30 +82,19 @@ export default {
         .receive('timeout', () => this.$toaster.noComms('Unable to change status at this time'));
     },
     onAdd() {
-      const opts = {
-        title: 'Add Operator',
-        operators: this.operators,
-        operator: {
-          id: null,
-          name: null,
-          nickname: null,
-          employeeId: null,
-        },
-      };
+      const employeeIds = this.operators.map(o => o.employeeId);
 
-      this.$modal.create(EditOperatorModal, opts);
+      this.$modal.create(AddOperatorModal, { employeeIds });
     },
     onEdit(operator) {
-      const opts = {
-        title: 'Edit Operator',
-        operators: this.operators,
-        operator: { ...operator },
-      };
-      this.$modal.create(EditOperatorModal, opts);
+      this.$modal.create(EditOperatorModal, { operator });
     },
     onBulkAdd() {
       const opts = { operators: this.operators };
       this.$modal.create(BulkAddOperatorModal, opts);
+    },
+    onExport() {
+      exportAsCSV(this.operators);
     },
   },
 };
@@ -99,7 +108,7 @@ export default {
   display: flex;
   padding-bottom: 1rem;
 }
-.operators-page .actions * {
+.operators-page .actions > * {
   margin-right: 0.25rem;
 }
 </style>

@@ -51,7 +51,7 @@
       <tr>
         <td class="key">Status</td>
         <td class="value">
-          <DropDown v-model="localStatusTypeId" :items="statusTypes" :disabled="readonly" />
+          <DropDown v-model="localStatusTypeId" :options="statusTypes" :disabled="readonly" />
         </td>
       </tr>
     </table>
@@ -67,7 +67,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import AutoSizeTextArea from '@/components/AutoSizeTextArea.vue';
 import { attributeFromList } from '@/code/helpers';
 import { formatDateRelativeToIn } from '@/code/time';

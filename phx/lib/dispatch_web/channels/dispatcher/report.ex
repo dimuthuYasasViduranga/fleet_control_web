@@ -225,7 +225,7 @@ defmodule DispatchWeb.DispatcherChannel.Report do
         |> Enum.all?(&(&1 !== "Ready"))
         |> case do
           true -> 0
-          _ -> occupied / total_duration
+          _ -> safe_div(occupied, total_duration)
         end
 
       to_report_row(
@@ -239,6 +239,10 @@ defmodule DispatchWeb.DispatcherChannel.Report do
       )
     end)
   end
+
+  defp safe_div(_num, 0.0), do: 0
+  defp safe_div(_num, 0), do: 0
+  defp safe_div(num, denum), do: num / denum
 
   defp get_time_allocations(asset_ids, start_time, end_time) do
     from(ta in TimeAllocation,

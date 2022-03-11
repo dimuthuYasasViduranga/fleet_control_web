@@ -2,10 +2,11 @@
   <div class="copy-from-modal">
     <h1 class="title">Copy Pre-Start</h1>
     <DropDown
+      class="asset-select"
       placeholder="Select Asset"
       :value="selectedAssetType"
-      :items="options"
-      keyName="assetTypeId"
+      :options="options"
+      keyId="assetTypeId"
       label="assetType"
       @change="onAssetTypeChange"
     />
@@ -30,7 +31,8 @@
                 class="category"
                 placeholder="None"
                 :value="control.categoryId"
-                :items="categories"
+                :options="categories"
+                :disabled="true"
                 label="name"
               />
               <Icon
@@ -54,7 +56,7 @@
 
 <script>
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '@/components/dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 
 import CommentIcon from '@/components/icons/Comment.vue';
 import { attributeFromList } from '@/code/helpers';

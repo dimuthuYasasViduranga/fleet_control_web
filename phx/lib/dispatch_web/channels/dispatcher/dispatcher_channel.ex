@@ -43,7 +43,8 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
-    RoutingAgent
+    RoutingAgent,
+    LiveQueueAgent
   }
 
   alias Phoenix.Socket
@@ -85,6 +86,7 @@ defmodule DispatchWeb.DispatcherChannel do
       pending_devices: pending_devices,
 
       # common
+      live_queue: LiveQueueAgent.get(),
       activities: ActivityAgent.get(),
       operator_messages: OperatorMessageAgent.all(),
       dispatcher_messages: DispatcherMessageAgent.all(),
@@ -302,6 +304,29 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_time_codes)
+  def handle_in("bulk add time codes", %{"time_codes" => time_codes}, socket) do
+    time_codes =
+      Enum.map(time_codes, fn tc ->
+        %{
+          name: tc["name"],
+          code: tc["code"],
+          group_id: tc["group_id"],
+          category_id: tc["category_id"]
+        }
+      end)
+
+    case TimeCodeAgent.bulk_add_time_codes(time_codes) do
+      {:ok, _time_codes} ->
+        Broadcast.send_time_code_data_to_all()
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
   @decorate authorized(:can_edit_messages)
   def handle_in("update operator message type", payload, socket) do
     case payload["override"] do
@@ -394,8 +419,6 @@ defmodule DispatchWeb.DispatcherChannel do
       error ->
         {:reply, to_error(error), socket}
     end
-
-    {:reply, :ok, socket}
   end
 
   @decorate authorized(:can_edit_operators)

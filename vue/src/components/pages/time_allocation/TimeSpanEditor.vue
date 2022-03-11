@@ -153,7 +153,7 @@ import NewPane from './editor_panes/new/NewPane.vue';
 import TimeIcon from '../../icons/Time.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import { copyDate, isDateEqual, toUtcDate } from '@/code/time';
+import { copyDate, isDateEqual, toEpoch, toUtcDate } from '@/code/time';
 import { uniq, chunkEvery } from '@/code/helpers';
 import {
   toAllocationTimeSpans,
@@ -338,10 +338,6 @@ function parseEvent(event) {
     compliance: event.compliance,
     details: event.details,
   };
-}
-
-function toEpoch(date) {
-  return date ? date.getTime() : null;
 }
 
 function toShiftSpans(shifts, shiftTypes, timestamps) {

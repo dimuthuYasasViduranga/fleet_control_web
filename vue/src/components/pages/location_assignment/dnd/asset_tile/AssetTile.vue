@@ -153,7 +153,24 @@ export default {
       return this.nUnreadDispatcherMsgs > 0 ? 'yellow-border' : '';
     },
     tileClasses() {
-      return [getDesyncedClass(this.asset), getAndResolveExternalUpdateClass(this.asset)];
+      const classes = [getDesyncedClass(this.asset), getAndResolveExternalUpdateClass(this.asset)];
+
+      const queueInfo = this.asset.liveQueueInfo;
+
+      if (this.asset.type === 'Haul Truck' && queueInfo) {
+        classes.push(queueInfo.status);
+      }
+
+      if (this.asset.secondaryType === 'Dig Unit' && queueInfo) {
+        if (queueInfo.active.length) {
+          classes.push('loading');
+        } else if (!queueInfo.queued.length) {
+          classes.push('hang');
+        }
+      }
+
+
+      return classes;
     },
     locationName() {
       const activity = this.asset.activity || {};
@@ -272,6 +289,18 @@ export default {
 }
 
 /* --- tile colors ---- */
+.asset-tile.loading {
+  background-color: #00800015 !important;
+}
+
+.asset-tile.queued {
+  background-color: #ffa6000a !important;
+}
+
+.asset-tile.hang {
+  background-color: #ffa6000a !important;
+}
+
 .asset-tile.tile-desynced {
   background-color: #64646480 !important;
 }

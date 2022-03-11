@@ -13,7 +13,7 @@ import MessageEditorPage from '../components/pages/message_editor/MessageEditorP
 import MineMap from '../components/pages/mine_map/MineMap.vue';
 import RouteMapPage from '../components/pages/route_map/RouteMapPage.vue';
 import EngineHours from '../components/pages/engine_hours/EngineHours.vue';
-import Debug from '../components/pages/debug/Debug.vue';
+import Debug from '../components/pages/debug/Debug2.vue';
 import Agents from '../components/pages/agents/Agents.vue';
 import PreStartEditor from '../components/pages/pre_start_editor/PreStartEditor.vue';
 import PreStartSubmissionsPage from '../components/pages/pre_start_submissions/PreStartSubmissionsPage.vue';

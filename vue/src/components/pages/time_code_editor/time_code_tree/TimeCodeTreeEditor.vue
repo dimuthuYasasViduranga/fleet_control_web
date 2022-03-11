@@ -226,7 +226,7 @@ export default {
   height: 3rem;
 }
 
-.time-code-tree-editor .time-code-tree .dropdown-wrapper {
+.time-code-tree-editor .time-code-tree .drop-down {
   width: 20rem;
 }
 

@@ -77,6 +77,7 @@
     </div>
     <div class="actions">
       <button class="hx-btn" @click="onAccept()">Accept</button>
+      <button class="hx-btn" @click="close()">Cancel</button>
     </div>
   </div>
 </template>
@@ -345,5 +346,15 @@ export default {
 
 .restriction-map-modal .gmap-map .vue-map-container {
   height: 100%;
+}
+
+.restriction-map-modal .actions {
+  display: flex;
+  margin-top: 2rem;
+}
+
+.restriction-map-modal .actions > * {
+  width: 100%;
+  margin-left: 0.25rem;
 }
 </style>
