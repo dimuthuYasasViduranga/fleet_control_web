@@ -57,7 +57,7 @@
 
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span :class="setPresenceIconColor(row.present)">
+          <span v-tooltip="getOnlineStatusTooltip(row)" :class="setPresenceIconColor(row.present)">
             <Icon :icon="getIcon(row)" />
           </span>
         </template>
@@ -239,6 +239,15 @@ export default {
         html: true,
         content,
       };
+    },
+    getOnlineStatusTooltip(row) {
+      const status = row.onlineStatus;
+
+      if (!status) {
+        return 'Not connected this update';
+      }
+
+      return `${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
     },
   },
 };

@@ -1,3 +1,4 @@
+import { toUtcDate } from '@/code/time';
 import Toaster from '@/code/toaster';
 const UPDATE_INTERVAL = 5 * 1000;
 const LONG_OFFLINE_DURATION = 30 * 1000;
@@ -39,10 +40,49 @@ function toastConnection(newStatus, oldStatus) {
   }
 }
 
+function onlineStatusFromPresence(presence) {
+  return presence
+    .list((id, { metas: [data] }) => {
+      return { id, timestamp: data?.online_at };
+    })
+    .reduce((acc, device) => {
+      const epoch = Number(device.timestamp);
+      if (isNaN(epoch)) {
+        return acc;
+      }
+
+      acc[device.id] = toUtcDate(epoch * 1000);
+      return acc;
+    }, {});
+}
+
+function deviceOnlineStatus(oldStatus, newStatus) {
+  // if not in new status, set as offline
+  const now = Date.now();
+
+  const status = Object.keys(oldStatus).reduce((acc, key) => {
+    acc[key] = {
+      type: 'disconnected',
+      timestamp: new Date(now),
+    };
+    return acc;
+  }, {});
+
+  Object.entries(newStatus).forEach(([key, timestamp]) => {
+    status[key] = {
+      type: 'connected',
+      timestamp,
+    };
+  });
+
+  return status;
+}
+
 /* ------------------ module --------------- */
 const state = {
   userToken: String(),
   presence: Array(),
+  deviceOnlineStatus: Object(),
   mode: null,
   isAlive: false,
   isConnected: false,
@@ -79,7 +119,10 @@ const actions = {
   },
   setPresence({ commit }, presence) {
     const presenceList = presence.list(id => id);
+    const onlineStatus = onlineStatusFromPresence(presence);
+
     commit('setPresence', presenceList);
+    commit('updateDeviceOnlineStatus', onlineStatus);
   },
 };
 
@@ -114,6 +157,9 @@ const mutations = {
   },
   setPresence(state, presence = []) {
     state.presence = presence;
+  },
+  updateDeviceOnlineStatus(state, status = {}) {
+    state.deviceOnlineStatus = deviceOnlineStatus(state.deviceOnlineStatus, status);
   },
 };
 
