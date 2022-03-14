@@ -131,7 +131,7 @@ function splitSpanForRange(timeSpan, minDatetime, maxDatetime) {
     ref.startTime = copyDate(minDatetime);
   }
 
-  if (maxDatetime && timeSpan.endTime.getTime() > maxDatetime.getTime()) {
+  if (maxDatetime && (timeSpan.endTime || timeSpan.activeEndTime).getTime() > maxDatetime.getTime()) {
     rightSpan = copyTimeSpan(ref);
     rightSpan.startTime = copyDate(maxDatetime);
     rightSpan.data.id = null;
