@@ -53,7 +53,7 @@
         </td>
       </tr>
       <tr>
-        <td class="key">Last Seen</td>
+        <td class="key">Last Seen ({{ trackSource }})</td>
         <td v-if="ago.duration != null" class="value" :class="ago.class">
           {{ formatAgo(ago.duration) }}
         </td>
@@ -129,6 +129,9 @@ export default {
       loadStyles: state => state.loadStyles,
       materialTypes: state => state.materialTypes,
     }),
+    trackSource() {
+      return this.track?.source;
+    },
     trackLocation() {
       return getNested(this.track, ['location', 'name']);
     },
