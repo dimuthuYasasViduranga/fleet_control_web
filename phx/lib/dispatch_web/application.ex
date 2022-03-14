@@ -43,7 +43,6 @@ defmodule DispatchWeb.Application do
 
       # track subscriber
       Dispatch.TrackAgent,
-      Dispatch.TrackSub,
 
       # authorization server
       Dispatch.DeviceAuthServer

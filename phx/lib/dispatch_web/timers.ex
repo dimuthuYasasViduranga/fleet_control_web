@@ -9,6 +9,7 @@ defmodule DispatchWeb.Timers do
   @default_location_interval 30 * 60 * 1000
   @default_fleetops_interval 10 * 60 * 1000
   @default_live_queue_interval 10 * 1000
+  @default_track_interval 10 * 1000
 
   @spec start() :: :ok
   def start() do
@@ -28,6 +29,8 @@ defmodule DispatchWeb.Timers do
     )
 
     start_live_queue_interval!(get_interval(:live_queue_interval, @default_live_queue_interval))
+
+    start_track_interval!(get_interval(:track_interval, @default_track_interval))
 
     :ok
   end
@@ -53,5 +56,9 @@ defmodule DispatchWeb.Timers do
       _ ->
         nil
     end
+  end
+
+  defp start_track_interval!(interval) do
+    {:ok, {:interval, _}} = :timer.apply_interval(interval, Dispatch.Tracks, :update_track_agent, [])
   end
 end

@@ -230,7 +230,6 @@ export default {
       this.$emit('clear-dump', payload);
     },
     onMoveTrucks({ dumpId, assetIds }) {
-      console.dir('--- move trucks')
       const payload = { digUnitId: this.digUnitId, loadId: this.loadId, dumpId, assetIds };
       this.$emit('move-trucks', payload);
     },

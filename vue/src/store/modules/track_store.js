@@ -27,6 +27,7 @@ function parseTrack(track) {
     },
     timestamp: toUtcDate(track.timestamp),
     valid: track.valid,
+    source: track.source,
   };
 }
 

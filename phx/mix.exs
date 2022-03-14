@@ -50,7 +50,7 @@ defmodule DispatchWeb.MixProject do
       {:geo, "~> 3.1"},
       {:distance, "~> 1.0"},
       {:joken, "~> 2.0"},
-      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.3"},
+      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.3.2"},
       {:slack_logger_backend,

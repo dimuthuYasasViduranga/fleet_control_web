@@ -391,7 +391,8 @@ defmodule DispatchWeb.OperatorChannel do
       speed_ms: vel["speed"],
       heading: vel["heading"],
       timestamp: Helper.to_naive(track["timestamp"]),
-      valid: track["valid"]
+      valid: track["valid"],
+      source: :device
     }
   end
 

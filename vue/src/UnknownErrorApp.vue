@@ -2,7 +2,7 @@
   <div id="unknown-error-app">
     <p>An error has occured</p>
     <p>{{ error }}</p>
-    {{ error.response.statusText || '' }} - {{ message }}
+    {{ statusText || '' }} - {{ message }}
   </div>
 </template>
 
@@ -13,6 +13,9 @@ export default {
     error: { type: Error },
   },
   computed: {
+    statusText() {
+      return this.error?.response?.statusText;
+    },
     message() {
       const message = this.error?.response?.data || '';
       if (typeof message !== 'string' || message.includes('DOCTYPE')) {
