@@ -243,7 +243,7 @@ export default {
     getOnlineStatusTooltip(row) {
       const status = row.onlineStatus;
 
-      if (!status) {
+      if (!status || status === 'not_seen') {
         return 'Not connected this update';
       }
 

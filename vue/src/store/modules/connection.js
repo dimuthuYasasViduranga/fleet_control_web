@@ -56,13 +56,18 @@ function onlineStatusFromPresence(presence) {
     }, {});
 }
 
-function deviceOnlineStatus(oldStatus, newStatus) {
+function updateDeviceOnlineStatus(oldStatus, newStatus) {
   // if not in new status, set as offline
   const now = Date.now();
 
   const status = Object.keys(oldStatus).reduce((acc, key) => {
+    // if it has been seen before, set to disconnected
+    if (oldStatus[key]?.status === 'not_seen') {
+      acc[key] = oldStatus[key];
+      return acc;
+    }
     acc[key] = {
-      type: 'disconnected',
+      status: 'disconnected',
       timestamp: new Date(now),
     };
     return acc;
@@ -70,7 +75,7 @@ function deviceOnlineStatus(oldStatus, newStatus) {
 
   Object.entries(newStatus).forEach(([key, timestamp]) => {
     status[key] = {
-      type: 'connected',
+      status: 'connected',
       timestamp,
     };
   });
@@ -117,7 +122,18 @@ const actions = {
   setIsConnected({ commit }, bool) {
     commit('setIsConnected', bool);
   },
-  setPresence({ commit }, presence) {
+  setDeviceOnlineStatus({ commit }, data) {
+    const deviceOnlineStatus = Object.entries(data).reduce((acc, [uuid, info]) => {
+      acc[uuid] = {
+        status: info.status,
+        timestamp: toUtcDate(info.timestamp),
+      };
+      return acc;
+    }, {});
+
+    commit('setDeviceOnlineStatus', deviceOnlineStatus);
+  },
+  updatePresence({ commit }, presence) {
     const presenceList = presence.list(id => id);
     const onlineStatus = onlineStatusFromPresence(presence);
 
@@ -158,8 +174,11 @@ const mutations = {
   setPresence(state, presence = []) {
     state.presence = presence;
   },
+  setDeviceOnlineStatus(state, status = {}) {
+    state.deviceOnlineStatus = status;
+  },
   updateDeviceOnlineStatus(state, status = {}) {
-    state.deviceOnlineStatus = deviceOnlineStatus(state.deviceOnlineStatus, status);
+    state.deviceOnlineStatus = updateDeviceOnlineStatus(state.deviceOnlineStatus, status);
   },
 };
 
