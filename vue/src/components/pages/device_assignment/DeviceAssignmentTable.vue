@@ -243,11 +243,15 @@ export default {
     getOnlineStatusTooltip(row) {
       const status = row.onlineStatus;
 
-      if (!status || status === 'not_seen') {
+      if (!status) {
         return 'Not connected this update';
       }
 
-      return `${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
+      if (status === 'not_seen') {
+        return `No information available before ${this.formatDate(row.onlineStatusUpdated)}`;
+      }
+
+      return `Last ${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
     },
   },
 };
