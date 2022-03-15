@@ -44,7 +44,8 @@ defmodule DispatchWeb.DispatcherChannel do
     PreStartAgent,
     PreStartSubmissionAgent,
     RoutingAgent,
-    LiveQueueAgent
+    LiveQueueAgent,
+    DeviceConnectionAgent
   }
 
   alias Phoenix.Socket
@@ -84,6 +85,7 @@ defmodule DispatchWeb.DispatcherChannel do
         historic: DeviceAssignmentAgent.historic()
       },
       pending_devices: pending_devices,
+      device_connections: DeviceConnectionAgent.get(),
 
       # common
       live_queue: LiveQueueAgent.get(),

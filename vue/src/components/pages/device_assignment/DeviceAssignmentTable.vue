@@ -247,7 +247,11 @@ export default {
         return 'Not connected this update';
       }
 
-      return `${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
+      if (status === 'not_seen') {
+        return `No information available before ${this.formatDate(row.onlineStatusUpdated)}`;
+      }
+
+      return `Last ${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
     },
   },
 };

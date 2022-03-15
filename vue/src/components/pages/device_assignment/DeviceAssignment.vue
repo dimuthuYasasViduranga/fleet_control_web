@@ -110,7 +110,7 @@ function formatAssignment(d, assets, operators, assignments, presenceList, devic
     clientUpdatedAt,
     deviceDetails: d.details || {},
     present: presenceList.includes(d.uuid),
-    onlineStatus: deviceStatus.type,
+    onlineStatus: deviceStatus.status,
     onlineStatusUpdated: deviceStatus.timestamp,
   };
 }

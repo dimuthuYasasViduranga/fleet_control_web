@@ -92,7 +92,7 @@ export default {
       channel.setOnConnect(this.onJoin);
       dispatch('connection/attachMonitor', channel);
 
-      const presenceSyncCallback = presence => dispatch('connection/setPresence', presence);
+      const presenceSyncCallback = presence => dispatch('connection/updatePresence', presence);
       channel.create(this.$hostname, this.userToken, presenceSyncCallback);
 
       channel.setOns([
@@ -238,6 +238,7 @@ export default {
         ['deviceStore/setCurrentDeviceAssignments', resp.device_assignments.current],
         ['deviceStore/setHistoricDeviceAssignments', resp.device_assignments.historic],
         ['deviceStore/setPendingDevices', resp.pending_devices],
+        ['connection/setDeviceOnlineStatus', resp.device_connections],
 
         // shared
         ['setLiveQueue', resp.live_queue],
