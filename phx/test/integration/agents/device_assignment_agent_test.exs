@@ -11,7 +11,9 @@ defmodule Dispatch.DeviceAssignmentAgentTest do
     DeviceAssignmentAgent.start_link([])
 
     OperatorAgent.start_link([])
-    [operator_a, operator_b | _] = OperatorAgent.active()
+    OperatorAgent.add("d-assignmet-1", "test-1", nil)
+    OperatorAgent.add("d-assignmet-2", "test-2", nil)
+    [operator_a, operator_b] = OperatorAgent.active()
 
     [asset_a, asset_b | _] = AssetAgent.get_assets(%{type: "Haul Truck"})
 
