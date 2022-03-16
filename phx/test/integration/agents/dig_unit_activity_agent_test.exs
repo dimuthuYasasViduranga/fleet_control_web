@@ -29,7 +29,16 @@ defmodule Dispatch.DigUnitActivityAgentTest do
       |> Map.get(:id)
 
     material_type =
-      Repo.insert!(%MaterialType{name: "HG", alias: "HG"}, returning: true)
+      Repo.insert!(
+        %MaterialType{
+          name: "HG",
+          alias: "HG",
+          tonnes_to_bcm_factor: 0.0,
+          display_in_bcm: false,
+          deleted: false
+        },
+        returning: true
+      )
       |> Map.get(:id)
 
     [load_style: load_style, material_type: material_type]
