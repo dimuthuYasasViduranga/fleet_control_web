@@ -78,7 +78,6 @@ defmodule DispatchWeb.MixProject do
         # fleet control seeds
         "run ./deps/hps_data/priv/repo/seeds/dispatch/pre_start_ticket_status_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/simple.exs",
         "run ./priv/test_data_seeds.exs"

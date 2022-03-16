@@ -6,8 +6,6 @@ defmodule Dispatch.OperatorAgentTest do
   alias HpsData.Schemas.Dispatch.Operator
 
   setup _ do
-    # clear seeded data for these tests
-    Repo.delete_all(Operator)
     OperatorAgent.start_link([])
     :ok
   end

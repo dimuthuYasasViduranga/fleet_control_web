@@ -5,22 +5,35 @@ defmodule Dispatch.TimeCodeAgentText do
   alias Dispatch.{AssetAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch
 
-  setup_all _ do
+  setup _ do
+    group_map =
+      Repo.all(Dispatch.TimeCodeGroup)
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.into(%{})
+
+    # insert example time codes
+    Repo.insert!(%Dispatch.TimeCode{code: "1000", name: "Dig Ore", group_id: group_map["Ready"]})
+    Repo.insert!(%Dispatch.TimeCode{code: "2000", name: "Damage", group_id: group_map["Down"]})
+
     AssetAgent.start_link([])
 
     [haul | _] = AssetAgent.get_assets(%{type: "Haul Truck"})
     [excavator | _] = AssetAgent.get_assets(%{type: "Excavator"})
 
-    # groups contain ready, process, standby, process
-    groups =
-      Dispatch.TimeCodeGroup
-      |> Repo.all()
-      |> Enum.map(&{String.to_atom(String.downcase(&1.name)), &1.id})
+
 
     time_codes = Repo.all(Dispatch.TimeCode)
     dig_ore = Enum.find(time_codes, &(&1.name == "Dig Ore")).id
     damage = Enum.find(time_codes, &(&1.name == "Damage")).id
     no_task = Enum.find(time_codes, &(&1.name == "No Task")).id
+
+    TimeCodeAgent.start_link([])
+
+    # convert so that groups are accessible in context.
+    groups =
+      Enum.map(group_map, fn {name, id} ->
+        {String.to_atom(String.downcase(name)), id}
+      end)
 
     groups ++
       [
@@ -30,11 +43,6 @@ defmodule Dispatch.TimeCodeAgentText do
         damage: damage,
         no_task: no_task
       ]
-  end
-
-  setup _ do
-    TimeCodeAgent.start_link([])
-    :ok
   end
 
   defp to_element(id, parent_id, group_id, time_code_id, name) do
@@ -261,7 +269,7 @@ defmodule Dispatch.TimeCodeAgentText do
     test "invalid (id does not exist)", %{ready: ready} do
       error =
         %{
-          id: -1,
+          id: -9000,
           code: "1111",
           name: "invalid",
           group_id: ready
