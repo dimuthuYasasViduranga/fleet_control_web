@@ -59,25 +59,6 @@ defmodule Dispatch.DeviceAgentTest do
       refute_db_contains(Device, initial)
     end
 
-    test "valid (prevent details override to null)" do
-      uuid = "abcdefg"
-      serial = "123456"
-      {:ok, :new, initial} = DeviceAgent.add(uuid, %{"serial" => serial})
-      {:ok, :exists, actual} = DeviceAgent.add(uuid, %{"serial" => nil, "new_val" => 25})
-
-      # return
-      assert initial.details["serial"] == serial
-      assert actual.details["serial"] == serial
-      assert actual.details["new_val"] == 25
-
-      # state
-      assert DeviceAgent.all() == [actual]
-
-      # database
-      assert_db_contains(Device, actual)
-      refute_db_contains(Device, initial)
-    end
-
     test "invalid (no uuid)" do
       actual = DeviceAgent.add(nil)
       assert actual == {:error, :invalid_uuid}
