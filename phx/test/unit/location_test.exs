@@ -60,7 +60,7 @@ defmodule Dispatch.LocationTest do
       actual = Location.find_location([crusher], 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
       assert actual.name == "Crusher"
-      assert NaiveDateTime.compare(actual.timestamp, ~N[2020-01-01 00:00:00.000000]) == :eq
+      assert NaiveDateTime.compare(actual.start_time, ~N[2020-01-01 00:00:00.000000]) == :eq
     end
 
     test "within no geofence" do
@@ -90,7 +90,7 @@ defmodule Dispatch.LocationTest do
 
       actual = Location.find_location(locations, 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
-      assert is_nil(actual)
+      assert actual == crusher
     end
 
     test "within different closed and open (ie name change)", %{crusher: crusher} do
