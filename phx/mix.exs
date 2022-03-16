@@ -85,10 +85,10 @@ defmodule DispatchWeb.MixProject do
       "test.test_seeds": ["run ./priv/test_data_seeds.exs"],
       "test.drop": ["ecto.drop -r HpsData.Repo"],
       "test.migrate": ["ecto.migrate -r HpsData.Repo"],
-      "test.unit": ["test --only unit"],
-      "test.agent": ["test --only agent"],
-      "test.conn": ["test --only conn"],
-      "test.channel": ["test --only channel"]
+      "test.unit": ["test test/unit"],
+      "test.agent": ["test test/integration/agents"],
+      "test.conn": ["test test/integration/conn"],
+      "test.channel": ["test test/integration/channel"]
     ]
   end
 
