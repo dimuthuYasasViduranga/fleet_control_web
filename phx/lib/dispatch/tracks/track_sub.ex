@@ -1,6 +1,4 @@
 defmodule TrackSub.Rest do
-  alias Dispatch.Helper
-
   @doc """
   Returns a list of latest track points for all assets
   """

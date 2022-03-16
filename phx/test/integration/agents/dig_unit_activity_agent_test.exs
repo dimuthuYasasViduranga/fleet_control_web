@@ -3,8 +3,8 @@ defmodule Dispatch.DigUnitActivityAgentTest do
   @moduletag :agent
 
   alias Dispatch.{Helper, AssetAgent, DigUnitActivityAgent}
-  alias HpsData.Dim.Location
-  alias HpsData.Schemas.Dispatch.{DigUnitActivity, LoadStyle, MaterialType}
+  alias HpsData.Dim.{Location, MaterialType}
+  alias HpsData.Schemas.Dispatch.{DigUnitActivity, LoadStyle}
 
   setup_all _ do
     AssetAgent.start_link([])
@@ -29,7 +29,7 @@ defmodule Dispatch.DigUnitActivityAgentTest do
       |> Map.get(:id)
 
     material_type =
-      Repo.insert!(%MaterialType{name: "HG", common_name: "HG"}, returning: true)
+      Repo.insert!(%MaterialType{name: "HG", alias: "HG"}, returning: true)
       |> Map.get(:id)
 
     [load_style: load_style, material_type: material_type]
