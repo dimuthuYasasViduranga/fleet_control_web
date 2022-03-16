@@ -111,6 +111,30 @@ defmodule Dispatch.HaulAgentTest do
         end)
         |> elem(0)
 
+      states =
+        Enum.map(tu_elements, fn tu ->
+          %{
+            haul_truck_id: haul_truck_id,
+            calendar_id: tu.calendar_id,
+            location_history_id: tu.location_history_id,
+            transmission: tu.transmission,
+            start_time: tu.start_time,
+            end_time: tu.end_time,
+            latitude: tu.latitude,
+            longitude: tu.longitude,
+            distance: tu.distance,
+            duration: tu.duration
+          }
+        end)
+
+      {_count, inserted_states} = Repo.insert_all(Haul.State, states, returning: true)
+
+      # add state id required for time usage elements
+      tu_elements =
+        tu_elements
+        |> Enum.zip(inserted_states)
+        |> Enum.map(fn {tu, state} -> Map.put(tu, :state_id, state.id) end)
+
       Repo.insert_all(Haul.TimeUsage, tu_elements)
     end)
   end
