@@ -18,7 +18,15 @@ defmodule Dispatch.LocationAgentTest do
     :ok
   end
 
-  defp to_location_history(types, locations, {south, north, east, west}, name, type, timestamp) do
+  defp to_location_history(
+         types,
+         locations,
+         {south, north, east, west},
+         name,
+         type,
+         start_time,
+         end_time \\ nil
+       ) do
     geofence =
       "#{north},#{east}|#{north},#{west}|#{south},#{west}|#{south},#{east}|#{north},#{east}"
 
@@ -30,7 +38,9 @@ defmodule Dispatch.LocationAgentTest do
       lat_max: north,
       lon_min: east,
       lon_max: west,
-      timestamp: timestamp,
+      timestamp: start_time,
+      start_time: start_time,
+      end_time: end_time,
       geofence: geofence,
       location_id: location_id,
       location_type_id: type_id,
@@ -51,7 +61,9 @@ defmodule Dispatch.LocationAgentTest do
       lon_min: location.lon_min,
       lon_max: location.lon_max,
       geofence: location.geofence,
-      timestamp: location.timestamp
+      timestamp: location.timestamp,
+      start_time: location.start_time,
+      end_time: location.end_time
     }
   end
 
@@ -59,14 +71,24 @@ defmodule Dispatch.LocationAgentTest do
     test "new location before now", %{locations: locations, types: types} do
       initial_locations = LocationAgent.all()
 
+      existing_crusher = Enum.find(initial_locations, &(&1.name == "Crusher"))
+
+      new_time = NaiveDateTime.add(existing_crusher.start_time, 3600)
+
+      # end the old history
+      Repo.get_by(Dim.LocationHistory, %{id: existing_crusher.history_id})
+      |> Dim.LocationHistory.changeset(%{end_time: new_time})
+      |> Repo.update!()
+
+      # create a new one
       inserted =
         to_location_history(
           types,
           locations,
           {40.0, 45.0, 40.0, 45.0},
           "Crusher",
-          "crusher",
-          ~N[2020-01-02 00:00:00.000000]
+          "dump",
+          new_time
         )
         |> Repo.insert!()
         |> formatter()
@@ -74,8 +96,9 @@ defmodule Dispatch.LocationAgentTest do
       # post refresh
       LocationAgent.refresh!()
 
-      # store (order by location_id, which crusher already has an entry for)
-      [_, new_entry | _] = stored_entries = LocationAgent.all()
+      # store
+      stored_entries = LocationAgent.all()
+      new_entry = List.last(stored_entries)
       assert length(stored_entries) == length(initial_locations) + 1
       assert new_entry.history_id == inserted.history_id
 
@@ -86,14 +109,24 @@ defmodule Dispatch.LocationAgentTest do
     test "new location in the future", %{locations: locations, types: types} do
       initial_locations = LocationAgent.all()
 
+      existing_crusher = Enum.find(initial_locations, &(&1.name == "Crusher"))
+
+      new_time = ~N[3000-01-02 00:00:00.000000]
+
+      # end the old history
+      Repo.get_by(Dim.LocationHistory, %{id: existing_crusher.history_id})
+      |> Dim.LocationHistory.changeset(%{end_time: new_time})
+      |> Repo.update!()
+
+      # create a new one
       inserted =
         to_location_history(
           types,
           locations,
           {40.0, 45.0, 40.0, 45.0},
           "Crusher",
-          "crusher",
-          ~N[2040-01-02 00:00:00.000000]
+          "dump",
+          new_time
         )
         |> Repo.insert!()
         |> formatter()
@@ -101,8 +134,9 @@ defmodule Dispatch.LocationAgentTest do
       # post refresh
       LocationAgent.refresh!()
 
-      # store (order by location_id, which crusher already has an entry for)
-      [_, new_entry | _] = stored_entries = LocationAgent.all()
+      # store
+      stored_entries = LocationAgent.all()
+      new_entry = List.last(stored_entries)
       assert length(stored_entries) == length(initial_locations) + 1
       assert new_entry.history_id == inserted.history_id
 
@@ -125,17 +159,25 @@ defmodule Dispatch.LocationAgentTest do
     end
 
     test "between locations (future locations test)" do
-      timestamp = ~N[2040-01-01 00:00:00.000000]
+      timestamp = ~N[3000-01-01 00:00:00.000000]
+
+      existing_locations = LocationAgent.all()
+
+      # close existing
+      Repo.update_all(Dim.LocationHistory, set: [end_time: timestamp])
+
+      # add new locations
 
       new_locations =
-        LocationAgent.all()
-        |> Enum.map(fn loc ->
+        Enum.map(existing_locations, fn loc ->
           %{
             lat_min: loc.lat_min,
             lat_max: loc.lat_max,
             lon_min: loc.lon_min,
             lon_max: loc.lon_max,
             timestamp: timestamp,
+            start_time: timestamp,
+            end_time: nil,
             geofence: loc.geofence,
             location_id: loc.location_id,
             location_type_id: loc.location_type_id,
@@ -151,8 +193,8 @@ defmodule Dispatch.LocationAgentTest do
       actual_between = LocationAgent.active_locations(~N[2020-08-11 00:00:00])
       actual_after = LocationAgent.active_locations(timestamp)
 
-      assert Enum.all?(actual_between, &(NaiveDateTime.compare(&1.timestamp, timestamp) == :lt))
-      assert Enum.all?(actual_after, &(NaiveDateTime.compare(&1.timestamp, timestamp) == :eq))
+      assert Enum.all?(actual_between, &(NaiveDateTime.compare(&1.start_time, timestamp) == :lt))
+      assert Enum.all?(actual_after, &(NaiveDateTime.compare(&1.start_time, timestamp) == :eq))
     end
   end
 end
