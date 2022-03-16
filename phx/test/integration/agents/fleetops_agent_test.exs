@@ -21,7 +21,7 @@ defmodule Dispatch.HaulAgentTest do
     [haul_truck: haul_truck, locations: locations, calendars: calendars, tu_types: tu_types]
   end
 
-  setup _ do
+  setup do
     HaulAgent.start_link([])
     :ok
   end

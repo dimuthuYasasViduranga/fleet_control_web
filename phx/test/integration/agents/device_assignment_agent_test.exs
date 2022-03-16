@@ -5,7 +5,7 @@ defmodule Dispatch.DeviceAssignmentAgentTest do
   alias Dispatch.{Helper, AssetAgent, OperatorAgent, DeviceAssignmentAgent, DeviceAgent}
   alias HpsData.Schemas.Dispatch.DeviceAssignment
 
-  setup _ do
+  setup do
     AssetAgent.start_link([])
     DeviceAgent.start_link([])
     DeviceAssignmentAgent.start_link([])

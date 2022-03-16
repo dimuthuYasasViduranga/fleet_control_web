@@ -22,7 +22,7 @@ defmodule Dispatch.LocationTest do
   end
 
   describe "find timed location -" do
-    setup _ do
+    setup do
       crusher = %{
         geofence: "32.1,116.0|32.1,116.1|32.0,116.1|32.0,116.0|32.1,116.0",
         history_id: 1,

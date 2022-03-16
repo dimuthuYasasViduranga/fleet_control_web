@@ -5,7 +5,7 @@ defmodule Dispatch.DeviceAgentTest do
   alias Dispatch.DeviceAgent
   alias HpsData.Schemas.Dispatch.Device
 
-  setup _ do
+  setup do
     DeviceAgent.start_link([])
     :ok
   end

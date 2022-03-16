@@ -5,7 +5,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
   alias Dispatch.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
-  setup _ do
+  setup do
     group_map =
       Repo.all(TimeCodeGroup)
       |> Enum.map(&{&1.name, &1.id})

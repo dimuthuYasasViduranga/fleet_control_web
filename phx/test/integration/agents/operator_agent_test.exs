@@ -5,14 +5,14 @@ defmodule Dispatch.OperatorAgentTest do
   alias Dispatch.OperatorAgent
   alias HpsData.Schemas.Dispatch.Operator
 
-  setup _ do
+  setup do
     OperatorAgent.start_link([])
     :ok
   end
 
   describe "add -" do
     test "valid" do
-      employee_id = "123"
+      employee_id = "valid-123"
       name = "Name"
       {:ok, actual} = OperatorAgent.add(employee_id, name, nil)
 
@@ -34,7 +34,7 @@ defmodule Dispatch.OperatorAgentTest do
     end
 
     test "invalid (employee id taken)" do
-      employee_id = "1"
+      employee_id = "id_taken"
       {:ok, initial} = OperatorAgent.add(employee_id, "Test", nil)
       error = OperatorAgent.add(employee_id, "test 2", nil)
 
@@ -51,7 +51,7 @@ defmodule Dispatch.OperatorAgentTest do
 
   describe "update -" do
     test "valid" do
-      {:ok, initial} = OperatorAgent.add("123", "Test", nil)
+      {:ok, initial} = OperatorAgent.add("update-123", "Test", nil)
 
       new_name = "test 2"
       new_nickname = "apple"
@@ -76,7 +76,7 @@ defmodule Dispatch.OperatorAgentTest do
     end
 
     test "invalid (clear name)" do
-      {:ok, operator} = OperatorAgent.add("123", "Test", nil)
+      {:ok, operator} = OperatorAgent.add("invalid-123", "Test", nil)
       error = OperatorAgent.update(operator.id, nil, nil)
 
       # return
@@ -92,7 +92,7 @@ defmodule Dispatch.OperatorAgentTest do
 
   describe "delete -" do
     test "valid" do
-      {:ok, initial} = OperatorAgent.add("123", "Test", nil)
+      {:ok, initial} = OperatorAgent.add("delete-123", "Test", nil)
       {:ok, deleted} = OperatorAgent.delete(initial.id)
 
       # returns
@@ -114,7 +114,7 @@ defmodule Dispatch.OperatorAgentTest do
     end
 
     test "invalid (already deleted)" do
-      {:ok, initial} = OperatorAgent.add("123", "Test", nil)
+      {:ok, initial} = OperatorAgent.add("already-deleted-123", "Test", nil)
       {:ok, deleted} = OperatorAgent.delete(initial.id)
       error = OperatorAgent.delete(initial.id)
 
@@ -132,7 +132,7 @@ defmodule Dispatch.OperatorAgentTest do
 
   describe "restore -" do
     test "valid" do
-      {:ok, initial} = OperatorAgent.add("123", "Test", nil)
+      {:ok, initial} = OperatorAgent.add("restore-123", "Test", nil)
       {:ok, deleted} = OperatorAgent.delete(initial.id)
       {:ok, restored} = OperatorAgent.restore(initial.id)
 
@@ -155,7 +155,7 @@ defmodule Dispatch.OperatorAgentTest do
     end
 
     test "invalid (not deleted)" do
-      {:ok, operator} = OperatorAgent.add("123", "Test", nil)
+      {:ok, operator} = OperatorAgent.add("not-deleted-123", "Test", nil)
       error = OperatorAgent.restore(operator.id)
 
       # return

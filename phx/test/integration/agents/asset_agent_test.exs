@@ -5,7 +5,7 @@ defmodule DispatchWeb.AssetAgentTest do
   alias Dispatch.AssetAgent
   alias HpsData.{Asset, AssetType}
 
-  setup _ do
+  setup do
     AssetAgent.start_link([])
     :ok
   end

@@ -27,7 +27,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     end
   end
 
-  setup _ do
+  setup do
     group_map =
       Repo.all(TimeCodeGroup)
       |> Enum.map(&{&1.name, &1.id})

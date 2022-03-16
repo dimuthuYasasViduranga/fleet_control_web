@@ -13,7 +13,7 @@ defmodule Dispatch.LocationAgentTest do
     [locations: locations, types: location_types, closed: closed]
   end
 
-  setup _ do
+  setup do
     LocationAgent.start_link([])
     :ok
   end

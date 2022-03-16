@@ -5,7 +5,7 @@ defmodule Dispatch.TimeCodeAgentText do
   alias Dispatch.{AssetAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch
 
-  setup _ do
+  setup do
     group_map =
       Repo.all(Dispatch.TimeCodeGroup)
       |> Enum.map(&{&1.name, &1.id})
