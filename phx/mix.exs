@@ -57,7 +57,7 @@ defmodule DispatchWeb.MixProject do
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.2", only: [:prod]},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "2.0.1"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
@@ -80,7 +80,7 @@ defmodule DispatchWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/default.exs",
+        "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/simple.exs",
         "run ./priv/test_data_seeds.exs"
       ],
       "test.test_seeds": ["run ./priv/test_data_seeds.exs"],
