@@ -2,6 +2,12 @@
 
 ## pending [unreleased]
 
+## 0.14.0
+- 👽 integration with maintenance
+  - internal api for creating/updating tickets
+  - broadcast pre-start submissions changes
+- 🐛 fixed pre-start ticket status type dropdown not working
+
 ## 0.13.0-alpha-2
 - 🐛 fixed invalid filtering of dig units without tracks for live queue calculations
 
