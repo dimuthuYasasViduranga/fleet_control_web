@@ -405,6 +405,8 @@ defmodule DispatchWeb.Broadcast do
         historic: asset_historic
       }
     end)
+
+    Syncro.Broadcast.broadcast("pre-start submissions:update latest", nil)
   end
 
   def send_activity(identifier, source, activity_type) do

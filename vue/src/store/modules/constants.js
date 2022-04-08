@@ -302,7 +302,7 @@ function parsePreStartTicketStatusType(type) {
   return {
     id: type.id,
     name: type.name,
-    alias: type.alias,
+    alias: type.alias | type.name,
   };
 }
 

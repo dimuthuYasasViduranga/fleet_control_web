@@ -395,7 +395,13 @@ defmodule Dispatch.PreStartSubmissionAgent do
     # add to current if required
     case can_store_submission?(state.current, asset_id, timestamp) do
       true ->
-        AgentHelper.override_or_add(state, :current, submission, &(&1.asset_id == asset_id), nil)
+        AgentHelper.override_or_add(
+          state,
+          :current,
+          submission,
+          &(&1.asset_id == asset_id),
+          nil
+        )
 
       _ ->
         state
