@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.14.1
+- 👽 broadcast stored tracks every minute
+  - gives access to device tracks
+
 ## 0.14.0
 - 👽 integration with maintenance
   - internal api for creating/updating tickets

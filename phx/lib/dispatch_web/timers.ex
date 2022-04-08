@@ -10,20 +10,21 @@ defmodule DispatchWeb.Timers do
   @default_fleetops_interval 10 * 60 * 1000
   @default_live_queue_interval 10 * 1000
   @default_track_interval 10 * 1000
+  @default_track_broadcast_interval 60 * 1000
 
   @spec start() :: :ok
   def start() do
-    start_interval!(
+    start_refresh_interval!(
       "calendar agent",
       get_interval(:calendar_interval, @default_calendar_interval)
     )
 
-    start_interval!(
+    start_refresh_interval!(
       "location agent",
       get_interval(:location_interval, @default_location_interval)
     )
 
-    start_interval!(
+    start_refresh_interval!(
       "fleetops agent",
       get_interval(:fleetops_interval, @default_fleetops_interval)
     )
@@ -32,17 +33,33 @@ defmodule DispatchWeb.Timers do
 
     start_track_interval!(get_interval(:track_interval, @default_track_interval))
 
+    start_track_broadcast_interval!(
+      get_interval(:track_broadcast_interval, @default_track_broadcast_interval)
+    )
+
     :ok
   end
 
   defp get_interval(key, fallback), do: Application.get_env(:dispatch_web, key, fallback)
 
-  defp start_interval!(agent, interval) do
-    {:ok, {:interval, _}} = :timer.apply_interval(interval, RefreshTopics, :refresh, [agent])
+  defp start_interval!(interval, module, func, args) do
+    {:ok, {:interval, _}} = :timer.apply_interval(interval, module, func, args)
+  end
+
+  defp start_refresh_interval!(agent, interval) do
+    start_interval!(interval, RefreshTopics, :refresh, [agent])
   end
 
   defp start_live_queue_interval!(interval) do
-    {:ok, {:interval, _}} = :timer.apply_interval(interval, __MODULE__, :update_live_queue, [])
+    start_interval!(interval, __MODULE__, :update_live_queue, [])
+  end
+
+  defp start_track_interval!(interval) do
+    start_interval!(interval, Dispatch.Tracks, :update_track_agent, [])
+  end
+
+  defp start_track_broadcast_interval!(interval) do
+    :timer.apply_interval(interval, __MODULE__, :broadcast_tracks, [])
   end
 
   def update_live_queue() do
@@ -58,7 +75,8 @@ defmodule DispatchWeb.Timers do
     end
   end
 
-  defp start_track_interval!(interval) do
-    {:ok, {:interval, _}} = :timer.apply_interval(interval, Dispatch.Tracks, :update_track_agent, [])
+  def broadcast_tracks() do
+    tracks = TrackAgent.all()
+    Syncro.Broadcast.broadcast("tracks:set", %{tracks: tracks})
   end
 end
