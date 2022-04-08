@@ -51,7 +51,12 @@
       <tr>
         <td class="key">Status</td>
         <td class="value">
-          <DropDown v-model="localStatusTypeId" :options="statusTypes" :disabled="readonly" />
+          <DropDown
+            v-model="localStatusTypeId"
+            label="name"
+            :options="statusTypes"
+            :disabled="readonly"
+          />
         </td>
       </tr>
     </table>
