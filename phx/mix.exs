@@ -58,6 +58,7 @@ defmodule DispatchWeb.MixProject do
 
       # this overrides a dependency in cluster graph
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "2.0.1"},
+      {:syncro, git: "https://github.com/jonHaultrax/syncro.git", tag: "0.0.1"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
