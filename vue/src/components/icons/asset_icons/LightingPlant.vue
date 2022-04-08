@@ -1,5 +1,5 @@
 <template>
-  <g id="lighting_plant_icon" style="">
+  <g id="lighting_plant_icon" class="custom-icon">
     <circle r="3.2258651" cy="27.973679" cx="23.02692" id="wheel-back-1-0-6" />
     <circle r="3.2258651" cy="27.973372" cx="8.4189892" id="wheel-back-1-0-6-4" />
     <path id="path1550" d="m 11.459181,27.154859 h 8.348832" />

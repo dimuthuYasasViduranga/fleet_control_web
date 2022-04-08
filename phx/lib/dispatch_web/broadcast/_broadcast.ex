@@ -14,7 +14,7 @@ defmodule DispatchWeb.Broadcast do
 
   require Logger
 
-  alias DispatchWeb.{Presence, Endpoint}
+  alias DispatchWeb.{Settings, Presence, Endpoint}
 
   alias Dispatch.{
     Helper,
@@ -33,9 +33,10 @@ defmodule DispatchWeb.Broadcast do
     TimeAllocationAgent,
     LocationAgent,
     CalendarAgent,
-    FleetOpsAgent,
+    HaulAgent,
     PreStartAgent,
-    PreStartSubmissionAgent
+    PreStartSubmissionAgent,
+    RoutingAgent
   }
 
   @spec get_assignment(map) :: {map, map, map} | {map} | nil
@@ -181,6 +182,15 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("set location data", payload)
   end
 
+  def send_routing_data() do
+    payload = %{
+      routing: RoutingAgent.get()
+    }
+
+    Endpoint.broadcast(@dispatch, "set routing data", payload)
+    broadcast_all_operators("set routing data", payload)
+  end
+
   def send_asset_data_to_all() do
     payload = %{
       assets: AssetAgent.get_assets(),
@@ -200,7 +210,7 @@ defmodule DispatchWeb.Broadcast do
   end
 
   def send_fleetops_data_to_all() do
-    payload = FleetOpsAgent.get()
+    payload = HaulAgent.get()
     Endpoint.broadcast(@dispatch, "set fleetops data", payload)
   end
 
@@ -351,10 +361,11 @@ defmodule DispatchWeb.Broadcast do
     end
   end
 
-  def send_allocations_to_dispatcher() do
+  def send_allocations_to_dispatcher(action \\ :alert) do
     payload = %{
       historic: TimeAllocationAgent.historic(),
-      active: TimeAllocationAgent.active()
+      active: TimeAllocationAgent.active(),
+      action: action
     }
 
     Endpoint.broadcast(@dispatch, "set time allocations", payload)
@@ -394,6 +405,8 @@ defmodule DispatchWeb.Broadcast do
         historic: asset_historic
       }
     end)
+
+    Syncro.Broadcast.broadcast("pre-start submissions:update latest", nil)
   end
 
   def send_activity(identifier, source, activity_type) do
@@ -421,14 +434,11 @@ defmodule DispatchWeb.Broadcast do
     broadcast_all_operators("other track", payload, &(&1.id != track.asset_id))
   end
 
-  def send_use_device_gps_to_all() do
-    payload = %{
-      state: Application.get_env(:dispatch_web, :use_device_gps, false)
-    }
+  def send_settings_to_all() do
+    settings = Settings.get()
 
-    Endpoint.broadcast(@dispatch, "set use device gps", payload)
-
-    broadcast_all_operators("set send device gps", payload)
+    Endpoint.broadcast(@dispatch, "set settings", settings)
+    broadcast_all_operators("set settings", settings)
   end
 
   def send_activity(nil, source, activity_type, timestamp) do
@@ -491,6 +501,10 @@ defmodule DispatchWeb.Broadcast do
     end
 
     send_time_code_tree_elements()
+  end
+
+  def send_live_queue(queue) do
+    Endpoint.broadcast(@dispatch, "set live queue", queue)
   end
 
   def send_presence_state() do

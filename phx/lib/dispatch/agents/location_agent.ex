@@ -16,31 +16,37 @@ defmodule Dispatch.LocationAgent do
 
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
-  defp init() do
-    pull_locations()
-    |> Enum.map(&parse_geofence/1)
-    |> Location.add_valid_timeranges()
-  end
+  defp init(), do: Enum.map(pull_locations(), &parse_geofence/1)
 
   defp pull_locations() do
     from(lh in Dim.LocationHistory,
-      join: l in Dim.Location,
-      on: [id: lh.location_id],
-      join: lt in Dim.LocationType,
-      on: [id: lh.location_type_id],
-      order_by: [asc: lh.timestamp, asc: lh.id],
+      left_join: mh in Dim.LocationMaterialHistory,
+      on: lh.location_id == mh.location_id and lh.start_time == mh.start_time,
+      left_join: m in Dim.MaterialType,
+      on: [id: mh.material_type_id],
+      left_join: lgh in Dim.LocationGroupHistory,
+      on: lh.location_id == lgh.location_id and lh.start_time == lgh.start_time,
+      left_join: lg in Dim.LocationGroup,
+      on: [id: lgh.location_group_id],
+      order_by: [asc: lh.start_time, asc: lh.id],
+      where: lh.deleted == false,
       select: %{
+        start_time: lh.start_time,
+        end_time: lh.end_time,
         history_id: lh.id,
-        location_id: l.id,
-        name: l.name,
-        location_type_id: lt.id,
-        type: lt.type,
+        location_id: lh.location_id,
+        name: lh.name,
+        location_type_id: lh.location_type_id,
+        material_type_id: m.id,
+        material_type: m.name,
+        location_group_id: lg.id,
+        location_group: lg.name,
+        type: lh.type,
         lat_min: lh.lat_min,
         lat_max: lh.lat_max,
         lon_min: lh.lon_min,
         lon_max: lh.lon_max,
-        geofence: lh.geofence,
-        timestamp: lh.timestamp
+        geofence: lh.geofence
       }
     )
     |> Repo.all()

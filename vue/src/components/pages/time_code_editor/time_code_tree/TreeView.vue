@@ -3,18 +3,21 @@
     <div class="tree-view-nodes">
       <div class="buttons">
         <Icon
-          v-if="canAddRoots"
+          v-if="!readonly && canAddRoots"
           class="add-root-icon"
           :icon="addRootIcon"
           v-tooltip="addRootText"
           @click="onAddNewRoot"
         />
-        <button v-if="canAddRoots" class="hx-btn" @click="onAddNewRoot">{{ addRootText }}</button>
+        <button v-if="!readonly && canAddRoots" class="hx-btn" @click="onAddNewRoot">
+          {{ addRootText }}
+        </button>
       </div>
       <tree-node
         v-for="root in roots"
         :key="root.id"
         :node="root"
+        :readonly="readonly"
         :canDeleteRoots="canDeleteRoots"
         :canEditRoots="canEditRoots"
         :addNodeText="addNodeText"
@@ -103,6 +106,7 @@ export default {
     Icon,
   },
   props: {
+    readonly: Boolean,
     value: { type: Array, required: true },
     canDeleteRoots: { type: Boolean, default: false },
     canAddRoots: { type: Boolean, default: false },

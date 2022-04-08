@@ -34,7 +34,7 @@
         <td class="value" :class="ignitionClass">{{ ignition }}</td>
       </tr>
       <tr>
-        <td class="heading">Last GPS</td>
+        <td class="heading">Last GPS ({{ gpsSource }})</td>
         <td v-if="ago < agoSwitch" class="value" :class="agoClass">{{ formatAgo(ago) }}</td>
         <td v-else class="value red-text">{{ timestamp }}</td>
       </tr>
@@ -179,6 +179,9 @@ export default {
       }
 
       return 'red-text';
+    },
+    gpsSource() {
+      return this.asset?.track?.source;
     },
   },
   methods: {

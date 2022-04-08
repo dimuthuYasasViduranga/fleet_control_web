@@ -3,7 +3,7 @@ defmodule DispatchWeb.DispatcherChannel.Report do
   Return a report of exceptions entered, using FleetOps timeusage to determine
   if any exceptions have been missed
   """
-  alias Dispatch.{Helper, AssetAgent, FleetOpsAgent, DeviceAssignmentAgent, EngineHoursAgent}
+  alias Dispatch.{Helper, AssetAgent, HaulAgent, DeviceAssignmentAgent, EngineHoursAgent}
 
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
   alias HpsData.Repo
@@ -225,7 +225,7 @@ defmodule DispatchWeb.DispatcherChannel.Report do
         |> Enum.all?(&(&1 !== "Ready"))
         |> case do
           true -> 0
-          _ -> occupied / total_duration
+          _ -> safe_div(occupied, total_duration)
         end
 
       to_report_row(
@@ -239,6 +239,10 @@ defmodule DispatchWeb.DispatcherChannel.Report do
       )
     end)
   end
+
+  defp safe_div(_num, 0.0), do: 0
+  defp safe_div(_num, 0), do: 0
+  defp safe_div(num, denum), do: num / denum
 
   defp get_time_allocations(asset_ids, start_time, end_time) do
     from(ta in TimeAllocation,
@@ -266,11 +270,11 @@ defmodule DispatchWeb.DispatcherChannel.Report do
   end
 
   defp get_timeusage(start_time, end_time) do
-    FleetOpsAgent.fetch_timeusage_by_range!(%{start_time: start_time, end_time: end_time})
+    HaulAgent.fetch_timeusage_by_range!(%{start_time: start_time, end_time: end_time})
   end
 
   defp get_cycles(start_time, end_time) do
-    FleetOpsAgent.fetch_cycles_by_range!(%{start_time: start_time, end_time: end_time})
+    HaulAgent.fetch_cycles_by_range!(%{start_time: start_time, end_time: end_time})
   end
 
   defp get_device_assignments(start_time, end_time) do

@@ -177,6 +177,18 @@ export function uniq(list) {
   return [...new Set(list)];
 }
 
+export function uniqBy(list, predicate) {
+  const set = new Map();
+  list.forEach(i => {
+    const v = predicate(i);
+    if (!set.has(v)) {
+      set.set(v, i);
+    }
+  });
+
+  return [...set.values()];
+}
+
 export function hasOrderedSubArray(arr, subarr) {
   const arrLength = arr.length;
   const subLength = subarr.length;
@@ -210,6 +222,10 @@ export class Dictionary {
   constructor(hasher = JSON.stringify) {
     this._entries = {};
     this._hasher = hasher;
+  }
+
+  get length() {
+    return Object.keys(this._entries).length;
   }
 
   get(keys) {
@@ -283,5 +299,50 @@ export class Dictionary {
       return [match.keys, match.value];
     }
     return match;
+  }
+}
+
+export function toLookup(arr, on = e => e.id, mapper = e => e) {
+  return arr.reduce((acc, elem) => {
+    acc[on(elem)] = mapper(elem);
+    return acc;
+  }, {});
+}
+
+export class IdGen {
+  constructor(start = 0, step = 1) {
+    this._start = start;
+    this._step = step;
+    this._id = start;
+  }
+
+  next() {
+    const id = this._id;
+    this._id += this._step;
+    return id;
+  }
+
+  reset() {
+    this._id = this._start;
+  }
+}
+
+export function approx(a, b, epsilon = 0.0001) {
+  return Math.abs(a - b) < epsilon;
+}
+
+export function lowifyKeys(obj) {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    const lKey = typeof key === 'string' ? key.toLowerCase() : key;
+    acc[lKey] = value;
+    return acc;
+  }, {});
+}
+
+export function anyOf(obj, keys) {
+  for (const key of keys) {
+    if (obj[key]) {
+      return obj[key];
+    }
   }
 }

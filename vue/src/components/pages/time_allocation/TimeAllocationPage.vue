@@ -40,8 +40,10 @@
             @change="onShiftChange"
             @refresh="onRefresh"
           />
-          <button class="hx-btn" @click="onLockAll()">Lock All</button>
-          <button class="hx-btn" @click="onUnlockAll()">Unlock All</button>
+          <template v-if="canLock">
+            <button class="hx-btn" @click="onLockAll()">Lock All</button>
+            <button class="hx-btn" @click="onUnlockAll()">Unlock All</button>
+          </template>
         </div>
       </div>
 
@@ -86,6 +88,7 @@
           cycles,
         } in filteredAssetData"
         :key="asset.name"
+        :readonly="!canEdit"
         :asset="asset"
         :timeAllocations="timeAllocations"
         :deviceAssignments="deviceAssignments"
@@ -203,6 +206,8 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      canEdit: state => state.permissions.can_edit_time_allocations,
+      canLock: state => state.permissions.can_lock_time_allocations,
       assets: state => state.assets,
       assetTypes: state => state.assetTypes,
       operators: state => state.operators,

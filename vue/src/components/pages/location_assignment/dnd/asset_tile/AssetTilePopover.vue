@@ -18,13 +18,14 @@
       <tr>
         <td class="key">Connection</td>
         <td class="value" :style="getColor(asset.present, 'green', 'grey')">
-          {{ asset.present ? 'Online' : 'Offline' }}
+          {{ connectionText }}
         </td>
       </tr>
       <tr>
         <td class="key">Radio</td>
         <td class="value">{{ asset.radioNumber }}</td>
       </tr>
+      <!-- haul truck only -->
       <template v-if="asset.type === 'Haul Truck'">
         <tr>
           <td class="key">Acknowledged</td>
@@ -32,17 +33,18 @@
             {{ dispatchAcknowledged ? 'Yes' : 'No' }}
           </td>
         </tr>
+        <tr v-if="queueStatus === 'queued'">
+          <td class="key">Queue At Load</td>
+          <td class="value">{{ timeInQueue }}</td>
+        </tr>
       </template>
-      <!-- <template v-if="asset.secondaryType === 'Dig Unit'">
+      <!-- dig unit only -->
+      <template v-if="asset.secondaryType === 'Dig Unit'">
         <tr>
           <td class="key">Material Type</td>
           <td class="value">{{ materialType || '--' }}</td>
         </tr>
-        <tr>
-          <td class="key">Load Style</td>
-          <td class="value">{{ loadStyle || '--' }}</td>
-        </tr>
-      </template> -->
+      </template>
 
       <tr>
         <td class="key">Allocation</td>
@@ -51,11 +53,15 @@
         </td>
       </tr>
       <tr>
-        <td class="key">Last Seen</td>
+        <td class="key">Last Seen ({{ trackSource }})</td>
         <td v-if="ago.duration != null" class="value" :class="ago.class">
           {{ formatAgo(ago.duration) }}
         </td>
         <td v-else class="value red-text">{{ formatDate(track.timestamp) || '--' }}</td>
+      </tr>
+      <tr v-if="uuid" class="uuid-row">
+        <td class="key">Device UUID</td>
+        <td class="value">{{ uuid }}</td>
       </tr>
     </table>
 
@@ -69,7 +75,7 @@
 <script>
 import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
-import { attributeFromList } from '@/code/helpers';
+import { attributeFromList, formatDeviceUUID } from '@/code/helpers';
 import {
   formatSeconds,
   formatDateRelativeToIn,
@@ -83,14 +89,6 @@ const SECONDS_IN_DAY = 24 * 3600;
 const AGO_SWITCH = 60 * 60 * 1000; // 1 hour
 const AGO_MAX = 2 * 60 * 1000; // 2 minutes
 const AGO_WARN = 30 * 1000; // 30 seconds
-
-function getNested(obj, keys) {
-  const result = obj[keys[0]];
-  if (!result || keys.length === 1) {
-    return result;
-  }
-  return getNested(result, keys.slice(1));
-}
 
 function getAgoClass(duration) {
   if (duration < AGO_WARN) {
@@ -120,24 +118,25 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      loadStyles: state => state.loadStyles,
       materialTypes: state => state.materialTypes,
     }),
+    ...mapState('connection', {
+      deviceOnlineStatus: state => state.deviceOnlineStatus,
+    }),
+    trackSource() {
+      return this.track?.source;
+    },
     trackLocation() {
-      return getNested(this.track, ['location', 'name']);
+      return this.track?.location?.name;
     },
     operatorName() {
-      return getNested(this.asset, ['operator', 'fullname']);
+      return this.asset?.operator?.fullname;
     },
     dispatchAcknowledged() {
-      return getNested(this.asset, ['dispatch', 'acknowledged']);
-    },
-    loadStyle() {
-      const loadStyleId = getNested(this.asset, ['activity', 'loadStyleId']);
-      return attributeFromList(this.loadStyles, 'id', loadStyleId, 'style');
+      return this.asset?.dispatch?.acknowledged;
     },
     materialType() {
-      const materialTypeId = getNested(this.asset, ['activity', 'materialTypeId']);
+      const materialTypeId = this.asset?.activity?.materialTypeId;
       return attributeFromList(this.materialTypes, 'id', materialTypeId, 'commonName');
     },
     hasDevice() {
@@ -182,6 +181,37 @@ export default {
 
       const styleClass = getAgoClass(ago);
       return { duration: ago, class: styleClass };
+    },
+    uuid() {
+      return formatDeviceUUID(this.asset.deviceUUID);
+    },
+    queueStatus() {
+      return this.asset?.liveQueueInfo?.status;
+    },
+    timeInQueue() {
+      if (this.asset.type !== 'Haul Truck') {
+        return;
+      }
+      const startedAt = this.asset?.liveQueueInfo?.startedAt;
+      if (!startedAt) {
+        return;
+      }
+
+      const duration = this.$everySecond.timestamp - startedAt.getTime();
+      return formatSeconds(Math.trunc(duration / 1000));
+    },
+    connectionText() {
+      if (this.asset.present) {
+        return 'Online';
+      }
+
+      const status = this.deviceOnlineStatus[this.asset.deviceUUID];
+
+      if (status?.status === 'disconnected') {
+        return `Offline (${this.formatDate(status.timestamp)})`;
+      }
+
+      return 'Offline';
     },
   },
   methods: {
@@ -233,5 +263,9 @@ export default {
 .asset-tile-popover .alert-info .alert-icon svg {
   stroke: orange;
   stroke-width: 1.5;
+}
+
+.asset-tile-popover .uuid-row {
+  opacity: 0.3;
 }
 </style>

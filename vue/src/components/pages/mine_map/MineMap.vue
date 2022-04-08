@@ -1,11 +1,11 @@
 <template>
   <hxCard :title="title" :icon="icon">
     <Map
+      ref="map"
       :assets="localAssets"
       :assetTypes="assetTypes"
       :activeLocations="activeLocations"
       :locations="locations"
-      :icons="icons"
       :shownAssetTypes="shownAssetTypes"
       @dragstart="onDragStart()"
       @dragend="onDragEnd()"
@@ -22,6 +22,7 @@ import hxCard from 'hx-layout/Card.vue';
 
 import PlantIcon from '../../icons/Map.vue';
 import Map from './Map.vue';
+import { uniq } from '@/code/helpers';
 
 const STATIC_TYPES = ['parkup', 'maintenance', 'fuel_bay', 'changeover_bay'];
 const CANNOT_ALERT_TYPES = ['Light Vehicle', 'Lighting Plant'];
@@ -91,54 +92,53 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      icons: state => state.icons,
       locations: state => state.locations,
       assetTypes: state => state.assetTypes,
     }),
+    ...mapState({
+      haulDispatches: state => state.haulTruck.currentDispatches,
+      digUnitActivities: state => state.digUnit.currentActivities,
+      tracks: state => state.trackStore.tracks,
+    }),
     haulTruckLocations() {
-      // returns all the location ids currently being used
-      const ids = this.$store.state.haulTruck.currentDispatches
-        .map(d => {
-          return [d.loadId, d.dumpId, d.nextId];
-        })
-        .flat();
-      const uniqIds = Array.from(new Set(ids));
+      const ids = this.haulDispatches.map(d => [d.loadId, d.dumpId, d.nextId]).flat();
+      const uniqIds = uniq(ids);
+      return this.locations.filter(l => uniqIds.includes(l.id));
+    },
+    digUnitLocations() {
+      const ids = this.digUnitActivities.map(a => a.locationId);
+      const uniqIds = uniq(ids);
       return this.locations.filter(l => uniqIds.includes(l.id));
     },
     activeLocations() {
       const staticLocations = this.locations.filter(l => STATIC_TYPES.includes(l.type));
       const haulLocations = this.haulTruckLocations;
+      const digUnitLocations = this.digUnitLocations;
 
-      return staticLocations.concat(haulLocations);
-    },
-    tracks() {
-      return this.$store.state.trackStore.tracks;
+      return uniq(staticLocations.concat(haulLocations).concat(digUnitLocations));
     },
     assets() {
       const tracks = this.tracks;
-      return (
-        this.$store.getters.fullAssets
-          // .filter(fa => fa.hasDevice)
-          .map(fa => {
-            const track = tracks.find(t => t.assetId === fa.id);
+      return this.$store.getters.fullAssets.map(fa => {
+        const track = tracks.find(t => t.assetId === fa.id);
 
-            const allocation = fa.activeTimeAllocation || {};
-            const alert = calculateAlert(fa, track);
+        const allocation = fa.activeTimeAllocation || {};
+        const alert = calculateAlert(fa, track);
 
-            return {
-              id: fa.id,
-              name: fa.name,
-              type: fa.type,
-              operatorName: fa.operator.shortname,
-              radioNumber: fa.radioNumber,
-              deviceId: fa.deviceId,
-              deviceUUID: fa.deviceUUID,
-              allocation,
-              alert,
-              track,
-            };
-          })
-      );
+        return {
+          id: fa.id,
+          name: fa.name,
+          type: fa.type,
+          secondaryType: fa.secondaryType,
+          operatorName: fa.operator.shortname,
+          radioNumber: fa.radioNumber,
+          deviceId: fa.deviceId,
+          deviceUUID: fa.deviceUUID,
+          allocation,
+          alert,
+          track,
+        };
+      });
     },
   },
   watch: {

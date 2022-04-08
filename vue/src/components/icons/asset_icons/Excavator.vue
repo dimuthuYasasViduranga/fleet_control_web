@@ -1,5 +1,5 @@
 <template>
-  <g id="excavator_icon">
+  <g id="excavator_icon" class="custom-icon">
     <rect id="track" ry="2.2137241" y="25.4" x="2.6458333" height="4.4274483" width="30.162498" />
     <path
       id="cabin"
@@ -22,11 +22,3 @@ export default {
   viewBox: [0, 0, 34, 35],
 };
 </script>
-
-<style>
-#excavator_icon {
-  fill: none;
-  stroke-width: 1.2;
-}
-</style>
-

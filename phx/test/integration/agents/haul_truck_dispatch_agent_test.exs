@@ -21,7 +21,7 @@ defmodule Dispatch.HaulTruckDispatchAgentTest do
     [asset: asset, asset_b: asset_b, dig_unit: dig_unit.id, locations: locations]
   end
 
-  setup _ do
+  setup do
     HaulTruckDispatchAgent.start_link([])
     :ok
   end

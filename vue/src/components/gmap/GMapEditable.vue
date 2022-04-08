@@ -1,7 +1,7 @@
 <template>
   <div class="gmap-editable">
-    <div id="__g_edit_hidden" style="display: none">
-      <div class="g-edit-controls">
+    <div ref="hidden" style="display: none">
+      <div ref="controls" class="g-edit-controls">
         <svg
           v-if="showIcon"
           class="item edit-icon"
@@ -297,7 +297,7 @@ export default MapElementFactory({
         const index = googleControls.getArray().indexOf(this.controls);
         if (index !== -1) {
           googleControls.removeAt(index);
-          const parent = document.getElementById('__g_edit_hidden');
+          const parent = this.$refs.hidden;
           if (parent) {
             parent.appendChild(this.controls);
           } else {
@@ -309,7 +309,7 @@ export default MapElementFactory({
     setControls() {
       this.resetControls();
       // mount controls
-      const controls = document.querySelector('.g-edit-controls');
+      const controls = this.$refs.controls;
       controls.classList.remove(['vertical', 'horizontal']);
       controls.classList.add(this.direction);
 

@@ -33,13 +33,13 @@ defmodule DispatchWeb.AuthController do
         name = AzureADOpenId.get_user_name(jwt)
 
         user =
-          case DispatcherAgent.add(jwt[:oid], name) do
+          case DispatcherAgent.add(jwt["oid"], name) do
             {:ok, user} ->
               Broadcast.send_dispatchers()
               user
 
             _ ->
-              %{id: nil, user_id: jwt[:oid], name: name}
+              %{id: nil, user_id: jwt["oid"], name: name}
           end
 
         conn

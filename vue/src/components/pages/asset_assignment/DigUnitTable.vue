@@ -47,37 +47,36 @@
       <table-column label="Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
+            value-is-id
             v-model="row.locationId"
-            :items="locationOptions"
+            :options="locationOptions"
             label="name"
+            :disabled="readonly"
             @change="setActivity(row)"
           />
         </template>
       </table-column>
 
-      <!-- <table-column label="Material Type" cell-class="table-cel">
+      <table-column label="Material Type" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
             v-model="row.materialTypeId"
-            :items="materialTypeOptions"
+            :options="materialTypeOptions"
             label="commonName"
+            placeholder="None"
+            :disabled="readonly"
             @change="setActivity(row)"
           />
         </template>
-      </table-column> -->
+      </table-column>
 
-      <!-- <table-column label="Dig Style" cell-class="table-cel">
-        <template slot-scope="row">
-          <DropDown
-            v-model="row.loadStyleId"
-            :items="loadStyleOptions"
-            label="style"
-            @change="setActivity(row)"
-          />
-        </template>
-      </table-column> -->
-
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
         <template slot-scope="row">
           <a :id="`${row.device_id}`" @click="onClearActivity(row)">Clear</a>
         </template>
@@ -91,7 +90,7 @@ import { mapState } from 'vuex';
 
 import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '../../dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
@@ -110,6 +109,9 @@ export default {
     TableComponent,
     TableColumn,
   },
+  props: {
+    readonly: Boolean,
+  },
   data: () => {
     return {
       editIcon: EditIcon,
@@ -120,7 +122,9 @@ export default {
       icons: state => state.icons,
       locations: state => state.locations,
       materialTypes: state => state.materialTypes,
-      loadStyles: state => state.loadStyles,
+    }),
+    ...mapState('digUnit', {
+      digUnitActivities: state => state.currentActivities,
     }),
     locationOptions() {
       return [{ id: null, name: 'None' }].concat(this.locations);
@@ -128,11 +132,8 @@ export default {
     materialTypeOptions() {
       return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
     },
-    loadStyleOptions() {
-      return [{ id: null, style: 'None' }].concat(this.loadStyles);
-    },
     digUnits() {
-      const activities = this.$store.state.digUnit.currentActivities;
+      const activities = this.digUnitActivities;
       return this.$store.getters.fullAssets
         .filter(fa => fa.secondaryType === 'Dig Unit')
         .map(asset => {

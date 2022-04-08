@@ -66,24 +66,6 @@ defmodule Dispatch.Location do
     float
   end
 
-  @spec add_valid_timeranges(list(location)) :: list(location)
-  def add_valid_timeranges(locations) do
-    locations
-    |> Enum.group_by(& &1.location_id, & &1)
-    |> Enum.map(&add_valid_range/1)
-    |> List.flatten()
-  end
-
-  defp add_valid_range({_, histories}) do
-    histories
-    |> Enum.chunk_every(2, 1, [%{timestamp: nil}])
-    |> Enum.map(fn [cur, next] ->
-      cur
-      |> Map.put(:start_time, cur.timestamp)
-      |> Map.put(:end_time, next.timestamp)
-    end)
-  end
-
   @spec is_stationary_within?(Polygon.t(), track) :: boolean()
   def is_stationary_within?(polygon, track) do
     cond do

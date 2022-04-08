@@ -105,13 +105,34 @@ defmodule Dispatch.DigUnitActivityAgent do
     |> add()
   end
 
-  def add(activity) do
-    activity = DigUnitActivity.new(activity)
+  def add(activity), do: Agent.get_and_update(__MODULE__, &add(activity, &1))
 
+  def add(activity, state) do
+    activity
+    |> DigUnitActivity.new()
+    |> Repo.insert()
+    |> update_agent(state)
+  end
+
+  @spec clear(integer) :: {:ok, activity} | {:error, :no_asset | term}
+  def clear(asset_id) do
     Agent.get_and_update(__MODULE__, fn state ->
-      activity
-      |> Repo.insert()
-      |> update_agent(state)
+      case Enum.find(state.current, &(&1.asset_id == asset_id)) do
+        nil ->
+          {{:error, :no_asset}, state}
+
+        _ ->
+          add(
+            %{
+              asset_id: asset_id,
+              location_id: nil,
+              material_type_id: nil,
+              load_style_id: nil,
+              timestamp: Helper.naive_timestamp()
+            },
+            state
+          )
+      end
     end)
   end
 

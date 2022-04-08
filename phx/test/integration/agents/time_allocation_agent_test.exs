@@ -3,9 +3,18 @@ defmodule Dispatch.TimeAllocationAgentTest do
   @moduletag :agent
 
   alias Dispatch.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
-  alias HpsData.Schemas.Dispatch.TimeAllocation
+  alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
-  setup_all _ do
+  setup do
+    group_map =
+      Repo.all(TimeCodeGroup)
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.into(%{})
+
+    # insert example time codes
+    Repo.insert!(%TimeCode{code: "1000", name: "Dig Ore", group_id: group_map["Ready"]})
+    Repo.insert!(%TimeCode{code: "2000", name: "Damage", group_id: group_map["Down"]})
+
     AssetAgent.start_link([])
     [asset, asset_b | _] = AssetAgent.get_assets()
     TimeCodeAgent.start_link([])
@@ -15,12 +24,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
     no_task = Enum.find(time_codes, &(&1.name == "No Task")).id
 
-    [asset: asset, asset_b: asset_b, ready: ready, exception: exception, no_task: no_task]
-  end
-
-  setup _ do
     TimeAllocationAgent.start_link([])
-    :ok
+    [asset: asset, asset_b: asset_b, ready: ready, exception: exception, no_task: no_task]
   end
 
   defp to_alloc(asset_id, time_code_id, start_time, end_time) do
@@ -725,13 +730,13 @@ defmodule Dispatch.TimeAllocationAgentTest do
     end
 
     test "invalid (invalid time code id)", %{asset: asset} do
-      alloc = to_alloc(asset.id, -1, NaiveDateTime.utc_now(), nil)
+      alloc = to_alloc(asset.id, -9000, NaiveDateTime.utc_now(), nil)
       error = TimeAllocationAgent.add(alloc)
       assert_ecto_error(error)
     end
 
     test "invalid (invalid asset)", %{ready: ready} do
-      alloc = to_alloc(-1, ready, NaiveDateTime.utc_now(), nil)
+      alloc = to_alloc(-9000, ready, NaiveDateTime.utc_now(), nil)
       actual = TimeAllocationAgent.add(alloc)
       assert_ecto_error(actual)
     end
@@ -926,7 +931,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       end_time = NaiveDateTime.add(start_time, 3600)
 
       actual =
-        to_alloc(asset.id, -1, start_time, end_time)
+        to_alloc(asset.id, -9000, start_time, end_time)
         |> TimeAllocationAgent.add()
 
       assert_ecto_error(actual)

@@ -7,7 +7,8 @@
   border-radius: 0;
 }
 
-.g-control {
+.g-control,
+.g-button {
   line-height: 38px;
   height: 40px;
   text-align: center;
@@ -23,6 +24,10 @@
   border: none;
   cursor: pointer;
   margin: 1px;
+}
+
+.g-button:hover {
+  background-color: #ebebeb;
 }
 
 .g-control[g-position='TOP_LEFT'],
@@ -49,9 +54,29 @@
   margin-bottom: 20px;
 }
 
+.g-control[g-position='BOTTOM'] {
+  margin-bottom: 20px;
+}
+
 /* removes square outline when clicking on the cluster */
 .gmap-map .cluster:focus,
 .gmap-map .cluster > img:focus,
 .gmap-map .cluster > div:focus {
   outline: none;
+}
+
+/* this hides the map copyright */
+.gmap-map[hide-info] .gmnoprint {
+  display: none;
+}
+
+/* hide report a bug */
+.gmap-map[hide-info] .gm-style-cc {
+  display: none;
+}
+
+/* this hides the big google logo */
+.gmap-map[hide-info] img[src="https://maps.gstatic.com/mapfiles/api-3/images/google_white5.png"]
+{
+  display: none;
 }

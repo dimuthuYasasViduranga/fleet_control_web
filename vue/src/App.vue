@@ -2,8 +2,14 @@
   <div>
     <Layout :routes="routes" :username="username" :logout="logout" :login="login">
       <template slot="header">
-        <TimezoneSelector />
-        <ChatButton />
+        <TimezoneSelector v-tooltip="'Set Timezone'" />
+        <ChatButton v-tooltip="'Chat'" />
+        <Icon
+          v-tooltip="'Global Actions'"
+          class="global-action-icon"
+          :icon="cellTowerIcon"
+          @click="onOpenGlobalActions()"
+        />
       </template>
     </Layout>
     <!-- This is persistent and a fixed overlay -->
@@ -17,6 +23,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import Icon from 'hx-layout/Icon.vue';
 import Layout from 'hx-layout/Layout.vue';
 
 import TimezoneSelector from './components/header_buttons/TimezoneSelector.vue';
@@ -26,11 +33,14 @@ import ChatOverlay from './components/chat_overlay/ChatOverlay.vue';
 import NotificationBar from './components/header_buttons/NotificationBar.vue';
 import AssetAssignmentModal from './components/asset_assignment_modal/AssetAssignmentModal.vue';
 import LiveTimeAllocationModal from './components/live_time_allocation_modal/LiveTimeAllocationModal.vue';
+import CellTowerIcon from './components/icons/CellTower.vue';
+import GlobalActionsModal from './components/modals/GlobalActionsModal.vue';
 
 export default {
   name: 'app',
   components: {
     Layout,
+    Icon,
     TimezoneSelector,
     ChatButton,
     ChatOverlay,
@@ -43,6 +53,11 @@ export default {
     routes: Array,
     logout: Function,
     login: Function,
+  },
+  data: () => {
+    return {
+      cellTowerIcon: CellTowerIcon,
+    };
   },
   computed: {
     ...mapState('connection', {
@@ -72,15 +87,18 @@ export default {
   methods: {
     initialiseChannel() {
       const channel = this.$channel;
-      const dispatch = this.$store.dispatch;
+      const { dispatch, commit } = this.$store;
 
       channel.setOnConnect(this.onJoin);
       dispatch('connection/attachMonitor', channel);
 
-      const presenceSyncCallback = presence => dispatch('connection/setPresence', presence);
+      const presenceSyncCallback = presence => dispatch('connection/updatePresence', presence);
       channel.create(this.$hostname, this.userToken, presenceSyncCallback);
 
       channel.setOns([
+        // settings
+        ['set settings', data => commit('settings/set', data)],
+
         // devices
         ['set devices', data => dispatch('deviceStore/setDevices', data.devices)],
         [
@@ -145,8 +163,10 @@ export default {
           'set pre-start categories',
           data => dispatch('constants/setPreStartControlCategories', data.categories),
         ],
+        ['set routing data', data => dispatch('constants/setRoutingData', data.routing)],
 
         // shared
+        ['set live queue', data => dispatch('setLiveQueue', data)],
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
         [
           'set engine hours',
@@ -166,11 +186,10 @@ export default {
         [
           'set time allocations',
           data => {
-            dispatch('setActiveTimeAllocations', data.active);
+            dispatch('setActiveTimeAllocations', { allocations: data.active, action: data.action });
             dispatch('setHistoricTimeAllocations', data.historic);
           },
         ],
-        ['set use device gps', data => dispatch('trackStore/setUseDeviceGPS', data.state)],
       ]);
 
       // haul truck specific calls
@@ -182,7 +201,6 @@ export default {
             dispatch('haulTruck/setHistoricDispatches', data.historic);
           },
         ],
-        ['haul:set manual cycles', data => dispatch('haulTruck/setManualCycles', data.cycles)],
       ]);
 
       // dig unit specific calls
@@ -197,9 +215,13 @@ export default {
       ]);
     },
     onJoin(resp) {
-      const dispatch = this.$store.dispatch;
+      const { dispatch, commit } = this.$store;
+
+      commit('settings/set', resp.settings);
 
       [
+        ['constants/setPermissions', resp.permissions],
+
         // semi-constants
         ['constants/setTimeCodeTreeElements', resp.time_code_tree_elements],
         ['constants/setOperatorMessageTypeTree', resp.operator_message_type_tree],
@@ -209,35 +231,42 @@ export default {
         ['constants/setPreStartForms', resp.pre_start_forms],
         ['constants/setPreStartTicketStatusTypes', resp.pre_start_ticket_status_types],
         ['constants/setPreStartControlCategories', resp.pre_start_control_categories],
+        ['constants/setRoutingData', resp.routing],
 
         // devices
         ['deviceStore/setDevices', resp.devices],
         ['deviceStore/setCurrentDeviceAssignments', resp.device_assignments.current],
         ['deviceStore/setHistoricDeviceAssignments', resp.device_assignments.historic],
         ['deviceStore/setPendingDevices', resp.pending_devices],
+        ['connection/setDeviceOnlineStatus', resp.device_connections],
 
         // shared
+        ['setLiveQueue', resp.live_queue],
         ['setActivityLog', resp.activities],
         ['setOperatorMessages', resp.operator_messages],
         ['setDispatcherMessages', resp.dispatcher_messages],
         ['setHistoricTimeAllocations', resp.time_allocations.historic],
-        ['setActiveTimeAllocations', resp.time_allocations.active],
+        [
+          'setActiveTimeAllocations',
+          { allocations: resp.time_allocations.active, action: resp.action },
+        ],
         ['setCurrentEngineHours', resp.engine_hours.current],
         ['setHistoricEngineHours', resp.engine_hours.historic],
         ['setFleetOpsData', resp.fleetops_data],
         ['setCurrentPreStartSubmissions', resp.current_pre_start_submissions],
         ['trackStore/setTracks', resp.tracks],
-        ['trackStore/setUseDeviceGPS', resp.use_device_gps],
 
         // haul truck specific
         ['haulTruck/setCurrentDispatches', resp.haul_truck.dispatches.current],
         ['haulTruck/setHistoricDispatches', resp.haul_truck.dispatches.historic],
-        ['haulTruck/setManualCycles', resp.haul_truck.manual_cycles],
 
         // dig unit specific
         ['digUnit/setCurrentActivities', resp.dig_unit.activities.current],
         ['digUnit/setHistoricActivities', resp.dig_unit.activities.historic],
       ].map(([path, data]) => dispatch(path, data));
+    },
+    onOpenGlobalActions() {
+      this.$modal.create(GlobalActionsModal);
     },
   },
 };
@@ -248,6 +277,7 @@ export default {
 @import './assets/toasted.css';
 @import './assets/toggle.css';
 @import './assets/contextMenu.css';
+@import './assets/googleMaps.css';
 
 /* firefox scrollbar color was transparent */
 html {
@@ -278,7 +308,37 @@ a[href^='#/gap'] div {
   background-color: #121f26;
 }
 
-.nav-bar .hx-icon .svg {
+g.custom-icon {
   stroke-width: 1;
+}
+
+.global-action-icon {
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.global-action-icon.hx-icon svg {
+  stroke-width: 1.3;
+}
+
+.global-action-icon:hover {
+  opacity: 0.75;
+}
+
+/* this fixes box-sizing sizing not behaving correctly */
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.error .card-wrapper .hx-icon {
+  stroke: #ff6565;
+}
+
+.error .card-wrapper .hxCardHeaderWrapper {
+  color: #ff6565;
 }
 </style>

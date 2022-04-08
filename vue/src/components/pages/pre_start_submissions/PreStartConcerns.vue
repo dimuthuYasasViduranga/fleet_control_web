@@ -3,7 +3,7 @@
     <div><input type="checkbox" v-model="showLatestOnly" />Latest Only</div>
 
     <div v-if="assetConcerns.length === 0" class="no-concerns">
-      No {{ showLatestOnly ? 'recent' : ' ' }}concerns to report
+      No {{ showLatestOnly ? 'recent' : ' ' }} concerns to report
     </div>
 
     <div v-else class="concerns">

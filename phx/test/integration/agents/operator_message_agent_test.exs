@@ -5,7 +5,7 @@ defmodule Dispatch.OperatorMessageAgentTest do
   alias Dispatch.{AssetAgent, DeviceAgent, OperatorAgent, OperatorMessageAgent}
   alias HpsData.Schemas.Dispatch.{OperatorMessageType, OperatorMessage}
 
-  setup_all _ do
+  setup do
     [type | _] =
       OperatorMessageType
       |> Repo.all()
@@ -15,16 +15,13 @@ defmodule Dispatch.OperatorMessageAgentTest do
     [asset | _] = AssetAgent.get_assets(%{type: "Haul Truck"})
 
     OperatorAgent.start_link([])
-    [operator | _] = OperatorAgent.active()
+    OperatorAgent.add("message-operator", "Test", nil)
+    [operator] = OperatorAgent.active()
 
-    [type: type.id, asset: asset, operator: operator]
-  end
-
-  setup _ do
     DeviceAgent.start_link([])
     OperatorMessageAgent.start_link([])
     {:ok, _, device} = DeviceAgent.add("123456")
-    [device: device]
+    [device: device, type: type.id, asset: asset, operator: operator]
   end
 
   defp to_message(

@@ -17,6 +17,9 @@ defmodule Dispatch.TrackAgent do
     Agent.start_link(fn -> state end, name: __MODULE__)
   end
 
+  @spec as_map :: map()
+  def as_map(), do: Agent.get(__MODULE__, & &1.tracks)
+
   @spec all() :: list(track)
   def all() do
     __MODULE__

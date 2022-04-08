@@ -1,5 +1,13 @@
 <template>
   <div class="agents-page">
+    <hxCard title="Settings" :icon="cogIcon">
+      <table>
+        <tr v-for="[key, bool] in Object.entries(settings)" :key="key">
+          <td>{{ key }}</td>
+          <td>{{ bool }}</td>
+        </tr>
+      </table>
+    </hxCard>
     <hxCard title="Use device GPS" :icon="locationIcon">
       <button class="hx-btn" :class="{ selected: useDeviceGPS }" @click="onSetUseGPS(true)">
         Use
@@ -24,6 +32,7 @@ import hxCard from 'hx-layout/Card.vue';
 import Icon from 'hx-layout/Icon.vue';
 import DatabaseIcon from '@/components/icons/Database.vue';
 import LocationIcon from '@/components/icons/Location.vue';
+import CogIcon from '@/components/icons/Cog.vue';
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 
 const AGENTS = [
@@ -49,12 +58,14 @@ export default {
     return {
       databaseIcon: DatabaseIcon,
       locationIcon: LocationIcon,
+      cogIcon: CogIcon,
       agents: AGENTS,
     };
   },
   computed: {
-    ...mapState('trackStore', {
-      useDeviceGPS: state => state.useDeviceGPS,
+    ...mapState('settings', {
+      settings: state => state,
+      useDeviceGPS: state => state.use_device_gps,
     }),
   },
   methods: {

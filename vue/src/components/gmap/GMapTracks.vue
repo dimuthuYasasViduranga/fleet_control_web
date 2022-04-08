@@ -1,54 +1,45 @@
 <template>
   <div class="gmap-tracks">
-    <gmap-cluster :gridSize="clusterSize" :zoomOnClick="zoomOnClick">
-      <template v-if="!draggable">
-        <div v-for="asset in assetsWithTracks" :key="asset.id">
-          <gmap-custom-marker
-            :class="getMarkerClass(asset)"
-            class="gmap-track"
-            :marker="asset.track.position"
-            alignment="center"
-          >
-            <div v-if="showAlerts && asset.alert" class="alert">
-              <Icon
-                v-tooltip="{
-                  content: asset.alert.text,
-                  classes: ['google-tooltip'],
-                  delay: { show: 10, hide: 100 },
-                }"
-                :style="`stroke: ${asset.alert.stroke || 'black'}; fill: ${
-                  asset.alert.fill || 'orangered'
-                }`"
-                :icon="alertIcon"
-                @click.native="onTrackClick(asset, $event)"
-              />
-            </div>
-            <div v-if="showLabel && asset.name" class="label">
-              <span>{{ asset.name }}</span>
-            </div>
-
-            <component
-              :is="getMarker(asset)"
-              :scale="1"
-              :rotation="asset.track.velocity.heading"
+    <gmap-cluster
+      :gridSize="clusterSize"
+      :zoomOnClick="zoomOnClick"
+      imagePath="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m"
+    >
+      <div v-for="asset in assetsWithTracks" :key="asset.id">
+        <gmap-custom-marker
+          class="gmap-track"
+          :class="getMarkerClasses(asset)"
+          :marker="asset.track.position"
+          alignment="center"
+          :zIndex="asset.operatorName ? 50 : 49"
+        >
+          <div v-if="showAlerts && asset.alert" class="alert">
+            <Icon
+              v-tooltip="{
+                content: asset.alert.text,
+                classes: ['google-tooltip'],
+                delay: { show: 10, hide: 100 },
+              }"
+              :style="`stroke: ${asset.alert.stroke || 'black'}; fill: ${
+                asset.alert.fill || 'orangered'
+              }`"
+              :icon="alertIcon"
               @click.native="onTrackClick(asset, $event)"
             />
-          </gmap-custom-marker>
-        </div>
-      </template>
-      <template v-else>
-        <gmap-marker
-          v-for="(asset, index) in assetsWithTracks"
-          :key="`asset-marker-${index}`"
-          :position="asset.track.position"
-          :options="{
-            clickable: true,
-          }"
-          :draggable="true"
-          @click="onMarkerClick(asset)"
-          @dragend="onDragEnd(asset, $event)"
-        />
-      </template>
+          </div>
+          <div v-if="showLabel && asset.name" class="label">
+            <span>{{ asset.name }}</span>
+          </div>
+
+          <component
+            :is="getMarker(asset)"
+            :scale="1"
+            :style="getGlow(asset)"
+            :rotation="asset.track.velocity.heading"
+            @click.native="onTrackClick(asset, $event)"
+          />
+        </gmap-custom-marker>
+      </div>
     </gmap-cluster>
   </div>
 </template>
@@ -90,27 +81,6 @@ const ICONS = {
   'Light Vehicle': LightVehicleIcon,
 };
 
-function createMockTrack(track, position, timestamp = new Date()) {
-  const lat = position.lat || 0;
-  const lng = position.lng || 0;
-  const alt = position.alt || 0;
-  const invalid = lat && lng && alt;
-
-  return {
-    name: track.name,
-    user_id: track.userId,
-    position: {
-      lat,
-      lng,
-      alt: track.position.alt,
-    },
-    speed_ms: track.velocity.speed,
-    heading: track.velocity.heading,
-    timestamp,
-    valid: !invalid,
-  };
-}
-
 export default {
   title: 'GMapTracks',
   components: {
@@ -129,7 +99,6 @@ export default {
   },
   props: {
     assets: { type: Array, default: () => [] },
-    draggable: { type: Boolean, default: false },
     showAlerts: { type: Boolean, default: false },
     showLabel: { type: Boolean, default: false },
     clusterSize: { type: Number, default: 0 },
@@ -151,12 +120,37 @@ export default {
     getMarker(asset) {
       return ICONS[asset.type] || DefaultMarker;
     },
-    getMarkerClass(asset) {
-      if (!this.selectedAssetId) {
+    getMarkerClasses(asset) {
+      const classes = [];
+
+      if (this.selectedAssetId) {
+        const selectionClass = this.selectedAssetId === asset.id ? 'selected' : 'not-selected';
+        classes.push(selectionClass);
+      }
+
+      const operatorClass = asset.operatorName ? 'has-operator' : 'no-operator';
+      classes.push(operatorClass);
+
+      return classes;
+    },
+    getGlow(asset) {
+      const glow = asset.glow;
+      if (!glow) {
         return;
       }
 
-      return this.selectedAssetId === asset.id ? 'selected' : 'not-selected';
+      if (typeof glow === 'string') {
+        return `filter: drop-shadow(0 0 0.25rem ${glow});`;
+      }
+
+      const params = {
+        x: glow.x || 0,
+        y: glow.y || 0,
+        radius: glow.radius || '0.25rem',
+        color: glow.color || 'black',
+      };
+
+      return `filter: drop-shadow(${params.x} ${params.y} ${params.radius} ${params.color};`;
     },
     onTrackClick(asset, event) {
       event.stopPropagation();
@@ -164,11 +158,6 @@ export default {
     },
     onMarkerClick(asset) {
       this.$emit('click', asset);
-    },
-    onDragEnd(asset, { latLng }) {
-      const position = { lat: latLng.lat(), lng: latLng.lng() };
-      const mockTrack = createMockTrack(asset.track, position);
-      this.$channel.push('track:set track', mockTrack);
     },
   },
 };

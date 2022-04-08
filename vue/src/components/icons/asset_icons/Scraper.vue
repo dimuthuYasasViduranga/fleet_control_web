@@ -1,5 +1,5 @@
 <template>
-  <g id="scraper_icon">
+  <g id="scraper_icon" class="custom-icon">
     <circle id="wheel-back" r="4.3878121" cy="19.837755" cx="6.1515632" />
     <circle id="wheel-front" r="4.3878121" cy="19.837755" cx="24.010935" />
     <path

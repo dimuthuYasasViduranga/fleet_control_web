@@ -14,9 +14,9 @@
         <td class="value">
           <DropDown
             v-model="localActivity.locationId"
-            :items="locationOptions"
+            :options="locationOptions"
+            placeholder="None"
             label="name"
-            :useScrollLock="false"
           />
           <Icon
             v-tooltip="'Clear'"
@@ -26,14 +26,14 @@
           />
         </td>
       </tr>
-      <!-- <tr class="row material-type">
+      <tr class="row material-type">
         <td class="key">Material</td>
         <td class="value">
           <DropDown
             v-model="localActivity.materialTypeId"
-            :items="materialTypeOptions"
+            :options="materialTypeOptions"
+            placeholder="None"
             label="commonName"
-            :useScrollLock="false"
           />
           <Icon
             v-tooltip="'Clear'"
@@ -42,24 +42,7 @@
             @click="onClearMaterial"
           />
         </td>
-      </tr> -->
-      <!-- <tr class="row load-style">
-        <td class="key">Load Style</td>
-        <td class="value">
-          <DropDown
-            v-model="localActivity.loadStyleId"
-            :items="loadStyleOptions"
-            label="style"
-            :useScrollLock="false"
-          />
-          <Icon
-            v-tooltip="'Clear'"
-            :icon="crossIcon"
-            :scale="crossScale"
-            @click="onClearLoadStyle"
-          />
-        </td>
-      </tr> -->
+      </tr>
     </table>
     <Separator />
     <ActionButtons @submit="onSubmit" @reset="onReset" @cancel="onCancel" />
@@ -68,13 +51,13 @@
 
 <script>
 import { mapState } from 'vuex';
+import { DropDown } from 'hx-vue';
 import Icon from 'hx-layout/Icon.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
 import InfoHeader from './InfoHeader.vue';
 import AssignTimeAllocation from './AssignTimeAllocation.vue';
 import Separator from './Separator.vue';
 import ActionButtons from './ActionButtons.vue';
-import DropDown from '../dropdown/DropDown.vue';
 
 function toLocalActivity(activity) {
   return {
@@ -187,7 +170,7 @@ export default {
   text-align: center;
 }
 
-.assign-dig-unit .activity .row .dropdown-wrapper {
+.assign-dig-unit .activity .row .drop-down {
   width: 100%;
   height: 2.5rem;
 }

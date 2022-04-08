@@ -47,6 +47,7 @@ defmodule DispatchWeb.ChannelCase do
     end
 
     start_agents()
+    start_supervised!({DispatchWeb.ChannelWatcher, :operators}, [])
 
     :ok
   end

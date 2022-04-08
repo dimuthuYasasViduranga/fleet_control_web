@@ -17,7 +17,7 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackTopics
   }
 
-  alias DispatchWeb.Broadcast
+  alias DispatchWeb.{Settings, Broadcast}
 
   alias Dispatch.{
     Helper,
@@ -39,11 +39,13 @@ defmodule DispatchWeb.DispatcherChannel do
     TimeCodeAgent,
     TimeAllocationAgent,
     CalendarAgent,
-    FleetOpsAgent,
+    HaulAgent,
     TrackAgent,
-    ManualCycleAgent,
     PreStartAgent,
-    PreStartSubmissionAgent
+    PreStartSubmissionAgent,
+    RoutingAgent,
+    LiveQueueAgent,
+    DeviceConnectionAgent
   }
 
   alias Phoenix.Socket
@@ -65,6 +67,8 @@ defmodule DispatchWeb.DispatcherChannel do
     }
 
     resp = %{
+      permissions: socket.assigns.permissions,
+      settings: Settings.get(),
       # constants
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(),
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
@@ -72,6 +76,7 @@ defmodule DispatchWeb.DispatcherChannel do
       dispatchers: DispatcherAgent.all(),
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
       pre_start_control_categories: PreStartAgent.categories(),
+      routing: RoutingAgent.get(),
 
       # devices
       devices: DeviceAgent.safe_all(),
@@ -80,8 +85,10 @@ defmodule DispatchWeb.DispatcherChannel do
         historic: DeviceAssignmentAgent.historic()
       },
       pending_devices: pending_devices,
+      device_connections: DeviceConnectionAgent.get(),
 
       # common
+      live_queue: LiveQueueAgent.get(),
       activities: ActivityAgent.get(),
       operator_messages: OperatorMessageAgent.all(),
       dispatcher_messages: DispatcherMessageAgent.all(),
@@ -94,19 +101,17 @@ defmodule DispatchWeb.DispatcherChannel do
         active: TimeAllocationAgent.active(),
         historic: TimeAllocationAgent.historic()
       },
-      fleetops_data: FleetOpsAgent.get(),
+      fleetops_data: HaulAgent.get(),
       pre_start_forms: PreStartAgent.all(),
       current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),
-      use_device_gps: Application.get_env(:dispatch_web, :use_device_gps, false),
 
       # haul truck
       haul_truck: %{
         dispatches: %{
           current: HaulTruckDispatchAgent.current(),
           historic: HaulTruckDispatchAgent.historic()
-        },
-        manual_cycles: ManualCycleAgent.get() |> Enum.reject(&(&1.deleted == true))
+        }
       },
 
       # dig unit
@@ -171,6 +176,14 @@ defmodule DispatchWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
+  @decorate authorized(:can_edit_asset_roster)
+  def handle_in("asset:set enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
+    case set_asset_enabled(asset_id, bool) do
+      :ok -> {:reply, :ok, socket}
+      error -> {:reply, to_error(error), socket}
+    end
+  end
+
   def handle_in("set radio number", payload, socket) do
     %{"asset_id" => asset_id, "radio_number" => radio_number} = payload
     AssetRadioAgent.set(asset_id, radio_number)
@@ -220,6 +233,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_devices)
   def handle_in("set assigned asset", payload, socket) do
     %{"device_id" => device_id, "asset_id" => asset_id} = payload
 
@@ -292,6 +306,29 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_time_codes)
+  def handle_in("bulk add time codes", %{"time_codes" => time_codes}, socket) do
+    time_codes =
+      Enum.map(time_codes, fn tc ->
+        %{
+          name: tc["name"],
+          code: tc["code"],
+          group_id: tc["group_id"],
+          category_id: tc["category_id"]
+        }
+      end)
+
+    case TimeCodeAgent.bulk_add_time_codes(time_codes) do
+      {:ok, _time_codes} ->
+        Broadcast.send_time_code_data_to_all()
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
   @decorate authorized(:can_edit_messages)
   def handle_in("update operator message type", payload, socket) do
     case payload["override"] do
@@ -319,19 +356,6 @@ defmodule DispatchWeb.DispatcherChannel do
       {:ok, _} ->
         Broadcast.send_operator_message_type_tree_to_dispatcher()
         Broadcast.send_operator_message_type_tree_to(asset_type_id)
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
-    case TimeAllocationAgent.add(allocation) do
-      {:ok, _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
-        Broadcast.send_allocations_to_dispatcher()
-
         {:reply, :ok, socket}
 
       error ->
@@ -379,6 +403,27 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   @decorate authorized(:can_edit_operators)
+  def handle_in("bulk add operators", %{"operators" => operators}, socket) do
+    operators =
+      Enum.map(operators, fn o ->
+        %{
+          name: o["name"],
+          nickname: o["nickname"],
+          employee_id: o["employee_id"]
+        }
+      end)
+
+    case OperatorAgent.bulk_add(operators) do
+      {:ok, _operators} ->
+        Broadcast.send_operators_to_all()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  @decorate authorized(:can_edit_operators)
   def handle_in("set operator enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
     case enabled do
       true ->
@@ -398,6 +443,39 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
+    case TimeAllocationAgent.add(allocation) do
+      {:ok, _} ->
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  def handle_in(
+        "mass set allocations",
+        %{"time_code_id" => time_code_id, "asset_ids" => asset_ids},
+        socket
+      ) do
+    asset_ids = Enum.uniq(asset_ids)
+
+    case TimeAllocationAgent.mass_add(time_code_id, asset_ids) do
+      {:ok, _, _, _} ->
+        Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
+        Broadcast.send_allocations_to_dispatcher(:no_alert)
+
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  @decorate authorized(:can_edit_time_allocations)
   def handle_in("edit time allocations", allocations, socket) do
     TimeAllocationAgent.update_all(allocations)
     |> case do
@@ -416,6 +494,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_lock_time_allocations)
   def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
@@ -439,6 +518,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_lock_time_allocations)
   def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
     case TimeAllocationAgent.unlock(ids) do
       {:ok, %{new: []}} ->
@@ -464,8 +544,8 @@ defmodule DispatchWeb.DispatcherChannel do
 
         device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
-        timeusage = FleetOpsAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
-        cycles = FleetOpsAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
+        timeusage = HaulAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
+        cycles = HaulAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
 
         payload = %{
           shift: shift,
@@ -504,6 +584,23 @@ defmodule DispatchWeb.DispatcherChannel do
         }
 
         {:reply, {:ok, payload}, socket}
+    end
+  end
+
+  @decorate authorized(:can_edit_routing)
+  def handle_in("routing:update", payload, socket) do
+    case RoutingAgent.update(
+           payload["route_id"],
+           payload["vertices"],
+           payload["edges"],
+           payload["restriction_groups"]
+         ) do
+      {:ok, _state} ->
+        Broadcast.send_routing_data()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
     end
   end
 
@@ -559,6 +656,7 @@ defmodule DispatchWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
+  @decorate authorized(:can_edit_devices)
   def handle_in("set device details", %{"device_id" => device_id, "details" => details}, socket) do
     case DeviceAgent.update_details(device_id, details) do
       {:ok, _} ->
@@ -570,9 +668,7 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
-  @spec set_assigned_asset(integer, integer) ::
-          :ok | {:error, :invalid_device_id | :invalid_asset_id | term}
-  def set_assigned_asset(device_id, new_asset_id) do
+  defp set_assigned_asset(device_id, new_asset_id) do
     case valid_device_and_asset(device_id, new_asset_id) do
       :ok ->
         nil
@@ -616,11 +712,12 @@ defmodule DispatchWeb.DispatcherChannel do
 
         # clear any settings for the asset
         HaulTruckDispatchAgent.clear(old_asset_id)
-
+        DigUnitActivityAgent.clear(old_asset_id)
         DeviceAssignmentAgent.clear(old_asset_id)
 
         Broadcast.send_activity(%{asset_id: old_asset_id}, "dispatcher", "device unassigned")
         Broadcast.HaulTruck.send_dispatches()
+        Broadcast.DigUnit.send_activities_to_all()
         Broadcast.send_assignments_to_all()
     end
   end
@@ -637,6 +734,75 @@ defmodule DispatchWeb.DispatcherChannel do
 
     Broadcast.send_activity(%{asset_id: asset_id}, "dispatcher", "device assigned")
     Broadcast.send_assignments_to_all()
+  end
+
+  defp set_asset_enabled(nil, _), do: {:error, :invalid_asset}
+
+  defp set_asset_enabled(asset_id, true) do
+    case AssetAgent.set_enabled(asset_id, true) do
+      :ok ->
+        no_task_id = TimeCodeAgent.no_task_id()
+
+        TimeAllocationAgent.add(%{
+          asset_id: asset_id,
+          time_code_id: no_task_id,
+          start_time: NaiveDateTime.utc_now(),
+          end_time: nil,
+          deleted: false
+        })
+
+        Broadcast.send_asset_data_to_all()
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+        Broadcast.send_assignments_to_all()
+
+        :ok
+
+      error ->
+        error
+    end
+  end
+
+  defp set_asset_enabled(asset_id, false) do
+    case AssetAgent.set_enabled(asset_id, false) do
+      :ok ->
+        disabled_id = TimeCodeAgent.disabled_id()
+
+        TimeAllocationAgent.add(%{
+          asset_id: asset_id,
+          time_code_id: disabled_id,
+          start_time: NaiveDateTime.utc_now(),
+          end_time: nil,
+          deleted: false
+        })
+
+        Broadcast.force_logout(%{asset_id: asset_id})
+        DeviceAssignmentAgent.clear(asset_id)
+        HaulTruckDispatchAgent.clear(asset_id)
+        DigUnitActivityAgent.clear(asset_id)
+
+        case HaulTruckDispatchAgent.clear_dig_unit(asset_id) do
+          {:ok, dispatches} ->
+            identifiers = Enum.map(dispatches, &%{asset_id: &1.asset_id})
+            Broadcast.HaulTruck.send_dispatches(identifiers)
+
+          _ ->
+            nil
+        end
+
+        Broadcast.send_asset_data_to_all()
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_allocations_to_dispatcher()
+
+        Broadcast.DigUnit.send_activities_to_all()
+
+        Broadcast.send_assignments_to_all()
+
+        :ok
+
+      error ->
+        error
+    end
   end
 
   @doc """

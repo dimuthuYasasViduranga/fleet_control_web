@@ -6,7 +6,7 @@ defmodule Dispatch.AssetRadioAgentTest do
   alias HpsData.Asset
   alias HpsData.Schemas.Dispatch.AssetRadio
 
-  setup _ do
+  setup do
     AssetRadioAgent.start_link([])
     [asset | _] = Repo.all(Asset)
     [asset: asset]

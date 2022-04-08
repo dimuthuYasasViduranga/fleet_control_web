@@ -10,8 +10,10 @@
           {{ a.type }}
         </option>
       </select>
-      <button v-show="selectedAssetTypeId" class="hx-btn submit" @click="onSubmit">Submit</button>
-      <button v-show="selectedAssetTypeId" class="hx-btn reset" @click="onReset">Reset</button>
+      <span v-if="!readonly" class="actions">
+        <button v-show="selectedAssetTypeId" class="hx-btn submit" @click="onSubmit">Submit</button>
+        <button v-show="selectedAssetTypeId" class="hx-btn reset" @click="onReset">Reset</button>
+      </span>
     </div>
 
     <tree-view
@@ -22,11 +24,13 @@
       :canEditRoots="false"
       addNodeText="Add Group"
       addLeafText="Add Time Code"
+      :readonly="readonly"
     >
       <template slot="row-body-leaf" slot-scope="{ node }">
         <TimeAllocationDropDown
           :value="node.data.timeCodeId"
           :showAll="true"
+          :disabled="readonly"
           @input="onTimeCodeChange($event, node)"
         />
       </template>
@@ -117,6 +121,7 @@ export default {
     TimeAllocationDropDown,
   },
   props: {
+    readonly: Boolean,
     timeCodeGroups: { type: Array, default: () => [] },
     assetTypes: { type: Array, default: () => [] },
   },
@@ -221,7 +226,7 @@ export default {
   height: 3rem;
 }
 
-.time-code-tree-editor .time-code-tree .dropdown-wrapper {
+.time-code-tree-editor .time-code-tree .drop-down {
   width: 20rem;
 }
 

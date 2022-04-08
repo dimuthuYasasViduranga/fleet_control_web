@@ -9,9 +9,7 @@ defmodule DispatchWeb.Authorization.Plug.LoadAuthPermissions do
     permissions =
       case opts[:full_access] do
         true ->
-          Permissions.default_permissions()
-          |> Enum.map(fn {key, _} -> {key, true} end)
-          |> Enum.into(%{})
+          Permissions.full_permissions()
 
         _ ->
           conn

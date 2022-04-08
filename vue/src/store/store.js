@@ -15,6 +15,7 @@ import TimeIcon from '@/components/icons/Time.vue';
 
 import connection from './modules/connection.js';
 import constants from './modules/constants.js';
+import settings from './modules/settings.js';
 import deviceStore from './modules/device_store.js';
 import trackStore from './modules/track_store.js';
 
@@ -177,6 +178,7 @@ const state = {
   operatorMessages: Array(),
   dispatcherMessages: Array(),
   activityLog: Array(),
+  liveQueue: Array(),
   fleetOps: {
     cycles: Array(),
     timeusage: Array(),
@@ -246,6 +248,36 @@ function parseTicket(ticket) {
   };
 }
 
+function parseLiveQueue(queue) {
+  return Object.values(queue).map(queue => {
+    const active = parseLiveQueueElements(queue.active, queue.id, 'loading');
+    const queued = parseLiveQueueElements(queue.queued, queue.id, 'queued');
+    const outOfRange = parseLiveQueueElements(queue.out_of_range, queue.id, 'out_of_range');
+    return {
+      digUnitId: queue.id,
+      lastVisited: toUtcDate(queue.last_visited),
+      active,
+      queued,
+      outOfRange,
+      assetCount: active.length + queued.length + outOfRange.length,
+    };
+  });
+}
+
+function parseLiveQueueElements(elements = {}, digUnitId, status) {
+  return Object.values(elements).map(info => {
+    return {
+      assetId: info.id,
+      digUnitId,
+      status,
+      startedAt: toUtcDate(info.started_at),
+      lastUpdated: toUtcDate(info.last_updated),
+      chainDistance: info.chain_distance,
+      distanceToExcavator: info.distance_to_excavator,
+    };
+  });
+}
+
 function notifyPreStartSubmissionChanges(state, newSubs) {
   const oldSubs = state.currentPreStartSubmissions;
 
@@ -292,7 +324,7 @@ function notifyActiveTimeAllocationChanges(state, newAllocs) {
     return !oldAlloc || oldAlloc.timeCodeId !== newAlloc.timeCodeId;
   });
 
-  const assets = state.constants.assets || [];
+  const assets = state.constants.allAssets || [];
   const timeCodes = state.constants.timeCodes || [];
   const timeCodeGroups = state.constants.timeCodeGroups || [];
 
@@ -316,14 +348,14 @@ function notifyActiveTimeAllocationChanges(state, newAllocs) {
       actions: [
         {
           text: 'Change',
-          onClick: (e, toast) => {
+          onClick: (_e, toast) => {
             Vue.prototype.$eventBus.$emit('asset-assignment-open', alloc.assetId);
             toast.goAway(0);
           },
         },
         {
           text: 'Clear',
-          onClick: (e, toast) => toast.goAway(0),
+          onClick: (_e, toast) => toast.goAway(0),
         },
       ],
     });
@@ -372,8 +404,18 @@ const getters = {
     const { assets, operators, radioNumbers } = state.constants;
     const { devices, currentDeviceAssignments } = state.deviceStore;
     const { presence } = state.connection;
-    const { activeTimeAllocations } = state;
+    const { activeTimeAllocations, liveQueue } = state;
     const fullTimeCodes = getters['constants/fullTimeCodes'];
+
+    const liveQueueMap = {};
+
+    liveQueue.forEach(q => {
+      liveQueueMap[q.digUnitId] = q;
+
+      [q.active, q.queued, q.outOfRange].flat().forEach(e => {
+        liveQueueMap[e.assetId] = e;
+      });
+    });
 
     return assets.map(a =>
       Transforms.toFullAsset(
@@ -385,6 +427,7 @@ const getters = {
         presence,
         currentDeviceAssignments,
         activeTimeAllocations,
+        liveQueueMap,
       ),
     );
   },
@@ -393,7 +436,7 @@ const getters = {
       state;
 
     const {
-      assets,
+      allAssets,
       dispatchers,
       operators,
       operatorMessageTypes,
@@ -429,7 +472,7 @@ const getters = {
       });
 
     return toEvents(
-      assets,
+      allAssets,
       dispatchers,
       operators,
       devices,
@@ -491,9 +534,9 @@ const actions = {
     const formattedHours = engineHours.map(parseEngineHour);
     commit('setHistoricEngineHours', formattedHours);
   },
-  setActiveTimeAllocations({ commit }, allocs = []) {
-    const formattedAllocations = allocs.map(parseTimeAllocation);
-    commit('setActiveTimeAllocations', formattedAllocations);
+  setActiveTimeAllocations({ commit }, { allocations, action }) {
+    const formattedAllocations = (allocations || []).map(parseTimeAllocation);
+    commit('setActiveTimeAllocations', { allocations: formattedAllocations, action });
   },
   setHistoricTimeAllocations({ commit }, allocs = []) {
     const formattedAllocations = allocs.map(parseTimeAllocation);
@@ -502,6 +545,10 @@ const actions = {
   setActivityLog({ commit }, activities = []) {
     const formattedActivities = activities.map(parseActivity);
     commit('setActivityLog', formattedActivities);
+  },
+  setLiveQueue({ commit }, queue = {}) {
+    const formattedQueues = parseLiveQueue(queue);
+    commit('setLiveQueue', formattedQueues);
   },
   setOperatorMessages({ commit }, messages = []) {
     const formattedMessages = messages.map(parseOperatorMessage);
@@ -539,15 +586,20 @@ const mutations = {
   setHistoricEngineHours(state, engineHours = []) {
     state.historicEngineHours = engineHours;
   },
-  setActiveTimeAllocations(state, allocs = []) {
-    notifyActiveTimeAllocationChanges(state, allocs);
-    state.activeTimeAllocations = allocs;
+  setActiveTimeAllocations(state, { allocations, action }) {
+    if (action === 'alert') {
+      notifyActiveTimeAllocationChanges(state, allocations);
+    }
+    state.activeTimeAllocations = allocations;
   },
   setHistoricTimeAllocations(state, allocs = []) {
     state.historicTimeAllocations = allocs;
   },
   setActivityLog(state, log = []) {
     state.activityLog = log;
+  },
+  setLiveQueue(state, queues = []) {
+    state.liveQueue = queues;
   },
   setOperatorMessages(state, messages = []) {
     notifyUnreadMessages(state.operatorMessages, messages);
@@ -582,6 +634,7 @@ export default new Vuex.Store({
   modules: {
     connection,
     constants,
+    settings,
     deviceStore,
     trackStore,
     haulTruck,

@@ -9,8 +9,6 @@ end
 
 config :dispatch_web, bypass_auth: false
 
-config :appsignal, :config, active: true
-
 config :dispatch_web, DispatchWeb.Endpoint,
   secret_key_base: random_string.(64),
   load_from_system_env: true,
@@ -23,6 +21,11 @@ config :dispatch_web, DispatchWeb.Endpoint,
 config :dispatch_web, DispatchWeb.Guardian, secret_key: random_string.(64)
 
 # Do not print debug messages in production
-config :logger, level: :info
+config :logger,
+  level: :info,
+  compile_time_purge_matching: [
+    [application: :db_connection],
+    [module: DBConnection.Connection]
+  ]
 
 config :appsignal, :config, active: true, env: :prod

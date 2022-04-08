@@ -30,7 +30,13 @@
         </template>
       </table-column>
 
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
         <template slot-scope="row">
           <Icon
             v-if="!row.deleted"
@@ -53,6 +59,7 @@
             :css-colors="true"
             :value="!row.deleted"
             :sync="true"
+            :disabled="readonly"
             @input="onToggleActive(row, $event)"
           />
         </template>
@@ -88,6 +95,7 @@ export default {
     ToggleButton,
   },
   props: {
+    readonly: Boolean,
     operators: { type: Array, default: () => [] },
     maxLength: { type: Number, default: 255 },
     error: { type: String, default: '' },
@@ -166,5 +174,9 @@ export default {
 
 .operator-table .edit-icon:hover {
   stroke: orange;
+}
+
+.operator-table .vue-js-switch.disabled {
+  opacity: 1;
 }
 </style>

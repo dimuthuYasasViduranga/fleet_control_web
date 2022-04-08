@@ -12,23 +12,28 @@
           {{ mode }}
         </button>
       </div>
+
       <div v-if="selectedMode === 'forms'" class="form-editor-wrapper">
         <div class="actions">
           <DropDown
-            placeholder="Select Asset"
             :value="assetTypeId"
-            :items="assetTypes"
+            :options="assetTypes"
+            placeholder="Select Asset"
             label="type"
+            clearable
             @change="onAssetTypeChange"
           />
-          <template v-if="assetTypeId">
+          <template v-if="!readonly && assetTypeId">
             <button class="hx-btn" @click="onConfirmSubmit()">Submit</button>
             <button class="hx-btn" @click="onReset()">Reset</button>
           </template>
         </div>
-        <PreStartFormEditor v-if="assetTypeId" v-model="form" />
+        <template v-if="assetTypeId">
+          <button v-if="!readonly" class="hx-btn" @click="onCopyFrom()">Copy From</button>
+          <PreStartFormEditor v-if="assetTypeId" v-model="form" :readonly="readonly" />
+        </template>
       </div>
-      <PreStartCategoryEditor v-else />
+      <PreStartCategoryEditor v-else :readonly="readonly" />
     </hxCard>
   </div>
 </template>
@@ -36,13 +41,14 @@
 <script>
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
+import { DropDown } from 'hx-vue';
+
 import PreStartFormEditor from './PreStartFormEditor.vue';
 import PreStartCategoryEditor from './PreStartCategoryEditor.vue';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
-import DropDown from '@/components/dropdown/DropDown.vue';
-
 import ReportIcon from '@/components/icons/Report.vue';
+import CopyFromModal from './CopyFromModal.vue';
 
 function getFirstValidationError(form) {
   if (form.sections.length === 0) {
@@ -126,8 +132,10 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      assetTypes: state => [{ type: 'Select Asset' }].concat(state.assetTypes),
+      readonly: state => !state.permissions.can_edit_pre_starts,
+      assetTypes: state => state.assetTypes,
       preStartForms: state => state.preStartForms,
+      categories: state => state.preStartControlCategories,
     }),
   },
   methods: {
@@ -141,6 +149,19 @@ export default {
     },
     onReset() {
       this.onAssetTypeChange(this.assetTypeId);
+    },
+    onCopyFrom() {
+      const opts = {
+        preStartForms: this.preStartForms,
+        assetTypes: this.assetTypes,
+        categories: this.categories,
+      };
+
+      this.$modal.create(CopyFromModal, opts).onClose(resp => {
+        if (resp) {
+          this.form = toForm(resp);
+        }
+      });
     },
     onConfirmSubmit() {
       this.$modal
@@ -196,8 +217,13 @@ export default {
   border: 1px solid #898f94;
 }
 
-.pre-start-editor .actions .dropdown-wrapper {
-  width: 10rem;
+.pre-start-editor .actions .drop-down {
+  display: inline-flex;
+  min-width: 10rem;
+}
+
+.pre-start-editor .actions .drop-down .v-select {
+  width: 100%;
 }
 
 .pre-start-editor .actions {

@@ -3,6 +3,13 @@ defmodule DispatchWeb.Application do
 
   use Application
 
+  defimpl Inspect, for: HTTPoison.Response do
+    def inspect(response, opts) do
+      %{response | headers: "--redacted--", request_url: "--redacted--", request: "--redacted--"}
+      |> Inspect.Any.inspect(opts)
+    end
+  end
+
   def agents() do
     [
       # agents
@@ -24,21 +31,23 @@ defmodule DispatchWeb.Application do
       Dispatch.AssetRadioAgent,
       Dispatch.LoadStyleAgent,
       Dispatch.MapTileAgent,
-      Dispatch.FleetOpsAgent,
-      Dispatch.ManualCycleAgent,
+      Dispatch.HaulAgent,
       Dispatch.MaterialTypeAgent,
       Dispatch.PreStartAgent,
       Dispatch.PreStartSubmissionAgent,
+      Dispatch.RoutingAgent,
+      Dispatch.LiveQueueAgent,
 
       # agents that call other agents
       Dispatch.TimeAllocationAgent,
 
       # track subscriber
       Dispatch.TrackAgent,
-      Dispatch.TrackSub,
 
       # authorization server
-      Dispatch.DeviceAuthServer
+      Dispatch.DeviceAuthServer,
+
+      Dispatch.DeviceConnectionAgent
     ]
   end
 
@@ -54,7 +63,8 @@ defmodule DispatchWeb.Application do
         [
           {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
           DispatchWeb.Endpoint,
-          DispatchWeb.Presence
+          DispatchWeb.Presence,
+          {DispatchWeb.ChannelWatcher, :operators}
         ]
       ]
       |> List.flatten()

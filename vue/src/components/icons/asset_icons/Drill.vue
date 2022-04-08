@@ -1,5 +1,5 @@
 <template>
-  <g id="drill_icon">
+  <g id="drill_icon" class="custom-icon">
     <rect
       id="tracks"
       ry="1.7050974"

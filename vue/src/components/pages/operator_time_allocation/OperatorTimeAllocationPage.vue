@@ -113,7 +113,14 @@ export default {
       shiftInTransit: null,
       search: '',
       hideBlankOperators: true,
+      ready: false,
     };
+  },
+  mounted() {
+    setTimeout(() => {
+      this.ready = true;
+      this.onRefresh();
+    }, 250);
   },
   computed: {
     ...mapState('constants', {
@@ -166,6 +173,10 @@ export default {
       this.fetchAllocationsByShift(this.shift);
     },
     fetchAllocationsByShift(shift) {
+      if (!this.ready) {
+        return;
+      }
+
       this.shiftSelectDisabled = true;
 
       if (!shift) {

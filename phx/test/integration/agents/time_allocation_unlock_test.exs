@@ -10,7 +10,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     DispatcherAgent
   }
 
-  alias HpsData.Schemas.Dispatch.TimeAllocation
+  alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
   def assert_naive_equal(nil, nil), do: true
 
@@ -27,7 +27,16 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     end
   end
 
-  setup_all _ do
+  setup do
+    group_map =
+      Repo.all(TimeCodeGroup)
+      |> Enum.map(&{&1.name, &1.id})
+      |> Enum.into(%{})
+
+    # insert example time codes
+    Repo.insert!(%TimeCode{code: "1000", name: "Dig Ore", group_id: group_map["Ready"]})
+    Repo.insert!(%TimeCode{code: "2000", name: "Damage", group_id: group_map["Down"]})
+
     CalendarAgent.start_link([])
     todays_calendar = CalendarAgent.get_current()
 
@@ -44,6 +53,10 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     ready = Enum.find(time_codes, &(&1.name == "Dig Ore")).id
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
 
+    TimeAllocationAgent.start_link([])
+    DispatcherAgent.start_link([])
+    {:ok, dispatcher} = DispatcherAgent.add("1234", "test")
+
     [
       asset: asset,
       asset_b: asset_b,
@@ -51,16 +64,9 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
       exception: exception,
       calendar: yesterdays_calendar,
       calendar_today: todays_calendar,
-      calendar_future: future_calendar
+      calendar_future: future_calendar,
+      dispatcher: dispatcher.id
     ]
-  end
-
-  setup _ do
-    DispatcherAgent.start_link([])
-    TimeAllocationAgent.start_link([])
-
-    {:ok, dispatcher} = DispatcherAgent.add("1234", "test")
-    [dispatcher: dispatcher.id]
   end
 
   defp to_alloc(asset_id, time_code_id, start_time, end_time) do

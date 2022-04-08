@@ -3,7 +3,7 @@ defmodule DispatchWeb.PageController do
 
   use DispatchWeb, :controller
 
-  alias DispatchWeb.{Authorization, Guardian}
+  alias DispatchWeb.{Settings, Authorization, Guardian}
   alias Dispatch.DispatcherAgent
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
@@ -19,17 +19,20 @@ defmodule DispatchWeb.PageController do
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
     user = get_session(conn, :current_user)
-    permissions = conn.assigns.permissions
+
+    authorized = Map.get(conn.assigns.permissions, :authorized, false)
 
     {conn, token} = get_token(conn)
+
+    whitelist = get_whitelist(user[:user_id])
 
     data =
       %{
         data: Dispatch.StaticData.fetch(),
-        whitelist: Authorization.Whitelist.get(user[:user_id]),
+        whitelist: whitelist,
         user_token: token,
         user: user,
-        permissions: permissions
+        authorized: authorized
       }
       |> Jason.encode!()
 
@@ -38,16 +41,24 @@ defmodule DispatchWeb.PageController do
     |> send_resp(200, data)
   end
 
-  defp get_token(conn) do
-    {conn, user} = get_user(conn)
+  defp get_whitelist(user_id) do
+    whitelist = Authorization.Whitelist.get(user_id)
 
-    case user do
-      nil ->
+    if Settings.get(:use_pre_starts) == true do
+      whitelist
+    else
+      Enum.reject(whitelist, &(&1 == "/pre_start_editor" || &1 == "/pre_start_submissions"))
+    end
+  end
+
+  defp get_token(conn) do
+    case get_user(conn) do
+      {conn, nil} ->
         {conn, nil}
 
-      data ->
-        user = Map.take(data, [:id, :user_id])
-        token = Phoenix.Token.sign(conn, "user socket", user)
+      {conn, user} ->
+        data = Map.take(user, [:id, :user_id])
+        token = Phoenix.Token.sign(conn, "user socket", data)
         {conn, token}
     end
   end

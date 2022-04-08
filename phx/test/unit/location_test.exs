@@ -21,27 +21,8 @@ defmodule Dispatch.LocationTest do
     %{geofence: geofence}
   end
 
-  test "add valid timeranges" do
-    time_a = ~N[2020-01-01 00:00:00]
-    time_b = ~N[2020-01-02 00:00:00]
-    time_c = ~N[2020-01-03 00:00:00]
-    geo_a = %{id: 1, location_id: 1, timestamp: time_a}
-    geo_b = %{id: 2, location_id: 1, timestamp: time_b}
-    geo_c = %{id: 3, location_id: 2, timestamp: time_c}
-
-    expected_a = %{id: 1, location_id: 1, timestamp: time_a, start_time: time_a, end_time: time_b}
-    expected_b = %{id: 2, location_id: 1, timestamp: time_b, start_time: time_b, end_time: nil}
-    expected_c = %{id: 3, location_id: 2, timestamp: time_c, start_time: time_c, end_time: nil}
-
-    [actual_a, actual_b, actual_c] = Location.add_valid_timeranges([geo_a, geo_b, geo_c])
-
-    assert actual_a == expected_a
-    assert actual_b == expected_b
-    assert actual_c == expected_c
-  end
-
   describe "find timed location -" do
-    setup _ do
+    setup do
       crusher = %{
         geofence: "32.1,116.0|32.1,116.1|32.0,116.1|32.0,116.0|32.1,116.0",
         history_id: 1,
@@ -65,7 +46,8 @@ defmodule Dispatch.LocationTest do
           properties: %{},
           srid: nil
         },
-        timestamp: ~N[2020-01-01 00:00:00.000000],
+        start_time: ~N[2020-01-01 00:00:00.000000],
+        end_time: nil,
         type: "crusher"
       }
 
@@ -75,11 +57,10 @@ defmodule Dispatch.LocationTest do
     end
 
     test "within valid", %{crusher: crusher} do
-      locations = Location.add_valid_timeranges([crusher])
-      actual = Location.find_location(locations, 32.05, 116.05, ~N[2020-08-01 00:00:00])
+      actual = Location.find_location([crusher], 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
       assert actual.name == "Crusher"
-      assert NaiveDateTime.compare(actual.timestamp, ~N[2020-01-01 00:00:00.000000]) == :eq
+      assert NaiveDateTime.compare(actual.start_time, ~N[2020-01-01 00:00:00.000000]) == :eq
     end
 
     test "within no geofence" do
@@ -93,8 +74,7 @@ defmodule Dispatch.LocationTest do
         |> Map.put(:location_type_id, closed.id)
         |> Map.put(:type, closed.type)
 
-      locations = Location.add_valid_timeranges([closed_crusher])
-      actual = Location.find_location(locations, 32.05, 116.05, ~N[2020-08-01 00:00:00])
+      actual = Location.find_location([closed_crusher], 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
       assert is_nil(actual)
     end
@@ -104,13 +84,13 @@ defmodule Dispatch.LocationTest do
         crusher
         |> Map.put(:location_type_id, closed.id)
         |> Map.put(:type, closed.type)
-        |> Map.put(:timestamp, ~N[2020-02-01 00:00:00])
+        |> Map.put(:start_time, ~N[2020-02-01 00:00:00])
 
-      locations = Location.add_valid_timeranges([crusher, closed_crusher])
+      locations = [crusher, closed_crusher]
 
       actual = Location.find_location(locations, 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
-      assert is_nil(actual)
+      assert actual == crusher
     end
 
     test "within different closed and open (ie name change)", %{crusher: crusher} do
@@ -120,17 +100,16 @@ defmodule Dispatch.LocationTest do
         |> Map.put(:location_id, -1)
         |> Map.put(:type, "closed")
 
-      actual =
-        Location.add_valid_timeranges([crusher, closed_geofence])
-        |> Location.find_location(32.05, 116.05, ~N[2020-08-01 00:00:00])
+      locations = [crusher, closed_geofence]
+
+      actual = Location.find_location(locations, 32.05, 116.05, ~N[2020-08-01 00:00:00])
 
       assert actual.type == "crusher"
       assert actual.name == "Crusher"
     end
 
     test "find no location (within geofence but before valid timestamp)", %{crusher: crusher} do
-      locations = Location.add_valid_timeranges([crusher])
-      actual = Location.find_location(locations, 32.05, 116.05, ~N[1970-08-01 00:00:00])
+      actual = Location.find_location([crusher], 32.05, 116.05, ~N[1970-08-01 00:00:00])
       assert is_nil(actual)
     end
   end

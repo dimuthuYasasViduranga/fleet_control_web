@@ -1,10 +1,13 @@
 defmodule DispatchWeb.DispatcherChannel.DigUnitTopics do
   @moduledoc false
 
+  use DispatchWeb.Authorization.Decorator
+
   alias Dispatch.DigUnitActivityAgent
 
   alias DispatchWeb.Broadcast
 
+  @decorate authorized(:can_dispatch)
   def handle_in("dig:set activity", activity, socket) do
     case DigUnitActivityAgent.add(activity) do
       {:ok, activity} ->

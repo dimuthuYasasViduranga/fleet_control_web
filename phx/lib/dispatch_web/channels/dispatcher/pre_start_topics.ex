@@ -14,6 +14,8 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     case topic do
       "pre-start:add form" -> add_form(topic, data, socket)
       "pre-start:update control categories" -> update_control_categories(topic, data, socket)
+      "pre-start:set response ticket" -> set_ticket(topic, data, socket)
+      "pre-start:update response ticket status" -> update_ticket(topic, data, socket)
       _ -> handle(topic, data, socket)
     end
   end
@@ -63,6 +65,43 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
     }
   end
 
+  @decorate authorized(:can_edit_pre_start_tickets)
+  defp set_ticket("pre-start:set response ticket", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.add_ticket()
+    |> case do
+      {:ok, ticket, _submission} ->
+        Broadcast.send_pre_start_submissions_to_all()
+        {:reply, {:ok, %{ticket: ticket}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
+  @decorate authorized(:can_edit_pre_start_tickets)
+  defp update_ticket("pre-start:update response ticket status", params, socket) do
+    dispatcher_id = get_dispatcher_id(socket)
+
+    params
+    |> Map.put(:dispatcher_id, dispatcher_id)
+    |> PreStartSubmissionAgent.update_ticket_status()
+    |> case do
+      {:ok, status, submissions} ->
+        if status.active == true and length(submissions) > 0 do
+          Broadcast.send_pre_start_submissions_to_all()
+        end
+
+        {:reply, {:ok, %{status: status}}, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
   defp handle(
          "pre-start:get submissions",
          data,
@@ -84,41 +123,6 @@ defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
         }
 
         {:reply, {:ok, payload}, socket}
-    end
-  end
-
-  defp handle("pre-start:set response ticket", params, socket) do
-    dispatcher_id = get_dispatcher_id(socket)
-
-    params
-    |> Map.put(:dispatcher_id, dispatcher_id)
-    |> PreStartSubmissionAgent.add_ticket()
-    |> case do
-      {:ok, ticket, _submission} ->
-        Broadcast.send_pre_start_submissions_to_all()
-        {:reply, {:ok, %{ticket: ticket}}, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  defp handle("pre-start:update response ticket status", params, socket) do
-    dispatcher_id = get_dispatcher_id(socket)
-
-    params
-    |> Map.put(:dispatcher_id, dispatcher_id)
-    |> PreStartSubmissionAgent.update_ticket_status()
-    |> case do
-      {:ok, status, submissions} ->
-        if status.active == true and length(submissions) > 0 do
-          Broadcast.send_pre_start_submissions_to_all()
-        end
-
-        {:reply, {:ok, %{status: status}}, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
     end
   end
 end

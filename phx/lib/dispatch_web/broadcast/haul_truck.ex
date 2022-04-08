@@ -8,7 +8,7 @@ defmodule DispatchWeb.Broadcast.HaulTruck do
 
   alias DispatchWeb.{Endpoint, Broadcast}
 
-  alias Dispatch.{AssetAgent, HaulTruckDispatchAgent, ManualCycleAgent}
+  alias Dispatch.{AssetAgent, HaulTruckDispatchAgent}
 
   def send_dispatches(identifiers \\ []) when is_list(identifiers) do
     Enum.each(identifiers, &send_dispatch_to_asset/1)
@@ -80,25 +80,5 @@ defmodule DispatchWeb.Broadcast.HaulTruck do
           nil
       end
     end)
-  end
-
-  def send_manual_cycles_to_asset(identifier) do
-    case Broadcast.get_assignment(identifier) do
-      {device, %{asset_id: asset_id, operator_id: operator_id}, _type} ->
-        cycles =
-          ManualCycleAgent.get_by(%{asset_id: asset_id, operator_id: operator_id, deleted: false})
-
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "haul:set manual cycles", %{
-          cycles: cycles
-        })
-
-      _ ->
-        nil
-    end
-  end
-
-  def send_manual_cycles_to_dispatcher() do
-    cycles = Enum.reject(ManualCycleAgent.get(), &(&1.deleted == true))
-    Endpoint.broadcast(@dispatch, "haul:set manual cycles", %{cycles: cycles})
   end
 end

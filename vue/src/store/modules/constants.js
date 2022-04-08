@@ -17,8 +17,8 @@ import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue'
 import Timely from '@/code/timely';
 
 const DEFAULT_ZOOM = 16;
-const LOAD_TYPES = ['production', 'stockpile', 'waste_stockpile'];
-const DUMP_TYPES = ['crusher', 'waste_dump', 'rehab', 'stockpile', 'waste_stockpile'];
+const LOAD_TYPES = ['load', 'load|dump'];
+const DUMP_TYPES = ['dump', 'load|dump'];
 
 function getIcons() {
   return {
@@ -64,13 +64,23 @@ function parseManifest(manifest) {
 }
 
 function parseLocation(location) {
+  const extendedName = location.material_type
+    ? `${location.name} (${location.material_type})`
+    : location.name;
+
   return {
     id: location.location_id,
     name: location.name,
+    extendedName,
     typeId: location.location_type_id,
     type: location.type,
+    locationGroupId: location.location_group_id,
+    locationGroup: location.location_group,
+    materialTypeId: location.material_type_id,
+    materialType: location.material_type,
     historyId: location.history_id,
-    timestamp: location.timestamp,
+    startTime: toUtcDate(location.start_time),
+    endTime: toUtcDate(location.end_time),
     geofence: parseGeofence(location.geofence),
   };
 }
@@ -170,6 +180,7 @@ export function parseAsset(asset) {
     type: asset.type,
     typeId: asset.type_id,
     secondaryType: asset.secondary_type,
+    enabled: asset.enabled,
   };
 }
 
@@ -248,7 +259,9 @@ function parseMaterialType(type) {
   return {
     id: type.id,
     name: type.name,
-    commonName: type.common_name,
+    alias: type.alias,
+    commonName: type.alias || type.name,
+    tonnesToBCMFactor: type.tonnes_to_bcm_factor,
   };
 }
 
@@ -289,7 +302,7 @@ function parsePreStartTicketStatusType(type) {
   return {
     id: type.id,
     name: type.name,
-    alias: type.alias,
+    alias: type.alias | type.name,
   };
 }
 
@@ -339,12 +352,63 @@ function parseQuickMessage(message) {
   };
 }
 
+function parseRouteVertex(v) {
+  return {
+    id: v.id,
+    lat: v.lat,
+    lng: v.lng,
+    alt: v.alt,
+  };
+}
+
+function parseRouteEdge(edge) {
+  return {
+    id: edge.id,
+    vertexStartId: edge.vertex_start_id,
+    vertexEndId: edge.vertex_end_id,
+    distance: edge.distance,
+  };
+}
+
+function parseRoute(route) {
+  const vertexMap = route.vertex_map;
+  Object.keys(route.vertex_map).forEach(key => {
+    vertexMap[key] = parseRouteVertex(vertexMap[key]);
+  });
+
+  const edgeMap = route.edge_map;
+  Object.keys(route.edge_map).forEach(key => {
+    edgeMap[key] = parseRouteEdge(edgeMap[key]);
+  });
+
+  return {
+    id: route.id,
+    startTime: toUtcDate(route.start_time),
+    endTime: toUtcDate(route.endTime),
+    vertexMap,
+    edgeMap,
+    elementIds: route.element_ids,
+    restrictionGroups: route.restriction_groups.map(parseRouteRestrictionGroup),
+  };
+}
+
+function parseRouteRestrictionGroup(g) {
+  return {
+    id: g.id,
+    name: g.name,
+    edgeIds: g.edge_ids,
+    assetTypeIds: g.asset_type_ids,
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
+  permissions: Object(),
   user: Object(),
   mapKey: String(),
   assets: Array(),
+  allAssets: Array(),
   assetTypes: Array(),
   operators: Array(),
   shifts: Array(),
@@ -370,6 +434,7 @@ const state = {
   preStartForms: Array(),
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
+  activeRoute: null,
 };
 
 const getters = {
@@ -400,6 +465,7 @@ const actions = {
 
     // all in constants
     [
+      ['setUser', staticData.user],
       ['setLocationData', data.locations],
       ['setQuickMessages', data.quick_messages],
       ['setMapConfig', data.map_config],
@@ -413,13 +479,20 @@ const actions = {
       ['setOperatorMessageTypes', data.operator_message_types],
       ['setLoadStyles', data.load_styles],
       ['setMaterialTypes', data.material_types],
-      ['setUser', staticData.user],
     ].forEach(([path, value]) => dispatch(path, value));
 
     dispatch('connection/setUserToken', staticData.user_token, { root: true });
     Timely.setSiteZone(data.timezone);
   },
+  setPermissions({ commit }, permissions) {
+    commit('setPermissions', permissions);
+    if (!permissions.authorized) {
+      console.error('You are no longer authorized');
+      window.location.reload();
+    }
+  },
   setUser({ commit }, user) {
+    user = user || {};
     const formattedUser = {
       id: user.id,
       name: user.name,
@@ -513,9 +586,16 @@ const actions = {
     const formattedTypes = types.map(parsePreStartControlCategory);
     commit('setPreStartControlCategories', formattedTypes);
   },
+  setRoutingData({ commit }, data) {
+    const activeRoute = data?.active_route ? parseRoute(data.active_route) : null;
+    commit('setRoutingData', activeRoute);
+  },
 };
 
 const mutations = {
+  setPermissions(state, permissions) {
+    state.permissions = permissions || {};
+  },
   setUser(state, user) {
     state.user = user;
   },
@@ -550,7 +630,8 @@ const mutations = {
   },
   setAssets(state, assets = []) {
     assets.sort((a, b) => a.name.localeCompare(b.name));
-    state.assets = assets;
+    state.assets = assets.filter(a => a.enabled);
+    state.allAssets = assets;
   },
   setAssetTypes(state, assetTypes = []) {
     state.assetTypes = assetTypes;
@@ -594,6 +675,9 @@ const mutations = {
   },
   setPreStartControlCategories(state, types = []) {
     state.preStartControlCategories = types;
+  },
+  setRoutingData(state, activeRoute) {
+    state.activeRoute = activeRoute;
   },
 };
 

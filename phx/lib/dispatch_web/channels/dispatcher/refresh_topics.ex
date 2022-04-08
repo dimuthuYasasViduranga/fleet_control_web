@@ -11,7 +11,7 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
   def handle_in("refresh:" <> subtopic, _, socket) do
     Logger.warn("Refreshing: #{subtopic}")
 
-    case DispatchWeb.DispatcherChannel.RefreshTopics.refresh(subtopic) do
+    case refresh(subtopic) do
       :ok -> {:reply, :ok, socket}
       {:error, reason} -> {:reply, {:error, %{error: reason}}, socket}
     end
@@ -65,7 +65,7 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
   end
 
   def refresh("fleetops agent") do
-    :ok = Dispatch.FleetOpsAgent.refresh!()
+    :ok = Dispatch.HaulAgent.refresh!()
     Broadcast.send_fleetops_data_to_all()
     :ok
   end

@@ -15,7 +15,7 @@
       @drop="onDrop"
       @drag-end="onDragEnd()"
     >
-      <Draggable v-for="asset in assets" :key="asset.name">
+      <Draggable v-for="asset in assets" :key="asset.name" :disabled="readonly">
         <AssetTile :asset="asset" />
       </Draggable>
     </Container>
@@ -24,7 +24,8 @@
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
-import { Container, Draggable } from 'vue-smooth-dnd';
+import { Container } from 'vue-smooth-dnd';
+import Draggable from '../Draggable.vue';
 import AssetTile from '../asset_tile/AssetTile.vue';
 import LocationIcon from '@/components/icons/Location.vue';
 
@@ -37,6 +38,7 @@ export default {
     AssetTile,
   },
   props: {
+    readonly: Boolean,
     assets: { type: Array, default: () => [] },
   },
   data: () => {

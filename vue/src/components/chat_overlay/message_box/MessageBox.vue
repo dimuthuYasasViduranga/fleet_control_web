@@ -8,7 +8,7 @@
       :quickMessages="quickMessages"
     />
 
-    <button v-else class="hx-btn mass-msg-btn" @click="onOpenMassMsg">Open Mass Messaging</button>
+    <button v-else class="hx-btn mass-msg-btn" @click="onOpenMassMsg()">Open Mass Messaging</button>
   </div>
 </template>
 

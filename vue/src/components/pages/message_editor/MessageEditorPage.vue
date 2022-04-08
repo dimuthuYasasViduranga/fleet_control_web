@@ -12,13 +12,18 @@
           {{ mode }}
         </button>
       </div>
-      <MessageEditor v-if="selectedMode === 'messages'" :messageTypes="messageTypes" />
+      <MessageEditor
+        v-if="selectedMode === 'messages'"
+        :messageTypes="messageTypes"
+        :readonly="readonly"
+      />
 
       <MessageTreeEditor
         v-else-if="selectedMode === 'message tree'"
         :messageTypes="messageTypes"
         :messageTree="messageTree"
         :assetTypes="assetTypes"
+        :readonly="readonly"
       />
 
       <MessageTreeMatrix
@@ -57,6 +62,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_messages,
       messageTypes: state => state.operatorMessageTypes,
       messageTree: state => state.operatorMessageTypeTree,
       assetTypes: state => state.assetTypes,

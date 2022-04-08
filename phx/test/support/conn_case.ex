@@ -36,9 +36,11 @@ defmodule DispatchWeb.ConnCase do
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(HpsData.Repo)
 
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(HpsData.Repo, {:shared, self()})
+    if tags[:async] == true do
+      raise "Conn Case cannot use async"
     end
+
+    Ecto.Adapters.SQL.Sandbox.mode(HpsData.Repo, {:shared, self()})
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end

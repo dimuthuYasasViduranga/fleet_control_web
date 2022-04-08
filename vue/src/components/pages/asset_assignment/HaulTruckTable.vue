@@ -56,8 +56,9 @@
         <template slot-scope="row">
           <DropDown
             :value="row.digUnitId"
-            :items="digUnitsWithLocations"
+            :options="digUnitsWithLocations"
             label="label"
+            :disabled="readonly"
             @change="setDigUnitId(row, $event)"
           />
         </template>
@@ -67,8 +68,9 @@
         <template slot-scope="row">
           <DropDown
             :value="row.loadId"
-            :items="loadLocations"
+            :options="loadLocationOptions"
             label="name"
+            :disabled="readonly"
             @change="setLoadId(row, $event)"
           />
         </template>
@@ -78,14 +80,21 @@
         <template slot-scope="row">
           <DropDown
             v-model="row.dumpId"
-            :items="dumpLocations"
+            :options="dumpLocationOptions"
             label="name"
+            :disabled="readonly"
             @change="setHaulTruckDispatch(row)"
           />
         </template>
       </table-column>
 
-      <table-column label :sortable="false" :filterable="false" cell-class="table-btn-cel">
+      <table-column
+        label
+        :sortable="false"
+        :filterable="false"
+        cell-class="table-btn-cel"
+        :hidden="readonly"
+      >
         <template slot-scope="row">
           <a :id="`${row.device_id}`" @click="clearHaulTruckDispatch(row)">Clear</a>
         </template>
@@ -95,8 +104,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Icon from 'hx-layout/Icon.vue';
-import DropDown from '../../dropdown/DropDown.vue';
+import { DropDown } from 'hx-vue';
 import NIcon from '@/components/NIcon.vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
@@ -124,6 +134,9 @@ export default {
     TableComponent,
     TableColumn,
   },
+  props: {
+    readonly: Boolean,
+  },
   data: () => {
     return {
       truckIcon: TruckIcon,
@@ -132,14 +145,18 @@ export default {
     };
   },
   computed: {
-    assets() {
-      return this.$store.state.constants.assets;
-    },
-    haulTruckDispatches() {
-      return this.$store.state.haulTruck.currentDispatches;
-    },
+    ...mapState('constants', {
+      assets: state => state.assets,
+      locations: state => state.locations,
+      loadLocations: state => state.loadLocations,
+      dumpLocations: state => state.dumpLocations,
+    }),
+    ...mapState({
+      haulTruckDispatches: state => state.haulTruck.currentDispatches,
+      digUnitActivities: state => state.digUnit.currentActivities,
+    }),
     digUnits() {
-      const activities = this.$store.state.digUnit.currentActivities;
+      const activities = this.digUnitActivities;
 
       return this.assets
         .filter(a => a.secondaryType === 'Dig Unit')
@@ -172,7 +189,7 @@ export default {
         });
     },
     digUnitsWithLocations() {
-      const locations = this.$store.state.constants.locations;
+      const locations = this.locations;
 
       const options = this.digUnits
         .map(d => {
@@ -190,11 +207,11 @@ export default {
 
       return [{ id: null, label: 'None' }].concat(options);
     },
-    loadLocations() {
-      return [noneLocation()].concat(this.$store.state.constants.loadLocations);
+    loadLocationOptions() {
+      return [noneLocation()].concat(this.loadLocations);
     },
-    dumpLocations() {
-      return [noneLocation()].concat(this.$store.state.constants.dumpLocations);
+    dumpLocationOptions() {
+      return [noneLocation()].concat(this.dumpLocations);
     },
     allowedTimeCodeIds() {
       return this.$store.getters['constants/fullTimeCodes']
@@ -290,11 +307,6 @@ export default {
 <style>
 .haul-truck-table .table-icon-cel {
   width: 0.1em;
-}
-
-.haul-truck-table .dropdown-wrapper {
-  width: 100%;
-  height: 2rem;
 }
 
 .haul-truck-table .table-edit-cel {

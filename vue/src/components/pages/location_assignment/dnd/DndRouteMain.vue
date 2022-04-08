@@ -4,24 +4,29 @@
       <OtherAssets :assets="otherAssets" />
       <UnassignedAssets
         :assets="unassignedAssets"
+        :readonly="readonly"
         @drag-start="onDragStart"
         @drag-end="onDragEnd()"
         @add="onSetUnassigned"
       />
-      <!-- quick drop for dig units -->
-      <Container
-        v-if="draggedAsset && draggedAsset.secondaryType === 'Dig Unit'"
-        class="new-dig-unit-container"
-        behaviour="drop-zone"
-        group-name="draggable"
-        @drop="onDropNewDigUnit"
-      >
-        Drop to Add Route
-      </Container>
-      <!-- standard click to add -->
-      <div v-else class="add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
-        Click to Add Route
-      </div>
+      <template v-if="!readonly">
+        <!-- quick drop for dig units -->
+        <Container
+          v-if="draggedAsset && draggedAsset.secondaryType === 'Dig Unit'"
+          class="new-dig-unit-container"
+          behaviour="drop-zone"
+          group-name="draggable"
+          @drop="onDropNewDigUnit"
+        >
+          Drop to Add Route
+        </Container>
+        <!-- standard click to add -->
+        <div v-else class="add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
+          Click to Add Route
+        </div>
+      </template>
+      <br v-else />
+
       <AssignedLayout
         :orientation="orientation"
         :layoutSettings="layoutSettings"
@@ -31,6 +36,7 @@
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
+        :readonly="readonly"
         @drag-start="onDragStart"
         @drag-end="onDragEnd()"
         @set-dig-unit="onSetDigUnit"
@@ -77,11 +83,13 @@ function toLocalFullAsset(asset) {
     typeId: asset.typeId,
     secondaryType: asset.secondaryType,
     deviceId: asset.deviceId,
+    deviceUUID: asset.deviceUUID,
     operator: asset.operator,
     activeTimeAllocation: asset.activeTimeAllocation,
     radioNumber: asset.radioNumber,
     hasDevice: asset.hasDevice,
     present: asset.present,
+    liveQueueInfo: asset.liveQueueInfo,
     synced: true,
     updatedExternally: false,
     status: asset.status,
@@ -128,6 +136,7 @@ export default {
     AssignedLayout,
   },
   props: {
+    readonly: Boolean,
     orientation: { type: String, default: 'horizontal' },
     assetOrdering: { type: String, default: 'normal' },
     layoutSettings: { type: Object, default: () => ({ vertical: {}, horizontal: {} }) },

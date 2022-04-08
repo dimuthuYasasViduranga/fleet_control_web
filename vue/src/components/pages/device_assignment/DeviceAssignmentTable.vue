@@ -36,11 +36,16 @@
           <div class="asset-selection">
             <DropDown
               v-model="row.assetId"
-              :items="dropdownAssets"
+              :options="dropdownAssets"
               label="label"
-              :useScrollLock="false"
+              placeholder="--"
+              :disabled="readonly"
               @change="onChange(row)"
-            />
+            >
+              <div class="asset-option" slot-scope="option" :disabled="option.disabled">
+                {{ option.label }}
+              </div>
+            </DropDown>
             <Icon
               v-if="row.hasMultipleAssignments"
               v-tooltip="getMultipleAssignmentTooltip(row)"
@@ -52,7 +57,7 @@
 
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span :class="setPresenceIconColor(row.present)">
+          <span v-tooltip="getOnlineStatusTooltip(row)" :class="setPresenceIconColor(row.present)">
             <Icon :icon="getIcon(row)" />
           </span>
         </template>
@@ -64,7 +69,7 @@
         show="operatorName"
       />
 
-      <table-column cell-class="table-action-cel">
+      <table-column cell-class="table-action-cel" :hidden="readonly">
         <template slot-scope="row">
           <div class="action-cel">
             <div class="actions">
@@ -98,12 +103,13 @@
 import Icon from 'hx-layout/Icon.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
+import { DropDown } from 'hx-vue';
+
 import ConfirmModal from '../../modals/ConfirmModal.vue';
 import DeviceInfoModal from './DeviceInfoModal.vue';
 import DeviceLogoutModal from '@/components/modals/DeviceLogoutModal.vue';
 
 import LockableButton from '../../LockableButton.vue';
-import DropDown from '../../dropdown/DropDown.vue';
 
 import TabletIcon from '../../icons/Tablet.vue';
 import InfoIcon from '../../icons/Info.vue';
@@ -126,6 +132,7 @@ export default {
     LockableButton,
   },
   props: {
+    readonly: Boolean,
     assignments: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
     allocations: { type: Array, default: () => [] },
@@ -233,12 +240,25 @@ export default {
         content,
       };
     },
+    getOnlineStatusTooltip(row) {
+      const status = row.onlineStatus;
+
+      if (!status) {
+        return 'Not connected this update';
+      }
+
+      if (status === 'not_seen') {
+        return `No information available before ${this.formatDate(row.onlineStatusUpdated)}`;
+      }
+
+      return `Last ${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
+    },
   },
 };
 </script>
 
 <style>
-.device-assignment-table .dropdown-wrapper {
+.device-assignment-table .drop-down {
   width: 100%;
   height: 2rem;
 }
@@ -284,6 +304,8 @@ export default {
 
 .device-assignment-table .asset-selection {
   display: flex;
+  width: 100%;
+  height: 2rem;
 }
 
 .device-assignment-table .asset-selection .hx-icon {
@@ -299,5 +321,10 @@ export default {
   .device-assignment-table .table-operator-cel {
     display: none;
   }
+}
+
+.asset-option[disabled] {
+  color: gray;
+  font-style: italic;
 }
 </style>

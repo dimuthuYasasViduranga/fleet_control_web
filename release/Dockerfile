@@ -1,4 +1,4 @@
-FROM elixir:1.12 as builder
+FROM elixir:1.13 as builder
 
 # install build dependencies
 RUN apt-get update && apt-get install -y git ca-certificates curl
@@ -47,6 +47,9 @@ RUN MIX_ENV=prod mix release
 ### Release ###
 ###############
 FROM debian:bullseye
+
+ARG app_version="Not specified"
+ENV GIT_VERSION=$app_version
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install erlang-tools erlang-xmerl bash openssl locales -y

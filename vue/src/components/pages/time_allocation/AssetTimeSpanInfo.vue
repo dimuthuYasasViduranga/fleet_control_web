@@ -37,7 +37,7 @@
       </TimeSpanChart>
     </div>
     <div class="action-wrapper">
-      <Icon v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit" />
+      <Icon v-if="!readonly" v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit" />
 
       <Icon
         v-tooltip="isOpen ? 'Less' : 'More'"
@@ -61,11 +61,11 @@ import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
-import EditIcon from '../../icons/Edit.vue';
-import ChevronRightIcon from '../../icons/ChevronRight.vue';
+import EditIcon from '@/components/icons/Edit.vue';
+import ChevronRightIcon from '@/components/icons/ChevronRight.vue';
 
-import { attributeFromList, dedupByMany, uniq } from '../../../code/helpers';
-import { formatSeconds } from '../../../code/time';
+import { attributeFromList, dedupByMany, uniq } from '@/code/helpers';
+import { formatSeconds } from '@/code/time';
 import {
   toDeviceAssignmentSpans,
   loginStyle,
@@ -175,6 +175,7 @@ export default {
     ShiftTooltip,
   },
   props: {
+    readonly: Boolean,
     asset: { type: Object, default: () => ({}) },
     timeAllocations: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },

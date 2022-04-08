@@ -42,7 +42,6 @@
 
 <script>
 import { TableComponent, TableColumn } from 'vue-table-component';
-import { copyDate, formatDateRelativeToIn } from './../../../code/time';
 
 import Loaded from '../../Loaded.vue';
 import hxCard from 'hx-layout/Card.vue';
@@ -50,7 +49,8 @@ import LockableButton from '@/components/LockableButton.vue';
 
 import PlaneEngineIcon from '../../icons/PlaneEngine.vue';
 import { attributeFromList } from '@/code/helpers';
-import { uniq } from '../../../code/helpers';
+import { uniq } from '@/code/helpers';
+import { copyDate, formatDateRelativeToIn } from '@/code/time';
 
 const MAX_HOURS_BETWEEN_ENTRIES = 24;
 

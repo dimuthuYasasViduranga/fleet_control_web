@@ -11,15 +11,15 @@
     <table class="dispatch">
       <tr class="row dig-unit">
         <td class="key">
-          <DropDown v-model="source" :items="sourceOptions" label="id" :useScrollLock="false" />
+          <DropDown v-model="source" :options="sourceOptions" label="id" placeholder="--" />
         </td>
         <td class="value">
           <template v-if="source === 'Dig Unit'">
             <DropDown
               v-model="localDispatch.digUnitId"
-              :items="digUnitOptions"
+              :options="digUnitOptions"
               label="name"
-              :useScrollLock="false"
+              placeholder="None"
             />
             <Icon
               v-tooltip="'Clear'"
@@ -31,9 +31,9 @@
           <template v-else>
             <DropDown
               v-model="localDispatch.loadId"
-              :items="loads"
+              :options="loads"
               label="name"
-              :useScrollLock="false"
+              placeholder="None"
             />
             <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearLoad" />
           </template>
@@ -44,9 +44,9 @@
         <td class="value">
           <DropDown
             v-model="localDispatch.dumpId"
-            :items="dumps"
-            label="name"
-            :useScrollLock="false"
+            :options="dumps"
+            label="extendedName"
+            placeholder="None"
           />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" :scale="crossScale" @click="onClearDump" />
         </td>
@@ -64,19 +64,19 @@
 
 <script>
 import { mapState } from 'vuex';
+import { DropDown } from 'hx-vue';
 import Icon from 'hx-layout/Icon.vue';
 import ErrorIcon from 'hx-layout/icons/Error.vue';
 import InfoHeader from './InfoHeader.vue';
 import AssignTimeAllocation from './AssignTimeAllocation.vue';
 import ActionButtons from './ActionButtons.vue';
 import Separator from './Separator.vue';
-import DropDown from '../dropdown/DropDown.vue';
 import { attributeFromList, filterLocations } from '@/code/helpers';
 
 function getEmptyLocation() {
   return {
     id: null,
-    name: 'None',
+    extendedName: 'None',
   };
 }
 
@@ -226,7 +226,7 @@ export default {
 </script>
 
 <style>
-.assign-haul-truck .dispatch .row .key .dropdown-wrapper {
+.assign-haul-truck .dispatch .row .key .drop-down {
   width: 95%;
   height: 2.5rem;
   font-size: 1.75rem;
@@ -239,7 +239,7 @@ export default {
   padding: 4px;
 }
 
-.assign-haul-truck .dispatch .row .value .dropdown-wrapper {
+.assign-haul-truck .dispatch .row .value .drop-down {
   width: 100%;
   height: 2.5rem;
 }

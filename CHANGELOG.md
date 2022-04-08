@@ -2,6 +2,105 @@
 
 ## pending [unreleased]
 
+## 0.14.0
+- 👽 integration with maintenance
+  - internal api for creating/updating tickets
+  - broadcast pre-start submissions changes
+- 🐛 fixed pre-start ticket status type dropdown not working
+
+## 0.13.0-alpha-2
+- 🐛 fixed invalid filtering of dig units without tracks for live queue calculations
+
+## 0.13.0-alpha-1
+- 📦 completely new dropdown
+- 📦 added slack logger
+- 💄 assets with no operator as grayed out on mine map
+- 💄 fixed google maps dropdown box showing white text on white background
+- 💄 fixed time span info showing up as magenta
+- 🔧 pre-start pages hidden if not using pre-starts
+- ✨🧪 experimental feature for live queue
+  - location assignment tile as highlighted based on live queue information
+
+## 0.12.9
+- 🐛 fixed "move trucks" not working in dnd vertical layout
+
+## 0.12.8
+- 🐛 fixed use_device_gps track acceptance
+- 🚸 mine map dropdown only shows assets with tracks
+
+## 0.12.7
+- 🐛 fixed use_device_gps not working as expected
+
+## 0.12.6
+- 🐛 fixed bulk imports of operators using name as nickname
+
+## 0.12.5
+- 🔧 added tablet settings as config
+
+## 0.12.4
+- ✨ added global actions
+  - added mass time allocation changes
+- 🔒 added readonly mode for entire shift locking
+- 💄 fixed google map cluster appearing as a blank icon
+- 💄 added device UUID to asset tiles
+
+## 0.12.3
+- ✨ routing
+- 🔒 added multiple authorization levels
+  - authorized (general view)
+  - dispatch (can give assignments)
+  - edit devices (access devices, assign assets to devices)
+  - time allocation editing
+  - time allocation locking
+  - message editing (ie pre-defined messages for operators)
+  - routing
+  - pre-starts
+  - pre-start tickets (add and update)
+  - asset roster (which assets are shown)
+- 🔧 ability to statically set channel secret base (so that restarts reconnect users)
+- 🚸 contacts logged in with operators are now highlighted 
+- 🚸 chat head changes color when it is in moveable mode
+- 🐛 fixed debug page splitting nulled string
+- 🐛 fixed bulk add operators not closing on success
+- 🔥 removed manual cycles (not being used)
+
+## 0.12.2
+- ✨ added bulk operator uploads from csv file
+- 🚸 pre-starts can be copied between assets (saves a lot of re-writting)
+- 🐛 can no longer remove all controls from a pre-start
+
+## 0.12.1
+- ✨ Added routing system
+  - ability to create a routing network (including directional roads)
+    - these can also me imported from files
+  - can restrict assets types to different sections of the mine
+- 🐛 fixed dispatches with load being lost on server restart
+
+## 0.12.0
+- 💥 using next version of hps_data
+  - fleetops agent uses haul instead of fleet
+  - locations use new start/end structure
+  - use new location types
+  - material types moved from "dis_material_type" to "dim_material_type"
+- 🧹 removed some unused pages
+- ✨ added asset roster to show/hide assets
+  - 🔒 requires the "can_edit_asset_roster" permission
+- 💄 dig units now show a "loading radius" bubble around them for better feedback
+- ✨ added "locate" context menu on asset tiles. Opens the minemap, centered on the target
+- ✨ long click and hold on chat head allows it to be moved around
+
+## 0.11.2
+- 🐛 added redirect on 401 (ie not authenticated)
+
+## 0.11.1
+- 🔊 error log if unable to access azure graph (for authorization groups)
+- 🧹 merged startup calls
+- 🔒 added 'authorized' group to prevent any access without it
+
+## 0.11.0
+- 👽 updated endpoints to kube format of /fleet-control
+- 🧹 merged release config params
+
 ## 0.10.20
 - 🐛 fixed pdf page numbers
 

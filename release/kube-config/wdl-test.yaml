@@ -35,7 +35,7 @@ spec:
       containers:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
-          imagePullPolicy: 'Always'
+          imagePullPolicy: "Always"
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-wdl-test
@@ -46,6 +46,11 @@ spec:
                 secretKeyRef:
                   name: secrets
                   key: APPSIGNAL_PUSH_API_KEY
+            - name: SLACK_LOGGER_WEBHOOK_URL 
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: SLACK_LOGGER_WEBHOOK_URL 
             - name: AZURE_ACTIVE_DIRECTORY
               valueFrom:
                 secretKeyRef:
@@ -98,16 +103,29 @@ spec:
                     "Blasting about to start",
                     ["Did you get this message", "Yes", "No"]
                   ],
-                  use_gps_device: false,
                   track_method: :gps_gate,
-                  auth_permissions: [
+                  permissions: [
                     authorized: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
+                    can_dispatch: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
+                    can_edit_devices: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
                     can_edit_operators: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
                     can_edit_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_lock_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
                     can_edit_time_codes: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
                     can_edit_messages: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
                     can_refresh_agents: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_pre_starts: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"]
+                    can_edit_routing: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
+                    can_edit_pre_starts: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
+                    can_edit_pre_start_tickets: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
+                    can_edit_asset_roster: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"]
+                  ],
+                  settings: [
+                    use_device_gps: false,
+                    use_pre_starts: true,
+                    prompt_exception_on_logout: true,
+                    prompt_engine_hours_on_login: true,
+                    prompt_engine_hours_on_logout: false,
+                    prompt_pre_starts_on_login: true
                   ],
                   route_white_list: %{
                     :default => [
@@ -116,6 +134,7 @@ spec:
                       "/asset_overview",
                       "/mine_map",
                       "/operators",
+                      "/asset_roster",
                       "/device_assignment",
                       "/asset_status",
                       "/engine_hours",
@@ -127,10 +146,10 @@ spec:
                     "0a91f791-d521-4ac4-a35e-8cc509c02cb7" => [
                       "/asset_assignment",
                       "/location_assignment",
-                      "/asset_overview",
                       "/mine_map",
-                      "/route_map",
+                      "/asset_progress_line",
                       "/operators",
+                      "/asset_roster",
                       "/device_assignment",
                       "/asset_status",
                       "/time_allocation",
@@ -141,15 +160,18 @@ spec:
                       "/engine_hours",
                       "/debug",
                       "/agents",
+                      "/route_map",
                       "/pre_start_editor",
-                      "/pre_start_submissions"
+                      "/pre_start_submissions",
+                      "/asset_overview"
                     ]
                   },
                   map_center: %{
                     latitude: -32.969483,
                     longitude: 116.079195,
                     zoom: 15
-                  }
+                  },
+                  map_tile_endpoint: "https://hxtest.blob.core.windows.net/alcoa-wdl-map-tiles"
                 ]
             - name: URL
               value: https://alcoa-wdl-test.haultrax.digital

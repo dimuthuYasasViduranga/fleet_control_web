@@ -12,17 +12,14 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
 
   alias HpsData.Schemas.Dispatch.PreStart
 
-  setup_all _ do
+  setup do
     AssetAgent.start_link([])
     [asset | _] = AssetAgent.get_assets()
 
     OperatorAgent.start_link([])
-    [operator | _] = OperatorAgent.active()
+    OperatorAgent.add("pre-start-operator", "test", nil)
+    [operator] = OperatorAgent.active()
 
-    [asset: asset, operator: operator]
-  end
-
-  setup tags do
     DispatcherAgent.start_link([])
     {:ok, dispatcher} = DispatcherAgent.add("abcde", "Test A")
     PreStartAgent.start_link([])
@@ -35,7 +32,7 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
     }
 
     {:ok, pre_start} =
-      PreStartAgent.add(tags[:asset].type_id, dispatcher.id, [section], NaiveDateTime.utc_now())
+      PreStartAgent.add(asset.type_id, dispatcher.id, [section], NaiveDateTime.utc_now())
 
     control =
       pre_start.sections
@@ -48,7 +45,14 @@ defmodule Dispatch.PreStartSubmissionAgentTest do
       |> Enum.map(&{&1.name, &1.id})
       |> Enum.into(%{})
 
-    [form_id: pre_start.id, control: control, status_types: status_types, dispatcher: dispatcher]
+    [
+      asset: asset,
+      operator: operator,
+      form_id: pre_start.id,
+      control: control,
+      status_types: status_types,
+      dispatcher: dispatcher
+    ]
   end
 
   describe "add/1 -" do

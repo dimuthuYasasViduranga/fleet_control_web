@@ -19,16 +19,19 @@
       </div>
       <TimeCodeEditor
         v-if="selectedMode === 'time codes'"
+        :readonly="readonly"
         :timeCodes="timeCodes"
         :timeCodeGroups="timeCodeGroups"
         :timeCodeCategories="timeCodeCategories"
       />
       <TimeCodeGroupEditor
         v-else-if="selectedMode === 'time code groups'"
+        :readonly="readonly"
         :timeCodeGroups="timeCodeGroups"
       />
       <TimeCodeTreeEditor
         v-else-if="selectedMode === 'time code tree'"
+        :readonly="readonly"
         :timeCodeGroups="timeCodeGroups"
         :assetTypes="assetTypes"
       />
@@ -69,6 +72,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      readonly: state => !state.permissions.can_edit_time_codes,
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
       timeCodeTreeElements: state => state.timeCodeTreeElements,

@@ -5,9 +5,22 @@ defmodule Dispatch.AssetAgent do
   use Agent
   import Ecto.Query, only: [from: 2]
 
-  alias Dispatch.AgentHelper
+  alias Dispatch.{AgentHelper, Helper}
   alias HpsData.{Asset, AssetType}
   alias HpsData.Repo
+
+  @type asset :: %{
+          id: integer,
+          name: String.t(),
+          type_id: integer | nil,
+          type: String.t() | nil,
+          enabled: boolean
+        }
+
+  @type type :: %{
+          id: integer,
+          type: String.t()
+        }
 
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
@@ -32,7 +45,8 @@ defmodule Dispatch.AssetAgent do
         id: a.id,
         name: a.name,
         type_id: at.id,
-        type: at.type
+        type: at.type,
+        enabled: a.fleet_control_enabled
       }
     )
     |> Repo.all()
@@ -58,7 +72,7 @@ defmodule Dispatch.AssetAgent do
   @spec get_assets() :: list()
   def get_assets(), do: get(:assets)
 
-  @spec get_asset(map()) :: map()
+  @spec get_asset(map()) :: asset
   def get_asset(%{id: id}) do
     Enum.find(get_assets(), &(&1.id == id))
   end
@@ -67,7 +81,7 @@ defmodule Dispatch.AssetAgent do
     Enum.find(get_assets(), &(&1.name == name))
   end
 
-  @spec get_assets(map()) :: list()
+  @spec get_assets(map()) :: list(asset)
   def get_assets(%{type_id: type_id}) do
     Enum.filter(get_assets(), &(&1.type_id == type_id))
   end
@@ -76,15 +90,37 @@ defmodule Dispatch.AssetAgent do
     Enum.filter(get_assets(), &(&1.type == type))
   end
 
-  @spec get_types() :: list()
+  @spec get_types() :: list(type)
   def get_types(), do: get(:types)
 
-  @spec get_type(map) :: map()
+  @spec get_type(map) :: type
   def get_type(%{id: id}) do
     Enum.find(get_types(), &(&1.id == id))
   end
 
   def get_type(%{type: type}) do
     Enum.find(get_types(), &(&1.type == type))
+  end
+
+  @spec set_enabled(integer, boolean) ::
+          :ok | {:error, :invalid_asset | :already_set | term}
+  def set_enabled(asset_id, bool) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      case Helper.get_by_or_nil(Repo, Asset, %{id: asset_id}) do
+        nil ->
+          {{:error, :invalid_asset}, state}
+
+        %{enabled: ^bool} ->
+          {{:error, :already_set}, state}
+
+        asset ->
+          asset
+          |> Asset.changeset(%{fleet_control_enabled: bool})
+          |> Repo.update()
+
+          state = Map.put(state, :assets, pull_assets())
+          {:ok, state}
+      end
+    end)
   end
 end

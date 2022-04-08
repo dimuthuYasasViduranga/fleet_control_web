@@ -69,15 +69,17 @@ import { mapState } from 'vuex';
 
 import Loading from 'hx-layout/Loading.vue';
 import hxCard from 'hx-layout/Card.vue';
-import ShiftSelector from '../../ShiftSelector.vue';
-import SearchBar from '../../SearchBar.vue';
+
+import ShiftSelector from '@/components/ShiftSelector.vue';
+import SearchBar from '@/components/SearchBar.vue';
+
 import AssetReport from './AssetReport.vue';
 
-import ReportIcon from '../../icons/Report.vue';
-import { parseTimeAllocation } from '../../../store/store';
-import { parseAsset } from '../../../store/modules/constants';
-import { toUtcDate } from '../../../code/time';
-import { isInText, attributeFromList } from '../../../code/helpers';
+import ReportIcon from '@/components/icons/Report.vue';
+import { parseTimeAllocation } from '@/store/store';
+import { parseAsset } from '@/store/modules/constants';
+import { toUtcDate } from '@/code/time';
+import { isInText, attributeFromList } from '@/code/helpers';
 
 function parseReport(report, operators) {
   const now = new Date();
