@@ -13,6 +13,7 @@
         :assetOrdering="dndSettings.assetOrdering"
         :layoutSettings="dndSettings"
         :fullAssets="fullAssets"
+        :dimLocations="dimLocations"
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
@@ -53,6 +54,7 @@ export default {
   computed: {
     ...mapState('constants', {
       permissions: state => state.permissions,
+      dimLocations: state => state.dimLocations,
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
@@ -60,12 +62,10 @@ export default {
     ...mapState({
       haulTruckDispatches: state => state.haulTruck.currentDispatches,
       digUnitActivities: state => state.digUnit.currentActivities,
+      dndSettings: state => state.dndSettings,
     }),
     fullAssets() {
       return this.$store.getters.fullAssets;
-    },
-    dndSettings() {
-      return this.$store.state.dndSettings;
     },
   },
   methods: {

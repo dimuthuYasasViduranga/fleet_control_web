@@ -1,3 +1,4 @@
+import { toUtcDate } from '@/code/time';
 import Toaster from '@/code/toaster';
 const UPDATE_INTERVAL = 5 * 1000;
 const LONG_OFFLINE_DURATION = 30 * 1000;
@@ -39,10 +40,54 @@ function toastConnection(newStatus, oldStatus) {
   }
 }
 
+function onlineStatusFromPresence(presence) {
+  return presence
+    .list((id, { metas: [data] }) => {
+      return { id, timestamp: data?.online_at };
+    })
+    .reduce((acc, device) => {
+      const epoch = Number(device.timestamp);
+      if (isNaN(epoch)) {
+        return acc;
+      }
+
+      acc[device.id] = toUtcDate(epoch * 1000);
+      return acc;
+    }, {});
+}
+
+function updateDeviceOnlineStatus(oldStatus, newStatus) {
+  // if not in new status, set as offline
+  const now = Date.now();
+
+  const status = Object.keys(oldStatus).reduce((acc, key) => {
+    // if it has been seen before, set to disconnected
+    if (oldStatus[key]?.status === 'not_seen') {
+      acc[key] = oldStatus[key];
+      return acc;
+    }
+    acc[key] = {
+      status: 'disconnected',
+      timestamp: new Date(now),
+    };
+    return acc;
+  }, {});
+
+  Object.entries(newStatus).forEach(([key, timestamp]) => {
+    status[key] = {
+      status: 'connected',
+      timestamp,
+    };
+  });
+
+  return status;
+}
+
 /* ------------------ module --------------- */
 const state = {
   userToken: String(),
   presence: Array(),
+  deviceOnlineStatus: Object(),
   mode: null,
   isAlive: false,
   isConnected: false,
@@ -77,9 +122,23 @@ const actions = {
   setIsConnected({ commit }, bool) {
     commit('setIsConnected', bool);
   },
-  setPresence({ commit }, presence) {
+  setDeviceOnlineStatus({ commit }, data) {
+    const deviceOnlineStatus = Object.entries(data).reduce((acc, [uuid, info]) => {
+      acc[uuid] = {
+        status: info.status,
+        timestamp: toUtcDate(info.timestamp),
+      };
+      return acc;
+    }, {});
+
+    commit('setDeviceOnlineStatus', deviceOnlineStatus);
+  },
+  updatePresence({ commit }, presence) {
     const presenceList = presence.list(id => id);
+    const onlineStatus = onlineStatusFromPresence(presence);
+
     commit('setPresence', presenceList);
+    commit('updateDeviceOnlineStatus', onlineStatus);
   },
 };
 
@@ -114,6 +173,12 @@ const mutations = {
   },
   setPresence(state, presence = []) {
     state.presence = presence;
+  },
+  setDeviceOnlineStatus(state, status = {}) {
+    state.deviceOnlineStatus = status;
+  },
+  updateDeviceOnlineStatus(state, status = {}) {
+    state.deviceOnlineStatus = updateDeviceOnlineStatus(state.deviceOnlineStatus, status);
   },
 };
 

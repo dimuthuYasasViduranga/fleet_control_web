@@ -33,6 +33,7 @@
         :structure="structure"
         :haulTrucks="localHaulTrucks"
         :digUnits="localDigUnits"
+        :dimLocations="dimLocations"
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
@@ -89,6 +90,7 @@ function toLocalFullAsset(asset) {
     radioNumber: asset.radioNumber,
     hasDevice: asset.hasDevice,
     present: asset.present,
+    liveQueueInfo: asset.liveQueueInfo,
     synced: true,
     updatedExternally: false,
     status: asset.status,
@@ -140,6 +142,7 @@ export default {
     assetOrdering: { type: String, default: 'normal' },
     layoutSettings: { type: Object, default: () => ({ vertical: {}, horizontal: {} }) },
     fullAssets: { type: Array, default: () => [] },
+    dimLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },

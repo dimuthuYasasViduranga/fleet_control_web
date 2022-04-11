@@ -12,7 +12,7 @@ defmodule Dispatch.PreStartAgentTest do
     [type_a: type_a.id, type_b: type_b.id]
   end
 
-  setup _ do
+  setup do
     PreStartAgent.start_link([])
     DispatcherAgent.start_link([])
     {:ok, dispatcher} = DispatcherAgent.add("abcde", "Test A")

@@ -67,6 +67,54 @@ function getMultipleAssignments(assignments, assets, deviceId) {
   return [false, []];
 }
 
+function formatAssignment(d, assets, operators, assignments, presenceList, deviceOnlineStatus) {
+  const [hasMultipleAssignments, multipleAssignmentAssetNames] = getMultipleAssignments(
+    assignments,
+    assets,
+    d.id,
+  );
+
+  const [assetId, operatorId] = attributeFromList(assignments, 'deviceId', d.id, [
+    'assetId',
+    'operatorId',
+  ]);
+  const [assetName, assetType, assetTypeId] = attributeFromList(assets, 'id', assetId, [
+    'name',
+    'type',
+    'typeId',
+  ]);
+
+  const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
+
+  const operatorName = attributeFromList(operators, 'id', operatorId, 'name') || '';
+
+  const details = d.details || {};
+  const clientVersion = details.client_version;
+  const clientUpdatedAt = toUtcDate(details.client_updated_at);
+  const deviceStatus = deviceOnlineStatus[d.uuid] || {};
+
+  return {
+    deviceId: d.id,
+    deviceUUID: d.uuid,
+    formattedDeviceName: formatDeviceUUID(d.uuid) || '--',
+    assetId,
+    assetName,
+    assetFullname,
+    assetTypeId,
+    assetType,
+    operatorId,
+    operatorName,
+    hasMultipleAssignments,
+    multipleAssignmentAssetNames,
+    clientVersion,
+    clientUpdatedAt,
+    deviceDetails: d.details || {},
+    present: presenceList.includes(d.uuid),
+    onlineStatus: deviceStatus.status,
+    onlineStatusUpdated: deviceStatus.timestamp,
+  };
+}
+
 export default {
   name: 'DeviceAssignment',
   components: {
@@ -95,72 +143,25 @@ export default {
       devices: state => state.devices,
       assignments: state => state.currentDeviceAssignments,
     }),
-    activeTimeAllocations() {
-      return this.$store.state.activeTimeAllocations;
-    },
+    ...mapState('connection', {
+      presenceList: state => state.presence,
+      deviceOnlineStatus: state => state.deviceOnlineStatus,
+    }),
+    ...mapState('deviceStore', {
+      pendingDevices: state => state.pendingDevices,
+      acceptUntil: state => state.acceptUntil || 0,
+    }),
+    ...mapState({
+      activeTimeAllocations: state => state.activeTimeAllocations,
+    }),
     fullTimeCodes() {
       return this.$store.getters['constants/fullTimeCodes'];
-    },
-    presenceList() {
-      return this.$store.state.connection.presence;
-    },
-    activeAssignments() {
-      // map on devices to show devices that do not have an assignment
-      const assignments = this.devices
-        .filter(d => d.authorized)
-        .map(d => {
-          const [hasMultipleAssignments, multipleAssignmentAssetNames] = getMultipleAssignments(
-            this.assignments,
-            this.assets,
-            d.id,
-          );
-
-          const [assetId, operatorId] = attributeFromList(this.assignments, 'deviceId', d.id, [
-            'assetId',
-            'operatorId',
-          ]);
-          const [assetName, assetType, assetTypeId] = attributeFromList(
-            this.assets,
-            'id',
-            assetId,
-            ['name', 'type', 'typeId'],
-          );
-
-          const assetFullname = assetType ? `${assetName} (${assetType})` : assetName;
-
-          const operatorName = attributeFromList(this.operators, 'id', operatorId, 'name') || '';
-
-          const details = d.details || {};
-          const clientVersion = details.client_version;
-          const clientUpdatedAt = toUtcDate(details.client_updated_at);
-
-          return {
-            deviceId: d.id,
-            deviceUUID: d.uuid,
-            formattedDeviceName: this.formatDeviceUUID(d.uuid),
-            assetId,
-            assetName,
-            assetFullname,
-            assetTypeId,
-            assetType,
-            operatorId,
-            operatorName,
-            hasMultipleAssignments,
-            multipleAssignmentAssetNames,
-            clientVersion,
-            clientUpdatedAt,
-            deviceDetails: d.details || {},
-            present: this.presenceList.includes(d.uuid),
-          };
-        });
-
-      return assignments;
     },
     pendingDevices() {
       return this.$store.state.deviceStore.pendingDevices;
     },
     timeRemaining() {
-      const timeRemaining = this.$store.state.deviceStore.acceptUntil || 0;
+      const timeRemaining = this.acceptUntil;
       const now = Math.trunc(this.$everySecond.timestamp / 1000);
 
       const remaining = timeRemaining - now;
@@ -169,6 +170,21 @@ export default {
       }
 
       return remaining;
+    },
+    activeAssignments() {
+      // map on devices to show devices that do not have an assignment
+      return this.devices
+        .filter(d => d.authorized)
+        .map(d =>
+          formatAssignment(
+            d,
+            this.assets,
+            this.operators,
+            this.assignments,
+            this.presenceList,
+            this.deviceOnlineStatus,
+          ),
+        );
     },
   },
   methods: {
@@ -204,9 +220,6 @@ export default {
       if (deviceId) {
         this.$channel.push('auth:revoke device', deviceId);
       }
-    },
-    formatDeviceUUID(uuid) {
-      return uuid ? formatDeviceUUID(uuid) : '--';
     },
   },
 };

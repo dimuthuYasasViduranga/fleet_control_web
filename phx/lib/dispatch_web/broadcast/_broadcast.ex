@@ -175,6 +175,7 @@ defmodule DispatchWeb.Broadcast do
       |> Enum.map(&Map.drop(&1, [:polygon]))
 
     payload = %{
+      dim_locations: LocationAgent.dim_locations(),
       locations: active_locations
     }
 
@@ -405,6 +406,8 @@ defmodule DispatchWeb.Broadcast do
         historic: asset_historic
       }
     end)
+
+    Syncro.Broadcast.broadcast("pre-start submissions:update latest", nil)
   end
 
   def send_activity(identifier, source, activity_type) do
@@ -499,6 +502,10 @@ defmodule DispatchWeb.Broadcast do
     end
 
     send_time_code_tree_elements()
+  end
+
+  def send_live_queue(queue) do
+    Endpoint.broadcast(@dispatch, "set live queue", queue)
   end
 
   def send_presence_state() do

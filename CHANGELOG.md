@@ -2,6 +2,39 @@
 
 ## pending [unreleased]
 
+## 0.14.1
+- 👽 broadcast stored tracks every minute
+  - gives access to device tracks
+
+## 0.14.0
+- 👽 integration with maintenance
+  - internal api for creating/updating tickets
+  - broadcast pre-start submissions changes
+- 🐛 fixed pre-start ticket status type dropdown not working
+
+## 0.13.0-alpha-2
+- 🐛 fixed invalid filtering of dig units without tracks for live queue calculations
+
+## 0.13.0-alpha-1
+- 📦 completely new dropdown
+- 📦 added slack logger
+- 💄 assets with no operator as grayed out on mine map
+- 💄 fixed google maps dropdown box showing white text on white background
+- 💄 fixed time span info showing up as magenta
+- 🔧 pre-start pages hidden if not using pre-starts
+- ✨🧪 experimental feature for live queue
+  - location assignment tile as highlighted based on live queue information
+
+## 0.12.9
+- 🐛 fixed "move trucks" not working in dnd vertical layout
+
+## 0.12.8
+- 🐛 fixed use_device_gps track acceptance
+- 🚸 mine map dropdown only shows assets with tracks
+
+## 0.12.7
+- 🐛 fixed use_device_gps not working as expected
+
 ## 0.12.6
 - 🐛 fixed bulk imports of operators using name as nickname
 

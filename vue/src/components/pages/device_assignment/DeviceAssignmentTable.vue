@@ -41,7 +41,11 @@
               placeholder="--"
               :disabled="readonly"
               @change="onChange(row)"
-            />
+            >
+              <div class="asset-option" slot-scope="option" :disabled="option.disabled">
+                {{ option.label }}
+              </div>
+            </DropDown>
             <Icon
               v-if="row.hasMultipleAssignments"
               v-tooltip="getMultipleAssignmentTooltip(row)"
@@ -53,7 +57,7 @@
 
       <table-column cell-class="table-icon-cel">
         <template slot-scope="row">
-          <span :class="setPresenceIconColor(row.present)">
+          <span v-tooltip="getOnlineStatusTooltip(row)" :class="setPresenceIconColor(row.present)">
             <Icon :icon="getIcon(row)" />
           </span>
         </template>
@@ -236,6 +240,19 @@ export default {
         content,
       };
     },
+    getOnlineStatusTooltip(row) {
+      const status = row.onlineStatus;
+
+      if (!status) {
+        return 'Not connected this update';
+      }
+
+      if (status === 'not_seen') {
+        return `No information available before ${this.formatDate(row.onlineStatusUpdated)}`;
+      }
+
+      return `Last ${status} - ${this.formatDate(row.onlineStatusUpdated)}`;
+    },
   },
 };
 </script>
@@ -304,5 +321,10 @@ export default {
   .device-assignment-table .table-operator-cel {
     display: none;
   }
+}
+
+.asset-option[disabled] {
+  color: gray;
+  font-style: italic;
 }
 </style>

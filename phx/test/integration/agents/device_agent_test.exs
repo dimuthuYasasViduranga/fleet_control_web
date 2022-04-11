@@ -5,7 +5,7 @@ defmodule Dispatch.DeviceAgentTest do
   alias Dispatch.DeviceAgent
   alias HpsData.Schemas.Dispatch.Device
 
-  setup _ do
+  setup do
     DeviceAgent.start_link([])
     :ok
   end
@@ -50,25 +50,6 @@ defmodule Dispatch.DeviceAgentTest do
       assert actual.uuid == initial.uuid
       assert actual.uuid == uuid
       assert actual.details == %{"model" => 7}
-
-      # state
-      assert DeviceAgent.all() == [actual]
-
-      # database
-      assert_db_contains(Device, actual)
-      refute_db_contains(Device, initial)
-    end
-
-    test "valid (prevent details override to null)" do
-      uuid = "abcdefg"
-      serial = "123456"
-      {:ok, :new, initial} = DeviceAgent.add(uuid, %{"serial" => serial})
-      {:ok, :exists, actual} = DeviceAgent.add(uuid, %{"serial" => nil, "new_val" => 25})
-
-      # return
-      assert initial.details["serial"] == serial
-      assert actual.details["serial"] == serial
-      assert actual.details["new_val"] == 25
 
       # state
       assert DeviceAgent.all() == [actual]

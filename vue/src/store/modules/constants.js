@@ -95,6 +95,14 @@ function parseGeofence(geofenceString) {
   });
 }
 
+function parseDimLocation(raw) {
+  return {
+    id: raw.id,
+    name: raw.name,
+    extendedName: raw.name,
+  };
+}
+
 function separateLocations(locations) {
   const separation = {
     load: [],
@@ -302,7 +310,7 @@ function parsePreStartTicketStatusType(type) {
   return {
     id: type.id,
     name: type.name,
-    alias: type.alias,
+    alias: type.alias | type.name,
   };
 }
 
@@ -413,6 +421,7 @@ const state = {
   operators: Array(),
   shifts: Array(),
   shiftTypes: Array(),
+  dimLocations: Array(),
   locations: Array(),
   loadLocations: Array(),
   dumpLocations: Array(),
@@ -466,7 +475,7 @@ const actions = {
     // all in constants
     [
       ['setUser', staticData.user],
-      ['setLocationData', data.locations],
+      ['setLocationData', { locations: data.locations, dimLocations: data.dim_locations }],
       ['setQuickMessages', data.quick_messages],
       ['setMapConfig', data.map_config],
       ['setAssets', data.assets],
@@ -479,7 +488,6 @@ const actions = {
       ['setOperatorMessageTypes', data.operator_message_types],
       ['setLoadStyles', data.load_styles],
       ['setMaterialTypes', data.material_types],
-      ['setUser', staticData.user],
     ].forEach(([path, value]) => dispatch(path, value));
 
     dispatch('connection/setUserToken', staticData.user_token, { root: true });
@@ -509,9 +517,10 @@ const actions = {
     const formattedShiftTypes = shiftTypes.map(parseShiftType);
     commit('setShiftTypes', formattedShiftTypes);
   },
-  setLocationData({ commit }, locs = []) {
-    const locations = locs.map(parseLocation);
-    commit('setLocationData', locations);
+  setLocationData({ commit }, data = {}) {
+    const locations = (data.locations || []).map(parseLocation);
+    const dimLocations = (data.dimLocations || []).map(parseDimLocation);
+    commit('setLocationData', { locations, dimLocations });
   },
   setRadioNumbers({ commit }, radioNumbers = []) {
     const formattedRadioNumbers = radioNumbers.map(parseRadioNumber);
@@ -606,10 +615,12 @@ const mutations = {
   setShiftTypes(state, shiftTypes = []) {
     state.shiftTypes = shiftTypes;
   },
-  setLocationData(state, locations = []) {
-    const sortedLocations = locations.slice();
+  setLocationData(state, { locations, dimLocations }) {
+    const sortedLocations = (locations || []).slice();
     sortedLocations.sort((a, b) => a.name.localeCompare(b.name));
     const { load, dump } = separateLocations(sortedLocations);
+
+    state.dimLocations = dimLocations || [];
     state.locations = sortedLocations;
     state.loadLocations = load;
     state.dumpLocations = dump;

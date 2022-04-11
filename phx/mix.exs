@@ -48,15 +48,17 @@ defmodule DispatchWeb.MixProject do
       # dispatch
       {:topo, "~> 0.4.0"},
       {:geo, "~> 3.1"},
+      {:distance, "~> 1.0"},
       {:joken, "~> 2.0"},
-      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.4.3"},
+      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.3.2"},
       {:slack_logger_backend,
-       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.2", only: [:prod]},
+       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.3", only: [:prod]},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", branch: "dispatch"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "2.0.1"},
+      {:syncro, git: "https://github.com/jonHaultrax/syncro.git", tag: "0.0.1"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
@@ -76,20 +78,18 @@ defmodule DispatchWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/losses/test.exs",
         # fleet control seeds
         "run ./deps/hps_data/priv/repo/seeds/dispatch/pre_start_ticket_status_types/default.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/material_type/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/operators/test.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
-        "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/default.exs",
+        "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/simple.exs",
         "run ./priv/test_data_seeds.exs"
       ],
       "test.test_seeds": ["run ./priv/test_data_seeds.exs"],
       "test.drop": ["ecto.drop -r HpsData.Repo"],
       "test.migrate": ["ecto.migrate -r HpsData.Repo"],
-      "test.unit": ["test --only unit"],
-      "test.agent": ["test --only agent"],
-      "test.conn": ["test --only conn"],
-      "test.channel": ["test --only channel"]
+      "test.unit": ["test test/unit"],
+      "test.agent": ["test test/integration/agents"],
+      "test.conn": ["test test/integration/conn"],
+      "test.channel": ["test test/integration/channel"]
     ]
   end
 

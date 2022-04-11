@@ -47,9 +47,13 @@
       <table-column label="Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
+            v-tooltip="
+              row.hasInactiveLocation ? 'Location is no longer active. Please re-assign' : ''
+            "
+            :class="{ 'inactive-location': row.hasInactiveLocation }"
             value-is-id
             v-model="row.locationId"
-            :options="locationOptions"
+            :options="row.locationOptions"
             label="name"
             :disabled="readonly"
             @change="setActivity(row)"
@@ -99,6 +103,45 @@ import { getAssetTileSecondaryIcon } from '@/code/common';
 
 import EditIcon from '@/components/icons/Edit.vue';
 
+function toDigUnit(asset, activities, dimLocations, locationOpts) {
+  const activity = attributeFromList(activities, 'assetId', asset.id) || {};
+
+  const [hasInactiveLocation, locationOptions] = getLocationOptions(
+    locationOpts,
+    activity.locationId,
+    dimLocations,
+  );
+
+  return {
+    assetId: asset.id,
+    assetName: asset.name,
+    assetType: asset.type,
+    assetTypeId: asset.typeId,
+    operator: asset.operator.fullname || '',
+    locationId: activity.locationId,
+    materialTypeId: activity.materialTypeId,
+    loadStyleId: activity.loadStyleId,
+    activeTimeAllocation: asset.activeTimeAllocation,
+    present: asset.present,
+    status: asset.status,
+    hasDevice: asset.hasDevice,
+    locationOptions,
+    hasInactiveLocation,
+  };
+}
+
+function getLocationOptions(options, locationId, dimLocations) {
+  if (!locationId || options.find(o => o.id === locationId)) {
+    return [false, options];
+  }
+
+  const name = attributeFromList(dimLocations, 'id', locationId, 'name');
+
+  const opts = options.slice();
+  opts.push({ id: locationId, name });
+  return [true, opts];
+}
+
 export default {
   name: 'DigUnitTable',
   components: {
@@ -120,6 +163,7 @@ export default {
   computed: {
     ...mapState('constants', {
       icons: state => state.icons,
+      dimLocations: state => state.dimLocations,
       locations: state => state.locations,
       materialTypes: state => state.materialTypes,
     }),
@@ -127,7 +171,8 @@ export default {
       digUnitActivities: state => state.currentActivities,
     }),
     locationOptions() {
-      return [{ id: null, name: 'None' }].concat(this.locations);
+      const locations = this.locations.map(l => ({ id: l.id, name: l.name }));
+      return [{ id: null, name: 'None' }].concat(locations);
     },
     materialTypeOptions() {
       return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
@@ -136,24 +181,7 @@ export default {
       const activities = this.digUnitActivities;
       return this.$store.getters.fullAssets
         .filter(fa => fa.secondaryType === 'Dig Unit')
-        .map(asset => {
-          const activity = attributeFromList(activities, 'assetId', asset.id) || {};
-
-          return {
-            assetId: asset.id,
-            assetName: asset.name,
-            assetType: asset.type,
-            assetTypeId: asset.typeId,
-            operator: asset.operator.fullname || '',
-            locationId: activity.locationId,
-            materialTypeId: activity.materialTypeId,
-            loadStyleId: activity.loadStyleId,
-            activeTimeAllocation: asset.activeTimeAllocation,
-            present: asset.present,
-            status: asset.status,
-            hasDevice: asset.hasDevice,
-          };
-        });
+        .map(asset => toDigUnit(asset, activities, this.dimLocations, this.locationOptions));
     },
     fullTimeCodes() {
       return this.$store.getters['constants/fullTimeCodes'];
@@ -250,5 +278,9 @@ export default {
 
 .dig-unit-table .asset-icon {
   width: 2.5rem;
+}
+
+.dig-unit-table .drop-down.inactive-location {
+  border: 2px solid #ff6565;
 }
 </style>

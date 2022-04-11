@@ -143,7 +143,7 @@ axios
       console.error('While rendering from 8080, ensure that bypass_auth is true');
     }
 
-    if (error.response.status === 401) {
+    if (error.response?.status === 401) {
       document.location.href = hostname;
     } else {
       startUnknownError(error);

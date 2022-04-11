@@ -8,7 +8,7 @@ defmodule DispatchWeb.OperatorChannel do
 
   alias __MODULE__.{HaulTruckTopics, DigUnitTopics, WaterCartTopics}
 
-  alias DispatchWeb.{Settings, Presence, Broadcast}
+  alias DispatchWeb.{Settings, Presence, Broadcast, ChannelWatcher}
 
   alias Dispatch.{
     Helper,
@@ -32,7 +32,8 @@ defmodule DispatchWeb.OperatorChannel do
     PreStartSubmissionAgent,
     DigUnitActivityAgent,
     MapTileAgent,
-    RoutingAgent
+    RoutingAgent,
+    DeviceConnectionAgent
   }
 
   alias Phoenix.Socket
@@ -41,6 +42,7 @@ defmodule DispatchWeb.OperatorChannel do
 
   @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
   def join("operators:" <> _device_uuid, _params, socket) do
+    enable_leave(socket)
     send(self(), :after_join)
     operator_id = socket.assigns.operator_id
     device_uuid = socket.assigns.device_uuid
@@ -50,8 +52,18 @@ defmodule DispatchWeb.OperatorChannel do
       "[Joined operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}"
     )
 
+    DeviceConnectionAgent.set(device_uuid, :connected, NaiveDateTime.utc_now())
+
     Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
     {:ok, socket}
+  end
+
+  defp enable_leave(socket) do
+    :ok = ChannelWatcher.monitor(:operators, self(), {__MODULE__, :leave, [socket.assigns]})
+  end
+
+  def leave(assigns) do
+    DeviceConnectionAgent.set(assigns.device_uuid, :disconnected, NaiveDateTime.utc_now())
   end
 
   @spec handle_info(:after_join, Socket.t()) :: {:noreply, Socket.t()}
@@ -329,7 +341,7 @@ defmodule DispatchWeb.OperatorChannel do
   end
 
   def handle_in("set device track", track, socket) do
-    with true <- Settings.get()[:use_device_gps],
+    with true <- Settings.get(:use_device_gps),
          %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
          {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
       Broadcast.send_track(track)
@@ -391,7 +403,8 @@ defmodule DispatchWeb.OperatorChannel do
       speed_ms: vel["speed"],
       heading: vel["heading"],
       timestamp: Helper.to_naive(track["timestamp"]),
-      valid: track["valid"]
+      valid: track["valid"],
+      source: :device
     }
   end
 
@@ -424,6 +437,7 @@ defmodule DispatchWeb.OperatorChannel do
       asset_types: AssetAgent.get_types(),
       asset_radios: AssetRadioAgent.all(),
       operators: OperatorAgent.all(),
+      dim_locations: LocationAgent.dim_locations(),
       locations: locations,
       material_types: MaterialTypeAgent.get_active(),
       load_styles: LoadStyleAgent.all(),

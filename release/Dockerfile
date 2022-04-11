@@ -48,6 +48,9 @@ RUN MIX_ENV=prod mix release
 ###############
 FROM debian:bullseye
 
+ARG app_version="Not specified"
+ENV GIT_VERSION=$app_version
+
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install erlang-tools erlang-xmerl bash openssl locales -y
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \

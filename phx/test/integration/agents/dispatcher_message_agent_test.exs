@@ -20,7 +20,7 @@ defmodule Dispatch.DispatcherMessageAgentTest do
     [asset: asset]
   end
 
-  setup _ do
+  setup do
     DispatcherMessageAgent.start_link([])
     :ok
   end

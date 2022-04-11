@@ -37,12 +37,12 @@ assets = [
 
 {_count, assets} = Repo.insert_all(Asset, assets, returning: true)
 
-dim_assets =
+haul_trucks =
   assets
   |> Enum.filter(&(&1.asset_type_id == asset_types["Haul Truck"]))
   |> Enum.map(&%{asset_name: &1.name, user_id: &1.id, asset_id: &1.id, nominal_payload: 150})
 
-Repo.insert_all(Dim.Asset, dim_assets)
+Repo.insert_all(Dim.HaulTruck, haul_trucks)
 
 # calendar, shift types and timezone
 Repo.transaction(fn ->
@@ -97,12 +97,15 @@ to_loc_history = fn types, locations, {south, north, east, west}, name, type ->
   geofence =
     "#{north},#{east}|#{north},#{west}|#{south},#{west}|#{south},#{east}|#{north},#{east}"
 
+  timestamp = ~N[2020-01-01 00:00:00.000000]
+
   %{
     lat_min: south,
     lat_max: north,
     lon_min: east,
     lon_max: west,
-    timestamp: ~N[2020-01-01 00:00:00.000000],
+    start_time: timestamp,
+    timestamp: timestamp,
     geofence: geofence,
     location_id: locations[name],
     location_type_id: types[type],
@@ -116,17 +119,14 @@ Repo.transaction(fn ->
     Repo.insert_all(
       Dim.LocationType,
       [
-        %{type: "closed", gps_tag: "Closed"},
-        %{type: "production", gps_tag: "Pits"},
-        %{type: "crusher", gps_tag: "Crusher"},
-        %{type: "stockpile", gps_tag: "Stockpile"},
-        %{type: "waste_dump", gps_tag: ""},
-        %{type: "waste_stockpile", gps_tag: ""},
-        %{type: "rehab", gps_tag: "Rehab"},
-        %{type: "parkup", gps_tag: "Parkup"},
-        %{type: "changeover_bay", gps_tag: ""},
-        %{type: "fuel_bay", gps_tag: "Fuel Bay"},
-        %{type: "maintenance", gps_tag: "MEM"}
+        %{type: "closed"},
+        %{type: "dump"},
+        %{type: "maintenance"},
+        %{type: "parkup"},
+        %{type: "load"},
+        %{type: "load|dump"},
+        %{type: "fuel_bay"},
+        %{type: "changeover_bay"}
       ],
       returning: true
     )
@@ -151,15 +151,15 @@ Repo.transaction(fn ->
     |> Enum.into(%{})
 
   Repo.insert_all(Dim.LocationHistory, [
-    to_loc_history.(location_types, locations, {32.0, 32.1, 116.0, 116.1}, "Crusher", "crusher"),
-    to_loc_history.(location_types, locations, {32.1, 32.2, 116.1, 116.2}, "WD 01", "production"),
-    to_loc_history.(location_types, locations, {32.2, 32.3, 116.2, 116.3}, "WD 02", "production"),
+    to_loc_history.(location_types, locations, {32.0, 32.1, 116.0, 116.1}, "Crusher", "dump"),
+    to_loc_history.(location_types, locations, {32.1, 32.2, 116.1, 116.2}, "WD 01", "load"),
+    to_loc_history.(location_types, locations, {32.2, 32.3, 116.2, 116.3}, "WD 02", "load"),
     to_loc_history.(
       location_types,
       locations,
       {32.3, 32.4, 116.3, 116.4},
       "Stock 01",
-      "stockpile"
+      "load|dump"
     ),
     to_loc_history.(location_types, locations, {32.4, 32.5, 116.4, 116.5}, "Parkup", "parkup")
   ])

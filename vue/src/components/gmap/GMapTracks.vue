@@ -11,6 +11,7 @@
           :class="getMarkerClasses(asset)"
           :marker="asset.track.position"
           alignment="center"
+          :zIndex="asset.operatorName ? 50 : 49"
         >
           <div v-if="showAlerts && asset.alert" class="alert">
             <Icon

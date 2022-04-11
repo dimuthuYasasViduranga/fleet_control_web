@@ -12,7 +12,7 @@ defmodule Dispatch.OperatorMessageTypeAgentTest do
     [asset_type: asset.type_id]
   end
 
-  setup _ do
+  setup do
     OperatorMessageTypeAgent.start_link([])
     :ok
   end
@@ -188,7 +188,7 @@ defmodule Dispatch.OperatorMessageTypeAgentTest do
   end
 
   describe "update_tree/2 -" do
-    setup _ do
+    setup do
       type_ids = OperatorMessageTypeAgent.types() |> Enum.map(& &1.id)
       [msg_type_ids: type_ids]
     end

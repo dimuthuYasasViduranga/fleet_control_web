@@ -1,7 +1,6 @@
 <template>
-  <div>
-    <hxCard style="width: auto" :title="title" :icon="truckIcon">
-      <error :error="error" />
+  <div class="asset-status-page">
+    <hxCard style="width: auto" title="Asset Status" :icon="truckIcon">
       <loaded>
         <table-component
           table-wrapper="#content"
@@ -15,9 +14,19 @@
         >
           <table-column cell-class="table-cel" label="Asset" show="name" />
 
-          <table-column cell-class="table-cel" label="Last Seen" :formatter="lastSeen" />
+          <table-column
+            cell-class="table-cel"
+            label="Last Seen"
+            show="lastSeen"
+            data-type="date"
+            :formatter="formatDate"
+          />
 
-          <table-column cell-class="table-cel" label="Ignition" :formatter="ignition" />
+          <table-column cell-class="gps-source-cel"  label="GPS Source" show="gpsSource">
+            <template slot-scope="row">
+              <Icon v-tooltip="row.gpsSource" :icon="getSourceIcon(row.gpsSource)" />
+            </template>
+          </table-column>
 
           <table-column label="Radio Number" cell-class="table-cel">
             <template slot-scope="row">
@@ -42,51 +51,53 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
-import error from 'hx-layout/Error.vue';
+import Icon from 'hx-layout/Icon.vue';
 import Loaded from '../../Loaded.vue';
 
-import TruckIcon from '../../icons/asset_icons/HaulTruck.vue';
+import TruckIcon from '@/components/icons/asset_icons/HaulTruck.vue';
+import TabletIcon from '@/components/icons/Tablet.vue';
+import DatabaseIcon from '@/components/icons/Database.vue';
+
 import { TableComponent, TableColumn } from 'vue-table-component';
 import { formatDateRelativeToIn } from '@/code/time';
 import { attributeFromList } from '@/code/helpers';
-
-function getLastSeen(track) {
-  if (!track) {
-    return null;
-  }
-  return track.timestamp;
-}
 
 export default {
   name: 'AssetStatus',
   components: {
     hxCard,
-    error,
+    Icon,
     TableColumn,
     TableComponent,
     Loaded,
   },
   data: () => {
     return {
-      title: 'Asset Status',
       truckIcon: TruckIcon,
-      error: '',
     };
   },
   computed: {
-    tracks() {
-      return this.$store.state.trackStore.tracks;
-    },
+    ...mapState({
+      tracks: state => state.trackStore.tracks,
+      radioNumbers: state => state.constants.radioNumbers,
+      allAssets: state => state.constants.assets,
+    }),
     assets() {
-      const radioNumbers = this.$store.state.constants.radioNumbers;
-      return this.$store.state.constants.assets.map(asset => {
+      const radioNumbers = this.radioNumbers;
+      const tracks = this.tracks;
+      return this.allAssets.map(asset => {
         const radioNumber = attributeFromList(radioNumbers, 'assetId', asset.id, 'number');
+        const track = attributeFromList(tracks, 'assetId', asset.id);
+
         return {
           id: asset.id,
           name: asset.name,
           type: asset.type,
           radioNumber,
+          lastSeen: track?.timestamp,
+          gpsSource: track?.source,
         };
       });
     },
@@ -104,26 +115,15 @@ export default {
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable update radio number'));
     },
-    ignition(asset) {
-      const track = this.tracks.find(t => t.assetId === asset.id);
-
-      switch ((track || {}).ignition) {
-        case true:
-          return '<span class="green-text">On</span>';
-        case false:
-          return '<span class="red-text">Off</span>';
-        default:
-          return '--';
-      }
+    formatDate(date) {
+      const tz = this.$timely.current.timezone;
+      return formatDateRelativeToIn(date, tz);
     },
-    lastSeen(asset) {
-      const track = this.tracks.find(t => t.assetId === asset.id);
-      const lastSeen = getLastSeen(track);
-      if (lastSeen) {
-        const tz = this.$timely.current.timezone;
-        return formatDateRelativeToIn(lastSeen, tz);
+    getSourceIcon(source) {
+      if (source === 'device') {
+        return TabletIcon;
       }
-      return '--';
+      return DatabaseIcon;
     },
   },
 };
@@ -134,11 +134,8 @@ export default {
 @import '../../../assets/hxInput.css';
 @import '../../../assets/textColors.css';
 
-.wrapper {
-  display: flex;
-}
 
-.red-text {
-  color: red;
+.asset-status-page .gps-source-cel .hx-icon {
+  width: auto
 }
 </style>

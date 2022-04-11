@@ -92,7 +92,7 @@ export default {
       channel.setOnConnect(this.onJoin);
       dispatch('connection/attachMonitor', channel);
 
-      const presenceSyncCallback = presence => dispatch('connection/setPresence', presence);
+      const presenceSyncCallback = presence => dispatch('connection/updatePresence', presence);
       channel.create(this.$hostname, this.userToken, presenceSyncCallback);
 
       channel.setOns([
@@ -118,7 +118,14 @@ export default {
             dispatch('constants/setAssets', data.assets);
           },
         ],
-        ['set location data', data => dispatch('constants/setLocationData', data.locations)],
+        [
+          'set location data',
+          data =>
+            dispatch('constants/setLocationData', {
+              locations: data.locations,
+              dimLocations: data.dim_locations,
+            }),
+        ],
         [
           'set operator message types',
           data => {
@@ -166,6 +173,7 @@ export default {
         ['set routing data', data => dispatch('constants/setRoutingData', data.routing)],
 
         // shared
+        ['set live queue', data => dispatch('setLiveQueue', data)],
         ['set fleetops data', data => dispatch('setFleetOpsData', data)],
         [
           'set engine hours',
@@ -237,8 +245,10 @@ export default {
         ['deviceStore/setCurrentDeviceAssignments', resp.device_assignments.current],
         ['deviceStore/setHistoricDeviceAssignments', resp.device_assignments.historic],
         ['deviceStore/setPendingDevices', resp.pending_devices],
+        ['connection/setDeviceOnlineStatus', resp.device_connections],
 
         // shared
+        ['setLiveQueue', resp.live_queue],
         ['setActivityLog', resp.activities],
         ['setOperatorMessages', resp.operator_messages],
         ['setDispatcherMessages', resp.dispatcher_messages],

@@ -29,6 +29,7 @@ config :dispatch_web,
     zoom: 15
   },
   map_tile_endpoint: nil,
+  track_interval: 10_000,
   track_method: :gps_gate,
   settings: [
     use_device_gps: false,

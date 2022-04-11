@@ -4,6 +4,9 @@ defmodule DispatchWeb.DispatcherChannel.Test do
 
   alias Dispatch.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
   alias DispatchWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
+  alias DispatchWeb.Authorization.Permissions
+
+  import Phoenix.Socket, only: [assign: 3]
 
   @dispatcher "dispatchers:all"
   @uuid "abcdefg"
@@ -14,7 +17,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
   setup do
     [asset, asset_b] = AssetAgent.get_assets(%{type: "Haul Truck"})
     {:ok, :new, device} = DeviceAgent.add(@uuid)
-    {:ok, operator} = OperatorAgent.add("12345", "Test", nil)
+    {:ok, operator} = OperatorAgent.add("channel_operator", "Test", nil)
 
     {:ok, assignment} =
       DeviceAssignmentAgent.new(%{
@@ -27,6 +30,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
     {:ok, _, d_socket} =
       DispatcherSocket
       |> socket("user_id", %{})
+      |> assign(:permissions, Permissions.full_permissions())
       |> subscribe_and_join(DispatcherChannel, @dispatcher)
 
     {:ok, _, o_socket} =

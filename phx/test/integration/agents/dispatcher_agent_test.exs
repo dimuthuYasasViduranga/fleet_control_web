@@ -5,7 +5,7 @@ defmodule Dispatch.DispatcherMessageTest do
   alias Dispatch.DispatcherAgent
   alias HpsData.Schemas.Dispatch.Dispatcher
 
-  setup _ do
+  setup do
     DispatcherAgent.start_link([])
     :ok
   end

@@ -76,9 +76,14 @@ config :dispatch_web, DispatchWeb.Endpoint,
 # slack error logs
 config :logger, backends: [:console, SlackLoggerBackend.Logger]
 
+tag = System.fetch_env!("GIT_VERSION")
 app_name = System.fetch_env!("APPSIGNAL_APP_NAME")
+deployment_name = app_name <> ":" <> tag
 
 config :slack_logger_backend,
-  debounce_seconds: 30,
-  deployment_name: app_name,
-  scrubber: {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"}
+  debounce_seconds: 120,
+  deployment_name: deployment_name,
+  scrubber: [
+      {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"},
+      {~r/(^\w+\s+\|\s+)/, ""},
+    ]

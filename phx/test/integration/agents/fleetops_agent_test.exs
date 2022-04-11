@@ -3,10 +3,10 @@ defmodule Dispatch.HaulAgentTest do
   @moduletag :agent
 
   alias Dispatch.{CalendarAgent, HaulAgent}
-  alias HpsData.{Dim, Fleet}
+  alias HpsData.{Dim, Haul}
 
   setup_all _ do
-    [asset | _] = Repo.all(Dim.Asset)
+    [haul_truck | _] = Repo.all(Dim.HaulTruck)
     CalendarAgent.start_link([])
     calendars = CalendarAgent.shifts()
 
@@ -18,10 +18,10 @@ defmodule Dispatch.HaulAgentTest do
       |> Enum.map(&{String.to_atom(&1.secondary), &1.id})
       |> Enum.into(%{})
 
-    [asset: asset, locations: locations, calendars: calendars, tu_types: tu_types]
+    [haul_truck: haul_truck, locations: locations, calendars: calendars, tu_types: tu_types]
   end
 
-  setup _ do
+  setup do
     HaulAgent.start_link([])
     :ok
   end
@@ -33,7 +33,7 @@ defmodule Dispatch.HaulAgentTest do
 
   defp make_cycle(
          %{locations: locations, calendars: calendars, tu_types: tu_types},
-         asset_id,
+         haul_truck_id,
          start_time,
          load,
          dump,
@@ -48,8 +48,8 @@ defmodule Dispatch.HaulAgentTest do
 
     Repo.transaction(fn ->
       cycle =
-        Repo.insert!(%Fleet.Cycle{
-          asset_id: asset_id,
+        Repo.insert!(%Haul.Cycle{
+          haul_truck_id: haul_truck_id,
           calendar_id: calendar.id,
           start_time: start_time,
           end_time: end_time,
@@ -94,7 +94,7 @@ defmodule Dispatch.HaulAgentTest do
 
           tu_element = %{
             cycle_id: cycle.id,
-            asset_id: asset_id,
+            haul_truck_id: haul_truck_id,
             calendar_id: calendar.id,
             start_time: tu_start_time,
             end_time: tu_end_time,
@@ -111,11 +111,35 @@ defmodule Dispatch.HaulAgentTest do
         end)
         |> elem(0)
 
-      Repo.insert_all(Fleet.TimeUsage, tu_elements)
+      states =
+        Enum.map(tu_elements, fn tu ->
+          %{
+            haul_truck_id: haul_truck_id,
+            calendar_id: tu.calendar_id,
+            location_history_id: tu.location_history_id,
+            transmission: tu.transmission,
+            start_time: tu.start_time,
+            end_time: tu.end_time,
+            latitude: tu.latitude,
+            longitude: tu.longitude,
+            distance: tu.distance,
+            duration: tu.duration
+          }
+        end)
+
+      {_count, inserted_states} = Repo.insert_all(Haul.State, states, returning: true)
+
+      # add state id required for time usage elements
+      tu_elements =
+        tu_elements
+        |> Enum.zip(inserted_states)
+        |> Enum.map(fn {tu, state} -> Map.put(tu, :state_id, state.id) end)
+
+      Repo.insert_all(Haul.TimeUsage, tu_elements)
     end)
   end
 
-  test "insert cycles then update", %{asset: asset} = context do
+  test "insert cycles then update", %{haul_truck: haul_truck} = context do
     assert length(HaulAgent.cycles()) == 0
     assert length(HaulAgent.timeusage()) == 0
 
@@ -132,7 +156,7 @@ defmodule Dispatch.HaulAgentTest do
 
     make_cycle(
       context,
-      asset.id,
+      haul_truck.id,
       ~N[2020-01-01 00:00:00.000000],
       "Stock 01",
       "Crusher",
@@ -146,7 +170,7 @@ defmodule Dispatch.HaulAgentTest do
   end
 
   describe "fetch by range! -" do
-    test "cycle completely within range", %{asset: asset} = context do
+    test "cycle completely within range", %{haul_truck: haul_truck} = context do
       tu_durations = [
         EmptyHaul: 300,
         QueueAtLoad: 0,
@@ -160,7 +184,7 @@ defmodule Dispatch.HaulAgentTest do
 
       make_cycle(
         context,
-        asset.id,
+        haul_truck.id,
         ~N[2020-01-01 01:00:00.000000],
         "Stock 01",
         "Crusher",
@@ -177,7 +201,7 @@ defmodule Dispatch.HaulAgentTest do
       assert length(timeusage) != 0
     end
 
-    test "cycle ending in range", %{asset: asset} = context do
+    test "cycle ending in range", %{haul_truck: haul_truck} = context do
       tu_durations = [
         EmptyHaul: 300,
         QueueAtLoad: 0,
@@ -191,7 +215,7 @@ defmodule Dispatch.HaulAgentTest do
 
       make_cycle(
         context,
-        asset.id,
+        haul_truck.id,
         ~N[2020-01-01 01:00:00.000000],
         "Stock 01",
         "Crusher",
@@ -208,7 +232,7 @@ defmodule Dispatch.HaulAgentTest do
       assert length(timeusage) != 0
     end
 
-    test "cycle starting in range", %{asset: asset} = context do
+    test "cycle starting in range", %{haul_truck: haul_truck} = context do
       tu_durations = [
         EmptyHaul: 300,
         QueueAtLoad: 0,
@@ -222,7 +246,7 @@ defmodule Dispatch.HaulAgentTest do
 
       make_cycle(
         context,
-        asset.id,
+        haul_truck.id,
         ~N[2020-01-01 01:00:00.000000],
         "Stock 01",
         "Crusher",
@@ -239,7 +263,7 @@ defmodule Dispatch.HaulAgentTest do
       assert length(timeusage) != 0
     end
 
-    test "cycle covering range", %{asset: asset} = context do
+    test "cycle covering range", %{haul_truck: haul_truck} = context do
       tu_durations = [
         EmptyHaul: 300,
         QueueAtLoad: 0,
@@ -253,7 +277,7 @@ defmodule Dispatch.HaulAgentTest do
 
       make_cycle(
         context,
-        asset.id,
+        haul_truck.id,
         ~N[2020-01-01 01:00:00.000000],
         "Stock 01",
         "Crusher",
@@ -270,7 +294,7 @@ defmodule Dispatch.HaulAgentTest do
       assert length(timeusage) != 0
     end
 
-    test "cycles outside of range", %{asset: asset} = context do
+    test "cycles outside of range", %{haul_truck: haul_truck} = context do
       tu_durations = [
         EmptyHaul: 300,
         QueueAtLoad: 0,
@@ -284,7 +308,7 @@ defmodule Dispatch.HaulAgentTest do
 
       make_cycle(
         context,
-        asset.id,
+        haul_truck.id,
         ~N[2020-01-01 01:00:00.000000],
         "Stock 01",
         "Crusher",

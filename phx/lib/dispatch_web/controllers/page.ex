@@ -3,7 +3,7 @@ defmodule DispatchWeb.PageController do
 
   use DispatchWeb, :controller
 
-  alias DispatchWeb.{Authorization, Guardian}
+  alias DispatchWeb.{Settings, Authorization, Guardian}
   alias Dispatch.DispatcherAgent
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
@@ -19,12 +19,12 @@ defmodule DispatchWeb.PageController do
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
     user = get_session(conn, :current_user)
-    permissions = conn.assigns.permissions
-    authorized = Map.get(permissions, :authorized, false)
+
+    authorized = Map.get(conn.assigns.permissions, :authorized, false)
 
     {conn, token} = get_token(conn)
 
-    whitelist = get_whitelist(user[:user_id], permissions)
+    whitelist = get_whitelist(user[:user_id])
 
     data =
       %{
@@ -41,13 +41,13 @@ defmodule DispatchWeb.PageController do
     |> send_resp(200, data)
   end
 
-  defp get_whitelist(user_id, permissions) do
+  defp get_whitelist(user_id) do
     whitelist = Authorization.Whitelist.get(user_id)
 
-    if !permissions.can_edit_pre_starts do
-      Enum.reject(whitelist, &(&1 == "/pre_start_editor" || &1 == "/pre_start_submissions"))
-    else
+    if Settings.get(:use_pre_starts) == true do
       whitelist
+    else
+      Enum.reject(whitelist, &(&1 == "/pre_start_editor" || &1 == "/pre_start_submissions"))
     end
   end
 

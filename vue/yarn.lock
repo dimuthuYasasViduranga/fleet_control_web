@@ -4905,7 +4905,7 @@ human-signals@^1.1.1:
 
 "hx-vue@ssh://git@github.com:Haultrax/hx-vue.git#main":
   version "0.1.0"
-  resolved "ssh://git@github.com:Haultrax/hx-vue.git#dbaff756d43bb610067db6bd7c517522cf4b1a81"
+  resolved "ssh://git@github.com:Haultrax/hx-vue.git#93f0c3fe0f707ffee86b0de821344dcda2d82a4e"
   dependencies:
     "@popperjs/core" "^2.11.2"
     fuzzysort "^1.1.4"

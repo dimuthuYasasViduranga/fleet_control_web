@@ -5,7 +5,7 @@ defmodule Dispatch.CalendarAgentTest do
   alias Dispatch.CalendarAgent
   alias HpsData.Dim.Calendar
 
-  setup _ do
+  setup do
     CalendarAgent.start_link([])
     :ok
   end
@@ -21,7 +21,7 @@ defmodule Dispatch.CalendarAgentTest do
   end
 
   describe "is current? -" do
-    setup _ do
+    setup do
       [shift | _] = CalendarAgent.shifts()
       [shift: shift]
     end

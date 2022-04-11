@@ -36,16 +36,18 @@ defmodule DispatchWeb.Application do
       Dispatch.PreStartAgent,
       Dispatch.PreStartSubmissionAgent,
       Dispatch.RoutingAgent,
+      Dispatch.LiveQueueAgent,
 
       # agents that call other agents
       Dispatch.TimeAllocationAgent,
 
       # track subscriber
       Dispatch.TrackAgent,
-      Dispatch.TrackSub,
 
       # authorization server
-      Dispatch.DeviceAuthServer
+      Dispatch.DeviceAuthServer,
+
+      Dispatch.DeviceConnectionAgent
     ]
   end
 
@@ -61,7 +63,8 @@ defmodule DispatchWeb.Application do
         [
           {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
           DispatchWeb.Endpoint,
-          DispatchWeb.Presence
+          DispatchWeb.Presence,
+          {DispatchWeb.ChannelWatcher, :operators}
         ]
       ]
       |> List.flatten()

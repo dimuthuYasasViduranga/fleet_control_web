@@ -20,7 +20,7 @@ defmodule Dispatch.EngineHoursAgentTest do
     [asset: asset]
   end
 
-  setup _ do
+  setup do
     EngineHoursAgent.start_link([])
     :ok
   end

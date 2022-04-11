@@ -1,6 +1,4 @@
 defmodule TrackSub.Rest do
-  alias Dispatch.Helper
-
   @doc """
   Returns a list of latest track points for all assets
   """
@@ -10,7 +8,7 @@ defmodule TrackSub.Rest do
       {:ok, users} ->
         tracks =
           users
-          |> Enum.filter(&(&1["trackPoint"]["valid"] == true))
+          |> Enum.filter(&(&1.track.valid == true))
           |> Enum.map(&extract_track_data/1)
 
         {:ok, tracks}
@@ -23,25 +21,23 @@ defmodule TrackSub.Rest do
   @spec fetch_status(map) :: {:ok, any} | {:error, %HTTPoison.Response{}}
   def fetch_status(track), do: GPSGateRest.http_get("users/#{track.user_id}/status")
 
-  defp extract_track_data(user_data) do
-    point = user_data["trackPoint"]
-
-    pos = point["position"]
-    velocity = point["velocity"]
+  defp extract_track_data(raw) do
+    track = raw.track
+    pos = track.position
+    vel = raw.track.velocity
 
     %{
-      name: user_data["name"],
-      user_id: user_data["id"],
-      description: user_data["description"],
+      name: raw.name,
+      user_id: raw.id,
       position: %{
-        lat: pos["latitude"],
-        lng: pos["longitude"],
-        alt: pos["altitude"]
+        lat: pos.latitude,
+        lng: pos.longitude,
+        alt: pos.altitude
       },
-      speed_ms: velocity["groundSpeed"],
-      heading: velocity["heading"],
-      timestamp: Helper.to_naive(point["utc"]),
-      valid: point["valid"]
+      speed_ms: vel.speed,
+      heading: vel.heading,
+      timestamp: track.timestamp,
+      valid: track.valid
     }
   end
 end
@@ -82,7 +78,7 @@ defmodule TrackSub do
 
           {:error, response} ->
             info = safe_response(response)
-            Logger.error("[TrackSub] Failed to fetch latest tracks. #{inspect(info)}")
+            Logger.warn("[TrackSub] Failed to fetch latest tracks. #{inspect(info)}")
         end
 
         schedule_work()
@@ -175,11 +171,7 @@ defmodule TrackSub do
 
       defp handle_track(track, state) do
         asset = AssetAgent.get_asset(%{name: track.name})
-
-        if !is_nil(asset) do
-          track = add_ignition(track)
-          handle_live(asset.id, track, state)
-        end
+        handle_live(asset.id, track, state)
       end
 
       defp schedule_work() do

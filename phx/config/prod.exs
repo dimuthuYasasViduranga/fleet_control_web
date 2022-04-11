@@ -9,8 +9,6 @@ end
 
 config :dispatch_web, bypass_auth: false
 
-config :appsignal, :config, active: true
-
 config :dispatch_web, DispatchWeb.Endpoint,
   secret_key_base: random_string.(64),
   load_from_system_env: true,
