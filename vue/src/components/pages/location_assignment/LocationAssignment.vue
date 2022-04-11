@@ -58,11 +58,11 @@ export default {
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
+      dndSettings: state => state.dndSettings,
     }),
     ...mapState({
       haulTruckDispatches: state => state.haulTruck.currentDispatches,
       digUnitActivities: state => state.digUnit.currentActivities,
-      dndSettings: state => state.dndSettings,
     }),
     fullAssets() {
       return this.$store.getters.fullAssets;
@@ -72,7 +72,7 @@ export default {
     onOpenSettings() {
       this.$modal.create(DndSettingsModal, { settings: this.dndSettings }).onClose(resp => {
         if (resp) {
-          this.$store.commit('setDndSettings', resp);
+          this.$store.commit('constants/setDndSettings', resp);
         }
       });
     },

@@ -184,17 +184,6 @@ const state = {
     timeusage: Array(),
   },
   currentPreStartSubmissions: Array(),
-  dndSettings: {
-    orientation: 'horizontal',
-    assetOrdering: 'normal',
-    vertical: {
-      orderBy: 'location',
-      columns: 2,
-    },
-    horizontal: {
-      orderBy: 'location',
-    },
-  },
 };
 
 export function parsePreStartSubmission(submission) {
@@ -617,9 +606,6 @@ const mutations = {
   setCurrentPreStartSubmissions(state, submissions = []) {
     notifyPreStartSubmissionChanges(state, submissions);
     state.currentPreStartSubmissions = submissions;
-  },
-  setDndSettings(state, settings) {
-    state.dndSettings = settings;
   },
 };
 

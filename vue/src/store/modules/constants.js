@@ -409,6 +409,20 @@ function parseRouteRestrictionGroup(g) {
   };
 }
 
+function parseDndSettings(raw) {
+  return {
+    orientation: raw.orientation || 'horizontal',
+    assetOrder: raw.asset_order || 'normal',
+    horizontal: {
+      orderBy: raw.horizontal.order_by || 'location',
+    },
+    vertical: {
+      orderBy: raw.vertical.orderBy || 'location',
+      columns: raw.vertical.columns || 2,
+    },
+  };
+}
+
 /* ---------------------- module --------------------- */
 
 const state = {
@@ -444,6 +458,17 @@ const state = {
   preStartTicketStatusTypes: Array(),
   preStartControlCategories: Array(),
   activeRoute: null,
+  dndSettings: {
+    orientation: 'horizontal',
+    assetOrdering: 'normal',
+    vertical: {
+      orderBy: 'location',
+      columns: 2,
+    },
+    horizontal: {
+      orderBy: 'location',
+    },
+  },
 };
 
 const getters = {
@@ -473,7 +498,7 @@ const actions = {
     const data = staticData.data;
 
     // all in constants
-    [
+    const items = [
       ['setUser', staticData.user],
       ['setLocationData', { locations: data.locations, dimLocations: data.dim_locations }],
       ['setQuickMessages', data.quick_messages],
@@ -488,7 +513,10 @@ const actions = {
       ['setOperatorMessageTypes', data.operator_message_types],
       ['setLoadStyles', data.load_styles],
       ['setMaterialTypes', data.material_types],
-    ].forEach(([path, value]) => dispatch(path, value));
+      ['setDndSettings', data.location_assignment_layout],
+    ];
+
+    items.forEach(([path, value]) => dispatch(path, value));
 
     dispatch('connection/setUserToken', staticData.user_token, { root: true });
     Timely.setSiteZone(data.timezone);
@@ -600,6 +628,10 @@ const actions = {
     const activeRoute = data?.active_route ? parseRoute(data.active_route) : null;
     commit('setRoutingData', activeRoute);
   },
+  setDndSettings({ commit }, data = {}) {
+    const dndSettings = parseDndSettings(data);
+    commit('setDndSettings', dndSettings);
+  },
 };
 
 const mutations = {
@@ -690,6 +722,9 @@ const mutations = {
   },
   setRoutingData(state, activeRoute) {
     state.activeRoute = activeRoute;
+  },
+  setDndSettings(state, settings) {
+    state.dndSettings = settings;
   },
 };
 
