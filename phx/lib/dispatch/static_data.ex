@@ -39,8 +39,14 @@ defmodule Dispatch.StaticData do
       time_code_categories: TimeCodeAgent.get_time_code_categories(),
       operator_message_types: OperatorMessageTypeAgent.types(),
       load_styles: LoadStyleAgent.all(),
-      material_types: MaterialTypeAgent.get()
+      material_types: MaterialTypeAgent.get(),
+      location_assignment_layout: get_location_assignment_layout()
     }
+  end
+
+  defp get_location_assignment_layout() do
+    Application.get_env(:dispatch_web, :location_assignment_layout)
+    |> Map.new()
   end
 
   defp get_quick_messages() do

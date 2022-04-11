@@ -45,6 +45,17 @@ config :dispatch_web,
     "Excavator" => "Dig Unit",
     "Loader" => "Dig Unit"
   },
+  location_assignment_layout: [
+    orientation: "horizontal",
+    asset_order: "normal",
+    vertical: %{
+      order_by: "location",
+      columns: 2
+    },
+    horizontal: %{
+      order_by: "location"
+    }
+  ],
   route_white_list: %{
     default: [
       "/asset_assignment",
