@@ -420,7 +420,7 @@ const getters = {
       ),
     );
   },
-  events: state => timezone => {
+  events: state => () => {
     const { operatorMessages, dispatcherMessages, activeTimeAllocations, historicTimeAllocations } =
       state;
 
@@ -433,6 +433,8 @@ const getters = {
       radioNumbers,
       timeCodes,
       timeCodeGroups,
+      shifts,
+      shiftTypes,
     } = state.constants;
 
     const { devices, historicDeviceAssignments } = state.deviceStore;
@@ -473,7 +475,8 @@ const getters = {
       historicDeviceAssignments,
       haulTruckDispatches,
       timeAllocations,
-      timezone,
+      shifts,
+      shiftTypes,
     );
   },
   operatorMessages: ({ operatorMessages, constants }) => {

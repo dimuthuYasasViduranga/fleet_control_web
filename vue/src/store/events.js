@@ -1,5 +1,5 @@
 import { copyDate, setTimeZone } from '../code/time';
-import { attributeFromList, chunkEvery, dedupBy, dedupByMany } from '../code/helpers';
+import { attributeFromList, chunkEvery, dedupBy, dedupByMany, toLookup } from '../code/helpers';
 
 export function toEvents(
   assets,
@@ -14,7 +14,8 @@ export function toEvents(
   deviceAssignments,
   haulTruckDispatches,
   timeAllocations,
-  timezone,
+  shifts,
+  shiftTypes,
 ) {
   const opMsgs = toOperatorMessageEvents(
     assets,
@@ -51,7 +52,7 @@ export function toEvents(
     .concat(timeAllocEvents);
 
   const assetIds = assets.map(a => a.id);
-  const dateSeparators = getDateSeparators(events, assetIds, timezone);
+  const dateSeparators = getDateSeparators(events, shifts, shiftTypes, assetIds);
   events = events.concat(dateSeparators);
 
   // order by timestamp
@@ -250,7 +251,10 @@ function toHaulTruckMassDispatchEvents(events) {
 
 function toLoginLogoutEvents(assets, operators, deviceAssignments) {
   // operator login/logout from asset
-  const assignmentsByAsset = groupBy(deviceAssignments.filter(a => a.assetId), 'assetId');
+  const assignmentsByAsset = groupBy(
+    deviceAssignments.filter(a => a.assetId),
+    'assetId',
+  );
   return assignmentsByAsset.map(assigns => toLoginLogoutEvent(assigns, assets, operators)).flat();
 }
 
@@ -345,28 +349,47 @@ function toTimeAllocEvent([assetId, allocs], assets) {
     .filter(alloc => alloc.timestamp);
 }
 
-function getDateSeparators(events, assetIds, timezone) {
-  // asset ids are added so that all filters work with them
-  if (!events) {
+function getDateSeparators(events, shifts, shiftTypes, assetIds) {
+  if (!events || events.length === 0) {
     return [];
   }
 
-  const timestamps = events.map(e => e.timestamp);
-  timestamps.unshift(new Date());
+  const shiftTypeMap = toLookup(
+    shiftTypes,
+    e => e.id,
+    e => e.name,
+  );
 
-  const separators = timestamps.map(ts => toDateSeparator(ts, assetIds, timezone));
+  const eventEpochs = events.map(e => e.timestamp.getTime()).sort();
+  const minEventEpoch = Math.min(...eventEpochs);
+  const maxEventEpoch = Math.max(...eventEpochs, Date.now());
 
-  return dedupBy(separators, 'date');
-}
+  const boundedShifts = shifts
+    .map(s => {
+      return {
+        id: s.id,
+        shiftTypeId: s.shiftTypeId,
+        shiftType: shiftTypeMap[s.shiftTypeId],
+        startTime: s.startTime,
+        endTime: s.endTime,
+        startEpoch: s.startTime.getTime(),
+        endEpoch: s.endTime.getTime(),
+      };
+    })
+    .filter(s => s.endEpoch >= minEventEpoch && s.startEpoch <= maxEventEpoch);
 
-function toDateSeparator(date, assetIds, timezone) {
-  const site = setTimeZone(date, timezone).startOf('day');
-  const dateString = site.toFormat('yyyy-MM-dd');
-  const timestamp = site.toJSDate();
-  return {
-    eventType: 'date-separator',
-    timestamp,
-    date: dateString,
-    assetIds,
-  };
+  let relevantShifts = eventEpochs
+    .map(epoch => boundedShifts.find(s => epoch >= s.startEpoch && epoch <= s.endEpoch))
+    .sort((a, b) => a.startEpoch - b.startEpoch);
+
+  relevantShifts = dedupBy(relevantShifts, 'id');
+
+  return relevantShifts.map(shift => {
+    return {
+      eventType: 'shift-separator',
+      timestamp: shift.startTime,
+      shift,
+      assetIds,
+    };
+  });
 }

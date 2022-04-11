@@ -23,7 +23,7 @@
         />
         <LoginEvent v-else-if="['login', 'logout'].includes(entry.eventType)" :entry="entry" />
         <TimeAllocationEvent v-else-if="entry.eventType === 'time-allocation'" :entry="entry" />
-        <DateSeparator v-else-if="entry.eventType === 'date-separator'" :entry="entry" />
+        <ShiftSeparator v-else-if="entry.eventType === 'shift-separator'" :entry="entry" />
       </div>
     </div>
   </div>
@@ -36,7 +36,7 @@ import TimeAllocationEvent from './entry_types/TimeAllocationEvent.vue';
 import DispatchMessage from './entry_types/DispatchMessage.vue';
 import DispatchMassMessage from './entry_types/DispatchMassMessage.vue';
 import OperatorMessage from './entry_types/OperatorMessage.vue';
-import DateSeparator from './entry_types/DateSeparator.vue';
+import ShiftSeparator from './entry_types/ShiftSeparator.vue';
 import AssignmentEvent from './entry_types/AssignmentEvent.vue';
 import LoginEvent from './entry_types/LoginEvent.vue';
 
@@ -51,7 +51,7 @@ export default {
     DispatchMessage,
     DispatchMassMessage,
     OperatorMessage,
-    DateSeparator,
+    ShiftSeparator,
     AssignmentEvent,
     LoginEvent,
   },
