@@ -8,7 +8,9 @@
     </div>
 
     <div
+      v-tooltip="loadInvalid ? 'This load location is no longer active. Please re-assign' : ''"
       class="target-load"
+      :class="{ invalid: loadInvalid }"
       :style="minWidthStyle"
       @mouseenter="hovering = true"
       @mouseleave="hovering = false"
@@ -154,7 +156,25 @@ export default {
       return this.digUnits.find(a => a.id === this.digUnitId);
     },
     loadLocation() {
-      return this.locations.find(l => l.id === this.loadId);
+      if (!this.loadId) {
+        return;
+      }
+
+      const location = this.locations.find(l => l.id === this.loadId);
+      if (location) {
+        return location;
+      }
+
+      const missingLoc = this.dimLocations.find(l => l.id === this.loadId);
+
+      return {
+        id: missingLoc.id,
+        name: missingLoc.name,
+        invalid: true,
+      };
+    },
+    loadInvalid() {
+      return this.loadLocation?.invalid;
     },
     heading() {
       const digUnit = this.digUnit;

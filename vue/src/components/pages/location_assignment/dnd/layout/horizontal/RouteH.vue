@@ -1,6 +1,10 @@
 <template>
   <div class="route-h">
-    <div class="target-load">
+    <div
+      v-tooltip="loadInvalid ? 'This load location is no longer active. Please re-assign' : ''"
+      class="target-load"
+      :class="{ invalid: loadInvalid }"
+    >
       <div v-if="readonly" class="heading" readonly>
         {{ heading }}
       </div>
@@ -149,7 +153,25 @@ export default {
       return this.digUnits.find(d => d.id === this.digUnitId);
     },
     loadLocation() {
-      return this.locations.find(l => l.id === this.loadId);
+      if (!this.loadId) {
+        return;
+      }
+
+      const location = this.locations.find(l => l.id === this.loadId);
+      if (location) {
+        return location;
+      }
+
+      const missingLoc = this.dimLocations.find(l => l.id === this.loadId);
+
+      return {
+        id: missingLoc.id,
+        name: missingLoc.name,
+        invalid: true,
+      };
+    },
+    loadInvalid() {
+      return this.loadLocation?.invalid;
     },
     heading() {
       const digUnit = this.digUnit;
@@ -264,6 +286,10 @@ export default {
   flex-direction: column;
   border-right: 1px solid #121f26;
   min-width: 15rem;
+}
+
+.target-load.invalid .dig-unit-region {
+  background-color: #ff65652c;
 }
 
 .target-load .heading {

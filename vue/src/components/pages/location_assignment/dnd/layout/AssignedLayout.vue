@@ -110,7 +110,7 @@ export default {
   },
   computed: {
     groupedRoutes() {
-      const routes = groupRoutes(this.structure.routes, this.digUnits, this.locations);
+      const routes = groupRoutes(this.structure.routes, this.digUnits, this.dimLocations);
 
       const orderBy = this.layoutSettings[this.orientation].orderBy;
       // The first sorts are to move initial nulls to the end
