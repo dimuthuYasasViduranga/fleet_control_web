@@ -16,6 +16,9 @@
           @logout="onForceLogout"
           @revoke="onRevoke"
         />
+        <button class="hx-btn download-details" @click="onDownloadDeviceInfo()">
+          Download Device Info
+        </button>
         <template v-if="!readonly">
           <button class="hx-btn accept-new-devices" @click="onOpenDeviceWindow">
             Accept New Devices
@@ -53,6 +56,7 @@ import PendingDeviceTable from './PendingDeviceTable.vue';
 import TabletIcon from '../../icons/Tablet.vue';
 import { attributeFromList, formatDeviceUUID } from '@/code/helpers.js';
 import { toUtcDate } from '@/code/time';
+import { downloadCSV } from '@/code/io';
 
 function getMultipleAssignments(assignments, assets, deviceId) {
   const deviceAssigns = assignments.filter(a => a.deviceId === deviceId);
@@ -221,6 +225,36 @@ export default {
         this.$channel.push('auth:revoke device', deviceId);
       }
     },
+    onDownloadDeviceInfo() {
+      const extraKeys = Object.keys(
+        this.devices.reduce((acc, device) => Object.assign(acc, device.details), {}),
+      );
+
+      const keys = ['id', 'uuid', 'asset_id', 'asset_name', 'asset_type'];
+
+      const assetMap = this.assignments.reduce((acc, assign) => {
+        const [name, type] = attributeFromList(this.assets, 'id', assign.assetId, ['name', 'type']);
+        acc[assign.deviceId] = { id: assign.assetId, name, type };
+        return acc;
+      }, {});
+
+      const data = this.devices.map(d => {
+        const asset = assetMap[d.id];
+
+        return {
+          ...d.details,
+          id: d.id,
+          uuid: d.uuid,
+          asset_id: asset.id,
+          asset_name: asset.name,
+          asset_type: asset.type,
+          authorized_at: toUtcDate(d.details?.authorized_at).toISOString(),
+          client_updated_at: toUtcDate(d.details?.client_updated_at).toISOString(),
+        };
+      });
+
+      downloadCSV(`device-info-${Date.now()}.csv`, keys.concat(extraKeys), data);
+    },
   },
 };
 </script>
@@ -231,5 +265,9 @@ export default {
 
 .device-assignment .accept-new-devices {
   margin-right: 0.5rem;
+}
+
+.device-assignment .download-details {
+  float: right;
 }
 </style>
