@@ -12,6 +12,7 @@
           :dumpIds="route.dumpIds"
           :digUnits="digUnits"
           :haulTrucks="haulTrucks"
+          :dimLocations="dimLocations"
           :locations="locations"
           :columns="layoutSettings.vertical.columns"
           @drag-start="propagate('drag-start', $event)"
@@ -40,6 +41,7 @@
         :dumpIds="route.dumpIds"
         :digUnits="digUnits"
         :haulTrucks="haulTrucks"
+        :dimLocations="dimLocations"
         :locations="locations"
         @drag-start="propagate('drag-start', $event)"
         @drag-end="propagate('drag-end', $event)"
@@ -101,6 +103,7 @@ export default {
     structure: { type: Object, required: true },
     haulTrucks: { type: Array, default: () => [] },
     digUnits: { type: Array, default: () => [] },
+    dimLocations: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     loadLocations: { type: Array, default: () => [] },
     dumpLocations: { type: Array, default: () => [] },

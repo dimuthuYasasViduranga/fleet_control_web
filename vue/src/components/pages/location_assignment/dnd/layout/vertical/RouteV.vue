@@ -67,6 +67,7 @@
         :dumpId="dump.id"
         :dumpName="dump.extendedName"
         :haulTrucks="assignedHaulTrucks"
+        :invalid="dump.invalid"
         :columns="cols"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
@@ -113,6 +114,7 @@ export default {
     haulTrucks: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     columns: { type: Number, default: 2 },
+    dimLocations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -131,8 +133,21 @@ export default {
   },
   computed: {
     dumps() {
-      return this.locations
-        .filter(l => this.dumpIds.includes(l.id))
+      return this.dumpIds
+        .map(id => {
+          const dump = attributeFromList(this.locations, 'id', id);
+          if (dump) {
+            return dump;
+          }
+
+          const missingDump = attributeFromList(this.dimLocations, 'id', id) || {};
+          return {
+            id: missingDump.id,
+            name: missingDump.name,
+            extendedName: missingDump.name,
+            invalid: true,
+          };
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
     },
     digUnit() {
