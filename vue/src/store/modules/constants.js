@@ -99,6 +99,7 @@ function parseDimLocation(raw) {
   return {
     id: raw.id,
     name: raw.name,
+    extendedName: raw.name,
   };
 }
 

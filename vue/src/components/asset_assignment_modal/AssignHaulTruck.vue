@@ -116,6 +116,7 @@ export default {
   computed: {
     ...mapState('constants', {
       assets: state => state.assets,
+      dimLocations: state => state.dimLocations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
       allLocations: state => state.locations,
@@ -127,7 +128,7 @@ export default {
     loads() {
       const loads = filterLocations(
         this.loadLocations,
-        this.allLocations,
+        this.dimLocations,
         this.localDispatch.loadId,
         this.showAllLocations,
       );
@@ -136,7 +137,7 @@ export default {
     dumps() {
       const dumps = filterLocations(
         this.dumpLocations,
-        this.allLocations,
+        this.dimLocations,
         this.localDispatch.dumpId,
         this.showAllLocations,
       );
