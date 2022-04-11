@@ -175,6 +175,7 @@ defmodule DispatchWeb.Broadcast do
       |> Enum.map(&Map.drop(&1, [:polygon]))
 
     payload = %{
+      dim_locations: LocationAgent.dim_locations(),
       locations: active_locations
     }
 

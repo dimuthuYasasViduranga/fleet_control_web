@@ -30,6 +30,7 @@ defmodule Dispatch.StaticData do
       assets: AssetAgent.get_assets(),
       asset_types: AssetAgent.get_types(),
       operators: OperatorAgent.all(),
+      dim_locations: LocationAgent.dim_locations(),
       locations: locations,
       shifts: CalendarAgent.shifts(),
       shift_types: CalendarAgent.shift_types(),

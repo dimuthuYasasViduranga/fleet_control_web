@@ -437,6 +437,7 @@ defmodule DispatchWeb.OperatorChannel do
       asset_types: AssetAgent.get_types(),
       asset_radios: AssetRadioAgent.all(),
       operators: OperatorAgent.all(),
+      dim_locations: LocationAgent.dim_locations(),
       locations: locations,
       material_types: MaterialTypeAgent.get_active(),
       load_styles: LoadStyleAgent.all(),

@@ -95,6 +95,13 @@ function parseGeofence(geofenceString) {
   });
 }
 
+function parseDimLocation(raw) {
+  return {
+    id: raw.id,
+    name: raw.name,
+  };
+}
+
 function separateLocations(locations) {
   const separation = {
     load: [],
@@ -413,6 +420,7 @@ const state = {
   operators: Array(),
   shifts: Array(),
   shiftTypes: Array(),
+  dimLocations: Array(),
   locations: Array(),
   loadLocations: Array(),
   dumpLocations: Array(),
@@ -466,7 +474,7 @@ const actions = {
     // all in constants
     [
       ['setUser', staticData.user],
-      ['setLocationData', data.locations],
+      ['setLocationData', { locations: data.locations, dimLocations: data.dim_locations }],
       ['setQuickMessages', data.quick_messages],
       ['setMapConfig', data.map_config],
       ['setAssets', data.assets],
@@ -508,9 +516,10 @@ const actions = {
     const formattedShiftTypes = shiftTypes.map(parseShiftType);
     commit('setShiftTypes', formattedShiftTypes);
   },
-  setLocationData({ commit }, locs = []) {
-    const locations = locs.map(parseLocation);
-    commit('setLocationData', locations);
+  setLocationData({ commit }, data = {}) {
+    const locations = (data.locations || []).map(parseLocation);
+    const dimLocations = (data.dimLocations || []).map(parseDimLocation);
+    commit('setLocationData', { locations, dimLocations });
   },
   setRadioNumbers({ commit }, radioNumbers = []) {
     const formattedRadioNumbers = radioNumbers.map(parseRadioNumber);
@@ -605,10 +614,12 @@ const mutations = {
   setShiftTypes(state, shiftTypes = []) {
     state.shiftTypes = shiftTypes;
   },
-  setLocationData(state, locations = []) {
-    const sortedLocations = locations.slice();
+  setLocationData(state, { locations, dimLocations }) {
+    const sortedLocations = (locations || []).slice();
     sortedLocations.sort((a, b) => a.name.localeCompare(b.name));
     const { load, dump } = separateLocations(sortedLocations);
+
+    state.dimLocations = dimLocations || [];
     state.locations = sortedLocations;
     state.loadLocations = load;
     state.dumpLocations = dump;
