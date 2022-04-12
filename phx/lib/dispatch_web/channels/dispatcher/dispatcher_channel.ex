@@ -627,6 +627,38 @@ defmodule DispatchWeb.DispatcherChannel do
     end
   end
 
+  def handle_in(
+        "mass logout",
+        %{"asset_ids" => asset_ids, "time_code_id" => time_code_id},
+        socket
+      ) do
+
+    base_allocation = %{
+      time_code_id: time_code_id,
+      start_time: NaiveDateTime.utc_now(),
+      end_time: nil,
+      deleted: false
+    }
+
+    Enum.each(asset_ids, fn asset_id ->
+      base_allocation
+      |> Map.put(:asset_id, asset_id)
+      |> TimeAllocationAgent.add()
+      |> case do
+        {:ok, _} ->
+          Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+          Broadcast.force_logout(%{asset_id: asset_id}, %{clear_operator: true})
+
+        _ ->
+          nil
+      end
+    end)
+
+    Broadcast.send_allocations_to_dispatcher()
+
+    {:reply, :ok, socket}
+  end
+
   def handle_in("force logout device", %{"device_id" => device_id} = payload, socket) do
     time_code_id = payload["time_code_id"]
 

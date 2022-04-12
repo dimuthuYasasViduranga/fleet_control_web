@@ -4,10 +4,12 @@
     <button class="hx-btn" @click="onOpenMassTimeAllocationAssignment()">
       Mass Assign Time Codes
     </button>
+    <button class="hx-btn" @click="onOpenMassLogout()">Mass Logout</button>
   </div>
 </template>
 
 <script>
+import MassLogoutModal from './MassLogoutModal.vue';
 import MassTimeAllocationAssignmentModal from './MassTimeAllocationAssignmentModal.vue';
 export default {
   name: 'GlobalActionsModal',
@@ -18,6 +20,9 @@ export default {
     },
     onOpenMassTimeAllocationAssignment() {
       this.$modal.create(MassTimeAllocationAssignmentModal);
+    },
+    onOpenMassLogout() {
+      this.$modal.create(MassLogoutModal);
     },
   },
 };
@@ -33,6 +38,7 @@ export default {
 }
 
 .global-actions-modal > button {
+  margin-top: 0.25rem;
   width: 100%;
 }
 </style>
