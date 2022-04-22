@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.14.3
+- 🐛 fixed device info download not parsing null datetimes
+- 🐛 fixed route map lines
+
 ## 0.14.2
 - ✨ added mass logout feature
 - ✨ ability to download device information (device assignment page)
