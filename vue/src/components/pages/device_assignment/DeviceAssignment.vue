@@ -119,6 +119,20 @@ function formatAssignment(d, assets, operators, assignments, presenceList, devic
   };
 }
 
+function maybeDateToString(string) {
+  if (!string) {
+    return;
+  }
+
+  const date = toUtcDate(string);
+
+  if (isNaN(Date.parse(date))) {
+    return;
+  }
+  
+  return date.toISOString();
+}
+
 export default {
   name: 'DeviceAssignment',
   components: {
@@ -248,8 +262,8 @@ export default {
           asset_id: asset?.id,
           asset_name: asset?.name,
           asset_type: asset?.type,
-          authorized_at: toUtcDate(d.details?.authorized_at).toISOString(),
-          client_updated_at: toUtcDate(d.details?.client_updated_at).toISOString(),
+          authorized_at: maybeDateToString(d.details?.authorized_at),
+          client_updated_at: maybeDateToString(d.details?.client_updated_at),
         };
       });
 
