@@ -22,7 +22,7 @@
             :formatter="formatDate"
           />
 
-          <table-column cell-class="gps-source-cel"  label="GPS Source" show="gpsSource">
+          <table-column cell-class="gps-source-cel" label="GPS Source" show="gpsSource">
             <template slot-scope="row">
               <Icon v-tooltip="row.gpsSource" :icon="getSourceIcon(row.gpsSource)" />
             </template>
@@ -134,8 +134,11 @@ export default {
 @import '../../../assets/hxInput.css';
 @import '../../../assets/textColors.css';
 
+.asset-status-page .gps-source-cel {
+  width: 2rem;
+}
 
 .asset-status-page .gps-source-cel .hx-icon {
-  width: auto
+  width: auto;
 }
 </style>
