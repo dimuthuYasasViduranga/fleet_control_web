@@ -439,7 +439,7 @@ export default {
       items.unshift({
         selected: this.shownRoutes['Base'],
         label: 'Base',
-        color: 'gray',
+        color: 'white',
       });
 
       return items;
