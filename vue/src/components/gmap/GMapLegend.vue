@@ -1,7 +1,7 @@
 <template>
   <div ref="container" style="display: none">
     <div class="gmap-legend-control" ref="legend" :class="positionClass" :g-position="position">
-      <div class="legend-element" v-for="(item, index) in value" :key="index">
+      <div class="legend-element" v-for="(item, index) in value" :key="index" :class="item.class">
         <div class="checkbox" @click="onSelect(item)">
           <input type="checkbox" :checked="item.selected" />
         </div>

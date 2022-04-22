@@ -185,7 +185,7 @@
             </template>
 
             <GMapCustomPolyline
-              v-for="route in shownHaulRoutes"
+              v-for="route in shownHaulRoutes.filter(r => r.path && r.path.length > 0)"
               :key="route.name"
               :path="route.path"
               :options="{
@@ -427,12 +427,18 @@ export default {
     },
     routingLegendItems() {
       const items = this.haulRoutes.map(r => {
+        let cls;
+        if (!r.path || r.path.length === 0) {
+          cls = 'no-path';
+        }
+
         return {
           ...r.info,
           assetIds: r.assetIds,
           selected: this.shownRoutes[r.name] || false,
           label: r.name,
           color: r.color,
+          class: cls,
         };
       });
 
@@ -749,6 +755,11 @@ export default {
 
 .mine-map .debug-control.show {
   background-color: grey;
+}
+
+.mine-map .legend-element.no-path {
+  color: #ff6565;
+  font-style: italic;
 }
 
 /* ------ dim all other assets when one is selected ------- */
