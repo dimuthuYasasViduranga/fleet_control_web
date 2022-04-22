@@ -197,6 +197,14 @@ export default {
 .assign-dig-unit .activity .row .drop-down {
   width: 100%;
   height: 2.5rem;
+  max-width: calc(100% - 1rem);
+  overflow: hidden;
+}
+
+
+.assign-dig-unit .row .v-select {
+  width: 100%;
+  height: 2.5rem;
 }
 
 .assign-dig-unit .hx-icon {

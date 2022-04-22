@@ -82,7 +82,7 @@ export default {
 </script>
 
 <style>
-.tc-drop-down .dd-option {
+.tc-drop-down.drop-down .dd-option {
   padding: 0;
 }
 

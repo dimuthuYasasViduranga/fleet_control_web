@@ -242,6 +242,13 @@ export default {
 
 .assign-haul-truck .dispatch .row .value .drop-down {
   width: 100%;
+  max-width: calc(100% - 1rem);
+  height: 2.5rem;
+  overflow: hidden;
+}
+
+.assign-haul-truck .row .v-select {
+  width: 100%;
   height: 2.5rem;
 }
 
