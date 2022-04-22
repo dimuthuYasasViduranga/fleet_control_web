@@ -2,6 +2,21 @@
 
 ## pending [unreleased]
 
+## 0.14.2
+- ✨ added mass logout feature
+- ✨ ability to download device information (device assignment page)
+- ✨ added alert for assignment to locations that have been removed
+- 🐛 fixed pre-start ticket details area not scaling correctly on first load
+- 💄 fixed styling of all dropdowns
+- 💄 fixed copy Pre-start from modal being too wide
+- 💄 fixed asset status gps source icon taking up to much room
+- 🔧 dnd layout settings default can be configured
+- 🔧 live queue can be disabled through config
+- 🚸 chat log separator by shift instead of day
+- 🚸 Mine map "clear all routes" now clears in stages
+  - first all non base routes
+  - then base route
+
 ## 0.14.1
 - 👽 broadcast stored tracks every minute
   - gives access to device tracks
