@@ -229,39 +229,50 @@ function createHaulRouteFromDigUnit(
 ) {
   const locationId = attributeFromList(digUnitActivities, 'assetId', digUnitId, 'locationId');
   const digUnitName = attributeFromList(assets, 'id', digUnitId, 'name');
+  const digUnitPos = attributeFromList(tracks, 'assetId', digUnitId, 'position');
+  const loadName = attributeFromList(locations, 'id', locationId, 'name');
+  const dumpName = attributeFromList(locations, 'id', dumpId, 'extendedName');
 
   let source;
   if (locationId) {
-    const loadName = attributeFromList(locations, 'id', locationId, 'name');
     source = { type: 'locationId', value: locationId, name: `${digUnitName} [${loadName}]` };
   } else {
-    const position = attributeFromList(tracks, 'assetId', digUnitId, 'position');
-    if (position) {
-      source = { type: 'position', value: position, name: digUnitName };
-    }
+    source = { type: 'position', value: digUnitPos, name: digUnitName };
   }
 
-  return createHaulRoute(
+  const route = createHaulRoute(
     { loadId: null, digUnitId, dumpId },
     source,
-    dumpId,
+    { type: 'locationId', value: dumpId, name: dumpName },
     assetIds,
     haulTruckTypeId,
     locations,
     activeRoute,
   );
+
+  if (route.path && digUnitPos) {
+    route.path.unshift(digUnitPos);
+  }
+
+  return route;
 }
 
-function createHaulRoute(info, loadSource, dumpId, assetIds, assetTypeId, locations, activeRoute) {
-  if (!loadSource || !dumpId) {
+function createHaulRoute(
+  info,
+  loadSource,
+  dumpSource,
+  assetIds,
+  assetTypeId,
+  locations,
+  activeRoute,
+) {
+  if (!loadSource || !dumpSource) {
     return;
   }
 
-  const dumpName = attributeFromList(locations, 'id', dumpId, 'extendedName');
-  const dumpSource = { type: 'locationId', value: dumpId };
   const route = createRoute(loadSource, dumpSource, locations, activeRoute, assetTypeId);
 
-  const name = `${loadSource.name} -> ${dumpName}`;
+  const name = `${loadSource.name} -> ${dumpSource.name}`;
 
   return {
     name,
