@@ -174,8 +174,12 @@ export default {
   font-size: 1.5rem;
 }
 
-.dnd-settings-modal-wrapper .dropdown-wrapper {
+.dnd-settings-modal-wrapper .drop-down {
   width: 100%;
+}
+
+.dnd-settings-modal-wrapper .drop-down .v-select {
+  height: 2.5rem;
 }
 
 .dnd-settings-modal-wrapper .typeable {
