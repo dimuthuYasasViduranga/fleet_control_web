@@ -128,7 +128,19 @@ spec:
                     prompt_exception_on_logout: true,
                     prompt_engine_hours_on_login: true,
                     prompt_engine_hours_on_logout: false,
-                    prompt_pre_starts_on_login: false
+                    prompt_pre_starts_on_login: false,
+                    use_live_queue: false
+                  ],
+                  location_assignment_layout: [
+                    orientation: "vertical",
+                    asset_order: "normal",
+                    vertical: %{
+                      order_by: "dig-unit",
+                      columns: 2
+                    },
+                    horizontal: %{
+                      order_by: "dig-unit"
+                    }
                   ],
                   route_white_list: %{
                     :default => [
