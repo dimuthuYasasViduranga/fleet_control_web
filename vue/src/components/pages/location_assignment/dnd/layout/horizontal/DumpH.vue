@@ -1,5 +1,11 @@
 <template>
-  <div class="dump-h" @mouseleave="hovering = false" @mouseenter="hovering = true">
+  <div
+    v-tooltip="invalid ? 'This dump location is no longer active. Please re-assign' : ''"
+    class="dump-h"
+    :class="{ invalid }"
+    @mouseleave="hovering = false"
+    @mouseenter="hovering = true"
+  >
     <div v-if="readonly" class="heading" readonly>
       {{ dumpName || 'No Dump' }}
     </div>
@@ -72,6 +78,7 @@ export default {
     dumpId: { type: [String, Number] },
     dumpName: { type: String, default: '' },
     haulTrucks: { type: Array, default: () => [] },
+    invalid: Boolean,
   },
   data: () => {
     return {
@@ -140,6 +147,10 @@ export default {
 <style scoped>
 .dump-h {
   min-width: 15rem;
+}
+
+.dump-h.invalid {
+  background-color: #ff65652c;
 }
 
 .smooth-dnd-draggable-wrapper {

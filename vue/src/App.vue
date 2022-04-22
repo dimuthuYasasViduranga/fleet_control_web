@@ -118,7 +118,14 @@ export default {
             dispatch('constants/setAssets', data.assets);
           },
         ],
-        ['set location data', data => dispatch('constants/setLocationData', data.locations)],
+        [
+          'set location data',
+          data =>
+            dispatch('constants/setLocationData', {
+              locations: data.locations,
+              dimLocations: data.dim_locations,
+            }),
+        ],
         [
           'set operator message types',
           data => {

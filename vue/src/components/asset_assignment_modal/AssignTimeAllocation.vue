@@ -86,7 +86,7 @@ export default {
   width: 100%;
 }
 
-.assign-time-allocation .row .dropdown-wrapper {
+.assign-time-allocation .row .time-allocation-drop-down .v-select {
   width: 100%;
   height: 2.5rem;
 }

@@ -116,6 +116,7 @@ export default {
   computed: {
     ...mapState('constants', {
       assets: state => state.assets,
+      dimLocations: state => state.dimLocations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
       allLocations: state => state.locations,
@@ -127,7 +128,7 @@ export default {
     loads() {
       const loads = filterLocations(
         this.loadLocations,
-        this.allLocations,
+        this.dimLocations,
         this.localDispatch.loadId,
         this.showAllLocations,
       );
@@ -136,7 +137,7 @@ export default {
     dumps() {
       const dumps = filterLocations(
         this.dumpLocations,
-        this.allLocations,
+        this.dimLocations,
         this.localDispatch.dumpId,
         this.showAllLocations,
       );
@@ -240,6 +241,13 @@ export default {
 }
 
 .assign-haul-truck .dispatch .row .value .drop-down {
+  width: 100%;
+  max-width: calc(100% - 1rem);
+  height: 2.5rem;
+  overflow: hidden;
+}
+
+.assign-haul-truck .row .v-select {
   width: 100%;
   height: 2.5rem;
 }

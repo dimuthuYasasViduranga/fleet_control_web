@@ -13,6 +13,10 @@
         <td class="key">Target Location</td>
         <td class="value">
           <DropDown
+            v-tooltip="
+              invalidLocation ? 'This load location is no longer active. Please re-assign' : ''
+            "
+            :class="{ 'inactive-location': !!invalidLocation }"
             v-model="localActivity.locationId"
             :options="locationOptions"
             placeholder="None"
@@ -91,12 +95,32 @@ export default {
   },
   computed: {
     ...mapState('constants', {
+      dimLocations: state => state.dimLocations,
       locations: state => state.locations,
       loadStyles: state => state.loadStyles,
       materialTypes: state => state.materialTypes,
     }),
     locationOptions() {
-      return [{ id: null, name: 'None' }].concat(this.locations);
+      const locations = this.locations.map(l => ({ id: l.id, name: l.name }));
+
+      if (this.invalidLocation) {
+        locations.push({
+          id: this.invalidLocation.id,
+          name: this.invalidLocation.name,
+          invalid: true,
+        });
+      }
+
+      return [{ id: null, name: 'None' }].concat(locations);
+    },
+    invalidLocation() {
+      const locationId = this.localActivity?.locationId;
+
+      if (!location || this.locations.find(l => l.id === locationId)) {
+        return;
+      }
+
+      return this.dimLocations.find(l => l.id === locationId);
     },
     materialTypeOptions() {
       return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
@@ -173,11 +197,23 @@ export default {
 .assign-dig-unit .activity .row .drop-down {
   width: 100%;
   height: 2.5rem;
+  max-width: calc(100% - 1rem);
+  overflow: hidden;
+}
+
+
+.assign-dig-unit .row .v-select {
+  width: 100%;
+  height: 2.5rem;
 }
 
 .assign-dig-unit .hx-icon {
   height: 2.5rem;
   width: 2.5rem;
   cursor: pointer;
+}
+
+.assign-dig-unit .drop-down.inactive-location > div {
+  border: 1px solid #ff6565;
 }
 </style>

@@ -8,7 +8,9 @@
     </div>
 
     <div
+      v-tooltip="loadInvalid ? 'This load location is no longer active. Please re-assign' : ''"
       class="target-load"
+      :class="{ invalid: loadInvalid }"
       :style="minWidthStyle"
       @mouseenter="hovering = true"
       @mouseleave="hovering = false"
@@ -67,6 +69,7 @@
         :dumpId="dump.id"
         :dumpName="dump.extendedName"
         :haulTrucks="assignedHaulTrucks"
+        :invalid="dump.invalid"
         :columns="cols"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
@@ -113,6 +116,7 @@ export default {
     haulTrucks: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     columns: { type: Number, default: 2 },
+    dimLocations: { type: Array, default: () => [] },
   },
   data: () => {
     return {
@@ -131,15 +135,54 @@ export default {
   },
   computed: {
     dumps() {
-      return this.locations
-        .filter(l => this.dumpIds.includes(l.id))
+      return this.dumpIds
+        .map(id => {
+          if (!id) {
+            return {
+              id,
+              name: 'No Dump',
+              extendedName: 'No Dump',
+            };
+          }
+
+          const dump = attributeFromList(this.locations, 'id', id);
+          if (dump) {
+            return dump;
+          }
+
+          const missingDump = attributeFromList(this.dimLocations, 'id', id) || {};
+          return {
+            id: missingDump.id,
+            name: missingDump.name,
+            extendedName: missingDump.name,
+            invalid: true,
+          };
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
     },
     digUnit() {
       return this.digUnits.find(a => a.id === this.digUnitId);
     },
     loadLocation() {
-      return this.locations.find(l => l.id === this.loadId);
+      if (!this.loadId) {
+        return;
+      }
+
+      const location = this.locations.find(l => l.id === this.loadId);
+      if (location) {
+        return location;
+      }
+
+      const missingLoc = this.dimLocations.find(l => l.id === this.loadId);
+
+      return {
+        id: missingLoc.id,
+        name: missingLoc.name,
+        invalid: true,
+      };
+    },
+    loadInvalid() {
+      return this.loadLocation?.invalid;
     },
     heading() {
       const digUnit = this.digUnit;

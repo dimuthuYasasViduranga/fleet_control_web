@@ -51,3 +51,23 @@ export function downloadFromURL(url, mimeType, nameWithExtension) {
     })
     .catch(console.error);
 }
+
+export function downloadCSV(name, keys, rows) {
+  let csvContent = 'data:text/csv/csv;charset=utf-8,';
+  csvContent += keys.join(',') + '\r\n';
+
+  rows.forEach(row => {
+    const encodedRow = keys.map(key => row[key]).join(',');
+    csvContent += encodedRow + '\r\n';
+  });
+
+  const encodedURI = encodeURI(csvContent);
+
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedURI);
+  link.setAttribute('download', name);
+
+  // required for firefox
+  document.body.appendChild(link);
+  link.click();
+}

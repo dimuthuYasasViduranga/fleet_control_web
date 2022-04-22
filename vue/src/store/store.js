@@ -184,17 +184,6 @@ const state = {
     timeusage: Array(),
   },
   currentPreStartSubmissions: Array(),
-  dndSettings: {
-    orientation: 'horizontal',
-    assetOrdering: 'normal',
-    vertical: {
-      orderBy: 'location',
-      columns: 2,
-    },
-    horizontal: {
-      orderBy: 'location',
-    },
-  },
 };
 
 export function parsePreStartSubmission(submission) {
@@ -404,11 +393,12 @@ const getters = {
     const { assets, operators, radioNumbers } = state.constants;
     const { devices, currentDeviceAssignments } = state.deviceStore;
     const { presence } = state.connection;
-    const { activeTimeAllocations, liveQueue } = state;
+    const { activeTimeAllocations } = state;
     const fullTimeCodes = getters['constants/fullTimeCodes'];
 
-    const liveQueueMap = {};
+    const liveQueue = state.settings?.use_live_queue ? state.liveQueue : [];
 
+    const liveQueueMap = {};
     liveQueue.forEach(q => {
       liveQueueMap[q.digUnitId] = q;
 
@@ -431,7 +421,7 @@ const getters = {
       ),
     );
   },
-  events: state => timezone => {
+  events: state => () => {
     const { operatorMessages, dispatcherMessages, activeTimeAllocations, historicTimeAllocations } =
       state;
 
@@ -444,6 +434,8 @@ const getters = {
       radioNumbers,
       timeCodes,
       timeCodeGroups,
+      shifts,
+      shiftTypes,
     } = state.constants;
 
     const { devices, historicDeviceAssignments } = state.deviceStore;
@@ -484,7 +476,8 @@ const getters = {
       historicDeviceAssignments,
       haulTruckDispatches,
       timeAllocations,
-      timezone,
+      shifts,
+      shiftTypes,
     );
   },
   operatorMessages: ({ operatorMessages, constants }) => {
@@ -617,9 +610,6 @@ const mutations = {
   setCurrentPreStartSubmissions(state, submissions = []) {
     notifyPreStartSubmissionChanges(state, submissions);
     state.currentPreStartSubmissions = submissions;
-  },
-  setDndSettings(state, settings) {
-    state.dndSettings = settings;
   },
 };
 

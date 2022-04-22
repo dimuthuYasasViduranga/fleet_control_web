@@ -67,8 +67,10 @@
       <table-column label="Load Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
+            v-tooltip="row.hasInactiveLoad ? 'Load Location is no longer active' : ''"
+            :class="{ 'inactive-location': row.hasInactiveLoad }"
             :value="row.loadId"
-            :options="loadLocationOptions"
+            :options="row.loadOptions"
             label="name"
             :disabled="readonly"
             @change="setLoadId(row, $event)"
@@ -79,8 +81,10 @@
       <table-column label="Dump Location" cell-class="table-cel">
         <template slot-scope="row">
           <DropDown
+            v-tooltip="row.hasInactiveDump ? 'Dump Location is no longer active' : ''"
+            :class="{ 'inactive-location': row.hasInactiveDump }"
             v-model="row.dumpId"
-            :options="dumpLocationOptions"
+            :options="row.dumpOptions"
             label="name"
             :disabled="readonly"
             @change="setHaulTruckDispatch(row)"
@@ -124,6 +128,53 @@ function noneLocation() {
   };
 }
 
+function toHaulTruck(asset, dispatches, dimLocations, loadOpts, dumpOpts) {
+  const dispatch = attributeFromList(dispatches, 'assetId', asset.id) || {};
+
+  const [hasInactiveLoad, loadOptions] = getLocationOptions(
+    loadOpts,
+    dispatch.loadId,
+    dimLocations,
+  );
+  const [hasInactiveDump, dumpOptions] = getLocationOptions(
+    dumpOpts,
+    dispatch.dumpId,
+    dimLocations,
+  );
+
+  return {
+    assetId: asset.id,
+    assetName: asset.name,
+    operator: asset.operator,
+    operatorName: asset.operator.fullname || '',
+    digUnitId: dispatch.digUnitId,
+    loadId: dispatch.loadId,
+    dumpId: dispatch.dumpId,
+    nextId: dispatch.nextId,
+    acknowledged: dispatch.acknowledged,
+    activeTimeAllocation: asset.activeTimeAllocation || {},
+    present: asset.present,
+    status: asset.status,
+    hasDevice: asset.hasDevice,
+    loadOptions,
+    dumpOptions,
+    hasInactiveLoad,
+    hasInactiveDump,
+  };
+}
+
+function getLocationOptions(options, locationId, dimLocations) {
+  if (!locationId || options.find(o => o.id === locationId)) {
+    return [false, options];
+  }
+
+  const name = attributeFromList(dimLocations, 'id', locationId, 'name');
+
+  const opts = options.slice();
+  opts.push({ id: locationId, name });
+  return [true, opts];
+}
+
 export default {
   name: 'HaulTruckTable',
   components: {
@@ -147,6 +198,7 @@ export default {
   computed: {
     ...mapState('constants', {
       assets: state => state.assets,
+      dimLocations: state => state.dimLocations,
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
@@ -169,24 +221,15 @@ export default {
       const dispatches = this.haulTruckDispatches;
       return this.$store.getters.fullAssets
         .filter(fa => fa.type === 'Haul Truck' && fa.hasDevice)
-        .map(asset => {
-          const dispatch = attributeFromList(dispatches, 'assetId', asset.id) || {};
-          return {
-            assetId: asset.id,
-            assetName: asset.name,
-            operator: asset.operator,
-            operatorName: asset.operator.fullname || '',
-            digUnitId: dispatch.digUnitId,
-            loadId: dispatch.loadId,
-            dumpId: dispatch.dumpId,
-            nextId: dispatch.nextId,
-            acknowledged: dispatch.acknowledged,
-            activeTimeAllocation: asset.activeTimeAllocation || {},
-            present: asset.present,
-            status: asset.status,
-            hasDevice: asset.hasDevice,
-          };
-        });
+        .map(asset =>
+          toHaulTruck(
+            asset,
+            dispatches,
+            this.dimLocations,
+            this.loadLocationOptions,
+            this.dumpLocationOptions,
+          ),
+        );
     },
     digUnitsWithLocations() {
       const locations = this.locations;
@@ -208,10 +251,12 @@ export default {
       return [{ id: null, label: 'None' }].concat(options);
     },
     loadLocationOptions() {
-      return [noneLocation()].concat(this.loadLocations);
+      const locations = this.loadLocations.map(l => ({ id: l.id, name: l.name }));
+      return [noneLocation()].concat(locations);
     },
     dumpLocationOptions() {
-      return [noneLocation()].concat(this.dumpLocations);
+      const locations = this.dumpLocations.map(l => ({ id: l.id, name: l.name }));
+      return [noneLocation()].concat(locations);
     },
     allowedTimeCodeIds() {
       return this.$store.getters['constants/fullTimeCodes']
@@ -324,5 +369,9 @@ export default {
 
 .haul-truck-table .asset-icon {
   width: 2.5rem;
+}
+
+.haul-truck-table .drop-down.inactive-location {
+  border: 2px solid #ff6565;
 }
 </style>

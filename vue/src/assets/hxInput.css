@@ -123,3 +123,11 @@ input[type='number']::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+.drop-down .dd-option {
+  padding: 0.1rem 0.5rem;
+}
+
+.drop-down .vs_dropdown-toggle {
+  height: auto;
+}

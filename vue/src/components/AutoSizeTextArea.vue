@@ -1,7 +1,7 @@
 <template>
   <div ref="replica" class="auto-size-text-area">
     <textarea :value="value" @input="onInput" :disabled="disabled" />
-    <div v-show="!value && placeholder" class="placeholder">{{placeholder}}</div>
+    <div v-show="!value && placeholder" class="placeholder">{{ placeholder }}</div>
   </div>
 </template>
 
@@ -11,13 +11,22 @@ export default {
   props: {
     value: { type: String },
     placeholder: { type: String },
-    disabled: {type: Boolean, default: false}
+    disabled: { type: Boolean, default: false },
+  },
+  watch: {
+    value(value) {
+      this.update(value || '');
+    },
   },
   methods: {
-    onInput(event) {
-      const text = event.target.value;
+    update(text) {
       const replica = this.$refs.replica;
       replica.dataset.replicatedValue = text;
+    },
+    onInput(event) {
+      const text = event.target.value;
+      this.update(text);
+
       this.$emit('input', text);
     },
   },

@@ -49,13 +49,13 @@ function filterOnEventToggle(events, { messages, haulDispatches, logins, timeAll
   filterOut = filterOut.flat();
 
   const filteredEvents = events.filter(e => !filterOut.includes(e.eventType));
-  return removeAdjacentDateSeparators(filteredEvents);
+  return removeAdjacentShiftSeparators(filteredEvents);
 }
 
-function removeAdjacentDateSeparators(events) {
+function removeAdjacentShiftSeparators(events) {
   return chunkEvery(events, 2, 1, [null])
     .map(([prev, cur]) => {
-      if (cur && prev.eventType === 'date-separator' && cur.eventType === 'date-separator') {
+      if (cur && prev.eventType === 'shift-separator' && cur.eventType === 'shift-separator') {
         return null;
       }
 
@@ -135,8 +135,7 @@ export default {
         });
     },
     events() {
-      const tz = this.$timely.current.timezone;
-      return this.$store.getters.events(tz);
+      return this.$store.getters.events();
     },
     filteredEvents() {
       let events = this.events;

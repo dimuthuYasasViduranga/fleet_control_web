@@ -13,6 +13,7 @@
         :assetOrdering="dndSettings.assetOrdering"
         :layoutSettings="dndSettings"
         :fullAssets="fullAssets"
+        :dimLocations="dimLocations"
         :locations="locations"
         :loadLocations="loadLocations"
         :dumpLocations="dumpLocations"
@@ -53,9 +54,11 @@ export default {
   computed: {
     ...mapState('constants', {
       permissions: state => state.permissions,
+      dimLocations: state => state.dimLocations,
       locations: state => state.locations,
       loadLocations: state => state.loadLocations,
       dumpLocations: state => state.dumpLocations,
+      dndSettings: state => state.dndSettings,
     }),
     ...mapState({
       haulTruckDispatches: state => state.haulTruck.currentDispatches,
@@ -64,15 +67,12 @@ export default {
     fullAssets() {
       return this.$store.getters.fullAssets;
     },
-    dndSettings() {
-      return this.$store.state.dndSettings;
-    },
   },
   methods: {
     onOpenSettings() {
       this.$modal.create(DndSettingsModal, { settings: this.dndSettings }).onClose(resp => {
         if (resp) {
-          this.$store.commit('setDndSettings', resp);
+          this.$store.commit('constants/setDndSettings', resp);
         }
       });
     },

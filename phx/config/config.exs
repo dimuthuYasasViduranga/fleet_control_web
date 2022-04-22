@@ -37,7 +37,8 @@ config :dispatch_web,
     prompt_exception_on_logout: true,
     prompt_engine_hours_on_login: false,
     prompt_engine_hours_on_logout: false,
-    prompt_pre_starts_on_login: false
+    prompt_pre_starts_on_login: false,
+    use_live_queue: false,
   ],
   bypass_auth: false,
   location_update_interval: 3600,
@@ -45,6 +46,17 @@ config :dispatch_web,
     "Excavator" => "Dig Unit",
     "Loader" => "Dig Unit"
   },
+  location_assignment_layout: [
+    orientation: "horizontal",
+    asset_order: "normal",
+    vertical: %{
+      order_by: "location",
+      columns: 2
+    },
+    horizontal: %{
+      order_by: "location"
+    }
+  ],
   route_white_list: %{
     default: [
       "/asset_assignment",

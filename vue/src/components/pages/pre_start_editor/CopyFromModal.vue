@@ -76,7 +76,7 @@ function toOption(preStartForm, assetTypes) {
 
 export default {
   name: 'CopyFromModal',
-  wrapperClass: 'copy-from-wrapper',
+  wrapperClass: 'copy-from-modal-wrapper',
   components: {
     Icon,
     DropDown,
@@ -122,7 +122,7 @@ export default {
 
 <style>
 .copy-from-modal-wrapper .modal-container {
-  max-width: 35rem;
+  max-width: 60rem;
 }
 
 .copy-from-modal .title {

@@ -2,7 +2,15 @@
   <div class="device-logout-modal">
     <h1 class="title">Select Exception</h1>
     <div>
-      <TimeAllocationDropDown v-model="localTimeCodeId" :allowedTimeCodeIds="allowedTimeCodeIds" />
+      <TimeAllocationDropDown
+        v-model="localTimeCodeId"
+        :allowedTimeCodeIds="allowedTimeCodeIds"
+        :showAll="showAllTimeCodes"
+      />
+    </div>
+    <div class="extended-list">
+      <input type="checkbox" v-model="showAllTimeCodes" />
+      Show all time codes
     </div>
     <div class="actions">
       <button class="hx-btn ok" :disabled="!localTimeCodeId" @click="onOk">Logout</button>
@@ -26,6 +34,7 @@ export default {
   },
   data: () => {
     return {
+      showAllTimeCodes: false,
       localTimeCodeId: null,
     };
   },
@@ -79,5 +88,13 @@ export default {
   width: 100%;
   height: 2.5rem;
   font-size: 1.25rem;
+}
+
+.device-logout-modal .extended-list {
+  padding-bottom: 1rem;
+}
+
+.device-logout-modal .extended-list input[type='checkbox'] {
+  cursor: pointer;
 }
 </style>

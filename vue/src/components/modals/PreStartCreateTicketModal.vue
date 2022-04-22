@@ -56,6 +56,7 @@
             label="name"
             :options="statusTypes"
             :disabled="readonly"
+            placeholder="--"
           />
         </td>
       </tr>
@@ -167,11 +168,11 @@ export default {
 
 .pre-start-create-ticket-modal tr input,
 .pre-start-create-ticket-modal tr .auto-size-text-area,
-.pre-start-create-ticket-modal tr .dropdown-wrapper {
+.pre-start-create-ticket-modal tr .drop-down {
   width: 100%;
 }
 
-.pre-start-create-ticket-modal .dropdown-wrapper {
+.pre-start-create-ticket-modal .drop-down .v-select {
   height: 2.5rem;
   text-transform: capitalize;
 }

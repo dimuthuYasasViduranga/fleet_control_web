@@ -5,6 +5,7 @@ const state = {
   prompt_hngine_hours_on_login: false,
   prompt_pre_start_on_login: false,
   prompt_engine_hours_on_logout: false,
+  use_live_queue: false,
 };
 
 const getters = {};

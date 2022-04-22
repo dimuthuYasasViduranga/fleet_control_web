@@ -130,6 +130,17 @@ spec:
                     prompt_engine_hours_on_logout: false,
                     prompt_pre_starts_on_login: false
                   ],
+                  location_assignment_layout: [
+                    orientation: "vertical",
+                    asset_order: "normal",
+                    vertical: %{
+                      order_by: "dig-unit",
+                      columns: 2
+                    },
+                    horizontal: %{
+                      order_by: "dig-unit"
+                    }
+                  ],
                   route_white_list: %{
                     :default => [
                       "/asset_assignment",

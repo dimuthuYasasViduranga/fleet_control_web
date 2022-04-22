@@ -57,6 +57,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 import Icon from 'hx-layout/Icon.vue';
 import NIcon from '@/components/NIcon.vue';
 import Bubble from '@/components/Bubble.vue';
@@ -105,6 +107,14 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      operatorMessages: state => state.operatorMessages,
+      tracks: state => state.trackStore.tracks,
+    }),
+    ...mapState('constants', {
+      dimLocations: state => state.dimLocations,
+      icons: state => state.icons,
+    }),
     fullTimeCodes() {
       return this.$store.getters['constants/fullTimeCodes'];
     },
@@ -119,24 +129,18 @@ export default {
       return getAssetTileSecondaryIcon(this.asset);
     },
     icon() {
-      const icons = this.$store.state.constants.icons;
-      return icons[this.asset.type] || icons.Unknown;
-    },
-    locations() {
-      return this.$store.state.constants.locations;
+      return this.icons[this.asset.type] || this.icons.Unknown;
     },
     nUnreadMsgs() {
-      return this.$store.state.operatorMessages.filter(
-        m => !m.acknowledged && m.assetId === this.asset.id,
-      ).length;
+      return this.operatorMessages.filter(m => !m.acknowledged && m.assetId === this.asset.id)
+        .length;
     },
     nUnreadDispatcherMsgs() {
       return this.$store.getters.unreadDispatcherMessages.filter(m => m.assetId === this.asset.id)
         .length;
     },
     track() {
-      const tracks = this.$store.state.trackStore.tracks;
-      return attributeFromList(tracks, 'assetId', this.asset.id);
+      return attributeFromList(this.tracks, 'assetId', this.asset.id);
     },
     assetBarClass() {
       const asset = this.asset;
@@ -169,12 +173,11 @@ export default {
         }
       }
 
-
       return classes;
     },
     locationName() {
-      const activity = this.asset.activity || {};
-      return attributeFromList(this.locations, 'id', activity.locationId, 'name');
+      const locationId = this.asset?.activity?.locationId;
+      return attributeFromList(this.dimLocations, 'id', locationId, 'name');
     },
   },
   methods: {

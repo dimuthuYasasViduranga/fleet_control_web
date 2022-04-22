@@ -46,7 +46,7 @@ const SECONDS_IN_DAY = 3600 * 24;
 
 function filterEventsByText(events, text) {
   return events.filter(e => {
-    if (e.eventType === 'date-separator') {
+    if (e.eventType === 'shift-separator') {
       return true;
     }
     if (!e.searchable) {
