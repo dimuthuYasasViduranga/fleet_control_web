@@ -300,6 +300,7 @@ export default {
     onUpdateTicketStatus(control, status) {
       const opts = {
         title: 'Update Ticket Status',
+        submitName: 'Update',
         controlText: control.label,
         controlComment: control.comment,
         timestamp: status.timestamp,
