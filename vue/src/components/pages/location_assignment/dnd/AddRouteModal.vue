@@ -44,7 +44,12 @@
       <tr v-if="!hideDump">
         <td class="key">Dump</td>
         <td class="value">
-          <DropDown v-model="localDumpId" :options="availableDumps" label="extendedName" />
+          <DropDown
+            v-model="localDumpId"
+            :options="availableDumps"
+            label="extendedName"
+            placeholder="No Dump"
+          />
           <Icon v-tooltip="'Clear'" :icon="crossIcon" @click="localDumpId = null" />
         </td>
       </tr>
@@ -187,6 +192,7 @@ export default {
 /* ----- dropdowns ------ */
 .add-route-modal table {
   width: 100%;
+  table-layout: fixed;
 }
 
 .add-route-modal tr {
@@ -201,7 +207,12 @@ export default {
 .add-route-modal tr .key .drop-down {
   width: 100%;
   height: 2.5rem;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.add-route-modal tr .key .drop-down.v-select {
+  width: 100%;
+  height: 2.5rem;
 }
 
 .add-route-modal tr .value {
@@ -212,6 +223,13 @@ export default {
 }
 
 .add-route-modal tr .value .drop-down {
+  width: 100%;
+  max-width: calc(100% - 2rem);
+  height: 2.5rem;
+  overflow: hidden;
+}
+
+.add-route-modal tr .value .drop-down .v-select {
   width: 100%;
   height: 2.5rem;
 }
