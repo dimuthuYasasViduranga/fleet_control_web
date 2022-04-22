@@ -245,9 +245,9 @@ export default {
           ...d.details,
           id: d.id,
           uuid: d.uuid,
-          asset_id: asset.id,
-          asset_name: asset.name,
-          asset_type: asset.type,
+          asset_id: asset?.id,
+          asset_name: asset?.name,
+          asset_type: asset?.type,
           authorized_at: toUtcDate(d.details?.authorized_at).toISOString(),
           client_updated_at: toUtcDate(d.details?.client_updated_at).toISOString(),
         };
