@@ -622,7 +622,15 @@ export default {
       this.shownRoutes = shown;
     },
     onClearAllRoutes() {
-      this.shownRoutes = {};
+      const active = Object.entries(this.shownRoutes)
+        .filter(([_key, value]) => !!value)
+        .map(e => e[0]);
+
+      if (active.includes('Base') && active.length > 1) {
+        this.shownRoutes = { Base: true };
+      } else {
+        this.shownRoutes = {};
+      }
     },
   },
 };
