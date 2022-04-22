@@ -134,6 +134,14 @@ export default {
     dumps() {
       return this.dumpIds
         .map(id => {
+          if (!id) {
+            return {
+              id,
+              name: 'No Dump',
+              extendedName: 'No Dump',
+            };
+          }
+
           const dump = attributeFromList(this.locations, 'id', id);
           if (dump) {
             return dump;
