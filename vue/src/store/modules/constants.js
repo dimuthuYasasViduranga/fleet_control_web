@@ -417,7 +417,7 @@ function parseDndSettings(raw) {
       orderBy: raw.horizontal.order_by || 'location',
     },
     vertical: {
-      orderBy: raw.vertical.orderBy || 'location',
+      orderBy: raw.vertical.order_by || 'location',
       columns: raw.vertical.columns || 2,
     },
   };

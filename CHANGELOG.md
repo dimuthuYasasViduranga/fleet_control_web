@@ -2,6 +2,9 @@
 
 ## pending [unreleased]
 
+## 0.14.4
+- 🐛 fixed dnd vertical order by not accepting default
+
 ## 0.14.3
 - 🐛 fixed device info download not parsing null datetimes
 - 🐛 fixed route map lines
