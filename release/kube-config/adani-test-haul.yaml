@@ -128,7 +128,8 @@ spec:
                     prompt_exception_on_logout: true,
                     prompt_engine_hours_on_login: true,
                     prompt_engine_hours_on_logout: false,
-                    prompt_pre_starts_on_login: false
+                    prompt_pre_starts_on_login: false,
+                    use_live_queue: true
                   ],
                   location_assignment_layout: [
                     orientation: "vertical",
