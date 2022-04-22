@@ -393,11 +393,12 @@ const getters = {
     const { assets, operators, radioNumbers } = state.constants;
     const { devices, currentDeviceAssignments } = state.deviceStore;
     const { presence } = state.connection;
-    const { activeTimeAllocations, liveQueue } = state;
+    const { activeTimeAllocations } = state;
     const fullTimeCodes = getters['constants/fullTimeCodes'];
 
-    const liveQueueMap = {};
+    const liveQueue = state.settings?.use_live_queue ? state.liveQueue : [];
 
+    const liveQueueMap = {};
     liveQueue.forEach(q => {
       liveQueueMap[q.digUnitId] = q;
 
