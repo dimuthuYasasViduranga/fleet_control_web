@@ -2,8 +2,8 @@ const state = {
   use_pre_starts: false,
   use_device_gps: false,
   prompt_exception_on_logout: false,
-  prompt_hngine_hours_on_login: false,
-  prompt_pre_start_on_login: false,
+  prompt_engine_hours_on_login: false,
+  prompt_pre_starts_on_login: false,
   prompt_engine_hours_on_logout: false,
   use_live_queue: false,
 };
