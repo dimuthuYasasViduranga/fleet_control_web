@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleet-control-ui
+  namespace: wdl-prod
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 4001
+  selector:
+    app: fleet-control-ui
+    subdomain: fleet-control-ui
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fleet-control-ui.deployment
+  namespace: wdl-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fleet-control-ui
+  template:
+    metadata:
+      labels:
+        app: fleet-control-ui
+        subdomain: fleet-control-ui
+    spec:
+      hostname: fleet-control-ui
+      subdomain: fleet-control-ui
+      containers:
+        - name: fleet-control-ui
+          image: hxreg.azurecr.io/fleet-control-ui
+          imagePullPolicy: "Always"
+          env:
+            - name: APPSIGNAL_APP_NAME
+              value: fleet_control_ui_kube-wdl-prod
+            - name: APPSIGNAL_APP_ENV
+              value: prod
+            - name: APPSIGNAL_API
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: APPSIGNAL_PUSH_API_KEY
+            - name: SLACK_LOGGER_WEBHOOK_URL 
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: SLACK_LOGGER_WEBHOOK_URL 
+            - name: AZURE_ACTIVE_DIRECTORY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: AZURE_ACTIVE_DIRECTORY
+            - name: MAP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: MAP_KEY
+            - name: HPSSQL_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: HPSSQL_CONNECTION
+            - name: HPSSQL_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: HPSSQL_ENCRYPTION_KEY
+            - name: GPS_GATE_REST
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: GPS_GATE_REST
+            - name: DISPATCH_JOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: DISPATCH_JOKEN_SECRET
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: SLACK_WEBHOOK
+            - name: RELEASE_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: RELEASE_COOKIE
+            - name: RELEASE_DISTRIBUTION
+              value: name
+            - name: RELEASE_NODE
+              value: fleet-control-ui@fleet-control-ui.fleet-control-ui
+            - name: DISPATCH
+              value: |
+                [
+                  quick_messages: [
+                    "Please enter engine hours when safe",
+                    "Tip please",
+                    "Smoko after you tip thanks",
+                    "Lunch after you tip thanks",
+                    "Parkup after tip thanks"
+                  ],
+                  track_method: :gps_gate,
+                  permissions: [
+                    authorized: :any,
+                    can_dispatch: :any,
+                    can_edit_devices: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],
+                    can_edit_operators: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],
+                    can_edit_time_allocations: ["506ddd9e-efb4-4814-a6cc-21e4ef05e26e"],
+                    can_lock_time_allocations: ["506ddd9e-efb4-4814-a6cc-21e4ef05e26e"],
+                    can_edit_time_codes: ["8a4529b3-a27a-4c4c-b9df-0edc52435b65"],
+                    can_edit_messages: ["13b70a64-efcb-4d44-bd67-d6f06c7a7483"],
+                    can_refresh_agents: ["9ea83df3-9bd8-4caa-967f-0ac1e1701fb7"],
+                    can_edit_routing: ["0e91d7c5-51d0-432c-8e3d-ad92a77e9224"],
+                    can_edit_pre_starts: ["a242a8fa-0fc8-4621-859a-a6f9fe0ed5be"],
+                    can_edit_pre_start_tickets: :any,
+                    can_edit_asset_roster: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"]
+                  ],
+                  settings: [
+                    use_device_gps: true,
+                    use_pre_starts: true,
+                    prompt_exception_on_logout: true,
+                    prompt_engine_hours_on_login: true,
+                    prompt_engine_hours_on_logout: false,
+                    prompt_pre_starts_on_login: true,
+                    use_live_queue: false
+                  ],
+                  location_assignment_layout: [
+                    orientation: "horizontal",
+                    asset_order: "normal",
+                    vertical: %{
+                      order_by: "dig-unit",
+                      columns: 2
+                    },
+                    horizontal: %{
+                      order_by: "dig-unit"
+                    }
+                  ],
+                  route_white_list: %{
+                    :default => [
+                      "/asset_assignment",
+                      "/location_assignment",
+                      "/mine_map",
+                      "/operators",
+                      "/asset_roster",
+                      "/device_assignment",
+                      "/asset_status",
+                      "/time_allocation",
+                      "/operator_time_allocation",
+                      "/time_allocation_report",
+                      "/time_code_editor",
+                      "/message_editor",
+                      "/engine_hours",
+                      "/route_map",
+                      "/pre_start_editor",
+                      "/pre_start_submissions",
+                      "/asset_overview"
+                    ],
+                  },
+                  map_center: %{
+                    latitude: -32.969483,
+                    longitude: 116.079195,
+                    zoom: 15
+                  },
+                  map_tile_endpoint: "https://hxtest.blob.core.windows.net/alcoa-wdl-map-tiles"
+                ]
+            - name: URL
+              value: https://alcoa-wdl-prod.haultrax.digital
