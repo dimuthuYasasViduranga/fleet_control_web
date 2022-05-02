@@ -465,6 +465,7 @@ export default {
 
 .pre-start-submission-modal .control .comment {
   margin-left: 2rem;
+  white-space: pre;
 }
 
 .pre-start-submission-modal .control .raise-ticket-icon,
