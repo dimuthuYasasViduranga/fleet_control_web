@@ -2,6 +2,10 @@
 
 ## pending [unreleased]
 
+## 0.14.5
+- 📝 fixed 'settings' default names
+- 💄 pre-start comments now respect new line character
+
 ## 0.14.4
 - 🐛 fixed dnd vertical order by not accepting default
 
