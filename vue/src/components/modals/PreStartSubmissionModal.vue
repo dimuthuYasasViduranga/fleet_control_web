@@ -408,6 +408,10 @@ export default {
   opacity: 0.75;
 }
 
+.pre-start-submission-modal .submission-comment .comment {
+  white-space: pre;
+}
+
 /* section */
 .pre-start-submission-modal .section {
   margin-top: 1.5rem;
@@ -465,7 +469,6 @@ export default {
 
 .pre-start-submission-modal .control .comment {
   margin-left: 2rem;
-  white-space: pre;
 }
 
 .pre-start-submission-modal .control .raise-ticket-icon,
