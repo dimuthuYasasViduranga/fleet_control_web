@@ -170,4 +170,4 @@ spec:
                   map_tile_endpoint: "https://hxtest.blob.core.windows.net/alcoa-wdl-map-tiles"
                 ]
             - name: URL
-              value: https://alcoa-wdl-prod.haultrax.digital
+              value: https://alcoa-wdl.haultrax.digital
