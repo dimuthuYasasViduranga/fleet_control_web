@@ -24,7 +24,7 @@ defmodule DispatchWeb.PageController do
 
     {conn, token} = get_token(conn)
 
-    whitelist = get_whitelist(user[:user_id])
+    whitelist = Authorization.Whitelist.get(user[:user_id])
 
     data = %{
       data: Dispatch.StaticData.fetch(),
@@ -37,17 +37,6 @@ defmodule DispatchWeb.PageController do
     conn
     |> assign(:user_token, token)
     |> json(data)
-  end
-
-  defp get_whitelist(user_id) do
-    whitelist = Authorization.Whitelist.get(user_id)
-
-    # TODO this is very counter intuitive and too much config
-    if Settings.get(:use_pre_starts) == true do
-      whitelist
-    else
-      Enum.reject(whitelist, &(&1 == "/pre_start_editor" || &1 == "/pre_start_submissions"))
-    end
   end
 
   defp get_token(conn) do

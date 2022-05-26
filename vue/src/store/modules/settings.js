@@ -1,5 +1,4 @@
 const state = {
-  use_pre_starts: false,
   use_device_gps: false,
   prompt_exception_on_logout: false,
   prompt_engine_hours_on_login: false,
