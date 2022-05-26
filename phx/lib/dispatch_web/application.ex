@@ -46,7 +46,6 @@ defmodule DispatchWeb.Application do
 
       # authorization server
       Dispatch.DeviceAuthServer,
-
       Dispatch.DeviceConnectionAgent
     ]
   end
@@ -73,6 +72,8 @@ defmodule DispatchWeb.Application do
     return = Supervisor.start_link(children, opts)
 
     :ok = DispatchWeb.Timers.start()
+
+    Node.start(:"fleet-control-ui", :shortnames)
 
     return
   end

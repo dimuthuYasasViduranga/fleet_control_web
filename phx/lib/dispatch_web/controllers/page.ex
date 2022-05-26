@@ -42,6 +42,7 @@ defmodule DispatchWeb.PageController do
   defp get_whitelist(user_id) do
     whitelist = Authorization.Whitelist.get(user_id)
 
+    # TODO this is very counter intuitive and too much config
     if Settings.get(:use_pre_starts) == true do
       whitelist
     else
