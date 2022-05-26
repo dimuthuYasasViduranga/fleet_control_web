@@ -26,19 +26,17 @@ defmodule DispatchWeb.PageController do
 
     whitelist = get_whitelist(user[:user_id])
 
-    data =
-      %{
-        data: Dispatch.StaticData.fetch(),
-        whitelist: whitelist,
-        user_token: token,
-        user: user,
-        authorized: authorized
-      }
-      |> Jason.encode!()
+    data = %{
+      data: Dispatch.StaticData.fetch(),
+      whitelist: whitelist,
+      user_token: token,
+      user: user,
+      authorized: authorized
+    }
 
     conn
     |> assign(:user_token, token)
-    |> send_resp(200, data)
+    |> json(data)
   end
 
   defp get_whitelist(user_id) do
