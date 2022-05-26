@@ -8,7 +8,10 @@ defmodule DispatchWeb.AuthController do
   require Logger
 
   alias AzureADOpenId
-  alias Dispatch.{Token, OperatorAgent, DeviceAgent, DispatcherAgent}
+  alias Dispatch.Token
+  alias Dispatch.OperatorAgent
+  alias Dispatch.DeviceAgent
+  alias Dispatch.DispatcherAgent
 
   alias DispatchWeb.Broadcast
   alias DispatchWeb.Guardian
