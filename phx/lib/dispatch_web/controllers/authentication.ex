@@ -13,14 +13,17 @@ defmodule DispatchWeb.AuthController do
   alias DispatchWeb.Broadcast
   alias DispatchWeb.Guardian
 
+  @path "fleet-control"
+
   @doc """
   Dispatcher login
   """
   @spec login(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def login(conn, _) do
     base_uri = Application.get_env(:dispatch_web, :url)
-    redirect_uri = "#{base_uri}/fleet-control/auth/callback"
-    redirect(conn, external: AzureADOpenId.authorize_url!(redirect_uri))
+    redirect_uri = "#{base_uri}/auth/callback"
+    auth_url = AzureADOpenId.authorize_url!(redirect_uri) <> "&state=" <> @path
+    redirect(conn, external: auth_url)
   end
 
   @doc """
@@ -28,29 +31,23 @@ defmodule DispatchWeb.AuthController do
   """
   @spec callback(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def callback(conn, _) do
-    case AzureADOpenId.handle_callback!(conn) do
-      {:ok, jwt} ->
-        name = AzureADOpenId.get_user_name(jwt)
+    {:ok, jwt} = AzureADOpenId.handle_callback!(conn)
+    name = AzureADOpenId.get_user_name(jwt)
 
-        user =
-          case DispatcherAgent.add(jwt["oid"], name) do
-            {:ok, user} ->
-              Broadcast.send_dispatchers()
-              user
+    user =
+      case DispatcherAgent.add(jwt["oid"], name) do
+        {:ok, user} ->
+          Broadcast.send_dispatchers()
+          user
 
-            _ ->
-              %{id: nil, user_id: jwt["oid"], name: name}
-          end
+        _ ->
+          %{id: nil, user_id: jwt["oid"], name: name}
+      end
 
-        conn
-        |> put_session(:current_user, user)
-        |> Guardian.Plug.sign_in(user)
-
-      {:error, error_type, error} ->
-        Logger.warn("[Auth] #{error_type}: #{error}")
-        conn
-    end
-    |> redirect(to: "/fleet-control")
+    conn
+    |> put_session(:current_user, user)
+    |> Guardian.Plug.sign_in(user)
+    |> redirect(to: "/" <> @path)
   end
 
   @doc """
