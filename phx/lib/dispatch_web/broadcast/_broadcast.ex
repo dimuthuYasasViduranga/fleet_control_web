@@ -407,7 +407,24 @@ defmodule DispatchWeb.Broadcast do
       }
     end)
 
-    Syncro.Broadcast.broadcast("pre-start submissions:update latest", nil)
+    rpc("maintenance-ui", Maintenance.Cache.PreStart, :refresh, [])
+  end
+
+  defp rpc(node_name, module, function, args) do
+    with [node | _] <- get_node(node_name),
+         {:ok, resp} <- :rpc.call(node, module, function, args) do
+      {:ok, resp}
+    else
+      [] -> {:error, "unable to access #{node_name}"}
+      {:error, error} -> {:error, error}
+      error -> {:error, error}
+    end
+    |> IO.inspect()
+  end
+
+  defp get_node(node_name) do
+    Node.list()
+    |> Enum.filter(&String.starts_with?(Atom.to_string(&1), node_name))
   end
 
   def send_activity(identifier, source, activity_type) do
