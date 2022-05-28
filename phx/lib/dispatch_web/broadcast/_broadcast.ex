@@ -411,15 +411,11 @@ defmodule DispatchWeb.Broadcast do
   end
 
   defp rpc(node_name, module, function, args) do
-    with [node | _] <- get_node(node_name),
-         {:ok, resp} <- :rpc.call(node, module, function, args) do
-      {:ok, resp}
+    with [node | _] <- get_node(node_name) do
+      :rpc.call(node, module, function, args)
     else
       [] -> {:error, "unable to access #{node_name}"}
-      {:error, error} -> {:error, error}
-      error -> {:error, error}
     end
-    |> IO.inspect()
   end
 
   defp get_node(node_name) do
