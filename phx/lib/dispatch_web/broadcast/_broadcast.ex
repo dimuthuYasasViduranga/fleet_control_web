@@ -407,7 +407,7 @@ defmodule DispatchWeb.Broadcast do
       }
     end)
 
-    rpc("maintenance-ui", Maintenance.Cache.PreStart, :refresh, [])
+    rpc("maintenance-ui", MaintenanceWeb.Broadcast, :send_latest_pre_start_submissions, [current])
   end
 
   defp rpc(node_name, module, function, args) do
