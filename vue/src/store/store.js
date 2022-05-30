@@ -539,12 +539,6 @@ const getters = {
 };
 
 const actions = {
-  setNotification({ commit }, { device, message }) {
-    commit('setNotification', { device, message });
-  },
-  setOverlayOpen({ commit }, bool) {
-    commit('setOverlayOpen', bool);
-  },
   setCurrentEngineHours({ commit }, engineHours = []) {
     const formattedHours = engineHours.map(parseEngineHour);
     commit('setCurrentEngineHours', formattedHours);
@@ -614,12 +608,6 @@ const actions = {
 const mutations = {
   setOverlayOpen(state, bool) {
     state.overlayOpen = bool;
-  },
-  setNotification(state, { device, message }) {
-    state.notification = {
-      device,
-      message,
-    };
   },
   setCurrentEngineHours(state, engineHours = []) {
     state.currentEngineHours = engineHours;
