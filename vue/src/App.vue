@@ -96,6 +96,9 @@ export default {
       channel.create(this.$hostname, this.userToken, presenceSyncCallback);
 
       channel.setOns([
+        // setVuexData
+        ['setVuexData', data => dispatch('setVuexData', data)],
+
         // settings
         ['set settings', data => commit('settings/set', data)],
 
