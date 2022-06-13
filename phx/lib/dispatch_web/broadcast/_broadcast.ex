@@ -518,4 +518,14 @@ defmodule DispatchWeb.Broadcast do
     Endpoint.broadcast(@dispatch, "set asset radios", payload)
     broadcast_all_operators("set asset radios", payload)
   end
+
+  def set_dispatcher_data(keys, value, parser_type \\ "none")
+
+  def set_dispatcher_data(keys, value, parser_type) when is_list(keys) do
+    data = %{keys: keys, value: value, parser_type: parser_type}
+    Endpoint.broadcast(@dispatch, "setVuexData", data)
+  end
+
+  def set_dispatcher_data(key, value, parser_type),
+    do: set_dispatcher_data([key], value, parser_type)
 end
