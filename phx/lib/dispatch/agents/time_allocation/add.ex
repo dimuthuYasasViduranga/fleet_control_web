@@ -7,6 +7,8 @@ defmodule Dispatch.TimeAllocationAgent.Add do
 
   alias Ecto.Multi
 
+  require Logger
+
   @type state :: map
   @type allocation :: map
   @type input_alloc :: %{
@@ -23,26 +25,27 @@ defmodule Dispatch.TimeAllocationAgent.Add do
   end
 
   def add(module, alloc) do
-    case Helper.has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) do
-      false ->
-        {:error, :invalid_keys}
+    if Helper.has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) do
+      unless alloc[:created_by_operator] || alloc[:created_by_dispatcher] do
+        Logger.error("Time allocation created without recording it's source")
+      end
 
-      _ ->
-        alloc =
-          %{
-            asset_id: alloc.asset_id,
-            time_code_id: alloc.time_code_id,
-            start_time: DHelper.to_naive(alloc.start_time),
+      alloc =
+        %{
+          alloc
+          | start_time: DHelper.to_naive(alloc.start_time),
             end_time: DHelper.to_naive(alloc.end_time)
-          }
-          |> ensure_allocation_before_timestamp(NaiveDateTime.utc_now())
+        }
+        |> ensure_allocation_before_timestamp(NaiveDateTime.utc_now())
 
-        Agent.get_and_update(module, fn state ->
-          case alloc do
-            %{end_time: nil} = alloc -> add_active_allocation(alloc, state)
-            alloc -> add_completed_allocation(alloc, state)
-          end
-        end)
+      Agent.get_and_update(module, fn state ->
+        case alloc do
+          %{end_time: nil} = alloc -> add_active_allocation(alloc, state)
+          alloc -> add_completed_allocation(alloc, state)
+        end
+      end)
+    else
+      {:error, :invalid_keys}
     end
   end
 

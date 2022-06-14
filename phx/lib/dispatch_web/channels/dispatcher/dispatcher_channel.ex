@@ -444,6 +444,8 @@ defmodule DispatchWeb.DispatcherChannel do
   end
 
   def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
+    allocation = Map.put(allocation, :created_by_dispatcher, true)
+
     case TimeAllocationAgent.add(allocation) do
       {:ok, _} ->
         Broadcast.send_active_allocation_to(%{asset_id: asset_id})
@@ -463,7 +465,7 @@ defmodule DispatchWeb.DispatcherChannel do
       ) do
     asset_ids = Enum.uniq(asset_ids)
 
-    case TimeAllocationAgent.mass_add(time_code_id, asset_ids) do
+    case TimeAllocationAgent.mass_add(time_code_id, asset_ids, created_by_dispatcher: true) do
       {:ok, _, _, _} ->
         Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
         Broadcast.send_allocations_to_dispatcher(:no_alert)
@@ -477,6 +479,8 @@ defmodule DispatchWeb.DispatcherChannel do
 
   @decorate authorized(:can_edit_time_allocations)
   def handle_in("edit time allocations", allocations, socket) do
+    allocations = Enum.map(allocations, &Map.put(&1, :updated_by_dispatcher, true))
+
     TimeAllocationAgent.update_all(allocations)
     |> case do
       {:error, reason} ->
@@ -632,18 +636,8 @@ defmodule DispatchWeb.DispatcherChannel do
         %{"asset_ids" => asset_ids, "time_code_id" => time_code_id},
         socket
       ) do
-
-    base_allocation = %{
-      time_code_id: time_code_id,
-      start_time: NaiveDateTime.utc_now(),
-      end_time: nil,
-      deleted: false
-    }
-
     Enum.each(asset_ids, fn asset_id ->
-      base_allocation
-      |> Map.put(:asset_id, asset_id)
-      |> TimeAllocationAgent.add()
+      add_default_time_allocation(asset_id, time_code_id)
       |> case do
         {:ok, _} ->
           Broadcast.send_active_allocation_to(%{asset_id: asset_id})
@@ -664,13 +658,8 @@ defmodule DispatchWeb.DispatcherChannel do
 
     case DeviceAssignmentAgent.get(%{device_id: device_id}) do
       %{asset_id: asset_id} ->
-        case TimeAllocationAgent.add(%{
-               asset_id: asset_id,
-               time_code_id: time_code_id,
-               start_time: NaiveDateTime.utc_now(),
-               end_time: nil,
-               deleted: false
-             }) do
+        add_default_time_allocation(asset_id, time_code_id)
+        |> case do
           {:ok, _} ->
             Broadcast.send_active_allocation_to(%{asset_id: asset_id})
             Broadcast.send_allocations_to_dispatcher()
@@ -686,6 +675,18 @@ defmodule DispatchWeb.DispatcherChannel do
     Broadcast.force_logout(%{device_id: device_id}, %{clear_operator: true})
 
     {:reply, :ok, socket}
+  end
+
+  defp add_default_time_allocation(asset_id, time_code_id) do
+    %{
+      asset_id: asset_id,
+      time_code_id: time_code_id,
+      start_time: NaiveDateTime.utc_now(),
+      end_time: nil,
+      created_by_dispatcher: true,
+      deleted: false
+    }
+    |> TimeAllocationAgent.add()
   end
 
   @decorate authorized(:can_edit_devices)
@@ -774,14 +775,7 @@ defmodule DispatchWeb.DispatcherChannel do
     case AssetAgent.set_enabled(asset_id, true) do
       :ok ->
         no_task_id = TimeCodeAgent.no_task_id()
-
-        TimeAllocationAgent.add(%{
-          asset_id: asset_id,
-          time_code_id: no_task_id,
-          start_time: NaiveDateTime.utc_now(),
-          end_time: nil,
-          deleted: false
-        })
+        add_default_time_allocation(asset_id, no_task_id)
 
         Broadcast.send_asset_data_to_all()
         Broadcast.send_active_allocation_to(%{asset_id: asset_id})
@@ -799,14 +793,7 @@ defmodule DispatchWeb.DispatcherChannel do
     case AssetAgent.set_enabled(asset_id, false) do
       :ok ->
         disabled_id = TimeCodeAgent.disabled_id()
-
-        TimeAllocationAgent.add(%{
-          asset_id: asset_id,
-          time_code_id: disabled_id,
-          start_time: NaiveDateTime.utc_now(),
-          end_time: nil,
-          deleted: false
-        })
+        add_default_time_allocation(asset_id, disabled_id)
 
         Broadcast.force_logout(%{asset_id: asset_id})
         DeviceAssignmentAgent.clear(asset_id)

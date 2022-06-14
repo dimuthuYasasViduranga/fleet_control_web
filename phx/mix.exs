@@ -57,7 +57,7 @@ defmodule DispatchWeb.MixProject do
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.3", only: [:prod]},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "2.0.1"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.0.0"},
       {:syncro, git: "https://github.com/Haultrax/syncro.git", tag: "0.0.1"},
 
       # test
