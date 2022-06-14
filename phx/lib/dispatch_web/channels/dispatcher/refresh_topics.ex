@@ -8,7 +8,7 @@ defmodule DispatchWeb.DispatcherChannel.RefreshTopics do
   alias DispatchWeb.Broadcast
 
   @decorate authorized(:can_refresh_agents)
-  def handle_in("refresh:" <> subtopic, _, socket) do
+  def handle_in(subtopic, _, socket) do
     Logger.warn("Refreshing: #{subtopic}")
 
     case refresh(subtopic) do

@@ -139,7 +139,7 @@ defmodule DispatchWeb.DispatcherChannel do
           {:noreply, Socket.t()}
           | {:reply, :ok | :error | {:error, term}, Socket.t()}
   @decorate channel_action()
-  def handle_in("refresh:" <> _ = topic, payload, socket) do
+  def handle_in("refresh:" <> topic, payload, socket) do
     RefreshTopics.handle_in(topic, payload, socket)
   end
 
