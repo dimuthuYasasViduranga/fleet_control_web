@@ -1,0 +1,100 @@
+---
+name: FleetControl release
+
+on:
+  push: 
+    tags: "**"
+
+jobs:
+  build-release:
+    # needs: test-elixir
+
+    name: Build deployment image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # dependency access
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.HAULTRAX_DEPENDENCY_ACCESS_SSH }}
+      - name: Configure Git 
+        run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+
+      # Docker setup
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
+        with:
+          registry: hxreg.azurecr.io
+          username: ${{ secrets.ACR_SERVICE_PRINCIPAL_ID }}
+          password: ${{ secrets.ACR_SERVICE_PRINCIPAL_PASSWORD }}
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Build front end
+      - name: Build vue
+        working-directory: ./vue
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          mkdir -p ../phx/priv/static/main
+          cp -a dist/. ../phx/priv/static/main
+
+      # build and push image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: .
+          tags: hxreg.azurecr.io/fleet-control-ui:${{ github.ref_name }}
+          file: ./release/Dockerfile.github
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+          ssh: default=${{ env.SSH_AUTH_SOCK }}
+          build-args: app_version=${{ github.ref_name }}
+
+      - name: Replace cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      # notifications
+      - name: Report Failure
+        if: always()
+        uses: ravsamhq/notify-slack-action@v1
+        with:
+          status: ${{ job.status }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          notification_title: '{workflow} {status_message}'
+          message_format: '{emoji} *{workflow}* {status_message} at <{commit_url}|commit>'
+          footer: '<{repo_url}|{repo}> | <{run_url}|View Run>'
+          notify_when: 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK }}
+
+      - name: Report Success
+        if: always()
+        uses: ravsamhq/notify-slack-action@v1
+        with:
+          status: ${{ job.status }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          notification_title: '{workflow} ${{github.ref_name}} built'
+          message_format: ''
+          footer: '<{repo_url}|{repo}> | <{run_url}|View Run>'
+          notify_when: 'success'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.RELEASE_SLACK_WEBHOOK }}

@@ -68,11 +68,11 @@ defmodule Dispatch.TimeAllocationAgent do
     Add.add(__MODULE__, alloc)
   end
 
-  @spec mass_add(integer, list(integer)) ::
+  @spec mass_add(integer, list(integer), keyword()) ::
           {:ok, list(deleted_alloc), list(completed_alloc), list(new_active_alloc) | nil}
-  def mass_add(time_code_id, asset_ids) do
+  def mass_add(time_code_id, asset_ids, params) do
     Agent.get_and_update(__MODULE__, fn state ->
-      MassAdd.add(time_code_id, asset_ids, state)
+      MassAdd.add(time_code_id, asset_ids, params, state)
     end)
   end
 

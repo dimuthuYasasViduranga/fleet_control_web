@@ -7,6 +7,8 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
 
+  require Logger
+
   @type state :: map
   @type allocation :: map
   @type deleted_alloc :: allocation
@@ -26,13 +28,14 @@ defmodule Dispatch.TimeAllocationAgent.Update do
               | :cannot_set_locked
               | term}, state}
   def update_all(updates, state) when is_list(updates) do
-    now = DHelper.naive_timestamp()
-    max_future_timestamp = NaiveDateTime.add(now, TimeAllocation.max_future_insert())
-
     updates =
       updates
       |> Enum.map(&DHelper.to_atom_map!/1)
       |> Enum.map(fn update ->
+        unless update[:created_by_operator] || update[:updated_by_dispatcher] do
+          Logger.error("Time allocation updated without recording the source of the update")
+        end
+
         update
         |> DHelper.to_atom_map!()
         |> Map.update(:start_time, nil, &DHelper.to_naive/1)
@@ -40,53 +43,18 @@ defmodule Dispatch.TimeAllocationAgent.Update do
       end)
       |> Enum.reject(&(&1[:id] == nil && &1[:deleted] == true))
 
-    ids =
-      updates
-      |> Enum.map(& &1[:id])
-      |> Enum.reject(&is_nil/1)
-
-    allocs_affected = Data.get_allocations_to_update(ids)
-
-    asset_ids =
-      (updates ++ allocs_affected)
-      |> Enum.map(& &1[:asset_id])
-      |> Enum.uniq()
-
-    new_actives = Enum.filter(updates, &(&1.end_time == nil && &1[:deleted] != true))
-
-    cond do
-      updates == [] ->
+    validate(updates, state)
+    |> case do
+      {:ok, []} ->
         {{:ok, [], [], nil}, state}
 
-      Enum.any?(updates, &is_invalid_allocation?(&1, allocs_affected, max_future_timestamp)) ->
-        {{:error, :invalid}, state}
-
-      length(asset_ids) != 1 || Enum.any?(asset_ids, &is_nil/1) ->
-        {{:error, :multiple_assets}, state}
-
-      Enum.any?(allocs_affected, &(&1[:lock_id] != nil)) ->
-        {{:error, :cannot_change_locked}, state}
-
-      Enum.any?(updates, &(&1[:lock_id] != nil)) ->
-        {{:error, :cannot_set_locked}, state}
-
-      Enum.any?(allocs_affected, &(&1.deleted == true)) ->
-        {{:error, :stale}, state}
-
-      length(allocs_affected) != length(ids) ->
-        {{:error, :ids_not_found}, state}
-
-      length(new_actives) > 1 ->
-        {{:error, :multiple_actives}, state}
-
-      true ->
-        [asset_id] = asset_ids
-
+      {:ok, [asset_id | _]} ->
         active_element = Map.get(state.active, asset_id)
 
         {new_allocs, ids_to_delete} =
           get_update_changes(updates, active_element, state.no_task_id)
 
+        now = DHelper.naive_timestamp()
         new_allocs = Enum.map(new_allocs, &Map.put(&1, :inserted_at, now))
 
         delete_query = Data.delete_query(ids_to_delete)
@@ -110,6 +78,57 @@ defmodule Dispatch.TimeAllocationAgent.Update do
           error ->
             {error, state}
         end
+
+      error ->
+        {error, state}
+    end
+  end
+
+  defp validate(updates, state) do
+    now = DHelper.naive_timestamp()
+    max_future_timestamp = NaiveDateTime.add(now, TimeAllocation.max_future_insert())
+
+    ids =
+      updates
+      |> Enum.map(& &1[:id])
+      |> Enum.reject(&is_nil/1)
+
+    allocs_affected = Data.get_allocations_to_update(ids)
+
+    asset_ids =
+      (updates ++ allocs_affected)
+      |> Enum.map(& &1[:asset_id])
+      |> Enum.uniq()
+
+    new_actives = Enum.filter(updates, &(&1.end_time == nil && &1[:deleted] != true))
+
+    cond do
+      updates == [] ->
+        {:ok, []}
+
+      Enum.any?(updates, &is_invalid_allocation?(&1, allocs_affected, max_future_timestamp)) ->
+        {:error, :invalid}
+
+      length(asset_ids) != 1 || Enum.any?(asset_ids, &is_nil/1) ->
+        {:error, :multiple_assets}
+
+      Enum.any?(allocs_affected, &(&1[:lock_id] != nil)) ->
+        {:error, :cannot_change_locked}
+
+      Enum.any?(updates, &(&1[:lock_id] != nil)) ->
+        {:error, :cannot_set_locked}
+
+      Enum.any?(allocs_affected, &(&1.deleted == true)) ->
+        {:error, :stale}
+
+      length(allocs_affected) != length(ids) ->
+        {:error, :ids_not_found}
+
+      length(new_actives) > 1 ->
+        {:error, :multiple_actives}
+
+      true ->
+        {:ok, asset_ids}
     end
   end
 
@@ -228,7 +247,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     {[commit | resp], state}
   end
 
-  @spec update_agent({:ok, %TimeAllocation{} | map} | term, map) ::
+  @spec update_agent({:ok, TimeAllocation | map} | term, map) ::
           {{:ok, allocation} | term, map}
   def update_agent({:ok, %TimeAllocation{} = alloc}, state) do
     alloc = TimeAllocation.to_map(alloc)
@@ -236,7 +255,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   end
 
   def update_agent({:ok, %{end_time: nil, deleted: true} = active}, state) do
-    active_id = Map.get(state.active, active.asset_id).id
+    active_id = Map.get(state.active, active.asset_id)[:id]
 
     state =
       if active_id == active.id do

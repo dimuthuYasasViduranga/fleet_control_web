@@ -78,7 +78,7 @@ defmodule Dispatch.DispatcherMessageAgent do
           {:ok, list(message)} | {:error, term}
   def new_mass_message(asset_ids, message, dispatcher_id, answers, timestamp) do
     cond do
-      is_nil(asset_ids) or length(asset_ids) == 0 -> {:error, :invalid_asset_ids}
+      is_nil(asset_ids) or asset_ids == [] -> {:error, :invalid_asset_ids}
       !is_nil(answers) and length(answers) < 2 -> {:error, :invalid_answers}
       is_nil(message) -> {:error, :invalid_message}
       true -> insert_mass_message(asset_ids, message, dispatcher_id, answers, timestamp)

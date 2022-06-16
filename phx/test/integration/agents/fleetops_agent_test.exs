@@ -140,8 +140,8 @@ defmodule Dispatch.HaulAgentTest do
   end
 
   test "insert cycles then update", %{haul_truck: haul_truck} = context do
-    assert length(HaulAgent.cycles()) == 0
-    assert length(HaulAgent.timeusage()) == 0
+    assert HaulAgent.cycles() == []
+    assert HaulAgent.timeusage() == []
 
     tu_durations = [
       EmptyHaul: 300,
@@ -321,8 +321,8 @@ defmodule Dispatch.HaulAgentTest do
           end_time: ~N[2020-01-02 01:00:00]
         })
 
-      assert length(cycles) == 0
-      assert length(timeusage) == 0
+      assert cycles == []
+      assert timeusage == []
     end
   end
 end

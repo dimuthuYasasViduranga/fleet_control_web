@@ -12,6 +12,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
+  import ExUnit.CaptureLog
+
   def assert_naive_equal(nil, nil), do: true
 
   def assert_naive_equal(actual, expected) do
@@ -26,6 +28,13 @@ defmodule Dispatch.TimeAllocation.LockTest do
           right: expected
     end
   end
+
+  defp add_with_logs(ta) do
+    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    assert log =~ "[error] Time allocation created without recording it's source"
+    result
+  end
+
 
   setup do
     group_map =
@@ -89,7 +98,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -126,7 +135,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -163,7 +172,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -199,7 +208,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -241,7 +250,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -283,7 +292,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -333,7 +342,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
 
@@ -379,11 +388,11 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial_a} =
         to_alloc(asset_a.id, ready, a_start, a_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, initial_b} =
         to_alloc(asset_b.id, ready, b_start, b_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} =
         TimeAllocationAgent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
@@ -466,7 +475,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -506,7 +515,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -545,7 +554,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -592,7 +601,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -639,7 +648,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       lock = data.lock
@@ -692,7 +701,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
 
@@ -719,11 +728,11 @@ defmodule Dispatch.TimeAllocation.LockTest do
 
       {:ok, initial_a} =
         to_alloc(asset_a.id, ready, start_a, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, initial_b} =
         to_alloc(asset_b.id, ready, start_b, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, data} =
         TimeAllocationAgent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)

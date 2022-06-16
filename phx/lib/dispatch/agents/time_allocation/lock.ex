@@ -31,7 +31,7 @@ defmodule Dispatch.TimeAllocationAgent.Lock do
     cond do
       calendar == nil -> {:error, :invalid_calendar}
       dispatcher == nil -> {:error, :invalid_dispatcher}
-      length(ids) == 0 -> {:ok, %{deleted_ids: [], ignored_ids: [], new: [], lock: nil}}
+      ids == [] -> {:ok, %{deleted_ids: [], ignored_ids: [], new: [], lock: nil}}
       true -> do_lock(ids, calendar, dispatcher)
     end
   end

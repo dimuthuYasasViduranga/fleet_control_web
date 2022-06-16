@@ -12,6 +12,8 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
 
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
+  import ExUnit.CaptureLog
+
   def assert_naive_equal(nil, nil), do: true
 
   def assert_naive_equal(actual, expected) do
@@ -25,6 +27,12 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
           left: actual,
           right: expected
     end
+  end
+
+  defp add_with_logs(ta) do
+    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    assert log =~ "[error] Time allocation created without recording it's source"
+    result
   end
 
   setup do
@@ -89,7 +97,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, lock_data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
       [locked] = lock_data.new
@@ -143,11 +151,11 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
 
       {:ok, initial_a} =
         to_alloc(asset.id, ready, a_start, b_start)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, initial_b} =
         to_alloc(asset.id, ready, b_start, b_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, lock_data} = TimeAllocationAgent.lock([initial_a.id], cal_id, context.dispatcher)
 

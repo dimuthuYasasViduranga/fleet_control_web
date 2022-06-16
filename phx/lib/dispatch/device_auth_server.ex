@@ -151,7 +151,7 @@ defmodule Dispatch.DeviceAuthServer do
   end
 
   defp reject_all(state) do
-    Enum.map(state.pending_devices, &reject(&1.uuid))
+    Enum.each(state.pending_devices, &reject(&1.uuid))
     Authentication.send_pending_devices([], state.accept_until)
     Map.put(state, :pending_devices, [])
   end

@@ -23,6 +23,22 @@ import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
 
+
+function applyParser(data, key, parser) {
+  if (data[key]) {
+    data[key] = parser(data[key]);
+  }
+}
+
+export function parseGenericData(data) {
+  applyParser(data, 'start_time', toUtcDate);
+  applyParser(data, 'end_time', toUtcDate);
+  applyParser(data, 'end_time', toUtcDate);
+  applyParser(data, 'timestamp', toUtcDate);
+  applyParser(data, 'server_timestamp', toUtcDate);
+  // applyParser(data, 'geofence', parseGeofence);
+}
+
 export function parseEngineHour(engineHour) {
   return {
     id: engineHour.id,
@@ -45,6 +61,16 @@ export function parseTimeAllocation(alloc) {
     deleted: alloc.deleted || false,
     lockId: alloc.lock_id,
   };
+}
+
+function setNestedState(state, [key, ...keys], value) {
+  if (!key) {
+    return value;
+  }
+
+  const subState = setNestedState(state[key], keys, value);
+  state[key] = subState;
+  return state;
 }
 
 function parseActivity(activity) {
@@ -499,26 +525,20 @@ const getters = {
   },
   engineHours:
     ({ currentEngineHours, constants }) =>
-    assetType => {
-      const engineHours = currentEngineHours.map(eh =>
-        Transforms.toEngineHour(eh, constants.assets, constants.operators),
-      );
+      assetType => {
+        const engineHours = currentEngineHours.map(eh =>
+          Transforms.toEngineHour(eh, constants.assets, constants.operators),
+        );
 
-      if (!assetType) {
-        return engineHours;
-      }
+        if (!assetType) {
+          return engineHours;
+        }
 
-      return engineHours.filter(eh => eh.assetType === assetType);
-    },
+        return engineHours.filter(eh => eh.assetType === assetType);
+      },
 };
 
 const actions = {
-  setNotification({ commit }, { device, message }) {
-    commit('setNotification', { device, message });
-  },
-  setOverlayOpen({ commit }, bool) {
-    commit('setOverlayOpen', bool);
-  },
   setCurrentEngineHours({ commit }, engineHours = []) {
     const formattedHours = engineHours.map(parseEngineHour);
     commit('setCurrentEngineHours', formattedHours);
@@ -561,17 +581,33 @@ const actions = {
     const formattedSubmissions = submissions.map(parsePreStartSubmission);
     commit('setCurrentPreStartSubmissions', formattedSubmissions);
   },
+  setVuexData({ commit }, { keys, value, parser_type }) {
+    if (!keys || !keys.length || keys.length < 1) {
+      console.error(`setVuexState requires an array of keys`);
+      return;
+    }
+
+    const keysValid = keys.every(i => (typeof i === "string" || Number.isInteger(i)));
+
+    if (!keysValid) {
+      console.error(`setVuexState requires an array of valid keys: ${keys}`);
+      return;
+    }
+
+    let parsedValue = value;
+    if (parser_type === 'generic') {
+      parsedValue = parseGenericData(value);
+    } else if (parser_type === 'generic-list') {
+      parsedValue = value.map(parseGenericData);
+    }
+
+    commit('setVuexData', { keys, value: parsedValue });
+  }
 };
 
 const mutations = {
   setOverlayOpen(state, bool) {
     state.overlayOpen = bool;
-  },
-  setNotification(state, { device, message }) {
-    state.notification = {
-      device,
-      message,
-    };
   },
   setCurrentEngineHours(state, engineHours = []) {
     state.currentEngineHours = engineHours;
@@ -611,6 +647,9 @@ const mutations = {
     notifyPreStartSubmissionChanges(state, submissions);
     state.currentPreStartSubmissions = submissions;
   },
+  setVuexData(state, { keys, value }) {
+    setNestedState(state, keys, value);
+  }
 };
 
 Vue.use(Vuex);

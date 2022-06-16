@@ -107,7 +107,13 @@ defmodule Dispatch.DispatcherMessageAgentTest do
       message = "test mass message"
 
       {:ok, [msg_1, msg_2]} =
-        DispatcherMessageAgent.new_mass_message(asset_ids, message, nil, nil, NaiveDateTime.utc_now())
+        DispatcherMessageAgent.new_mass_message(
+          asset_ids,
+          message,
+          nil,
+          nil,
+          NaiveDateTime.utc_now()
+        )
 
       # return
       assert msg_1.asset_id == asset.id
@@ -157,7 +163,13 @@ defmodule Dispatch.DispatcherMessageAgentTest do
       message = nil
 
       actual =
-        DispatcherMessageAgent.new_mass_message(asset_ids, message, nil, nil, NaiveDateTime.utc_now())
+        DispatcherMessageAgent.new_mass_message(
+          asset_ids,
+          message,
+          nil,
+          nil,
+          NaiveDateTime.utc_now()
+        )
 
       assert actual == {:error, :invalid_message}
     end
@@ -167,7 +179,13 @@ defmodule Dispatch.DispatcherMessageAgentTest do
       message = "Valid message"
 
       actual =
-        DispatcherMessageAgent.new_mass_message(asset_ids, message, nil, nil, NaiveDateTime.utc_now())
+        DispatcherMessageAgent.new_mass_message(
+          asset_ids,
+          message,
+          nil,
+          nil,
+          NaiveDateTime.utc_now()
+        )
 
       assert actual == {:error, :invalid_asset_ids}
     end
@@ -194,7 +212,13 @@ defmodule Dispatch.DispatcherMessageAgentTest do
       message = "test mass message"
 
       {:ok, messages} =
-        DispatcherMessageAgent.new_mass_message(asset_ids, message, nil, nil, NaiveDateTime.utc_now())
+        DispatcherMessageAgent.new_mass_message(
+          asset_ids,
+          message,
+          nil,
+          nil,
+          NaiveDateTime.utc_now()
+        )
 
       # return
       assert length(messages) == 1
