@@ -75,7 +75,10 @@ defmodule Dispatch.DigUnitActivityAgentTest do
     end
 
     test "valid (timestamp as unix)", %{asset: asset} do
-      now = NaiveDateTime.utc_now()
+      now =
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.truncate(:millisecond)
+
       unix = Helper.to_unix(now)
 
       {:ok, actual} =

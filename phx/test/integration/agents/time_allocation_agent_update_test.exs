@@ -123,7 +123,10 @@ defmodule Dispatch.TimeAllocationAgentUpdateTest do
     end
 
     test "valid (create new completed, unix timestamps)", %{asset: asset, ready: ready} do
-      end_time = NaiveDateTime.utc_now()
+      end_time =
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.truncate(:millisecond)
+
       start_time = NaiveDateTime.add(end_time, -3600)
 
       {:ok, deleted, [complete], new_active} =
