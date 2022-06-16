@@ -5,6 +5,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
   alias Dispatch.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
+  import ExUnit.CaptureLog
+
   setup do
     group_map =
       Repo.all(TimeCodeGroup)
@@ -45,6 +47,18 @@ defmodule Dispatch.TimeAllocationAgentTest do
     |> TimeAllocation.to_map()
   end
 
+  defp update_all_with_logs(updates) do
+    {result, log} = with_log(fn -> TimeAllocationAgent.update_all(updates) end)
+    assert log =~ "[error] Time allocation updated without recording the source of the update"
+    result
+  end
+
+  defp add_with_logs(ta) do
+    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    assert log =~ "[error] Time allocation created without recording it's source"
+    result
+  end
+
   describe "Refresh -" do
     test "load no entries on startup" do
       # the agent _used_ to insert nulled maps for every asset
@@ -67,11 +81,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, first} =
         to_alloc(asset.id, ready, first_at, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, second} =
         to_alloc(asset.id, ready, second_at, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       cache_active = TimeAllocationAgent.active()
       cache_historic = TimeAllocationAgent.historic()
@@ -147,7 +161,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       :ok = TimeAllocationAgent.refresh!()
 
       {:ok, [deleted], updated, active_after_delete} =
-        TimeAllocationAgent.update_all([Map.put(invalid, :deleted, true)])
+        update_all_with_logs([Map.put(invalid, :deleted, true)])
 
       # return
       assert updated == []
@@ -175,7 +189,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, actual} =
         to_alloc(asset.id, ready, start_time, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert actual.end_time == nil
@@ -194,11 +208,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, first} =
         to_alloc(asset.id, ready, time_a, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, second} =
         to_alloc(asset.id, ready, time_b, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       completed_first = get_allocation(first.id + 1)
 
@@ -222,7 +236,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert NaiveDateTime.compare(completed.end_time, end_time)
@@ -242,7 +256,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert NaiveDateTime.compare(completed.end_time, end_time)
@@ -262,7 +276,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert NaiveDateTime.compare(completed.end_time, end_time)
@@ -282,12 +296,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       historic_before = TimeAllocationAgent.historic()
 
       {:ok, [deleted], updated, new_active} =
-        TimeAllocationAgent.update_all([Map.put(completed, :deleted, true)])
+        update_all_with_logs([Map.put(completed, :deleted, true)])
 
       historic_after = TimeAllocationAgent.historic()
 
@@ -315,12 +329,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       historic_before = TimeAllocationAgent.historic()
 
       {:ok, [deleted], updated, new_active} =
-        TimeAllocationAgent.update_all([Map.put(completed, :deleted, true)])
+        update_all_with_logs([Map.put(completed, :deleted, true)])
 
       historic_after = TimeAllocationAgent.historic()
 
@@ -347,7 +361,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       start_time = NaiveDateTime.add(end_time, -3600)
 
       {:ok, deleted, [completed], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           %{
             asset_id: asset.id,
             time_code_id: ready,
@@ -377,10 +391,10 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, [deleted], [completed], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           Map.put(initial, :end_time, updated_end_time)
         ])
 
@@ -414,10 +428,10 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, [deleted], [updated], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           Map.put(initial, :start_time, updated_start_time)
         ])
 
@@ -448,10 +462,10 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, [deleted], [updated], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           Map.put(initial, :end_time, updated_end_time)
         ])
 
@@ -486,12 +500,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, outside_range} =
         to_alloc(asset.id, ready, outside_start, outside_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       cached_historic = TimeAllocationAgent.historic()
 
       {:ok, [deleted], [inside_range], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           Map.put(outside_range, :end_time, inside_end)
         ])
 
@@ -530,12 +544,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, inside_range} =
         to_alloc(asset.id, ready, inside_start, inside_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       cached_historic = TimeAllocationAgent.historic()
 
       {:ok, [deleted], [outside_range], new_active} =
-        TimeAllocationAgent.update_all([
+        update_all_with_logs([
           inside_range
           |> Map.put(:start_time, outside_start)
           |> Map.put(:end_time, outside_end)
@@ -569,7 +583,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       start_time = ~N[2020-01-01 00:00:00.000000]
 
       alloc = to_alloc(asset.id, ready, start_time, nil)
-      {:ok, actual} = TimeAllocationAgent.add(alloc)
+      {:ok, actual} = add_with_logs(alloc)
 
       # return
       assert actual.asset_id == asset.id
@@ -590,7 +604,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       start_time = ~N[2020-01-01 00:00:00.123]
 
       alloc = to_alloc(asset.id, ready, Helper.to_unix(start_time), nil)
-      {:ok, actual} = TimeAllocationAgent.add(alloc)
+      {:ok, actual} = add_with_logs(alloc)
 
       # return
       assert actual.asset_id == asset.id
@@ -613,11 +627,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, initial_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, active} =
         to_alloc(asset.id, exception, next_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       completed = get_allocation(initial.id + 1)
 
@@ -640,11 +654,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, initial_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, active} =
         to_alloc(asset.id, exception, next_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       completed = get_allocation(initial.id + 1)
 
@@ -666,7 +680,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, actual} =
         to_alloc(asset.id, ready, future, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert NaiveDateTime.compare(actual.start_time, future) == :lt
@@ -690,11 +704,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, exception, initial_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, actual} =
         to_alloc(asset.id, ready, next_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert actual.time_code_id == ready
@@ -715,7 +729,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, actual} =
         to_alloc(asset.id, nil, now, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert actual.time_code_id == no_task
@@ -731,13 +745,13 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
     test "invalid (invalid time code id)", %{asset: asset} do
       alloc = to_alloc(asset.id, -9000, NaiveDateTime.utc_now(), nil)
-      error = TimeAllocationAgent.add(alloc)
+      error = add_with_logs(alloc)
       assert_ecto_error(error)
     end
 
     test "invalid (invalid asset)", %{ready: ready} do
       alloc = to_alloc(-9000, ready, NaiveDateTime.utc_now(), nil)
-      actual = TimeAllocationAgent.add(alloc)
+      actual = add_with_logs(alloc)
       assert_ecto_error(actual)
     end
 
@@ -747,11 +761,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, initial} =
         to_alloc(asset.id, ready, now, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       error =
         to_alloc(asset.id, ready, before, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert error == {:error, :start_before_active}
@@ -773,7 +787,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert completed.deleted == false
@@ -796,11 +810,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, active} =
         to_alloc(asset.id, ready, active_timestamp, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert active.end_time == nil
@@ -823,11 +837,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, active} =
         to_alloc(asset.id, ready, active_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert active.end_time == nil
@@ -850,11 +864,11 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, active} =
         to_alloc(asset.id, ready, active_start, nil)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert active.end_time == nil
@@ -875,7 +889,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, timestamp, timestamp)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert completed.deleted == true
@@ -898,7 +912,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       {:ok, completed} =
         to_alloc(asset.id, ready, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       # return
       assert completed.deleted == true
@@ -921,7 +935,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       actual =
         to_alloc(asset.id, ready, future_start, future_end)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       assert_ecto_error(actual)
     end
@@ -932,7 +946,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       actual =
         to_alloc(asset.id, -9000, start_time, end_time)
-        |> TimeAllocationAgent.add()
+        |> add_with_logs()
 
       assert_ecto_error(actual)
     end
