@@ -677,18 +677,6 @@ defmodule DispatchWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
-  defp add_default_time_allocation(asset_id, time_code_id) do
-    %{
-      asset_id: asset_id,
-      time_code_id: time_code_id,
-      start_time: NaiveDateTime.utc_now(),
-      end_time: nil,
-      created_by_dispatcher: true,
-      deleted: false
-    }
-    |> TimeAllocationAgent.add()
-  end
-
   @decorate authorized(:can_edit_devices)
   def handle_in("set device details", %{"device_id" => device_id, "details" => details}, socket) do
     case DeviceAgent.update_details(device_id, details) do
@@ -699,6 +687,18 @@ defmodule DispatchWeb.DispatcherChannel do
       error ->
         {:reply, to_error(error), socket}
     end
+  end
+
+  defp add_default_time_allocation(asset_id, time_code_id) do
+    %{
+      asset_id: asset_id,
+      time_code_id: time_code_id,
+      start_time: NaiveDateTime.utc_now(),
+      end_time: nil,
+      created_by_dispatcher: true,
+      deleted: false
+    }
+    |> TimeAllocationAgent.add()
   end
 
   defp set_assigned_asset(device_id, new_asset_id) do

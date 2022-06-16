@@ -63,7 +63,8 @@ defmodule DispatchWeb.MixProject do
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
-      {:bureaucrat, "~> 0.2.7", only: :test}
+      {:bureaucrat, "~> 0.2.7", only: :test},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 

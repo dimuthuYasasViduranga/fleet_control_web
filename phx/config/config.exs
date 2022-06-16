@@ -37,7 +37,7 @@ config :dispatch_web,
     prompt_engine_hours_on_login: false,
     prompt_engine_hours_on_logout: false,
     prompt_pre_starts_on_login: false,
-    use_live_queue: false,
+    use_live_queue: false
   ],
   bypass_auth: false,
   location_update_interval: 3600,

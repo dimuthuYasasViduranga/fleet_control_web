@@ -5,6 +5,8 @@ defmodule Dispatch.TimeAllocationAgent.MassAdd do
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.TimeAllocation
 
+  require Logger
+
   @type state :: map()
   @type allocation :: map()
   @type deleted_alloc :: allocation
