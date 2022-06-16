@@ -50,7 +50,7 @@ defmodule Dispatch.RoutingAgent.Validation do
     end
   end
 
-  defp first_error(list, callback) do
+  defp first_error(_list, _callback) do
     # TODO is this code useful?
     # Enum.reduce_while(list, nil, fn e, _acc ->
     #   case callback.(e) do

@@ -19,7 +19,7 @@ database_config = [
   pool: Ecto.Adapters.SQL.Sandbox,
   database: "hpssql_dispatch_test",
   username: "postgres",
-  password: "",
+  password: "postgres",
   hostname: "localhost"
 ]
 

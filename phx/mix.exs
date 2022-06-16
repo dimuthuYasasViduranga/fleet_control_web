@@ -70,6 +70,11 @@ defmodule DispatchWeb.MixProject do
 
   defp aliases do
     [
+      check: [
+        "compile --warnings-as-errors --force",
+        "format --check-formatted",
+        "credo"
+      ],
       "test.setup": [
         "ecto.create -r HpsData.Repo --quiet",
         "ecto.migrate",
@@ -96,6 +101,7 @@ defmodule DispatchWeb.MixProject do
 
   defp alias_envs() do
     [
+      check: :test,
       "test.test_seeds": :test,
       "test.setup": :test,
       "test.drop": :test,

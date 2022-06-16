@@ -234,7 +234,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     {[commit | resp], state}
   end
 
-  @spec update_agent({:ok, %TimeAllocation.t() | map} | term, map) ::
+  @spec update_agent({:ok, TimeAllocation | map} | term, map) ::
           {{:ok, allocation} | term, map}
   def update_agent({:ok, %TimeAllocation{} = alloc}, state) do
     alloc = TimeAllocation.to_map(alloc)

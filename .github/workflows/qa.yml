@@ -17,16 +17,16 @@ jobs:
       run:
         working-directory: ./phx
 
-    # services:
-    #   postgres:
-    #     image: postgres:11
-    #     env:
-    #       POSTGRES_USER: postgres
-    #       POSTGRES_PASSWORD: postgres
-    #       POSTGRES_DB: hpssql_test
-    #     ports:
-    #       - 5432:5432
-    #     options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    services:
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: "hpssql_dispatch_test",
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     env:
       MIX_ENV: test
@@ -57,10 +57,10 @@ jobs:
         run: mix format --check-formatted
       - name: Check coding standards
         run: mix credo
-      # - name: Run migrations
-      #   run: mix ecto.migrate
-      # - name: Run Tests
-      #   run: mix test
+      - name: Prepare test database
+        run: mix test.setup
+      - name: Run Tests
+        run: mix test
 
       - name: Report Status
         if: always()

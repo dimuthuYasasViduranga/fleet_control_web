@@ -40,8 +40,7 @@ defmodule Dispatch.Location do
   def polygon_to_string(%Polygon{coordinates: coords}) do
     coords
     |> List.first()
-    |> Enum.map(fn {lat, lng} -> "#{lat},#{lng}" end)
-    |> Enum.join("|")
+    |> Enum.map_join("|", fn {lat, lng} -> "#{lat},#{lng}" end)
   end
 
   @spec string_to_polygon(String.t()) :: Polygon.t()
