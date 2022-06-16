@@ -35,7 +35,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
     result
   end
 
-
   setup do
     group_map =
       Repo.all(TimeCodeGroup)

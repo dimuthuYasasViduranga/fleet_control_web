@@ -921,7 +921,8 @@ defmodule Dispatch.TimeAllocationAgentUpdateTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, [deleted], completed, new_active} = update_all_with_logs([Map.put(initial, :deleted, true)])
+      {:ok, [deleted], completed, new_active} =
+        update_all_with_logs([Map.put(initial, :deleted, true)])
 
       error =
         update_all_with_logs([

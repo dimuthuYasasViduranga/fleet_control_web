@@ -43,8 +43,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
       end)
       |> Enum.reject(&(&1[:id] == nil && &1[:deleted] == true))
 
-    validate(updates, state)
-    |> case do
+    case validate(updates) do
       {:ok, []} ->
         {{:ok, [], [], nil}, state}
 
@@ -84,7 +83,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     end
   end
 
-  defp validate(updates, state) do
+  defp validate(updates) do
     now = DHelper.naive_timestamp()
     max_future_timestamp = NaiveDateTime.add(now, TimeAllocation.max_future_insert())
 
