@@ -18,7 +18,7 @@ defmodule TrackSub.Rest do
     end
   end
 
-  @spec fetch_status(map) :: {:ok, any} | {:error, %HTTPoison.Response{}}
+  @spec fetch_status(map) :: {:ok, any} | {:error, %HTTPoison.Response.t()}
   def fetch_status(track), do: GPSGateRest.http_get("users/#{track.user_id}/status")
 
   defp extract_track_data(raw) do
@@ -74,7 +74,7 @@ defmodule TrackSub do
             |> Enum.map(fn track ->
               Task.async(fn -> handle_track(track, state) end)
             end)
-            |> Enum.map(&Task.await(&1, 20_000))
+            |> Enum.each(&Task.await(&1, 20_000))
 
           {:error, response} ->
             info = safe_response(response)

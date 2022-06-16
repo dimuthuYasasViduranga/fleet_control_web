@@ -51,12 +51,13 @@ defmodule Dispatch.RoutingAgent.Validation do
   end
 
   defp first_error(list, callback) do
-    Enum.reduce_while(list, nil, fn e, _acc ->
-      case callback.(e) do
-        :ok -> {:cont, nil}
-        error -> {:halt, error}
-      end
-    end)
+    # TODO is this code useful?
+    # Enum.reduce_while(list, nil, fn e, _acc ->
+    #   case callback.(e) do
+    #     :ok -> {:cont, nil}
+    #     error -> {:halt, error}
+    #   end
+    # end)
 
     nil
   end
@@ -120,7 +121,7 @@ defmodule Dispatch.RoutingAgent.Validation do
     all_asset_type_ids = Enum.flat_map(state.restriction_groups, & &1.asset_type_ids)
 
     cond do
-      length(state.restriction_groups) == 0 ->
+      state.restriction_groups == [] ->
         {:error, :no_restriction_groups}
 
       !is_nil(invalid_group_reason) ->

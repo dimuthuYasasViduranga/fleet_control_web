@@ -411,16 +411,15 @@ defmodule DispatchWeb.Broadcast do
   end
 
   defp rpc(node_name, module, function, args) do
-    with [node | _] <- get_node(node_name) do
-      :rpc.call(node, module, function, args)
-    else
-      [] -> {:error, "unable to access #{node_name}"}
-    end
-  end
-
-  defp get_node(node_name) do
     Node.list()
     |> Enum.filter(&String.starts_with?(Atom.to_string(&1), node_name))
+    |> case do
+      [node | _] ->
+        :rpc.call(node, module, function, args)
+
+      [] ->
+        {:error, "unable to access #{node_name}"}
+    end
   end
 
   def send_activity(identifier, source, activity_type) do

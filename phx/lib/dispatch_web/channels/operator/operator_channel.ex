@@ -300,7 +300,7 @@ defmodule DispatchWeb.OperatorChannel do
     end)
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
-    |> Enum.map(&Broadcast.send_engine_hours_to(%{asset_id: &1}))
+    |> Enum.each(&Broadcast.send_engine_hours_to(%{asset_id: &1}))
 
     Broadcast.send_engine_hours_to_dispatcher()
 
@@ -311,7 +311,7 @@ defmodule DispatchWeb.OperatorChannel do
     allocations
     |> Enum.map(&Helper.to_atom_map!/1)
     |> Enum.group_by(& &1.asset_id)
-    |> Enum.map(fn {asset_id, allocs} ->
+    |> Enum.each(fn {asset_id, allocs} ->
       allocs
       |> Enum.map(&Map.put(&1, :created_by_operator, true))
       |> TimeAllocationAgent.update_all()
