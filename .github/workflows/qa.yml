@@ -56,7 +56,7 @@ jobs:
       - name: Check format
         run: mix format --check-formatted
       - name: Check coding standards
-        run: mix credo
+        run: mix credo -i refactor
       - name: Prepare test database
         run: mix test.setup
       - name: Run Tests
