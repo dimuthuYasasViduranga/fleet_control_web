@@ -14,7 +14,10 @@ defmodule Dispatch.TimeAllocationAgent.Data do
     :deleted,
     :inserted_at,
     :deleted_at,
-    :lock_id
+    :lock_id,
+    :created_by_dispatcher,
+    :created_by_operator,
+    :updated_by_dispatcher
   ]
 
   defmacrop select_data(q) do
