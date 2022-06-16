@@ -57,18 +57,24 @@ defmodule DispatchWeb.MixProject do
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.3", only: [:prod]},
 
       # this overrides a dependency in cluster graph
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "2.0.1"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.0.0"},
       {:syncro, git: "https://github.com/Haultrax/syncro.git", tag: "0.0.1"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
-      {:bureaucrat, "~> 0.2.7", only: :test}
+      {:bureaucrat, "~> 0.2.7", only: :test},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp aliases do
     [
+      check: [
+        "compile --warnings-as-errors --force",
+        "format --check-formatted",
+        "credo"
+      ],
       "test.setup": [
         "ecto.create -r HpsData.Repo --quiet",
         "ecto.migrate",
@@ -95,6 +101,7 @@ defmodule DispatchWeb.MixProject do
 
   defp alias_envs() do
     [
+      check: :test,
       "test.test_seeds": :test,
       "test.setup": :test,
       "test.drop": :test,

@@ -1,0 +1,76 @@
+---
+name: FleetControl QA
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test-elixir:
+    name: Run tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: ./phx
+
+    services:
+      postgres:
+        image: postgres:11
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: "hpssql_dispatch_test",
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    env:
+      MIX_ENV: test
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.HAULTRAX_DEPENDENCY_ACCESS_SSH }}
+      - name: Set up Elixir
+        uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
+        with:
+          elixir-version: '1.13.0'  
+          otp-version: '24.1'  
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - name: Configure Git
+        run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Compile
+        run: mix compile --warnings-as-errors
+      - name: Check format
+        run: mix format --check-formatted
+      - name: Check coding standards
+        run: mix credo
+      - name: Prepare test database
+        run: mix test.setup
+      - name: Run Tests
+        run: mix test
+
+      - name: Report Status
+        if: always()
+        uses: ravsamhq/notify-slack-action@v1
+        with:
+          status: ${{ job.status }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          notification_title: '{workflow} {status_message}'
+          message_format: '{emoji} *{workflow}* {status_message} at <{commit_url}|commit>'
+          footer: '<{repo_url}|{repo}> | <{run_url}|View Run>'
+          notify_when: 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK }}

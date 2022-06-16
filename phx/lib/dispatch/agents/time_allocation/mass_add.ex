@@ -5,18 +5,20 @@ defmodule Dispatch.TimeAllocationAgent.MassAdd do
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.TimeAllocation
 
+  require Logger
+
   @type state :: map()
   @type allocation :: map()
   @type deleted_alloc :: allocation
   @type updated_alloc :: allocation
   @type active_alloc :: allocation
 
-  @spec add(integer, list(integer), state) ::
+  @spec add(integer, list(integer), keyword(), state) ::
           {:ok, list(deleted_alloc), list(updated_alloc), list(active_alloc)} | {:error, term}
-  def add(time_code_id, asset_ids, state) do
+  def add(time_code_id, asset_ids, params, state) do
     timestamp = NaiveDateTime.utc_now()
 
-    {to_delete_ids, new_allocs} = compose_data(state, asset_ids, time_code_id, timestamp)
+    {to_delete_ids, new_allocs} = compose_data(state, asset_ids, time_code_id, params, timestamp)
 
     delete_query = Data.delete_query(to_delete_ids)
 
@@ -41,15 +43,23 @@ defmodule Dispatch.TimeAllocationAgent.MassAdd do
     end
   end
 
-  defp compose_data(state, asset_ids, time_code_id, timestamp) do
-    base = %{
-      asset_id: nil,
-      time_code_id: time_code_id,
-      start_time: timestamp,
-      end_time: nil,
-      inserted_at: timestamp,
-      deleted: false
-    }
+  defp compose_data(state, asset_ids, time_code_id, params, timestamp) do
+    base =
+      Enum.into(
+        params,
+        %{
+          asset_id: nil,
+          time_code_id: time_code_id,
+          start_time: timestamp,
+          end_time: nil,
+          inserted_at: timestamp,
+          deleted: false
+        }
+      )
+
+    unless base[:created_by_dispatcher] || base[:created_by_operator] do
+      Logger.error("Time allocation created without recording it's source")
+    end
 
     new_allocs = Enum.map(asset_ids, &Map.put(base, :asset_id, &1))
 

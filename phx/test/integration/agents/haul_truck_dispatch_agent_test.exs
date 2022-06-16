@@ -57,7 +57,7 @@ defmodule Dispatch.HaulTruckDispatchAgentTest do
   end
 
   test "initially empty" do
-    assert length(HaulTruckDispatchAgent.current()) == 0
+    assert HaulTruckDispatchAgent.current() == []
   end
 
   describe "set/1 -" do

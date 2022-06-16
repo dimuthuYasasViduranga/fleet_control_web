@@ -20,8 +20,6 @@ defmodule Dispatch.TimeCodeAgentText do
     [haul | _] = AssetAgent.get_assets(%{type: "Haul Truck"})
     [excavator | _] = AssetAgent.get_assets(%{type: "Excavator"})
 
-
-
     time_codes = Repo.all(Dispatch.TimeCode)
     dig_ore = Enum.find(time_codes, &(&1.name == "Dig Ore")).id
     damage = Enum.find(time_codes, &(&1.name == "Damage")).id

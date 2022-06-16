@@ -7,6 +7,8 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
 
+  require Logger
+
   @type state :: map
   @type allocation :: map
   @type deleted_alloc :: allocation
@@ -33,6 +35,10 @@ defmodule Dispatch.TimeAllocationAgent.Update do
       updates
       |> Enum.map(&DHelper.to_atom_map!/1)
       |> Enum.map(fn update ->
+        unless update[:created_by_operator] || update[:updated_by_dispatcher] do
+          Logger.error("Time allocation updated without recording the source of the update")
+        end
+
         update
         |> DHelper.to_atom_map!()
         |> Map.update(:start_time, nil, &DHelper.to_naive/1)
@@ -228,7 +234,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     {[commit | resp], state}
   end
 
-  @spec update_agent({:ok, %TimeAllocation{} | map} | term, map) ::
+  @spec update_agent({:ok, TimeAllocation | map} | term, map) ::
           {{:ok, allocation} | term, map}
   def update_agent({:ok, %TimeAllocation{} = alloc}, state) do
     alloc = TimeAllocation.to_map(alloc)
@@ -236,7 +242,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
   end
 
   def update_agent({:ok, %{end_time: nil, deleted: true} = active}, state) do
-    active_id = Map.get(state.active, active.asset_id).id
+    active_id = Map.get(state.active, active.asset_id)[:id]
 
     state =
       if active_id == active.id do

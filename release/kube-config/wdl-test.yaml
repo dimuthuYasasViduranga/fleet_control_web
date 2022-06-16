@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: fleet-control-ui-subdomain
+  name: fleet-control-ui
   namespace: wdl-test
 spec:
   ports:
@@ -31,7 +31,7 @@ spec:
         subdomain: fleet-control-ui
     spec:
       hostname: fleet-control-ui
-      subdomain: fleet-control-ui-subdomain
+      subdomain: fleet-control-ui
       containers:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
@@ -94,7 +94,7 @@ spec:
             - name: RELEASE_DISTRIBUTION
               value: name
             - name: RELEASE_NODE
-              value: fleet-control-ui@fleet-control-ui.fleet-control-ui-subdomain
+              value: fleet-control-ui@fleet-control-ui.fleet-control-ui
             - name: DISPATCH
               value: |
                 [
@@ -105,19 +105,19 @@ spec:
                   ],
                   track_method: :gps_gate,
                   permissions: [
-                    authorized: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
-                    can_dispatch: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
-                    can_edit_devices: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
-                    can_edit_operators: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_lock_time_allocations: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_time_codes: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_messages: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_refresh_agents: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_routing: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"], 
-                    can_edit_pre_starts: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
-                    can_edit_pre_start_tickets: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"],
-                    can_edit_asset_roster: ["c42c1c30-fbed-4846-a522-5b1c2bfbea53"]
+                    authorized: :any,
+                    can_dispatch: :any,
+                    can_edit_devices: :any,
+                    can_edit_operators: :any,
+                    can_edit_time_allocations: :any,
+                    can_lock_time_allocations: :any,
+                    can_edit_time_codes: :any,
+                    can_edit_messages: :any,
+                    can_refresh_agents: :any,
+                    can_edit_routing: :any,
+                    can_edit_pre_starts: :any,
+                    can_edit_pre_start_tickets: :any,
+                    can_edit_asset_roster: :any
                   ],
                   settings: [
                     use_device_gps: false,
@@ -130,23 +130,7 @@ spec:
                     :default => [
                       "/asset_assignment",
                       "/location_assignment",
-                      "/asset_overview",
                       "/mine_map",
-                      "/operators",
-                      "/asset_roster",
-                      "/device_assignment",
-                      "/asset_status",
-                      "/engine_hours",
-                      "/time_allocation",
-                      "/operator_time_allocation",
-                      "/time_allocation_report",
-                      "/pre_start_submissions"
-                    ],
-                    "0a91f791-d521-4ac4-a35e-8cc509c02cb7" => [
-                      "/asset_assignment",
-                      "/location_assignment",
-                      "/mine_map",
-                      "/asset_progress_line",
                       "/operators",
                       "/asset_roster",
                       "/device_assignment",
@@ -157,13 +141,12 @@ spec:
                       "/time_code_editor",
                       "/message_editor",
                       "/engine_hours",
-                      "/debug",
                       "/agents",
                       "/route_map",
                       "/pre_start_editor",
                       "/pre_start_submissions",
                       "/asset_overview"
-                    ]
+                    ],
                   },
                   map_center: %{
                     latitude: -32.969483,

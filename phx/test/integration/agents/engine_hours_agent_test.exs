@@ -98,14 +98,14 @@ defmodule Dispatch.EngineHoursAgentTest do
       actual = EngineHoursAgent.fetch_by_range!(%{start_time: start_time, end_time: end_time})
 
       # return
-      assert length(actual) == 0
+      assert actual == []
 
       # store
       assert EngineHoursAgent.current() == []
       assert EngineHoursAgent.historic() == []
 
       # database
-      assert length(Repo.all(EngineHours)) == 0
+      assert Repo.all(EngineHours) == []
     end
 
     test "includes 1 before, within and after range ", %{asset: asset} do

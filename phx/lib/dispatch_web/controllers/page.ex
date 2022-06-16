@@ -3,7 +3,8 @@ defmodule DispatchWeb.PageController do
 
   use DispatchWeb, :controller
 
-  alias DispatchWeb.{Settings, Authorization, Guardian}
+  alias DispatchWeb.Authorization
+  alias DispatchWeb.Guardian
   alias Dispatch.DispatcherAgent
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()

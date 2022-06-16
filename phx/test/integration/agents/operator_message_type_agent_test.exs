@@ -241,7 +241,7 @@ defmodule Dispatch.OperatorMessageTypeAgentTest do
       {:ok, elements} = OperatorMessageTypeAgent.update_tree(asset_type, [])
 
       # return
-      assert length(elements) == 0
+      assert elements == []
 
       # store
       assert OperatorMessageTypeAgent.tree_elements() == []

@@ -84,6 +84,6 @@ config :slack_logger_backend,
   debounce_seconds: 120,
   deployment_name: deployment_name,
   scrubber: [
-      {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"},
-      {~r/(^\w+\s+\|\s+)/, ""},
-    ]
+    {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"},
+    {~r/(^\w+\s+\|\s+)/, ""}
+  ]
