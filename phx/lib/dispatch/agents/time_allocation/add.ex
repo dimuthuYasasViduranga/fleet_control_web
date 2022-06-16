@@ -88,9 +88,9 @@ defmodule Dispatch.TimeAllocationAgent.Add do
             completed =
               current
               |> Map.put(:end_time, alloc.start_time)
-              |> Helper.create_new_allocation(state.no_task_id)
+              |> create_new_allocation(state.no_task_id)
 
-            new_current = Helper.create_new_allocation(alloc, state.no_task_id)
+            new_current = create_new_allocation(alloc, state.no_task_id)
 
             {resp, state} =
               Multi.new()
@@ -110,9 +110,14 @@ defmodule Dispatch.TimeAllocationAgent.Add do
 
   defp add_completed_allocation(alloc, state) do
     alloc
-    |> Helper.create_new_allocation(state.no_task_id)
+    |> create_new_allocation(state.no_task_id)
     |> Repo.insert()
     |> Update.update_agent(state)
+  end
+
+  def create_new_allocation(params, no_task_id) do
+    %{params | time_code_id: params[:time_code_id] || no_task_id}
+    |> TimeAllocation.new()
   end
 
   defp update_agent_from_commits({:ok, _}, [], state), do: {[], state}
