@@ -6,31 +6,13 @@ fetch_eval = fn env_name ->
   |> elem(0)
 end
 
-maybe_fetch_eval = fn env, default ->
-  case System.fetch_env(env) do
-    {:ok, val} ->
-      val
-      |> Code.eval_string()
-      |> elem(0)
-
-    _ ->
-      default
-  end
-end
-
-random_string = fn size ->
-  size
-  |> :crypto.strong_rand_bytes()
-  |> Base.encode64()
-  |> binary_part(0, size)
-end
-
 dispatch = fetch_eval.("DISPATCH")
 config :dispatch_web, dispatch
 
-# :dispatch secrets
-map_key = System.fetch_env!("MAP_KEY")
-config :dispatch_web, g_map_key: map_key
+config :dispatch_web,
+  g_map_key: System.fetch_env!("MAP_KEY"),
+  map_center: fetch_eval.("MAP_CENTER"),
+  map_tile_endpoint: System.fetch_env!("MAP_TILE_ENDPOINT")
 
 # appsignal
 appsignal_api = System.fetch_env!("APPSIGNAL_API")
@@ -67,11 +49,10 @@ config :dispatch_web, url: url
 
 config :dispatch_web, DispatchWeb.Endpoint,
   url: [host: url],
-  check_origin: [url_base <> ".haultrax.digital", url]
+  check_origin: [url_base <> ".haultrax.digital", url],
+  secret_key_base: System.fetch_env!("COOKIE_SECRET_KEY")
 
-# conditionally set secret_key_base, if desired
-config :dispatch_web, DispatchWeb.Endpoint,
-  secret_key_base: maybe_fetch_eval.("DISPATCH_SECRET_KEY_BASE", random_string.(64))
+config :dispatch_web, DispatchWeb.Guardian, secret_key: System.fetch_env!("GUARDIAN_SECRET_KEY")
 
 # slack error logs
 config :logger, backends: [:console, SlackLoggerBackend.Logger]
@@ -85,5 +66,9 @@ config :slack_logger_backend,
   deployment_name: deployment_name,
   scrubber: [
     {~r/(password|token|secret)(:\s+\")(.+?)(\")/, "\\1\\2--redacted--\\4"},
-    {~r/(^\w+\s+\|\s+)/, ""}
+    {~r/(^\w+\s+\|\s+)/, ""},
+    {~r/\#(PID|Reference)\<(\d|\.)+\>/, "#\\1\<\>"}
+  ],
+  ignore: [
+    "Postgrex.Protocol (#PID<>) disconnected: ** (DBConnection.ConnectionError) ssl recv (idle): closed"
   ]

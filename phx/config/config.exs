@@ -1,34 +1,21 @@
 import Config
 
-config :hps_data, HpsData.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  pool_size: 5,
-  database: "hpssql",
-  username: "postgres",
-  password: "",
-  hostname: "localhost",
-  timeout: 60_000,
-  handshake_timeout: 60_000,
-  queue_target: 60_000,
-  queue_interval: 60_000,
-  connect_timeout: 60_000,
-  parameters: [
-    {:application_name, "fleet-control"}
-  ]
+config :phoenix, :json_library, Jason
 
 config :appsignal, :config,
   opt_app: :dispatch_web,
   name: "fleet-control-test",
-  env: Mix.env()
+  env: Mix.env(),
+  active: false
 
+# General application configuration
 config :dispatch_web,
-  g_map_key: nil,
+  ecto_repos: [HpsData.Repo],
   map_center: %{
     latitude: -32.847896,
     longitude: 116.0596581,
     zoom: 15
   },
-  map_tile_endpoint: nil,
   track_interval: 10_000,
   track_method: :gps_gate,
   settings: [
@@ -39,7 +26,6 @@ config :dispatch_web,
     prompt_pre_starts_on_login: false,
     use_live_queue: false
   ],
-  bypass_auth: false,
   location_update_interval: 3600,
   secondary_types: %{
     "Excavator" => "Dig Unit",
@@ -81,14 +67,26 @@ config :dispatch_web,
     ]
   }
 
+# hpsdata
+config :hps_data, HpsData.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  ssl_opts: [log_level: :error],
+  pool_size: 10,
+  parameters: [
+    {:application_name, "fleet-control"}
+  ],
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+
 # Configures the endpoint
 config :dispatch_web, DispatchWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw",
   render_errors: [view: DispatchWeb.ErrorView, accepts: ~w(json)],
-  pubsub_server: DispatchWeb.PubSub
+  pubsub_server: DispatchWeb.PubSub,
+  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw"
 
-# Configures Elixir's Logger
+# Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id],
@@ -96,20 +94,9 @@ config :logger, :console,
     [application: :gps_gate_rest, level_lower_than: :info]
   ]
 
-# Use Jason for JSON parsing in Phoenix
-config :phoenix, :json_library, Jason
-
 # authentication
-config :azure_ad_openid, AzureADOpenId,
-  tenant: "a8180769-6e40-4a3c-a14a-e1e69ff1da11",
-  client_id: "3a97a4f4-4e3a-4525-9c2a-7c44cbf1d76b"
-
+config :azure_ad_openid, AzureADOpenId, tenant: "a8180769-6e40-4a3c-a14a-e1e69ff1da11"
 config :dispatch_web, DispatchWeb.Guardian, issuer: "dispatch_web"
-
-config :joken,
-  default_signer: "a;lwnsev;lahselkansekbjbklsdfa;khwes"
-
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
+config :joken, default_signer: "a;lwnsev;lahselkansekbjbklsdfa;khwes"
 
 import_config "#{Mix.env()}.exs"
