@@ -8,7 +8,11 @@ end
 
 dispatch = fetch_eval.("DISPATCH")
 config :dispatch_web, dispatch
-config :dispatch_web, g_map_key: System.fetch_env!("MAP_KEY")
+
+config :dispatch_web,
+  g_map_key: System.fetch_env!("MAP_KEY"),
+  map_center: fetch_eval.("MAP_CENTER"),
+  map_tile_endpoint: System.fetch_env!("MAP_TILE_ENDPOINT")
 
 # appsignal
 appsignal_api = System.fetch_env!("APPSIGNAL_API")

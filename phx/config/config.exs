@@ -77,7 +77,7 @@ config :hps_data, HpsData.Repo,
   ],
   username: "postgres",
   password: "postgres",
-  hostname: "localhost",
+  hostname: "localhost"
 
 # Configures the endpoint
 config :dispatch_web, DispatchWeb.Endpoint,

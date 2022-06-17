@@ -36,63 +36,19 @@ spec:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
           imagePullPolicy: "Always"
+          envFrom:
+          - configMapRef:
+              name: configmap
+          - secretRef:
+              name: secrets
+          envFrom:
+          - configMapRef:
+              name: configmap
+          - secretRef:
+              name: secrets
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-adani-prod
-            - name: APPSIGNAL_APP_ENV
-              value: prod
-            - name: APPSIGNAL_API
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: APPSIGNAL_PUSH_API_KEY
-            - name: SLACK_LOGGER_WEBHOOK_URL 
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: SLACK_LOGGER_WEBHOOK_URL 
-            - name: AZURE_ACTIVE_DIRECTORY
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: AZURE_ACTIVE_DIRECTORY
-            - name: MAP_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: MAP_KEY
-            - name: HPSSQL_CONNECTION
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: HPSSQL_CONNECTION
-            - name: HPSSQL_ENCRYPTION_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: HPSSQL_ENCRYPTION_KEY
-            - name: GPS_GATE_REST
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: GPS_GATE_REST
-            - name: DISPATCH_JOKEN_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: DISPATCH_JOKEN_SECRET
-            - name: SLACK_WEBHOOK
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: SLACK_WEBHOOK
-            - name: RELEASE_COOKIE
-              valueFrom:
-                secretKeyRef:
-                  name: secrets
-                  key: RELEASE_COOKIE
-            - name: RELEASE_DISTRIBUTION
-              value: name
             - name: RELEASE_NODE
               value: fleet-control-ui@fleet-control-ui.fleet-control-ui
             - name: DISPATCH
@@ -163,12 +119,4 @@ spec:
                       "/asset_overview"
                     ],
                   },
-                  map_center: %{
-                    latitude: -22.0293,
-                    longitude: 146.3836,
-                    zoom: 14
-                  },
-                  map_tile_endpoint: "https://hxtest.blob.core.windows.net/adani-map-tiles"
                 ]
-            - name: URL
-              value: https://adaniau.haultrax.digital
