@@ -54,7 +54,7 @@ defmodule DispatchWeb.MixProject do
       {:eastar, "~> 0.5"},
       {:azure_ad_openid, "~> 0.3.2"},
       {:slack_logger_backend,
-       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.3", only: [:prod]},
+       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.4", only: [:prod]},
 
       # this overrides a dependency in cluster graph
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.0.0"},
