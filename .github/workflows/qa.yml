@@ -51,6 +51,8 @@ jobs:
         run: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
       - name: Install dependencies
         run: mix deps.get
+
+      # checks
       - name: Compile
         run: mix compile --warnings-as-errors
       - name: Check format
