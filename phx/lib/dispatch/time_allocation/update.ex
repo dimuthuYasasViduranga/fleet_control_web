@@ -10,24 +10,6 @@ defmodule Dispatch.TimeAllocation.Update do
 
   require Logger
 
-  @type state :: map
-  @type allocation :: map
-  @type deleted_alloc :: allocation
-  @type updated_alloc :: allocation
-  @type new_active_alloc :: allocation
-
-  @spec update_all(list(map), state) ::
-          {{:ok, list(deleted_alloc), list(updated_alloc), new_active_alloc | nil}, state}
-          | {{:error,
-              :invalid_id
-              | :end_before_start
-              | :cannot_remove_end_time
-              | :cannot_change_asset
-              | :multiple_assets
-              | :missing_keys
-              | :cannot_change_locked
-              | :cannot_set_locked
-              | term}, state}
   def update_all(updates, state) when is_list(updates) do
     updates =
       updates
@@ -249,8 +231,6 @@ defmodule Dispatch.TimeAllocation.Update do
     {[commit | resp], state}
   end
 
-  @spec update_agent({:ok, TimeAllocation | map} | term, map) ::
-          {{:ok, allocation} | term, map}
   def update_agent({:ok, %TimeAllocation{} = alloc}, state) do
     alloc = TimeAllocation.to_map(alloc)
     update_agent({:ok, alloc}, state)
@@ -285,7 +265,7 @@ defmodule Dispatch.TimeAllocation.Update do
             :historic,
             completed,
             &(&1.id == completed.id),
-            EctoQueries.culling_opts()
+            culling_opts()
           )
 
         _ ->
@@ -294,6 +274,13 @@ defmodule Dispatch.TimeAllocation.Update do
       end
 
     {{:ok, completed}, state}
+  end
+
+  defp culling_opts() do
+    %{
+      time_key: :end_time,
+      max_age: 24 * 60 * 60
+    }
   end
 
   def update_agent(error, state), do: {error, state}

@@ -13,17 +13,18 @@ defmodule Dispatch.TimeAllocation.Agent do
   alias Dispatch.TimeAllocation.Lock
   alias Dispatch.TimeAllocation.Unlock
 
+  @max_age 24 * 60 * 60
+
   use Agent
 
   def start_link(opts),
     do:
       AgentHelper.start_link(fn ->
-        EctoQueries.init(opts[:timestamp], EctoQueries.culling_opts().max_age)
+        EctoQueries.init(opts[:timestamp], @max_age)
       end)
 
   def refresh!(timestamp \\ NaiveDateTime.utc_now()),
-    do:
-      AgentHelper.set(__MODULE__, EctoQueries.init(timestamp, EctoQueries.culling_opts().max_age))
+    do: AgentHelper.set(__MODULE__, EctoQueries.init(timestamp, @max_age))
 
   def active(), do: Map.values(Agent.get(__MODULE__, & &1.active))
 
@@ -68,7 +69,7 @@ defmodule Dispatch.TimeAllocation.Agent do
             state.historic
             |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
             |> Enum.concat(completed_allocs)
-            |> Culling.cull(EctoQueries.culling_opts())
+            |> cull()
 
           active_changes =
             active_allocs
@@ -103,7 +104,7 @@ defmodule Dispatch.TimeAllocation.Agent do
             state.historic
             |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
             |> Enum.concat(unlocked_allocs)
-            |> Culling.cull(EctoQueries.culling_opts())
+            |> cull()
 
           state = Map.put(state, :historic, historic)
           {{:ok, data}, state}
@@ -112,5 +113,15 @@ defmodule Dispatch.TimeAllocation.Agent do
           {error, state}
       end
     end)
+  end
+
+  def cull(list) do
+    now = NaiveDateTime.utc_now()
+    min_timestamp = NaiveDateTime.add(now, -@max_age, :second)
+
+    list
+    |> Enum.filter(& &1.end_time)
+    |> Enum.sort_by(& &1.end_time, {:desc, NaiveDateTime})
+    |> Enum.take_while(&(NaiveDateTime.compare(&1.end_time, min_timestamp) != :lt))
   end
 end

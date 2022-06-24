@@ -27,13 +27,6 @@ defmodule Dispatch.TimeAllocation.EctoQueries do
     end
   end
 
-  def culling_opts() do
-    %{
-      time_key: :end_time,
-      max_age: 24 * 60 * 60
-    }
-  end
-
   @doc """
   Fetch all elements that are covered by this time range
   This includes elements that completely cover the given range
