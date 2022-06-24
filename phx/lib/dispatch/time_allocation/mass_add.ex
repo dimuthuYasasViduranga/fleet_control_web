@@ -1,5 +1,5 @@
 defmodule Dispatch.TimeAllocation.MassAdd do
-  alias Dispatch.TimeAllocation.Data
+  alias Dispatch.TimeAllocation.EctoQueries
   alias Dispatch.TimeAllocation.Update
 
   alias Ecto.Multi
@@ -12,7 +12,7 @@ defmodule Dispatch.TimeAllocation.MassAdd do
 
     {to_delete_ids, new_allocs} = compose_data(state, asset_ids, time_code_id, params, now)
 
-    delete_query = Data.delete_query(to_delete_ids)
+    delete_query = EctoQueries.delete_query(to_delete_ids)
 
     delete_updates = [deleted: true, deleted_at: now]
 

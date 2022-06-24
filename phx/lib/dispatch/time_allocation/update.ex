@@ -1,7 +1,7 @@
 defmodule Dispatch.TimeAllocation.Update do
   alias Dispatch.Helper, as: DHelper
   alias Dispatch.AgentHelper
-  alias Dispatch.TimeAllocation.Data
+  alias Dispatch.TimeAllocation.EctoQueries
   alias Dispatch.TimeAllocation.Helper
   alias Ecto.Multi
 
@@ -57,7 +57,7 @@ defmodule Dispatch.TimeAllocation.Update do
         now = DHelper.naive_timestamp()
         new_allocs = Enum.map(new_allocs, &Map.put(&1, :inserted_at, now))
 
-        delete_query = Data.delete_query(ids_to_delete)
+        delete_query = EctoQueries.delete_query(ids_to_delete)
 
         delete_updates = [deleted: true, deleted_at: DHelper.naive_timestamp()]
 
@@ -93,7 +93,7 @@ defmodule Dispatch.TimeAllocation.Update do
       |> Enum.map(& &1[:id])
       |> Enum.reject(&is_nil/1)
 
-    allocs_affected = Data.get_allocations_to_update(ids)
+    allocs_affected = EctoQueries.get_allocations_to_update(ids)
 
     asset_ids =
       (updates ++ allocs_affected)
@@ -137,7 +137,7 @@ defmodule Dispatch.TimeAllocation.Update do
   defp is_invalid_allocation?(alloc, affected_allocs, max_timestamp) do
     affected_alloc = Enum.find(affected_allocs, &(&1.id == alloc[:id]))
 
-    !Helper.has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) ||
+    !has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) ||
       alloc.start_time == nil ||
       Helper.naive_compare?(alloc.start_time, [:gt], alloc.end_time) ||
       Helper.naive_compare?(alloc.start_time, [:eq, :gt], max_timestamp) ||
@@ -285,7 +285,7 @@ defmodule Dispatch.TimeAllocation.Update do
             :historic,
             completed,
             &(&1.id == completed.id),
-            Data.culling_opts()
+            EctoQueries.culling_opts()
           )
 
         _ ->
