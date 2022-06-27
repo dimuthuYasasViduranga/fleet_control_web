@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocation.UnlockTest do
+defmodule Dispatch.TimeAllocationAgent.UnlockTest do
   use DispatchWeb.RepoCase
   @moduletag :agent
 

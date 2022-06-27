@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocation.LockTest do
+defmodule Dispatch.TimeAllocationAgent.LockTest do
   use DispatchWeb.RepoCase
   @moduletag :agent
 
