@@ -3,7 +3,7 @@ import Config
 config :ex_unit,
   assert_receive_timeout: 500
 
-config :dispatch_web, FleetControlWeb.Endpoint,
+config :fleet_control_web, FleetControlWeb.Endpoint,
   http: [port: 4002],
   server: false
 

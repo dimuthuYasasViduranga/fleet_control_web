@@ -7,9 +7,9 @@ fetch_eval = fn env_name ->
 end
 
 dispatch = fetch_eval.("DISPATCH")
-config :dispatch_web, dispatch
+config :fleet_control_web, dispatch
 
-config :dispatch_web,
+config :fleet_control_web,
   g_map_key: System.fetch_env!("MAP_KEY"),
   map_center: fetch_eval.("MAP_CENTER"),
   map_tile_endpoint: System.fetch_env!("MAP_TILE_ENDPOINT")
@@ -45,14 +45,14 @@ url_base =
   |> String.split(".")
   |> List.first()
 
-config :dispatch_web, url: url
+config :fleet_control_web, url: url
 
-config :dispatch_web, FleetControlWeb.Endpoint,
+config :fleet_control_web, FleetControlWeb.Endpoint,
   url: [host: url],
   check_origin: [url_base <> ".haultrax.digital", url],
   secret_key_base: System.fetch_env!("COOKIE_SECRET_KEY")
 
-config :dispatch_web, FleetControlWeb.Guardian, secret_key: System.fetch_env!("GUARDIAN_SECRET_KEY")
+config :fleet_control_web, FleetControlWeb.Guardian, secret_key: System.fetch_env!("GUARDIAN_SECRET_KEY")
 
 # slack error logs
 config :logger, backends: [:console, SlackLoggerBackend.Logger]

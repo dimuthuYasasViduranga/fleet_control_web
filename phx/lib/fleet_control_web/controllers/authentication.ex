@@ -23,7 +23,7 @@ defmodule FleetControlWeb.AuthController do
   """
   @spec login(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def login(conn, _) do
-    base_uri = Application.get_env(:dispatch_web, :url)
+    base_uri = Application.get_env(:fleet_control_web, :url)
     redirect_uri = "#{base_uri}/auth/callback"
     auth_url = AzureADOpenId.authorize_url!(redirect_uri) <> "&state=" <> @path
     redirect(conn, external: auth_url)
@@ -59,7 +59,7 @@ defmodule FleetControlWeb.AuthController do
   @spec logout(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def logout(conn, _) do
     logout_url =
-      Application.get_env(:dispatch_web, :url)
+      Application.get_env(:fleet_control_web, :url)
       |> get_logout_redirect()
 
     conn

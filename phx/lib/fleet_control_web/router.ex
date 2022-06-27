@@ -10,7 +10,7 @@ defmodule FleetControlWeb.Router do
   end
 
   pipeline :authorized do
-    case Application.get_env(:dispatch_web, :bypass_auth, false) do
+    case Application.get_env(:fleet_control_web, :bypass_auth, false) do
       true ->
         plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions, full_access: true
 

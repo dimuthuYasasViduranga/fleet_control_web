@@ -32,7 +32,7 @@ defmodule FleetControl.AssetAgent do
   end
 
   defp get_secondary_type(type) do
-    Application.get_env(:dispatch_web, :secondary_types, %{})
+    Application.get_env(:fleet_control_web, :secondary_types, %{})
     |> Map.get(type)
   end
 

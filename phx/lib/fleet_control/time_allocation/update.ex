@@ -265,7 +265,7 @@ defmodule FleetControl.TimeAllocation.Update do
             :historic,
             completed,
             &(&1.id == completed.id),
-            culling_opts()
+            %{time_key: :end_time, max_age: 24 * 60 * 60}
           )
 
         _ ->
@@ -274,13 +274,6 @@ defmodule FleetControl.TimeAllocation.Update do
       end
 
     {{:ok, completed}, state}
-  end
-
-  defp culling_opts() do
-    %{
-      time_key: :end_time,
-      max_age: 24 * 60 * 60
-    }
   end
 
   def update_agent(error, state), do: {error, state}

@@ -1,7 +1,7 @@
 defmodule FleetControlWeb.Authorization.Whitelist do
   alias FleetControlWeb.Authorization.AzureGraph
 
-  defp whitelist_config(), do: Application.get_env(:dispatch_web, :route_white_list, %{})
+  defp whitelist_config(), do: Application.get_env(:fleet_control_web, :route_white_list, %{})
 
   defp default_whitelist(), do: whitelist_config()[:default] || []
 

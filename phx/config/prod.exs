@@ -1,6 +1,6 @@
 import Config
 
-config :dispatch_web, FleetControlWeb.Endpoint,
+config :fleet_control_web, FleetControlWeb.Endpoint,
   load_from_system_env: true,
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,

@@ -40,7 +40,7 @@ defmodule FleetControlWeb.Timers do
     :ok
   end
 
-  defp get_interval(key, fallback), do: Application.get_env(:dispatch_web, key, fallback)
+  defp get_interval(key, fallback), do: Application.get_env(:fleet_control_web, key, fallback)
 
   defp start_interval!(interval, module, func, args) do
     {:ok, {:interval, _}} = :timer.apply_interval(interval, module, func, args)
@@ -55,7 +55,7 @@ defmodule FleetControlWeb.Timers do
   end
 
   defp start_track_interval!(interval) do
-    start_interval!(interval, Dispatch.Tracks, :update_track_agent, [])
+    start_interval!(interval, FleetControl.Tracks, :update_track_agent, [])
   end
 
   defp start_track_broadcast_interval!(interval) do

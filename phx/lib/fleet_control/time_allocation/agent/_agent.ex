@@ -4,7 +4,6 @@ defmodule FleetControl.TimeAllocation.Agent do
   Always holds the active allocation for each asset
   """
 
-  alias FleetControl.Culling
   alias FleetControl.AgentHelper
   alias FleetControl.TimeAllocation.EctoQueries
   alias FleetControl.TimeAllocation.Add

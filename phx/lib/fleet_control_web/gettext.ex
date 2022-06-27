@@ -20,5 +20,5 @@ defmodule FleetControlWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :dispatch_web
+  use Gettext, otp_app: :fleet_control_web
 end

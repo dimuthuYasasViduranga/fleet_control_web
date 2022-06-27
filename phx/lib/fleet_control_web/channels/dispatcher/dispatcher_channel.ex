@@ -544,7 +544,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
       shift ->
         range = %{start_time: shift.shift_start, end_time: shift.shift_end}
-        allocations = Dispatch.TimeAllocationAgent.Data.fetch_by_range!(range)
+        allocations = FleetControl.TimeAllocationAgent.Data.fetch_by_range!(range)
 
         device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 

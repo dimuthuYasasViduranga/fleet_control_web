@@ -51,7 +51,7 @@ defmodule TrackSub do
       defp safe_response(error), do: error
 
       defp get_track_method() do
-        Application.get_env(:dispatch_web, :track_method, :gps_gate)
+        Application.get_env(:fleet_control_web, :track_method, :gps_gate)
       end
 
       defp get_tracks(:replicated), do: get_replicated_tracks()

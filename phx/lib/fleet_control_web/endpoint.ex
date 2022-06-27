@@ -1,5 +1,5 @@
 defmodule FleetControlWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :dispatch_web
+  use Phoenix.Endpoint, otp_app: :fleet_control_web
   use Appsignal.Phoenix
 
   mix_env =
@@ -33,7 +33,7 @@ defmodule FleetControlWeb.Endpoint do
 
   plug(Plug.Static,
     at: "/fleet-control",
-    from: {:dispatch_web, "priv/static/main"},
+    from: {:fleet_control_web, "priv/static/main"},
     gzip: false,
     only: ~w(css fonts images index.html js media favicon.ico robots.txt),
     headers: secure_headers

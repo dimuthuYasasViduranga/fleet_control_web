@@ -5,6 +5,6 @@ defmodule FleetControlWeb.Presence do
   """
 
   use Phoenix.Presence,
-    otp_app: :dispatch_web,
+    otp_app: :fleet_control_web,
     pubsub_server: FleetControlWeb.PubSub
 end
