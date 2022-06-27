@@ -15,7 +15,8 @@ defmodule FleetControl.MapTileAgent do
 
   require Logger
 
-  defp get_map_tile_endpoint(), do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
+  defp get_map_tile_endpoint(),
+    do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
 
   def start_link(_opts), do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
 

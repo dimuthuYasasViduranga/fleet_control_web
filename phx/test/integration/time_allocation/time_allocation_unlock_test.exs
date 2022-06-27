@@ -98,7 +98,9 @@ defmodule FleetControl.TimeAllocation.UnlockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, lock_data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, lock_data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       [locked] = lock_data.new
 
       {:ok, unlocked_data} = FleetControl.TimeAllocation.Agent.unlock([locked.id])
@@ -156,7 +158,8 @@ defmodule FleetControl.TimeAllocation.UnlockTest do
         to_alloc(asset.id, ready, b_start, b_end)
         |> add_with_logs()
 
-      {:ok, lock_data} = FleetControl.TimeAllocation.Agent.lock([initial_a.id], cal_id, context.dispatcher)
+      {:ok, lock_data} =
+        FleetControl.TimeAllocation.Agent.lock([initial_a.id], cal_id, context.dispatcher)
 
       [locked_a] = lock_data.new
 

@@ -1006,7 +1006,9 @@ defmodule FleetControl.FleetControl.TimeAllocation.AgentUpdateTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, lock_data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, lock_data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       [locked] = lock_data.new
       [deleted_id] = lock_data.deleted_ids
 

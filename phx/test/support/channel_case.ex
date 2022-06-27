@@ -30,7 +30,10 @@ defmodule FleetControlWeb.ChannelCase do
   end
 
   setup_all _ do
-    start_supervised!({Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]})
+    start_supervised!(
+      {Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]}
+    )
+
     start_supervised!(FleetControlWeb.Endpoint, [])
     start_supervised!(FleetControlWeb.Presence, [])
 

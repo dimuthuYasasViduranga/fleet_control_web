@@ -98,7 +98,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -135,7 +137,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -172,7 +176,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -208,7 +214,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, split] = data.new
 
@@ -250,7 +258,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, split] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -292,7 +302,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [split_before, locked, split_after] =
@@ -342,7 +354,8 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -360,7 +373,8 @@ defmodule FleetControl.TimeAllocation.LockTest do
     end
 
     test "valid (no elements)", context do
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([], context.calendar.id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([], context.calendar.id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -393,7 +407,11 @@ defmodule FleetControl.TimeAllocation.LockTest do
         |> add_with_logs()
 
       {:ok, data} =
-        FleetControl.TimeAllocation.Agent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
+        FleetControl.TimeAllocation.Agent.lock(
+          [initial_a.id, initial_b.id],
+          cal_id,
+          context.dispatcher
+        )
 
       lock = data.lock
       [locked_a, locked_b] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
@@ -427,7 +445,8 @@ defmodule FleetControl.TimeAllocation.LockTest do
     end
 
     test "valid (no allocs found for ids)", context do
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([-1], context.calendar.id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([-1], context.calendar.id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -475,7 +494,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -515,7 +536,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -554,7 +577,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [before, locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -601,7 +626,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [locked, alloc_after, active] =
@@ -648,7 +675,9 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [alloc_before, locked, alloc_after, active] =
@@ -701,7 +730,8 @@ defmodule FleetControl.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -733,7 +763,11 @@ defmodule FleetControl.TimeAllocation.LockTest do
         |> add_with_logs()
 
       {:ok, data} =
-        FleetControl.TimeAllocation.Agent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
+        FleetControl.TimeAllocation.Agent.lock(
+          [initial_a.id, initial_b.id],
+          cal_id,
+          context.dispatcher
+        )
 
       lock = data.lock
 
@@ -772,7 +806,10 @@ defmodule FleetControl.TimeAllocation.LockTest do
       # Store
       assert FleetControl.TimeAllocation.Agent.active() == [active_a, active_b]
 
-      assert Enum.sort_by(FleetControl.TimeAllocation.Agent.historic(), & &1.asset_id) == [locked_a, locked_b]
+      assert Enum.sort_by(FleetControl.TimeAllocation.Agent.historic(), & &1.asset_id) == [
+               locked_a,
+               locked_b
+             ]
 
       # Database
       assert_db_contains(TimeAllocation, [locked_a, locked_b, active_a, active_b])
