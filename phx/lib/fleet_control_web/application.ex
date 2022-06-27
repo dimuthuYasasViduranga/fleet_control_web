@@ -39,7 +39,7 @@ defmodule FleetControlWeb.Application do
       FleetControl.LiveQueueAgent,
 
       # agents that call other agents
-      FleetControl.TimeAllocationAgent,
+      FleetControl.TimeAllocation.Agent,
 
       # track subscriber
       FleetControl.TrackAgent,

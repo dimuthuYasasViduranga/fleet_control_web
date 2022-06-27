@@ -37,7 +37,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     EngineHoursAgent,
     AssetRadioAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
+    TimeAllocation,
     CalendarAgent,
     HaulAgent,
     TrackAgent,
@@ -98,8 +98,8 @@ defmodule FleetControlWeb.DispatcherChannel do
       },
       radio_numbers: AssetRadioAgent.all(),
       time_allocations: %{
-        active: TimeAllocationAgent.active(),
-        historic: TimeAllocationAgent.historic()
+        active: TimeAllocation.Agent.active(),
+        historic: TimeAllocation.Agent.historic()
       },
       fleetops_data: HaulAgent.get(),
       pre_start_forms: PreStartAgent.all(),
@@ -446,7 +446,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
     allocation = Map.put(allocation, :created_by_dispatcher, true)
 
-    case TimeAllocationAgent.add(allocation) do
+    case TimeAllocation.Agent.add(allocation) do
       {:ok, _} ->
         Broadcast.send_active_allocation_to(%{asset_id: asset_id})
         Broadcast.send_allocations_to_dispatcher()
@@ -465,7 +465,7 @@ defmodule FleetControlWeb.DispatcherChannel do
       ) do
     asset_ids = Enum.uniq(asset_ids)
 
-    case TimeAllocationAgent.mass_add(time_code_id, asset_ids, created_by_dispatcher: true) do
+    case TimeAllocation.Agent.mass_add(time_code_id, asset_ids, created_by_dispatcher: true) do
       {:ok, _, _, _} ->
         Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
         Broadcast.send_allocations_to_dispatcher(:no_alert)
@@ -481,7 +481,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   def handle_in("edit time allocations", allocations, socket) do
     allocations = Enum.map(allocations, &Map.put(&1, :updated_by_dispatcher, true))
 
-    TimeAllocationAgent.update_all(allocations)
+    TimeAllocation.Agent.update_all(allocations)
     |> case do
       {:error, reason} ->
         {:reply, to_error(reason), socket}
@@ -502,7 +502,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
-    case TimeAllocationAgent.lock(ids, cal_id, dispatcher_id) do
+    case TimeAllocation.Agent.lock(ids, cal_id, dispatcher_id) do
       {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
@@ -524,7 +524,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   @decorate authorized(:can_lock_time_allocations)
   def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
-    case TimeAllocationAgent.unlock(ids) do
+    case TimeAllocation.Agent.unlock(ids) do
       {:ok, %{new: []}} ->
         {:reply, :ok, socket}
 
@@ -544,7 +544,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
       shift ->
         range = %{start_time: shift.shift_start, end_time: shift.shift_end}
-        allocations = FleetControl.TimeAllocationAgent.Data.fetch_by_range!(range)
+        allocations = FleetControl.TimeAllocation.EctoQueries.fetch_by_range!(range)
 
         device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
@@ -698,7 +698,7 @@ defmodule FleetControlWeb.DispatcherChannel do
       created_by_dispatcher: true,
       deleted: false
     }
-    |> TimeAllocationAgent.add()
+    |> TimeAllocation.Agent.add()
   end
 
   defp set_assigned_asset(device_id, new_asset_id) do

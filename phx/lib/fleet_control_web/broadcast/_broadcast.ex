@@ -30,7 +30,7 @@ defmodule FleetControlWeb.Broadcast do
     EngineHoursAgent,
     AssetRadioAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
+    TimeAllocation,
     LocationAgent,
     CalendarAgent,
     HaulAgent,
@@ -351,7 +351,7 @@ defmodule FleetControlWeb.Broadcast do
   def send_active_allocation_to(identifier) do
     case get_assignment(identifier) do
       {device, assignment, _type} ->
-        allocation = TimeAllocationAgent.get_active(%{asset_id: assignment.asset_id})
+        allocation = TimeAllocation.Agent.get_active(%{asset_id: assignment.asset_id})
 
         Endpoint.broadcast("#{@operators}:#{device.uuid}", "set allocation", %{
           allocation: allocation
@@ -364,8 +364,8 @@ defmodule FleetControlWeb.Broadcast do
 
   def send_allocations_to_dispatcher(action \\ :alert) do
     payload = %{
-      historic: TimeAllocationAgent.historic(),
-      active: TimeAllocationAgent.active(),
+      historic: TimeAllocation.Agent.historic(),
+      active: TimeAllocation.Agent.active(),
       action: action
     }
 
