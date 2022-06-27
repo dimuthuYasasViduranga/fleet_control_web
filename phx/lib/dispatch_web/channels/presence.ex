@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Presence do
+defmodule FleetControlWeb.Presence do
   @moduledoc """
   See the documentation at:
   https://hexdocs.pm/phoenix/Phoenix.Presence.html
@@ -6,5 +6,5 @@ defmodule DispatchWeb.Presence do
 
   use Phoenix.Presence,
     otp_app: :dispatch_web,
-    pubsub_server: DispatchWeb.PubSub
+    pubsub_server: FleetControlWeb.PubSub
 end

@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Endpoint do
+defmodule FleetControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :dispatch_web
   use Appsignal.Phoenix
 
@@ -16,17 +16,17 @@ defmodule DispatchWeb.Endpoint do
     "x-xss-protection" => "1; mode=block"
   }
 
-  socket("/fleet-control/operator-socket", DispatchWeb.OperatorSocket,
+  socket("/fleet-control/operator-socket", FleetControlWeb.OperatorSocket,
     websocket: true,
     longpoll: false
   )
 
-  socket("/fleet-control/dispatcher-socket", DispatchWeb.DispatcherSocket,
+  socket("/fleet-control/dispatcher-socket", FleetControlWeb.DispatcherSocket,
     websocket: true,
     longpoll: false
   )
 
-  socket("/fleet-control/device-auth-socket", DispatchWeb.DeviceAuthSocket,
+  socket("/fleet-control/device-auth-socket", FleetControlWeb.DeviceAuthSocket,
     websocket: true,
     longpoll: false
   )
@@ -92,5 +92,5 @@ defmodule DispatchWeb.Endpoint do
     end)
   end
 
-  plug(DispatchWeb.Router)
+  plug(FleetControlWeb.Router)
 end

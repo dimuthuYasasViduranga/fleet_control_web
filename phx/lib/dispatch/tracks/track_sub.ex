@@ -2,7 +2,7 @@ defmodule TrackSub do
   @moduledoc """
   This module is TEMPORARY. Pending deployment into kubernetes to access track data broadcasts
   """
-  alias Dispatch.AssetAgent
+  alias FleetControl.AssetAgent
   alias HpsData.Repo
 
   defmacro __using__(_opts) do
@@ -159,12 +159,12 @@ defmodule TrackSub do
   end
 end
 
-defmodule Dispatch.TrackSub do
+defmodule FleetControl.TrackSub do
   use TrackSub
-  alias DispatchWeb.Broadcast
+  alias FleetControlWeb.Broadcast
 
-  alias Dispatch.Tracks
-  alias Dispatch.TrackAgent
+  alias FleetControl.Tracks
+  alias FleetControl.TrackAgent
 
   def handle_live(_asset_id, track, _state) do
     track

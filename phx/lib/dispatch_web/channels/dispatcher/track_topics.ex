@@ -1,9 +1,9 @@
-defmodule DispatchWeb.DispatcherChannel.TrackTopics do
-  alias Dispatch.{Helper, Tracks, TrackAgent}
-  use DispatchWeb.Authorization.Decorator
-  alias DispatchWeb.{Settings, Broadcast}
+defmodule FleetControlWeb.DispatcherChannel.TrackTopics do
+  alias FleetControl.{Helper, Tracks, TrackAgent}
+  use FleetControlWeb.Authorization.Decorator
+  alias FleetControlWeb.{Settings, Broadcast}
 
-  import DispatchWeb.DispatcherChannel, only: [to_error: 1]
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
   require Logger
 

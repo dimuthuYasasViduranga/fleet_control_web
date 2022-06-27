@@ -1,10 +1,10 @@
-defmodule DispatchWeb.Broadcast.DigUnit do
+defmodule FleetControlWeb.Broadcast.DigUnit do
   @operators "operators"
   @dispatch "dispatchers:all"
 
-  alias DispatchWeb.{Endpoint, Broadcast}
+  alias FleetControlWeb.{Endpoint, Broadcast}
 
-  alias Dispatch.{DigUnitActivityAgent, HaulTruckDispatchAgent}
+  alias FleetControl.{DigUnitActivityAgent, HaulTruckDispatchAgent}
 
   def send_activities_to_all() do
     payload = %{

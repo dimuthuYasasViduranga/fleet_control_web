@@ -1,4 +1,4 @@
-defmodule Dispatch.MapTileAgent do
+defmodule FleetControl.MapTileAgent do
   @moduledoc """
   Holds the manifest document for google map custom tile image endpoints
 

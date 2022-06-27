@@ -1,10 +1,10 @@
-defmodule Dispatch.DeviceAgent do
+defmodule FleetControl.DeviceAgent do
   @moduledoc """
   Used to hold all device token nbfs
   """
   use Agent
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Schemas.Dispatch.Device
   alias HpsData.Repo
 

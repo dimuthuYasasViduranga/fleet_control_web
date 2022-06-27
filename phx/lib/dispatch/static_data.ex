@@ -1,7 +1,7 @@
-defmodule Dispatch.StaticData do
+defmodule FleetControl.StaticData do
   @moduledoc nil
 
-  alias Dispatch.{
+  alias FleetControl.{
     AssetAgent,
     OperatorAgent,
     LocationAgent,

@@ -1,9 +1,9 @@
-defmodule Dispatch.OperatorTimeAllocation do
+defmodule FleetControl.OperatorTimeAllocation do
   @moduledoc """
   Used to fetch data for, and generate operator centric time allocation information
   """
 
-  alias Dispatch.{AssetAgent, OperatorAgent, DeviceAssignmentAgent, Helper}
+  alias FleetControl.{AssetAgent, OperatorAgent, DeviceAssignmentAgent, Helper}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
   alias HpsData.Repo
 

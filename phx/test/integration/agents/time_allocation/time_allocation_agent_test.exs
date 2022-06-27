@@ -1,8 +1,8 @@
-defmodule Dispatch.TimeAllocationAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.TimeAllocationAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
+  alias FleetControl.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
   import ExUnit.CaptureLog

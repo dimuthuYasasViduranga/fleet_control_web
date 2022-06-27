@@ -1,9 +1,9 @@
-defmodule DispatchWeb.Timers do
+defmodule FleetControlWeb.Timers do
   @moduledoc false
 
-  alias DispatchWeb.DispatcherChannel.RefreshTopics
-  alias Dispatch.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
-  alias DispatchWeb.Broadcast
+  alias FleetControlWeb.DispatcherChannel.RefreshTopics
+  alias FleetControl.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
+  alias FleetControlWeb.Broadcast
 
   @default_calendar_interval 24 * 3600 * 1000
   @default_location_interval 30 * 60 * 1000

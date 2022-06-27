@@ -1,8 +1,8 @@
-defmodule Dispatch.Token do
+defmodule FleetControl.Token do
   use Joken.Config
 
   require Logger
-  alias Dispatch.DeviceAgent
+  alias FleetControl.DeviceAgent
 
   @type bearer_token :: binary
   @type error_reason :: atom | Keyword.t()

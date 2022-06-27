@@ -1,8 +1,8 @@
-defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.FleetControl.TimeAllocation.AgentUpdateTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     CalendarAgent,
     AssetAgent,
@@ -39,7 +39,7 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
     no_task = Enum.find(time_codes, &(&1.name == "No Task")).id
 
-    Dispatch.TimeAllocation.Agent.start_link([])
+    FleetControl.TimeAllocation.Agent.start_link([])
     DispatcherAgent.start_link([])
     {:ok, dispatcher} = DispatcherAgent.add("1234", "test")
 
@@ -64,13 +64,13 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
   end
 
   defp update_all_with_logs(updates) do
-    {result, log} = with_log(fn -> Dispatch.TimeAllocation.Agent.update_all(updates) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.update_all(updates) end)
     assert log =~ "[error] Time allocation updated without recording the source of the update"
     result
   end
 
   defp add_with_logs(ta) do
-    {result, log} = with_log(fn -> Dispatch.TimeAllocation.Agent.add(ta) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.add(ta) end)
     assert log =~ "[error] Time allocation created without recording it's source"
     result
   end
@@ -95,8 +95,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.end_time == nil
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -127,8 +127,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert complete.deleted == false
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [complete]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [complete]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -159,8 +159,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert NaiveDateTime.compare(complete.end_time, end_time) == :eq
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [complete]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [complete]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -199,8 +199,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert completed.deleted == false
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 2, 1)
@@ -233,8 +233,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active == nil
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -270,8 +270,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert completed.deleted == false
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 2, 0)
@@ -305,8 +305,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert completed.deleted == false
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 2, 0)
@@ -344,8 +344,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.id != deleted.id
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 1)
@@ -379,8 +379,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.time_code_id == TimeCodeAgent.no_task_id()
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 2, 1)
@@ -414,8 +414,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.time_code_id == exception
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 1)
@@ -447,8 +447,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert completed.time_code_id == exception
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 1, 1)
@@ -475,8 +475,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.time_code_id == TimeCodeAgent.no_task_id()
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 1)
@@ -504,8 +504,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert deleted.deleted == true
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 0, 1)
@@ -514,7 +514,7 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
     end
 
     test "valid (insert no changes)" do
-      {:ok, deleted, completed, new_active} = Dispatch.TimeAllocation.Agent.update_all([])
+      {:ok, deleted, completed, new_active} = FleetControl.TimeAllocation.Agent.update_all([])
 
       # return
       assert deleted == []
@@ -522,8 +522,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active == nil
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 0, 0)
@@ -547,8 +547,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active == nil
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 0, 0)
@@ -572,8 +572,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active.time_code_id == no_task
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [new_active]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [new_active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, new_active)
@@ -614,8 +614,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -685,8 +685,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -710,8 +710,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -735,8 +735,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -760,8 +760,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -785,8 +785,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -814,9 +814,9 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :invalid}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
       # completed is very old
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -839,8 +839,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert actual == {:error, :multiple_assets}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == [initial]
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -864,8 +864,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert actual == {:error, :multiple_assets}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -903,8 +903,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert new_active == nil
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_count(TimeAllocation, 1, 1)
@@ -935,8 +935,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :stale}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_count(TimeAllocation, 0, 1)
@@ -988,8 +988,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert actual == {:error, :ids_not_found}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # database
       assert_db_count(TimeAllocation, 1, 0)
@@ -1006,7 +1006,7 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, lock_data} = Dispatch.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, lock_data} = FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
       [locked] = lock_data.new
       [deleted_id] = lock_data.deleted_ids
 
@@ -1020,8 +1020,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert deleted_id == initial.id
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # database
       assert_db_contains(TimeAllocation, locked)
@@ -1043,8 +1043,8 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
       assert error == {:error, :cannot_set_locked}
 
       # store
-      assert Dispatch.TimeAllocation.Agent.active() == []
-      assert Dispatch.TimeAllocation.Agent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # database
       assert_db_contains(TimeAllocation, initial)

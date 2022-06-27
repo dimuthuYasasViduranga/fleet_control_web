@@ -1,10 +1,10 @@
-defmodule DispatchWeb.OperatorChannel.DigUnitTopics do
+defmodule FleetControlWeb.OperatorChannel.DigUnitTopics do
   @moduledoc """
   Holds all dig unit specific topics
   """
-  alias Dispatch.{Helper, LoadStyleAgent, DigUnitActivityAgent, HaulTruckDispatchAgent}
-  alias DispatchWeb.Broadcast
-  alias DispatchWeb.DispatcherChannel.HaulTruckTopics
+  alias FleetControl.{Helper, LoadStyleAgent, DigUnitActivityAgent, HaulTruckDispatchAgent}
+  alias FleetControlWeb.Broadcast
+  alias FleetControlWeb.DispatcherChannel.HaulTruckTopics
 
   def get_asset_type_state(asset, _operator_id) do
     activity = DigUnitActivityAgent.get(%{asset_id: asset.id})

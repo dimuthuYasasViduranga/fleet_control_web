@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocation.Helper do
+defmodule FleetControl.TimeAllocation.Helper do
   @moduledoc """
   NOTE: I would prefer to call this Dispatch.TimeAllocation, but it conflicts with
 

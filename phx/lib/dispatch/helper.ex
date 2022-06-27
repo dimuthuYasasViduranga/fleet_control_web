@@ -1,4 +1,4 @@
-defmodule Dispatch.Helper do
+defmodule FleetControl.Helper do
   @type valid_datetime :: integer | String.t() | NaiveDateTime.t()
   @type range :: %{start_time: valid_datetime, end_time: valid_datetime}
 

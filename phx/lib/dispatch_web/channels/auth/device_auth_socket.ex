@@ -1,10 +1,10 @@
-defmodule DispatchWeb.DeviceAuthSocket do
+defmodule FleetControlWeb.DeviceAuthSocket do
   @moduledoc false
 
   use Phoenix.Socket
   @max_age 300
 
-  channel "device_auth:*", DispatchWeb.DeviceAuthChannel
+  channel "device_auth:*", FleetControlWeb.DeviceAuthChannel
 
   def connect(%{"token" => token}, socket, _connect_info) do
     Phoenix.Token.verify(socket, "device_auth", token, max_age: @max_age)

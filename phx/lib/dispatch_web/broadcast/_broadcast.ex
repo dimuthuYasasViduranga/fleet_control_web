@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Broadcast do
+defmodule FleetControlWeb.Broadcast do
   @moduledoc """
   The centralised module for broadcasting actions to multiple action types.
 
@@ -14,9 +14,9 @@ defmodule DispatchWeb.Broadcast do
 
   require Logger
 
-  alias DispatchWeb.{Settings, Presence, Endpoint}
+  alias FleetControlWeb.{Settings, Presence, Endpoint}
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     DispatcherAgent,
     OperatorAgent,

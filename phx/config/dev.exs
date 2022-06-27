@@ -4,14 +4,14 @@ config :dispatch_web,
   url: "http://localhost:4010",
   bypass_auth: true
 
-config :dispatch_web, DispatchWeb.Endpoint,
+config :dispatch_web, FleetControlWeb.Endpoint,
   http: [port: 4010],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
   watchers: []
 
-config :dispatch_web, DispatchWeb.Guardian,
+config :dispatch_web, FleetControlWeb.Guardian,
   secret_key: "b3hUyiE8zqDP7blaDGZSjKfoNqEmtP1wd3qTYIxBVvIh/ZjSgDoeNioxUA39nR7"
 
 config :logger, :console, format: "[$level] $message\n"

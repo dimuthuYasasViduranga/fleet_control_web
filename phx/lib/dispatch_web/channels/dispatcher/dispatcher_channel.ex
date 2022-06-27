@@ -1,11 +1,11 @@
-defmodule DispatchWeb.DispatcherChannel do
+defmodule FleetControlWeb.DispatcherChannel do
   @moduledoc nil
 
   require Logger
   use Appsignal.Instrumentation.Decorators
-  use DispatchWeb.Authorization.Decorator
+  use FleetControlWeb.Authorization.Decorator
 
-  use DispatchWeb, :channel
+  use FleetControlWeb, :channel
 
   alias __MODULE__.{
     RefreshTopics,
@@ -17,9 +17,9 @@ defmodule DispatchWeb.DispatcherChannel do
     TrackTopics
   }
 
-  alias DispatchWeb.{Settings, Broadcast}
+  alias FleetControlWeb.{Settings, Broadcast}
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     OperatorTimeAllocation,
     AssetAgent,

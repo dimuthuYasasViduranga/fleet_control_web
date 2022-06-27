@@ -1,17 +1,17 @@
-defmodule Dispatch.TimeAllocation.Agent do
+defmodule FleetControl.TimeAllocation.Agent do
   @moduledoc """
   Holds historic allocations for the past 2 shifts
   Always holds the active allocation for each asset
   """
 
-  alias Dispatch.Culling
-  alias Dispatch.AgentHelper
-  alias Dispatch.TimeAllocation.EctoQueries
-  alias Dispatch.TimeAllocation.Add
-  alias Dispatch.TimeAllocation.MassAdd
-  alias Dispatch.TimeAllocation.Update
-  alias Dispatch.TimeAllocation.Lock
-  alias Dispatch.TimeAllocation.Unlock
+  alias FleetControl.Culling
+  alias FleetControl.AgentHelper
+  alias FleetControl.TimeAllocation.EctoQueries
+  alias FleetControl.TimeAllocation.Add
+  alias FleetControl.TimeAllocation.MassAdd
+  alias FleetControl.TimeAllocation.Update
+  alias FleetControl.TimeAllocation.Lock
+  alias FleetControl.TimeAllocation.Unlock
 
   @max_age 24 * 60 * 60
 

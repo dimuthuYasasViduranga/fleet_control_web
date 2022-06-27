@@ -1,4 +1,4 @@
-defmodule Dispatch.DigUnitActivityAgent do
+defmodule FleetControl.DigUnitActivityAgent do
   @moduledoc """
   Holds all the actions for a dig unit
   """
@@ -7,7 +7,7 @@ defmodule Dispatch.DigUnitActivityAgent do
 
   require Logger
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DigUnitActivity
   alias HpsData.{Asset, AssetType}

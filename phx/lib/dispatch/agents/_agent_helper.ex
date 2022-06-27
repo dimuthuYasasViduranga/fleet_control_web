@@ -1,9 +1,9 @@
-defmodule Dispatch.AgentHelper do
+defmodule FleetControl.AgentHelper do
   @moduledoc """
   A helper module to help with culling data based on size and age
   """
   require Logger
-  alias Dispatch.Culling
+  alias FleetControl.Culling
 
   @error_timeout 1000
 

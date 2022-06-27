@@ -1,5 +1,5 @@
-defmodule Dispatch.Culling do
-  alias Dispatch.Helper
+defmodule FleetControl.Culling do
+  alias FleetControl.Helper
 
   @doc """
   Add the given element(s) to the list and cull

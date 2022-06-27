@@ -1,6 +1,6 @@
-defmodule Dispatch.Tracks do
-  alias Dispatch.{Location, LocationAgent, AssetAgent, TrackAgent}
-  alias DispatchWeb.Broadcast
+defmodule FleetControl.Tracks do
+  alias FleetControl.{Location, LocationAgent, AssetAgent, TrackAgent}
+  alias FleetControlWeb.Broadcast
 
   @type simple_track :: map
   @type extended_track :: map

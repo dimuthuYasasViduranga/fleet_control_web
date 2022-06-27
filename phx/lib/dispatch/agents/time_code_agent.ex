@@ -1,17 +1,17 @@
-defmodule Dispatch.TimeCodeAgent do
+defmodule FleetControl.TimeCodeAgent do
   @moduledoc """
   Used to hold all time_code values and the structured trees for
   presentation
   """
 
   use Agent
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   require Logger
 
   alias HpsData.Schemas.Dispatch.{TimeCode, TimeCodeGroup, TimeCodeTree}
   alias HpsData.Dim.TimeUsageCategory
   alias HpsData.Repo
-  alias Dispatch.AssetAgent
+  alias FleetControl.AssetAgent
 
   import Ecto.Query, only: [from: 2]
   alias Ecto.Multi

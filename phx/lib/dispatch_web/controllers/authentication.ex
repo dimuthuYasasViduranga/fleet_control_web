@@ -1,20 +1,20 @@
-defmodule DispatchWeb.AuthController do
+defmodule FleetControlWeb.AuthController do
   @moduledoc """
   Authentication endpoint functions.
   """
 
-  use DispatchWeb, :controller
+  use FleetControlWeb, :controller
 
   require Logger
 
   alias AzureADOpenId
-  alias Dispatch.Token
-  alias Dispatch.OperatorAgent
-  alias Dispatch.DeviceAgent
-  alias Dispatch.DispatcherAgent
+  alias FleetControl.Token
+  alias FleetControl.OperatorAgent
+  alias FleetControl.DeviceAgent
+  alias FleetControl.DispatcherAgent
 
-  alias DispatchWeb.Broadcast
-  alias DispatchWeb.Guardian
+  alias FleetControlWeb.Broadcast
+  alias FleetControlWeb.Guardian
 
   @path "fleet-control"
 

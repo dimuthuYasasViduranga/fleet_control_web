@@ -1,8 +1,8 @@
-defmodule Dispatch.AgentHelperTest do
+defmodule FleetControl.AgentHelperTest do
   use ExUnit.Case
   @moduletag :unit
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
 
   defp start(data), do: AgentHelper.start_link(fn -> data end)
 

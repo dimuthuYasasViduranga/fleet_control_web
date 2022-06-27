@@ -1,5 +1,5 @@
-defmodule DispatchWeb.ErrorView do
-  use DispatchWeb, :view
+defmodule FleetControlWeb.ErrorView do
+  use FleetControlWeb, :view
 
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.

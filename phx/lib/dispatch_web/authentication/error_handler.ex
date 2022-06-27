@@ -1,4 +1,4 @@
-defmodule DispatchWeb.AuthErrorHandler do
+defmodule FleetControlWeb.AuthErrorHandler do
   @moduledoc nil
 
   import Plug.Conn

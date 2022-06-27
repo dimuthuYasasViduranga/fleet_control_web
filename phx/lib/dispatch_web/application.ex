@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Application do
+defmodule FleetControlWeb.Application do
   @moduledoc false
 
   use Application
@@ -13,40 +13,40 @@ defmodule DispatchWeb.Application do
   def agents() do
     [
       # agents
-      Dispatch.LocationAgent,
-      Dispatch.CalendarAgent,
-      Dispatch.AssetAgent,
-      Dispatch.DeviceAgent,
-      Dispatch.DispatcherAgent,
-      Dispatch.OperatorAgent,
-      Dispatch.TimeCodeAgent,
-      Dispatch.DeviceAssignmentAgent,
-      Dispatch.OperatorMessageTypeAgent,
-      Dispatch.OperatorMessageAgent,
-      Dispatch.DispatcherMessageAgent,
-      Dispatch.ActivityAgent,
-      Dispatch.HaulTruckDispatchAgent,
-      Dispatch.DigUnitActivityAgent,
-      Dispatch.EngineHoursAgent,
-      Dispatch.AssetRadioAgent,
-      Dispatch.LoadStyleAgent,
-      Dispatch.MapTileAgent,
-      Dispatch.HaulAgent,
-      Dispatch.MaterialTypeAgent,
-      Dispatch.PreStartAgent,
-      Dispatch.PreStartSubmissionAgent,
-      Dispatch.RoutingAgent,
-      Dispatch.LiveQueueAgent,
+      FleetControl.LocationAgent,
+      FleetControl.CalendarAgent,
+      FleetControl.AssetAgent,
+      FleetControl.DeviceAgent,
+      FleetControl.DispatcherAgent,
+      FleetControl.OperatorAgent,
+      FleetControl.TimeCodeAgent,
+      FleetControl.DeviceAssignmentAgent,
+      FleetControl.OperatorMessageTypeAgent,
+      FleetControl.OperatorMessageAgent,
+      FleetControl.DispatcherMessageAgent,
+      FleetControl.ActivityAgent,
+      FleetControl.HaulTruckDispatchAgent,
+      FleetControl.DigUnitActivityAgent,
+      FleetControl.EngineHoursAgent,
+      FleetControl.AssetRadioAgent,
+      FleetControl.LoadStyleAgent,
+      FleetControl.MapTileAgent,
+      FleetControl.HaulAgent,
+      FleetControl.MaterialTypeAgent,
+      FleetControl.PreStartAgent,
+      FleetControl.PreStartSubmissionAgent,
+      FleetControl.RoutingAgent,
+      FleetControl.LiveQueueAgent,
 
       # agents that call other agents
-      Dispatch.TimeAllocationAgent,
+      FleetControl.TimeAllocationAgent,
 
       # track subscriber
-      Dispatch.TrackAgent,
+      FleetControl.TrackAgent,
 
       # authorization server
-      Dispatch.DeviceAuthServer,
-      Dispatch.DeviceConnectionAgent
+      FleetControl.DeviceAuthServer,
+      FleetControl.DeviceConnectionAgent
     ]
   end
 
@@ -60,18 +60,18 @@ defmodule DispatchWeb.Application do
         ],
         agents(),
         [
-          {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
-          DispatchWeb.Endpoint,
-          DispatchWeb.Presence,
-          {DispatchWeb.ChannelWatcher, :operators}
+          {Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
+          FleetControlWeb.Endpoint,
+          FleetControlWeb.Presence,
+          {FleetControlWeb.ChannelWatcher, :operators}
         ]
       ]
       |> List.flatten()
 
-    opts = [strategy: :one_for_one, name: DispatchWeb.Supervisor]
+    opts = [strategy: :one_for_one, name: FleetControlWeb.Supervisor]
     return = Supervisor.start_link(children, opts)
 
-    :ok = DispatchWeb.Timers.start()
+    :ok = FleetControlWeb.Timers.start()
 
     Node.start(:"fleet-control-ui", :shortnames)
 
@@ -79,7 +79,7 @@ defmodule DispatchWeb.Application do
   end
 
   def config_change(changed, _new, removed) do
-    DispatchWeb.Endpoint.config_change(changed, removed)
+    FleetControlWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

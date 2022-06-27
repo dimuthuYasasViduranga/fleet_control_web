@@ -1,8 +1,8 @@
-defmodule Dispatch.AssetRadioAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.AssetRadioAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.AssetRadioAgent
+  alias FleetControl.AssetRadioAgent
   alias HpsData.Asset
   alias HpsData.Schemas.Dispatch.AssetRadio
 

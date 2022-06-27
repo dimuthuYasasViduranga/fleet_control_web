@@ -1,5 +1,5 @@
-defmodule DispatchWeb.Authorization.Permissions do
-  alias DispatchWeb.Authorization.AzureGraph
+defmodule FleetControlWeb.Authorization.Permissions do
+  alias FleetControlWeb.Authorization.AzureGraph
 
   @spec default_permissions() :: map()
   def default_permissions() do

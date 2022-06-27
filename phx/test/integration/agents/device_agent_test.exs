@@ -1,8 +1,8 @@
-defmodule Dispatch.DeviceAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.DeviceAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.DeviceAgent
+  alias FleetControl.DeviceAgent
   alias HpsData.Schemas.Dispatch.Device
 
   setup do

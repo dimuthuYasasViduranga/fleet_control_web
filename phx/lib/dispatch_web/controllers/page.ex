@@ -1,11 +1,11 @@
-defmodule DispatchWeb.PageController do
+defmodule FleetControlWeb.PageController do
   @moduledoc nil
 
-  use DispatchWeb, :controller
+  use FleetControlWeb, :controller
 
-  alias DispatchWeb.Authorization
-  alias DispatchWeb.Guardian
-  alias Dispatch.DispatcherAgent
+  alias FleetControlWeb.Authorization
+  alias FleetControlWeb.Guardian
+  alias FleetControl.DispatcherAgent
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def index(conn, _) do

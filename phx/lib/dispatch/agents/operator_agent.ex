@@ -1,10 +1,10 @@
-defmodule Dispatch.OperatorAgent do
+defmodule FleetControl.OperatorAgent do
   @moduledoc """
   Store for all available operators
   """
 
   use Agent
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   require Logger
 
   alias HpsData.Schemas.Dispatch.Operator

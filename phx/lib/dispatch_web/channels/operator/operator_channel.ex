@@ -1,16 +1,16 @@
-defmodule DispatchWeb.OperatorChannel do
+defmodule FleetControlWeb.OperatorChannel do
   @moduledoc nil
 
-  use DispatchWeb, :channel
+  use FleetControlWeb, :channel
   use Appsignal.Instrumentation.Decorators
 
   require Logger
 
   alias __MODULE__.{HaulTruckTopics, DigUnitTopics, WaterCartTopics}
 
-  alias DispatchWeb.{Settings, Presence, Broadcast, ChannelWatcher}
+  alias FleetControlWeb.{Settings, Presence, Broadcast, ChannelWatcher}
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     Tracks,
     AssetAgent,

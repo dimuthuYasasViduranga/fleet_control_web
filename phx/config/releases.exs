@@ -47,12 +47,12 @@ url_base =
 
 config :dispatch_web, url: url
 
-config :dispatch_web, DispatchWeb.Endpoint,
+config :dispatch_web, FleetControlWeb.Endpoint,
   url: [host: url],
   check_origin: [url_base <> ".haultrax.digital", url],
   secret_key_base: System.fetch_env!("COOKIE_SECRET_KEY")
 
-config :dispatch_web, DispatchWeb.Guardian, secret_key: System.fetch_env!("GUARDIAN_SECRET_KEY")
+config :dispatch_web, FleetControlWeb.Guardian, secret_key: System.fetch_env!("GUARDIAN_SECRET_KEY")
 
 # slack error logs
 config :logger, backends: [:console, SlackLoggerBackend.Logger]

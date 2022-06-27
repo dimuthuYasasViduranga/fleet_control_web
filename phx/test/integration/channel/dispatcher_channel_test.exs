@@ -1,10 +1,10 @@
-defmodule DispatchWeb.DispatcherChannel.Test do
-  use DispatchWeb.ChannelCase
+defmodule FleetControlWeb.DispatcherChannel.Test do
+  use FleetControlWeb.ChannelCase
   @moduletag :channel
 
-  alias Dispatch.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
-  alias DispatchWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
-  alias DispatchWeb.Authorization.Permissions
+  alias FleetControl.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
+  alias FleetControlWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
+  alias FleetControlWeb.Authorization.Permissions
 
   import Phoenix.Socket, only: [assign: 3]
 

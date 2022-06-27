@@ -1,10 +1,10 @@
-defmodule DispatchWeb.Broadcast.Authentication do
+defmodule FleetControlWeb.Broadcast.Authentication do
   @moduledoc """
   All broadcasts related to device authorization/manipulation
   """
-  alias DispatchWeb.Endpoint
+  alias FleetControlWeb.Endpoint
 
-  alias Dispatch.DeviceAuthServer
+  alias FleetControl.DeviceAuthServer
 
   def disconnect(device_uuid) do
     Endpoint.broadcast("device_auth:#{device_uuid}", "disconnect", %{})

@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Settings do
+defmodule FleetControlWeb.Settings do
   @spec get() :: map()
   def get() do
     Application.get_env(:dispatch_web, :settings, []) |> Enum.into(%{})

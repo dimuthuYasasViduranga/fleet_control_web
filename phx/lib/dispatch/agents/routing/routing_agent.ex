@@ -1,9 +1,9 @@
-defmodule Dispatch.RoutingAgent do
+defmodule FleetControl.RoutingAgent do
   use Agent
 
   require Logger
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
 
   alias __MODULE__.{Data, Validation}
 

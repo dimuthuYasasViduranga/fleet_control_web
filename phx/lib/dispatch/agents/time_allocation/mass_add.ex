@@ -1,5 +1,5 @@
-defmodule Dispatch.TimeAllocationAgent.MassAdd do
-  alias Dispatch.TimeAllocationAgent.{Data, Update}
+defmodule FleetControl.TimeAllocationAgent.MassAdd do
+  alias FleetControl.TimeAllocationAgent.{Data, Update}
 
   alias Ecto.Multi
   alias HpsData.Repo

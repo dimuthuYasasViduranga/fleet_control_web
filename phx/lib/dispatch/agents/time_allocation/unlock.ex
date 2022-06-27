@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocationAgent.Unlock do
+defmodule FleetControl.TimeAllocationAgent.Unlock do
   import Ecto.Query, only: [from: 2]
   alias Ecto.Multi
 

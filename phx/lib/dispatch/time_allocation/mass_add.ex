@@ -1,6 +1,6 @@
-defmodule Dispatch.TimeAllocation.MassAdd do
-  alias Dispatch.TimeAllocation.EctoQueries
-  alias Dispatch.TimeAllocation.Update
+defmodule FleetControl.TimeAllocation.MassAdd do
+  alias FleetControl.TimeAllocation.EctoQueries
+  alias FleetControl.TimeAllocation.Update
 
   alias Ecto.Multi
   alias HpsData.Schemas.Dispatch.TimeAllocation

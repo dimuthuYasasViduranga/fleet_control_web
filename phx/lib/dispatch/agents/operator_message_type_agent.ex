@@ -1,7 +1,7 @@
-defmodule Dispatch.OperatorMessageTypeAgent do
+defmodule FleetControl.OperatorMessageTypeAgent do
   use Agent
 
-  alias Dispatch.{Helper, AgentHelper, AssetAgent}
+  alias FleetControl.{Helper, AgentHelper, AssetAgent}
 
   alias HpsData.Schemas.Dispatch.{OperatorMessageType, OperatorMessageTypeTree}
   alias HpsData.Repo

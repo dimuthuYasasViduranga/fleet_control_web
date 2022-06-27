@@ -1,4 +1,4 @@
-defmodule Dispatch.HaulTruckDispatchAgent do
+defmodule FleetControl.HaulTruckDispatchAgent do
   @moduledoc """
   Stores a recent history of dispatches for haul trucks
   """
@@ -6,7 +6,7 @@ defmodule Dispatch.HaulTruckDispatchAgent do
 
   require Logger
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch
   alias HpsData.{Asset, AssetType}

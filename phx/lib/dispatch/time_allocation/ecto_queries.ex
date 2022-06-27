@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocation.EctoQueries do
+defmodule FleetControl.TimeAllocation.EctoQueries do
   alias HpsData.Asset
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Schemas.Dispatch.TimeCode

@@ -1,9 +1,9 @@
-defmodule DispatchWeb.DispatcherChannel.Report do
+defmodule FleetControlWeb.DispatcherChannel.Report do
   @moduledoc """
   Return a report of exceptions entered, using FleetOps timeusage to determine
   if any exceptions have been missed
   """
-  alias Dispatch.{Helper, AssetAgent, HaulAgent, DeviceAssignmentAgent, EngineHoursAgent}
+  alias FleetControl.{Helper, AssetAgent, HaulAgent, DeviceAssignmentAgent, EngineHoursAgent}
 
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
   alias HpsData.Repo

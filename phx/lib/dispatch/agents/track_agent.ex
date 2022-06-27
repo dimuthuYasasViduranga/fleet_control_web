@@ -1,9 +1,9 @@
-defmodule Dispatch.TrackAgent do
+defmodule FleetControl.TrackAgent do
   @moduledoc """
   Stores the most recent track data for each asset as it come in
   """
   use Agent
-  alias Dispatch.Helper
+  alias FleetControl.Helper
 
   require Logger
 

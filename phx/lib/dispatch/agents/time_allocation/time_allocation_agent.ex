@@ -1,10 +1,10 @@
-defmodule Dispatch.TimeAllocationAgent do
+defmodule FleetControl.TimeAllocationAgent do
   @moduledoc """
   Holds historic allocations for the past 2 shifts
   Always holds the active allocation for each asset
   """
 
-  alias Dispatch.{Culling, AgentHelper}
+  alias FleetControl.{Culling, AgentHelper}
   alias __MODULE__.{Data, Add, MassAdd, Update, Lock, Unlock}
 
   use Agent

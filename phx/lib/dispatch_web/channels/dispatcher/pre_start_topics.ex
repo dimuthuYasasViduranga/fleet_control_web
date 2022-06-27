@@ -1,12 +1,12 @@
-defmodule DispatchWeb.DispatcherChannel.PreStartTopics do
+defmodule FleetControlWeb.DispatcherChannel.PreStartTopics do
   @moduledoc """
   Holds the pre start specific topics
   """
 
-  alias Dispatch.{Helper, PreStartAgent, PreStartSubmissionAgent}
-  alias DispatchWeb.Broadcast
-  use DispatchWeb.Authorization.Decorator
-  import DispatchWeb.DispatcherChannel, only: [to_error: 1]
+  alias FleetControl.{Helper, PreStartAgent, PreStartSubmissionAgent}
+  alias FleetControlWeb.Broadcast
+  use FleetControlWeb.Authorization.Decorator
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
   defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 

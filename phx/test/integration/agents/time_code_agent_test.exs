@@ -1,8 +1,8 @@
-defmodule Dispatch.TimeCodeAgentText do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.TimeCodeAgentText do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{AssetAgent, TimeCodeAgent}
+  alias FleetControl.{AssetAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch
 
   setup do

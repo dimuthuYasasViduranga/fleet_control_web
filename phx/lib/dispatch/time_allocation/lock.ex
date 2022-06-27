@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocation.Lock do
+defmodule FleetControl.TimeAllocation.Lock do
   import Ecto.Query, only: [from: 2]
   alias Ecto.Multi
 
@@ -7,7 +7,7 @@ defmodule Dispatch.TimeAllocation.Lock do
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Schemas.Dispatch.TimeAllocationLock
   alias HpsData.Repo
-  alias Dispatch.Helper
+  alias FleetControl.Helper
 
   @type alloc :: map
   @type lock :: map

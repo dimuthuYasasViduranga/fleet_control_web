@@ -1,4 +1,4 @@
-defmodule Dispatch.TimeAllocationAgent.Data do
+defmodule FleetControl.TimeAllocationAgent.Data do
   alias HpsData.Asset
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode}
   alias HpsData.Repo

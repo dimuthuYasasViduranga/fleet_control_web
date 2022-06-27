@@ -1,4 +1,4 @@
-defmodule Dispatch.LiveQueue do
+defmodule FleetControl.LiveQueue do
   @type position :: %{
           lat: float,
           lng: float

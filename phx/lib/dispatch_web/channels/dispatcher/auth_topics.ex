@@ -1,10 +1,10 @@
-defmodule DispatchWeb.DispatcherChannel.AuthTopics do
+defmodule FleetControlWeb.DispatcherChannel.AuthTopics do
   @moduledoc """
   Holds the auth specific topics to make the dispatcher channel cleaner
   """
 
-  alias Dispatch.{Helper, DeviceAuthServer, DeviceAssignmentAgent, DeviceAgent}
-  alias DispatchWeb.Broadcast
+  alias FleetControl.{Helper, DeviceAuthServer, DeviceAssignmentAgent, DeviceAgent}
+  alias FleetControlWeb.Broadcast
 
   def handle_in("auth:open device window", _, socket) do
     accept_until = DeviceAuthServer.open_auth_window()

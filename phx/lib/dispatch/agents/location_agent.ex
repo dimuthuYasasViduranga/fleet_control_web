@@ -1,9 +1,9 @@
-defmodule Dispatch.LocationAgent do
+defmodule FleetControl.LocationAgent do
   @moduledoc """
   Holds all locations from point of update
   """
 
-  alias Dispatch.{AgentHelper, Location}
+  alias FleetControl.{AgentHelper, Location}
   use Agent
 
   require Logger

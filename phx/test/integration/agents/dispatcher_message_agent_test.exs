@@ -1,8 +1,8 @@
-defmodule Dispatch.DispatcherMessageAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.DispatcherMessageAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{AssetAgent, DispatcherMessageAgent}
+  alias FleetControl.{AssetAgent, DispatcherMessageAgent}
   alias HpsData.Schemas.Dispatch.Message
 
   defp to_message(asset_id, message, answers, timestamp \\ NaiveDateTime.utc_now()) do

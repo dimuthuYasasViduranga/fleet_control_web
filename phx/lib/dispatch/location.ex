@@ -1,4 +1,4 @@
-defmodule Dispatch.Location do
+defmodule FleetControl.Location do
   alias Geo.{Polygon, Point}
 
   @type track :: map

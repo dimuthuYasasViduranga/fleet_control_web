@@ -1,10 +1,10 @@
-defmodule Dispatch.MaterialTypeAgent do
+defmodule FleetControl.MaterialTypeAgent do
   @moduledoc """
   Holds all material types (deleted or not)
   This does not update once started
   """
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
   use Agent
 
   alias HpsData.Repo

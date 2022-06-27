@@ -1,6 +1,6 @@
-defmodule Dispatch.TimeAllocationAgent.Add do
-  alias Dispatch.Helper, as: DHelper
-  alias Dispatch.TimeAllocationAgent.{Helper, Update}
+defmodule FleetControl.TimeAllocationAgent.Add do
+  alias FleetControl.Helper, as: DHelper
+  alias FleetControl.TimeAllocationAgent.{Helper, Update}
 
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo

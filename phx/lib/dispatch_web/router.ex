@@ -1,5 +1,5 @@
-defmodule DispatchWeb.Router do
-  use DispatchWeb, :router
+defmodule FleetControlWeb.Router do
+  use FleetControlWeb, :router
 
   pipeline :api do
     plug :accepts, ["json"]
@@ -12,35 +12,35 @@ defmodule DispatchWeb.Router do
   pipeline :authorized do
     case Application.get_env(:dispatch_web, :bypass_auth, false) do
       true ->
-        plug DispatchWeb.Authorization.Plug.LoadAuthPermissions, full_access: true
+        plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions, full_access: true
 
       _ ->
         plug Guardian.Plug.Pipeline,
-          module: DispatchWeb.Guardian,
-          error_handler: DispatchWeb.AuthErrorHandler
+          module: FleetControlWeb.Guardian,
+          error_handler: FleetControlWeb.AuthErrorHandler
 
         plug Guardian.Plug.VerifySession
         plug Guardian.Plug.LoadResource
         plug Guardian.Plug.EnsureAuthenticated
 
-        plug DispatchWeb.Authorization.Plug.LoadAuthPermissions
+        plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions
     end
   end
 
-  scope "/fleet-control", DispatchWeb do
+  scope "/fleet-control", FleetControlWeb do
     pipe_through :api
     pipe_through :authorized
 
     get "/api/static_data", PageController, :static_data
   end
 
-  scope "/fleet-control", DispatchWeb do
+  scope "/fleet-control", FleetControlWeb do
     pipe_through :api
 
     get "/", PageController, :index
   end
 
-  scope "/fleet-control/auth", DispatchWeb do
+  scope "/fleet-control/auth", FleetControlWeb do
     pipe_through :api
 
     # dispatcher login

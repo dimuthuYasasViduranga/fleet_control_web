@@ -1,7 +1,7 @@
-defmodule Dispatch.EngineHoursAgent do
+defmodule FleetControl.EngineHoursAgent do
   use Agent
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
 
   require Logger
   alias HpsData.Schemas.Dispatch.EngineHours

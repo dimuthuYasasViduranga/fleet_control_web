@@ -1,8 +1,8 @@
-defmodule Dispatch.TimeAllocationAgent.LockTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.TimeAllocationAgent.LockTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{
+  alias FleetControl.{
     CalendarAgent,
     AssetAgent,
     TimeCodeAgent,

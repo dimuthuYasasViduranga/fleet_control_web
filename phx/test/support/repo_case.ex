@@ -1,11 +1,11 @@
-defmodule DispatchWeb.RepoCase do
+defmodule FleetControlWeb.RepoCase do
   use ExUnit.CaseTemplate
   alias HpsData.Repo
 
   using do
     quote do
       alias HpsData.Repo
-      import DispatchWeb.RepoCase
+      import FleetControlWeb.RepoCase
     end
   end
 

@@ -1,7 +1,7 @@
-defmodule Dispatch.TimeAllocationAgent.Update do
-  alias Dispatch.Helper, as: DHelper
-  alias Dispatch.AgentHelper
-  alias Dispatch.TimeAllocationAgent.{Data, Helper}
+defmodule FleetControl.TimeAllocationAgent.Update do
+  alias FleetControl.Helper, as: DHelper
+  alias FleetControl.AgentHelper
+  alias FleetControl.TimeAllocationAgent.{Data, Helper}
   alias Ecto.Multi
 
   alias HpsData.Schemas.Dispatch.TimeAllocation

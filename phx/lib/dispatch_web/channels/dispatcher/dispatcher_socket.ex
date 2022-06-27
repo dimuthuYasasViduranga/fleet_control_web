@@ -1,13 +1,13 @@
-defmodule DispatchWeb.DispatcherSocket do
+defmodule FleetControlWeb.DispatcherSocket do
   @moduledoc nil
 
   use Phoenix.Socket
-  alias DispatchWeb.Authorization.Permissions
+  alias FleetControlWeb.Authorization.Permissions
 
   # 2 weeks in seconds
   @max_age 14 * 24 * 3600
 
-  channel "dispatchers:all", DispatchWeb.DispatcherChannel
+  channel "dispatchers:all", FleetControlWeb.DispatcherChannel
 
   def connect(%{"token" => token}, socket, _connect_info) do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: @max_age) do
