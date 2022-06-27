@@ -7,46 +7,44 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   use FleetControlWeb, :channel
 
-  alias __MODULE__.{
-    RefreshTopics,
-    HaulTruckTopics,
-    AuthTopics,
-    Report,
-    DigUnitTopics,
-    PreStartTopics,
-    TrackTopics
-  }
+  alias FleetControlWeb.DispatcherChannel
+  alias DispatcherChannel.RefreshTopics
+  alias DispatcherChannel.HaulTruckTopics
+  alias DispatcherChannel.AuthTopics
+  alias DispatcherChannel.Report
+  alias DispatcherChannel.DigUnitTopics
+  alias DispatcherChannel.PreStartTopics
+  alias DispatcherChannel.TrackTopics
 
-  alias FleetControlWeb.{Settings, Broadcast}
+  alias FleetControlWeb.Settings
+  alias FleetControlWeb.Broadcast
 
-  alias FleetControl.{
-    Helper,
-    OperatorTimeAllocation,
-    AssetAgent,
-    ActivityAgent,
-    DeviceAgent,
-    DispatcherAgent,
-    OperatorAgent,
-    OperatorMessageTypeAgent,
-    OperatorMessageAgent,
-    DispatcherMessageAgent,
-    HaulTruckDispatchAgent,
-    DigUnitActivityAgent,
-    DeviceAuthServer,
-    DeviceAssignmentAgent,
-    EngineHoursAgent,
-    AssetRadioAgent,
-    TimeCodeAgent,
-    TimeAllocation,
-    CalendarAgent,
-    HaulAgent,
-    TrackAgent,
-    PreStartAgent,
-    PreStartSubmissionAgent,
-    RoutingAgent,
-    LiveQueueAgent,
-    DeviceConnectionAgent
-  }
+  alias FleetControl.Helper
+  alias FleetControl.OperatorTimeAllocation
+  alias FleetControl.AssetAgent
+  alias FleetControl.ActivityAgent
+  alias FleetControl.DeviceAgent
+  alias FleetControl.DispatcherAgent
+  alias FleetControl.OperatorAgent
+  alias FleetControl.OperatorMessageTypeAgent
+  alias FleetControl.OperatorMessageAgent
+  alias FleetControl.DispatcherMessageAgent
+  alias FleetControl.HaulTruckDispatchAgent
+  alias FleetControl.DigUnitActivityAgent
+  alias FleetControl.DeviceAuthServer
+  alias FleetControl.DeviceAssignmentAgent
+  alias FleetControl.EngineHoursAgent
+  alias FleetControl.AssetRadioAgent
+  alias FleetControl.TimeCodeAgent
+  alias FleetControl.TimeAllocation
+  alias FleetControl.CalendarAgent
+  alias FleetControl.HaulAgent
+  alias FleetControl.TrackAgent
+  alias FleetControl.PreStartAgent
+  alias FleetControl.PreStartSubmissionAgent
+  alias FleetControl.RoutingAgent
+  alias FleetControl.LiveQueueAgent
+  alias FleetControl.DeviceConnectionAgent
 
   alias Phoenix.Socket
 
