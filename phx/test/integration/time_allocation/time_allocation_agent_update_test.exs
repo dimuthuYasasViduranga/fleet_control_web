@@ -7,7 +7,6 @@ defmodule Dispatch.Dispatch.TimeAllocation.AgentUpdateTest do
     CalendarAgent,
     AssetAgent,
     DispatcherAgent,
-    Dispatch.TimeAllocation.Agent,
     TimeCodeAgent
   }
 

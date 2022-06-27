@@ -6,7 +6,6 @@ defmodule Dispatch.TimeAllocation.LockTest do
     CalendarAgent,
     AssetAgent,
     TimeCodeAgent,
-    Dispatch.TimeAllocation.Agent,
     DispatcherAgent
   }
 
