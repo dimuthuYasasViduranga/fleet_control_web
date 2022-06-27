@@ -3,7 +3,7 @@ defmodule FleetControlWeb.MixProject do
 
   def project do
     [
-      app: :dispatch_web,
+      app: :fleet_control_web,
       version: "0.1.0",
       build_path: "_build",
       config_path: "config/config.exs",
