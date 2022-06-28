@@ -343,7 +343,8 @@ export default {
       });
     },
     onClearAllRoutes() { 
-
+      this.structure.removeAll()
+      this.massSetHaulTrucks(this.localHaulTrucks, null, null, null);
     },
     onDragStart(asset) {
       this.draggedAsset = asset;
