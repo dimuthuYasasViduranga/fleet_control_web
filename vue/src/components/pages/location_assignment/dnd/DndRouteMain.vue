@@ -25,7 +25,7 @@
           <div class="grid-child add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
             Click to Add Route
           </div>
-          <div class="grid-child clear-routes" @click="onClearAllRoutes()">Clear All Routes</div>
+          <div class="grid-child clear-routes" @click="onConfirmClearAllRoutes()">Clear All Routes</div>
         </div>
        
       </template>
@@ -342,10 +342,6 @@ export default {
         this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
       });
     },
-    onClearAllRoutes() { 
-      this.structure.removeAll()
-      this.massSetHaulTrucks(this.localHaulTrucks, null, null, null);
-    },
     onDragStart(asset) {
       this.draggedAsset = asset;
     },
@@ -415,6 +411,19 @@ export default {
         }
       });
     },
+    onConfirmClearAllRoutes() { 
+       if(this.structure.routes.length > 0) {
+        const ok = 'yes'
+        this.$modal.create(ConfirmModal, 
+                    {title: 'Clear All Routes',
+                     body: 'All routes assigned will be removed.\n\nAre you sure you want to continue?', 
+                    ok})
+                .onClose(resp => {
+                  if (resp === ok) {
+                    this.clearAllRoutes()
+                  }})
+       }                                
+    },
     clearRoute(digUnitId, loadId) {
       if (!digUnitId && !loadId) {
         return;
@@ -425,16 +434,17 @@ export default {
         return d.digUnitId === digUnitId && d.loadId === loadId;
       });
 
-      if (haulTrucks.length === 0) {
-        console.error('[dnd] Cannot clear route as there are no haul trucks to move');
-        return;
+      if (haulTrucks.length > 0) { 
+        this.structure.removeAllDumpsFor(digUnitId, loadId);
+        this.massSetHaulTrucks(haulTrucks);
       }
-
-      this.structure.removeAllDumpsFor(digUnitId, loadId);
-
-      if (haulTrucks.length) {
-        this.massSetHaulTrucks(haulTrucks, null, null, null);
+      else {
+         console.error('[dnd] Cannot clear route as there are no haul trucks to move');
       }
+    },
+    clearAllRoutes() { 
+        this.structure.removeAll();
+        this.massSetHaulTrucks(this.localHaulTrucks);
     },
     onRequestAddDump({ digUnitId = null, loadId = null }) {
       // do not allow dumps if they are already present
