@@ -413,15 +413,18 @@ export default {
     },
     onConfirmClearAllRoutes() { 
        if(this.structure.routes.length > 0) {
-        const ok = 'yes'
-        this.$modal.create(ConfirmModal, 
-                    {title: 'Clear All Routes',
-                     body: 'All routes assigned will be removed.\n\nAre you sure you want to continue?', 
-                    ok})
-                .onClose(resp => {
-                  if (resp === ok) {
-                    this.clearAllRoutes()
-                  }})
+        const ok = 'yes';
+        const opts = {
+          title: 'Clear All Routes',
+          body: 'All routes assigned will be removed.\n\nAre you sure you want to continue?', 
+          ok,
+        };
+       
+        this.$modal.create(ConfirmModal, opts)
+          .onClose(resp => {
+            if (resp === ok) {
+              this.clearAllRoutes()
+          }})
        }                                
     },
     clearRoute(digUnitId, loadId) {
