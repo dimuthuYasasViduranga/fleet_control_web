@@ -20,10 +20,14 @@
         >
           Drop to Add Route
         </Container>
-        <!-- standard click to add -->
-        <div v-else class="add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
-          Click to Add Route
+        <div class="grid-container" v-else>
+            <!-- standard click to add -->
+          <div class="grid-child add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
+            Click to Add Route
+          </div>
+          <div class="grid-child clear-routes" @click="onClearAllRoutes()">Clear All Routes</div>
         </div>
+       
       </template>
       <br v-else />
 
@@ -338,6 +342,9 @@ export default {
         this.structure.add(resp.digUnitId, resp.loadId, resp.dumpId);
       });
     },
+    onClearAllRoutes() { 
+
+    },
     onDragStart(asset) {
       this.draggedAsset = asset;
     },
@@ -613,7 +620,8 @@ export default {
 
 <style>
 .dnd-route-main .add-route,
-.dnd-route-main .new-dig-unit-container {
+.dnd-route-main .new-dig-unit-container,
+.dnd-route-main .clear-routes {
   user-select: none;
   height: 3rem;
   line-height: 3rem;
@@ -632,4 +640,12 @@ export default {
   background-color: #20323b;
   opacity: 1;
 }
+
+.dnd-route-main .grid-container {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    grid-gap: 20px;
+}
+
+
 </style>
