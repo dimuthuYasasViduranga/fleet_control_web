@@ -47,7 +47,7 @@ export class RouteStructure {
   }
 
   removeAll() { 
-    this._routes = []
+    this._routes = [];
   }
 }
 

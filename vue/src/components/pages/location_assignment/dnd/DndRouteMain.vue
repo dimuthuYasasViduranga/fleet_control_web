@@ -20,7 +20,7 @@
         >
           Drop to Add Route
         </Container>
-        <div class="grid-container" v-else>
+        <div v-else class="grid-container">
             <!-- standard click to add -->
           <div class="grid-child add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
             Click to Add Route
@@ -423,7 +423,7 @@ export default {
         this.$modal.create(ConfirmModal, opts)
           .onClose(resp => {
             if (resp === ok) {
-              this.clearAllRoutes()
+              this.clearAllRoutes();
           }})
        }                                
     },
