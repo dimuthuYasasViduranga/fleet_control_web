@@ -1,16 +1,18 @@
 <template>
   <div class="haul-truck-dispatch-event">
-    <div v-if="isUnassigned" class="title">
-      {{ entry.assetName || 'Unknown' }} | <span class="italics">Unassigned</span>
-    </div>
-    <div v-else class="title">
-      {{ entry.assetName || 'Unknown' }} |
-      <span :class="{ italics: !sourceName }">
-        {{ sourceName || 'No Source' }}
+    <div class="title">
+      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="dmAsset(entry.assetId)">{{ entry.assetName }}</a>
+      <span v-else>'Unknown'</span>
+      <span> | </span>
+      <span v-if="isUnassigned" class="italics">Unassigned</span>
+      <span v-if="entry.digUnitName" :class="{ italics: !sourceName }">
+         <a :href="entry.digUnitName" @click.prevent="dmAsset(entry.digUnitId)">{{entry.digUnitName}}</a>
       </span>
+      <span v-else>'No Source'</span>
+
       {{ arrow }}
       <span :class="{ italics: !dumpName }">
-        {{ dumpName || 'No Dump' }}
+         {{ dumpName || 'No Dump' }}
       </span>
     </div>
   </div>
@@ -39,6 +41,16 @@ export default {
       return this.entry.dumpLocation;
     },
   },
+  methods: {
+    dmAsset(assetId) {
+      const opts = {
+        scroll: 'bottom',
+        assetId: assetId 
+      };
+
+      this.$eventBus.$emit('chat-open', opts);
+    },
+  }
 };
 </script>
 
@@ -56,5 +68,9 @@ export default {
 .haul-truck-dispatch-event .italics {
   font-style: italic;
   opacity: 0.85;
+}
+
+.haul-truck-dispatch-event a { 
+  color: darkgray;
 }
 </style>
