@@ -1,17 +1,21 @@
 <template>
   <div class="haul-truck-dispatch-event">
     <div class="title">
-      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
+      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="openAssetMessages(entry.assetId)">
+        {{ entry.assetName }}
+      </a>
       <span v-else class="italics">Unknown</span>
       <span> | </span>
-      <span v-if="isUnassigned" class="italics">Unassigned</span>
+
       <span v-if="entry.digUnitName">
          <a :href="entry.digUnitName" @click.prevent="openAssetMessages(entry.digUnitId)">{{entry.digUnitName}}</a>
       </span>
       <span v-else-if="entry.loadLocation">{{ entry.loadLocation }}</span>
-      <span v-else :class="italics">No Source</span>
+      <span v-else-if="entry.dumpName" class="italics">No Source</span>
+      <span v-else class="italics">Unassigned</span>
 
-      {{ arrow }}
+      &DoubleLongRightArrow;
+
       <span :class="{ italics: !dumpName }">
          {{ dumpName || 'No Dump' }}
       </span>
@@ -25,16 +29,8 @@ export default {
   props: {
     entry: { type: Object, required: true },
   },
-  data: () => {
-    return {
-      arrow: '\u27f9',
-    };
-  },
+  data: () => {return {}},
   computed: {
-    isUnassigned() {
-      const entry = this.entry;
-      return !entry.digUnitName && !entry.loadLocation && !entry.dumpLocation;
-    },
     sourceName() {
       return this.entry.digUnitName || this.entry.loadLocation;
     },
