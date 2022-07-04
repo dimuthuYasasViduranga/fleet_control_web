@@ -163,7 +163,7 @@ export default {
       );
 
       this.$channel
-        .push('set operator message type tree', payload)
+        .push('operator-message:set-type-tree', payload)
         .receive('ok', () => {
           loading.close();
           this.$toaster.info('Message tree updated');

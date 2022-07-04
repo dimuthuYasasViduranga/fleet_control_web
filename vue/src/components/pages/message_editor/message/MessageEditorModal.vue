@@ -130,7 +130,7 @@ export default {
       );
 
       this.$channel
-        .push('update operator message type', payload)
+        .push('operator-message:update-message-type', payload)
         .receive('ok', () => {
           this.inTransit = false;
           loading.close();

@@ -129,7 +129,7 @@ export default {
       };
 
       this.$channel
-        .push('update operator message type', payload)
+        .push('operator-message:update-message-type', payload)
         .receive('ok', () => {
           this.pendingType = null;
         })
@@ -158,7 +158,7 @@ export default {
       };
 
       this.$channel
-        .push('update operator message type', payload)
+        .push('operator-message:update-message-type', payload)
         .receive('ok', () => {
           this.pendingType = null;
         })

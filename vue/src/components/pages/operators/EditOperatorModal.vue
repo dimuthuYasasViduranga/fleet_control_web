@@ -83,7 +83,7 @@ export default {
       };
 
       this.$channel
-        .push('update operator', payload)
+        .push('operator:update', payload)
         .receive('ok', () => {
           this.$toaster.info('Operator updated');
           this.close();

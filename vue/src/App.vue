@@ -137,7 +137,7 @@ export default {
           },
         ],
         [
-          'set operator message type tree',
+          'operator-message:set-type-tree',
           data => {
             dispatch('constants/setOperatorMessageTypeTree', data.message_type_tree);
           },

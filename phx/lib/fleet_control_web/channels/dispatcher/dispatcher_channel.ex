@@ -15,10 +15,6 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   alias FleetControl.Helper
   alias FleetControl.OperatorTimeAllocation
-  alias FleetControl.OperatorAgent
-  alias FleetControl.OperatorMessageTypeAgent
-  alias FleetControl.OperatorMessageAgent
-  alias FleetControl.DispatcherMessageAgent
   alias FleetControl.DigUnitActivityAgent
   alias FleetControl.DeviceAuthServer
   alias FleetControl.DeviceAssignmentAgent
@@ -91,6 +87,18 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.Device.handle_in(subtopic, payload, socket)
   end
 
+  def handle_in("operator:" <> subtopic, payload, socket) do
+    Topics.Operator.handle_in(subtopic, payload, socket)
+  end
+
+  def handle_in("operator-message:" <> subtopic, payload, socket) do
+    Topics.OperatorMessage.handle_in(subtopic, payload, socket)
+  end
+
+  def handle_in("dispatcher-message:" <> subtopic, payload, socket) do
+    Topics.DispatcherMessage.handle_in(subtopic, payload, socket)
+  end
+
   def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->
@@ -111,183 +119,6 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("add dispatcher message", payload, socket) do
-    dispatcher_id = get_dispatcher_id(socket)
-
-    payload
-    |> Map.put("dispatcher_id", dispatcher_id)
-    |> DispatcherMessageAgent.new()
-    |> case do
-      {:ok, _} ->
-        Broadcast.send_dispatcher_messages_to(%{asset_id: payload["asset_id"]})
-        {:reply, :ok, socket}
-
-      {:error, reason} ->
-        {:reply, to_error(reason), socket}
-    end
-  end
-
-  def handle_in("add mass dispatcher message", payload, socket) do
-    %{
-      "asset_ids" => asset_ids,
-      "message" => message,
-      "timestamp" => timestamp
-    } = payload
-
-    dispatcher_id = get_dispatcher_id(socket)
-
-    asset_ids
-    |> DispatcherMessageAgent.new_mass_message(
-      message,
-      dispatcher_id,
-      payload["answers"],
-      timestamp
-    )
-    |> case do
-      {:ok, _} ->
-        Broadcast.send_dispatcher_messages_to(asset_ids)
-        {:reply, :ok, socket}
-
-      {:error, reason} ->
-        {:reply, to_error(reason), socket}
-    end
-  end
-
-  def handle_in("acknowledge operator message", nil, socket) do
-    {:reply, to_error("No message id given"), socket}
-  end
-
-  def handle_in("acknowledge operator message", operator_msg_id, socket) do
-    operator_msg_id
-    |> OperatorMessageAgent.acknowledge(Helper.naive_timestamp())
-    |> case do
-      {:ok, %{asset_id: asset_id}} ->
-        Broadcast.send_unread_operator_messages_to_operator(asset_id)
-
-      _ ->
-        nil
-    end
-
-    # broadcast messages to dispatchers
-    Broadcast.send_operator_messages_to_dispatcher()
-    Broadcast.send_activity(nil, "dispatcher", "operator message acknowledged")
-
-    {:reply, :ok, socket}
-  end
-
-  @decorate authorized(:can_edit_messages)
-  def handle_in("update operator message type", payload, socket) do
-    case payload["override"] do
-      true -> OperatorMessageTypeAgent.override(payload)
-      _ -> OperatorMessageTypeAgent.update(payload)
-    end
-    |> case do
-      {:ok, _, _} ->
-        Broadcast.send_operator_message_types()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_messages)
-  def handle_in(
-        "set operator message type tree",
-        %{"asset_type_id" => asset_type_id, "ids" => ids},
-        socket
-      )
-      when is_list(ids) do
-    case OperatorMessageTypeAgent.update_tree(asset_type_id, ids) do
-      {:ok, _} ->
-        Broadcast.send_operator_message_type_tree_to_dispatcher()
-        Broadcast.send_operator_message_type_tree_to(asset_type_id)
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_operators)
-  def handle_in("add operator", payload, socket) do
-    %{
-      "name" => name,
-      "nickname" => nickname,
-      "employee_id" => employee_id
-    } = payload
-
-    case OperatorAgent.add(employee_id, name, nickname) do
-      {:ok, _operator} ->
-        Broadcast.send_operators_to_all()
-        {:reply, :ok, socket}
-
-      {:error, :employee_id_taken} ->
-        {:reply, to_error("Employee ID already taken"), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_operators)
-  def handle_in("update operator", payload, socket) do
-    %{
-      "id" => id,
-      "name" => name,
-      "nickname" => nickname
-    } = payload
-
-    case OperatorAgent.update(id, name, nickname) do
-      {:ok, _operator} ->
-        Broadcast.send_operators_to_all()
-        {:reply, :ok, socket}
-
-      {:error, :not_found} ->
-        {:reply, to_error("No employee found"), socket}
-
-      {:error, :invalid_name} ->
-        {:reply, to_error("Invalid name"), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_operators)
-  def handle_in("bulk add operators", %{"operators" => operators}, socket) do
-    operators =
-      Enum.map(operators, fn o ->
-        %{
-          name: o["name"],
-          nickname: o["nickname"],
-          employee_id: o["employee_id"]
-        }
-      end)
-
-    case OperatorAgent.bulk_add(operators) do
-      {:ok, _operators} ->
-        Broadcast.send_operators_to_all()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_operators)
-  def handle_in("set operator enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
-    case enabled do
-      true ->
-        OperatorAgent.restore(operator_id)
-
-      false ->
-        Broadcast.force_logout(%{operator_id: operator_id})
-        OperatorAgent.delete(operator_id)
-    end
-    |> case do
-      {:ok, _operator} ->
-        Broadcast.send_operators_to_all()
-        {:reply, :ok, socket}
-
-      {:error, :invalid_id} ->
-        {:reply, to_error("No employee found"), socket}
-    end
-  end
 
   def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
     allocation = Map.put(allocation, :created_by_dispatcher, true)

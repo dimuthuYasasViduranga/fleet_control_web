@@ -86,7 +86,7 @@ export default {
       };
 
       this.$channel
-        .push('add operator', payload)
+        .push('operator:add', payload)
         .receive('ok', () => {
           this.$toaster.info('Operator created');
           this.close();

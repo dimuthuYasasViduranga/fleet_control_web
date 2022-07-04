@@ -127,7 +127,7 @@ export default {
       this.setLocked(row.id, true);
 
       this.$channel
-        .push('add dispatcher message', payload)
+        .push('dispatcher-message:add', payload)
         .receive('ok', () => {
           this.setLocked(row.id, false);
 

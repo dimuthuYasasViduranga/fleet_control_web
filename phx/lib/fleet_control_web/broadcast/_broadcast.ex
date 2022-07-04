@@ -236,7 +236,7 @@ defmodule FleetControlWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "set operator message type tree", payload)
+    Endpoint.broadcast(@dispatch, "operator-message:set-type-tree", payload)
   end
 
   def send_operator_message_type_tree_to(asset_type_id) do
@@ -244,7 +244,7 @@ defmodule FleetControlWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    broadcast_to_asset_type(%{type_id: asset_type_id}, "set operator message type tree", payload)
+    broadcast_to_asset_type(%{type_id: asset_type_id}, "operator-message:set-type-tree", payload)
   end
 
   def send_dispatchers() do

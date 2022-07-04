@@ -69,7 +69,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
 
   describe "add dispatcher message -" do
     test "valid", %{d_socket: d_socket, o_socket: o_socket, asset: %{id: asset_id}} do
-      topic = "add dispatcher message"
+      topic = "dispatcher-message:add"
 
       payload = %{
         "message" => "Test message",
@@ -91,7 +91,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
     end
 
     test "invalid (missing keys)", %{d_socket: d_socket, asset: %{id: asset_id}} do
-      topic = "add dispatcher message"
+      topic = "dispatcher-message:add"
 
       payload = %{
         "asset_id" => asset_id,
@@ -106,7 +106,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
 
   describe "add mass dispatcher message -" do
     test "valid", %{d_socket: d_socket, o_socket: o_socket, asset: %{id: asset_id}} do
-      topic = "add mass dispatcher message"
+      topic = "dispatcher-message:mass-add"
 
       payload = %{
         "asset_ids" => [asset_id],
@@ -127,7 +127,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
     end
 
     test "invalid (missing keys)", %{d_socket: d_socket} do
-      topic = "add mass dispatcher message"
+      topic = "dispatcher-message:mass-add"
 
       payload = %{
         "asset_ids" => [],
