@@ -1,4 +1,4 @@
-defmodule FleetControlWeb.DispatcherChannel.DigUnitTopics do
+defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
   @moduledoc false
 
   use FleetControlWeb.Authorization.Decorator

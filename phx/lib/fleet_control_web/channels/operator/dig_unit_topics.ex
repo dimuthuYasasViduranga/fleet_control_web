@@ -4,7 +4,7 @@ defmodule FleetControlWeb.OperatorChannel.DigUnitTopics do
   """
   alias FleetControl.{Helper, LoadStyleAgent, DigUnitActivityAgent, HaulTruckDispatchAgent}
   alias FleetControlWeb.Broadcast
-  alias FleetControlWeb.DispatcherChannel.HaulTruckTopics
+  alias FleetControlWeb.DispatcherChannel.Topics.HaulTruck
 
   def get_asset_type_state(asset, _operator_id) do
     activity = DigUnitActivityAgent.get(%{asset_id: asset.id})

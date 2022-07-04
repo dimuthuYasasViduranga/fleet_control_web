@@ -1,4 +1,4 @@
-defmodule FleetControlWeb.DispatcherChannel.RefreshTopics do
+defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
   @moduledoc """
   Holds all topics relating to agent refreshing
   """

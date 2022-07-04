@@ -8,13 +8,8 @@ defmodule FleetControlWeb.DispatcherChannel do
   use FleetControlWeb, :channel
 
   alias FleetControlWeb.DispatcherChannel
-  alias DispatcherChannel.RefreshTopics
-  alias DispatcherChannel.HaulTruckTopics
-  alias DispatcherChannel.AuthTopics
+  alias DispatcherChannel.Topics
   alias DispatcherChannel.Report
-  alias DispatcherChannel.DigUnitTopics
-  alias DispatcherChannel.PreStartTopics
-  alias DispatcherChannel.TrackTopics
 
   alias FleetControlWeb.Settings
   alias FleetControlWeb.Broadcast
@@ -138,27 +133,27 @@ defmodule FleetControlWeb.DispatcherChannel do
           | {:reply, :ok | :error | {:error, term}, Socket.t()}
   @decorate channel_action()
   def handle_in("refresh:" <> topic, payload, socket) do
-    RefreshTopics.handle_in(topic, payload, socket)
+    Topics.Refresh.handle_in(topic, payload, socket)
   end
 
   def handle_in("haul:" <> _ = topic, payload, socket) do
-    HaulTruckTopics.handle_in(topic, payload, socket)
+    Topics.HaulTruck.handle_in(topic, payload, socket)
   end
 
   def handle_in("auth:" <> _ = topic, payload, socket) do
-    AuthTopics.handle_in(topic, payload, socket)
+    Topics.Auth.handle_in(topic, payload, socket)
   end
 
   def handle_in("dig:" <> _ = topic, payload, socket) do
-    DigUnitTopics.handle_in(topic, payload, socket)
+    Topics.DigUnit.handle_in(topic, payload, socket)
   end
 
   def handle_in("pre-start:" <> _ = topic, payload, socket) do
-    PreStartTopics.handle_in(topic, payload, socket)
+    Topics.PreStart.handle_in(topic, payload, socket)
   end
 
   def handle_in("track:" <> _ = topic, payload, socket) do
-    TrackTopics.handle_in(topic, payload, socket)
+    Topics.Track.handle_in(topic, payload, socket)
   end
 
   def handle_in("set page visited", payload, socket) do

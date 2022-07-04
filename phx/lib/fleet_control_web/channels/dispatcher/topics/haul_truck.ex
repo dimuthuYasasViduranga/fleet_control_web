@@ -1,4 +1,4 @@
-defmodule FleetControlWeb.DispatcherChannel.HaulTruckTopics do
+defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
   @moduledoc """
   Holds all haul truck specific topics to make the dispatcher channel cleaner
   """

@@ -1,4 +1,4 @@
-defmodule FleetControlWeb.DispatcherChannel.PreStartTopics do
+defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
   @moduledoc """
   Holds the pre start specific topics
   """

@@ -1,7 +1,7 @@
 defmodule FleetControlWeb.Timers do
   @moduledoc false
 
-  alias FleetControlWeb.DispatcherChannel.RefreshTopics
+  alias FleetControlWeb.DispatcherChannel.Topics
   alias FleetControl.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
   alias FleetControlWeb.Broadcast
 
@@ -47,7 +47,7 @@ defmodule FleetControlWeb.Timers do
   end
 
   defp start_refresh_interval!(agent, interval) do
-    start_interval!(interval, RefreshTopics, :refresh, [agent])
+    start_interval!(interval, Topics.Refresh, :refresh, [agent])
   end
 
   defp start_live_queue_interval!(interval) do
