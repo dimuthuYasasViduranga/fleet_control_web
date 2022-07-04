@@ -1,7 +1,7 @@
 <template>
   <div class="login-event">
     <div class="title">
-      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="dmAsset(entry.assetId)">{{ entry.assetName }}</a>
+      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
       <span v-else>'Unknown Asset'</span>
       <span> | {{ type }}: {{ entry.operatorFullname }}</span>
     </div>
@@ -25,7 +25,7 @@ export default {
     },
   },
   methods: {
-    dmAsset(assetId) {
+    openAssetMessages(assetId) {
 
       const opts = {
         scroll: 'bottom',

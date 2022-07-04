@@ -1,7 +1,7 @@
 <template>
   <div class="assignment-event">
     <div class="title">
-      <a href="entry.assetName"  @click.prevent="dmAsset(entry.assetId)">{{ entry.assetName }}</a> 
+      <a href="entry.assetName"  @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a> 
       <span> | {{ action }}</span>
     </div>
   </div>
@@ -25,7 +25,7 @@ export default {
     },
   },
   methods: {
-    dmAsset(assetId) {
+    openAssetMessages(assetId) {
 
       const opts = {
         scroll: 'bottom',

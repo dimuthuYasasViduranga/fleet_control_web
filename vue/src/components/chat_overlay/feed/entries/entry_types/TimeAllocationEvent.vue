@@ -1,6 +1,6 @@
 <template>
   <div class="time-allocation-event" :class="typeClass">
-    <a :href="entry.assetName" class="asset-name" @click.prevent="dmAsset(entry.assetId)">{{ entry.assetName }}</a>
+    <a :href="entry.assetName" class="asset-name" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
     <span> | </span>
     <span class="time-code">{{ entry.timeCodeGroup }} &mdash; {{ entry.timeCode }}</span>
     <span class="duration">{{ duration }}</span>
@@ -38,7 +38,7 @@ export default {
   },
 
   methods: {
-    dmAsset(assetId) {
+    openAssetMessages(assetId) {
 
       const opts = {
         scroll: 'bottom',
