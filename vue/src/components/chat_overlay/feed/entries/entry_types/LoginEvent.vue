@@ -1,7 +1,9 @@
 <template>
   <div class="login-event">
     <div class="title">
-      {{ entry.assetName || 'Unknown Asset' }} | {{ type }}: {{ entry.operatorFullname }}
+      <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
+      <span v-else>'Unknown Asset'</span>
+      <span> | {{ type }}: {{ entry.operatorFullname }}</span>
     </div>
   </div>
 </template>
@@ -22,6 +24,17 @@ export default {
       return this.entry.eventType === 'login' ? 'Login' : 'Logout';
     },
   },
+  methods: {
+    openAssetMessages(assetId) {
+
+      const opts = {
+        scroll: 'bottom',
+        assetId: assetId 
+      };
+
+      this.$eventBus.$emit('chat-open', opts);
+    },
+  }
 };
 </script>
 
@@ -31,5 +44,6 @@ export default {
   padding: 0.25rem;
   background-color: #312511;
   color: darkgray;
+  white-space: pre;
 }
 </style>
