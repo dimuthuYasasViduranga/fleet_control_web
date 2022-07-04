@@ -18,37 +18,37 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
   end
 
   @spec refresh(String.t()) :: :ok
-  def refresh("asset agent") do
+  defp refresh("asset agent") do
     :ok = FleetControl.AssetAgent.refresh!()
     Broadcast.send_asset_data_to_all()
     :ok
   end
 
-  def refresh("location agent") do
+  defp refresh("location agent") do
     :ok = FleetControl.LocationAgent.refresh!()
     Broadcast.send_location_data_to_all()
     :ok
   end
 
-  def refresh("calendar agent") do
+  defp refresh("calendar agent") do
     :ok = FleetControl.CalendarAgent.refresh!()
     Broadcast.send_calendar_data_to_all()
     :ok
   end
 
-  def refresh("device agent") do
+  defp refresh("device agent") do
     :ok = FleetControl.DeviceAgent.refresh!()
     Broadcast.send_devices_to_dispatcher()
     :ok
   end
 
-  def refresh("operator agent") do
+  defp refresh("operator agent") do
     :ok = FleetControl.OperatorAgent.refresh!()
     Broadcast.send_operators_to_all()
     :ok
   end
 
-  def refresh("operator message agent") do
+  defp refresh("operator message agent") do
     :ok = FleetControl.OperatorMessageAgent.refresh!()
 
     FleetControl.AssetAgent.get_assets()
@@ -58,30 +58,30 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
     :ok
   end
 
-  def refresh("time code agent") do
+  defp refresh("time code agent") do
     :ok = FleetControl.TimeCodeAgent.refresh!()
     Broadcast.send_time_code_data_to_all()
     :ok
   end
 
-  def refresh("fleetops agent") do
+  defp refresh("fleetops agent") do
     :ok = FleetControl.HaulAgent.refresh!()
     Broadcast.send_fleetops_data_to_all()
     :ok
   end
 
-  def refresh("pre-start agent") do
+  defp refresh("pre-start agent") do
     :ok = FleetControl.PreStartAgent.refresh!()
     Broadcast.send_pre_start_forms_to_all()
     Broadcast.send_pre_start_control_categories_to_all()
     :ok
   end
 
-  def refresh("pre-start submission agent") do
+  defp refresh("pre-start submission agent") do
     :ok = FleetControl.PreStartSubmissionAgent.refresh!()
     Broadcast.send_pre_start_submissions_to_all()
     :ok
   end
 
-  def refresh(_), do: {:error, :invalid_refresh}
+  defp refresh(_), do: {:error, :invalid_refresh}
 end

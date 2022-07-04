@@ -2,9 +2,12 @@ defmodule FleetControlWeb.OperatorChannel.DigUnitTopics do
   @moduledoc """
   Holds all dig unit specific topics
   """
-  alias FleetControl.{Helper, LoadStyleAgent, DigUnitActivityAgent, HaulTruckDispatchAgent}
+  alias FleetControl.Helper
+  alias FleetControl.LoadStyleAgent
+  alias FleetControl.DigUnitActivityAgent
+  alias FleetControl.HaulTruckDispatchAgent
   alias FleetControlWeb.Broadcast
-  alias FleetControlWeb.DispatcherChannel.Topics.HaulTruck
+  alias FleetControlWeb.DispatcherChannel.Topics
 
   def get_asset_type_state(asset, _operator_id) do
     activity = DigUnitActivityAgent.get(%{asset_id: asset.id})
@@ -37,6 +40,6 @@ defmodule FleetControlWeb.OperatorChannel.DigUnitTopics do
   def handle_in("dig:set haul dispatch", payload, socket) do
     payload
     |> Map.put("timestamp", Helper.naive_timestamp())
-    |> HaulTruckTopics.set_dispatch(socket)
+    |> Topics.HaulTruck.set_dispatch(socket)
   end
 end

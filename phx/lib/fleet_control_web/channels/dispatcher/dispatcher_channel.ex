@@ -121,39 +121,36 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   def join(_topic, _params, _socket), do: {:error, %{reason: "unauthorized"}}
 
-  @spec handle_info(:after_join, Socket.t()) :: {:noreply, Socket.t()}
   def handle_info(:after_join, socket) do
     # sync server presence information (automatically updated while connected)
     Broadcast.send_presence_state()
     {:noreply, socket}
   end
 
-  @spec handle_in(String.t(), map(), Socket.t()) ::
-          {:noreply, Socket.t()}
-          | {:reply, :ok | :error | {:error, term}, Socket.t()}
   @decorate channel_action()
-  def handle_in("refresh:" <> topic, payload, socket) do
-    Topics.Refresh.handle_in(topic, payload, socket)
+  def handle_in("refresh:" <> subtopic, payload, socket) do
+    Topics.Refresh.handle_in(subtopic, payload, socket)
   end
 
-  def handle_in("haul:" <> _ = topic, payload, socket) do
-    Topics.HaulTruck.handle_in(topic, payload, socket)
+  @decorate authorized(:can_dispatch)
+  def handle_in("haul:" <> subtopic, payload, socket) do
+    Topics.HaulTruck.handle_in(subtopic, payload, socket)
   end
 
-  def handle_in("auth:" <> _ = topic, payload, socket) do
-    Topics.Auth.handle_in(topic, payload, socket)
+  def handle_in("auth:" <> subtopic, payload, socket) do
+    Topics.Auth.handle_in(subtopic, payload, socket)
   end
 
-  def handle_in("dig:" <> _ = topic, payload, socket) do
-    Topics.DigUnit.handle_in(topic, payload, socket)
+  def handle_in("dig:" <> subtopic, payload, socket) do
+    Topics.DigUnit.handle_in(subtopic, payload, socket)
   end
 
-  def handle_in("pre-start:" <> _ = topic, payload, socket) do
-    Topics.PreStart.handle_in(topic, payload, socket)
+  def handle_in("pre-start:" <> subtopic, payload, socket) do
+    Topics.PreStart.handle_in(subtopic, payload, socket)
   end
 
-  def handle_in("track:" <> _ = topic, payload, socket) do
-    Topics.Track.handle_in(topic, payload, socket)
+  def handle_in("track:" <> subtopic, payload, socket) do
+    Topics.Track.handle_in(subtopic, payload, socket)
   end
 
   def handle_in("set page visited", payload, socket) do

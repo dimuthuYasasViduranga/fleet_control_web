@@ -8,7 +8,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
   alias FleetControlWeb.Broadcast
 
   @decorate authorized(:can_dispatch)
-  def handle_in("dig:set activity", activity, socket) do
+  def handle_in("set activity", activity, socket) do
     case DigUnitActivityAgent.add(activity) do
       {:ok, activity} ->
         identifier = %{asset_id: activity.asset_id}

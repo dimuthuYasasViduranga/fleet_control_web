@@ -13,14 +13,12 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
 
   alias FleetControlWeb.Broadcast
 
-  @decorate authorized(:can_dispatch)
-  def handle_in("haul:set dispatch", payload, socket) do
+  def handle_in("set dispatch", payload, socket) do
     set_dispatch(payload, socket)
   end
 
-  @decorate authorized(:can_dispatch)
   def handle_in(
-        "haul:set mass dispatch",
+        "set mass dispatch",
         %{"asset_ids" => asset_ids, "dispatch" => dispatch},
         socket
       ) do
