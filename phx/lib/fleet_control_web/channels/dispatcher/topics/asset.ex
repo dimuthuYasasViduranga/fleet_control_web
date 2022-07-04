@@ -4,6 +4,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Asset do
   alias FleetControl.HaulTruckDispatchAgent
   alias FleetControl.DigUnitActivityAgent
   alias FleetControl.DeviceAssignmentAgent
+  alias FleetControlWeb.DispatcherChannel
 
   alias FleetControlWeb.Broadcast
 
@@ -20,7 +21,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Asset do
     case AssetAgent.set_enabled(asset_id, true) do
       :ok ->
         no_task_id = TimeCodeAgent.no_task_id()
-        add_default_time_allocation(asset_id, no_task_id)
+        DispatcherChannel.add_default_time_allocation(asset_id, no_task_id)
 
         Broadcast.send_asset_data_to_all()
         Broadcast.send_active_allocation_to(%{asset_id: asset_id})

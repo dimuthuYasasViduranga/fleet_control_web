@@ -142,7 +142,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
 
   describe "set assigned asset -" do
     test "valid (change asset)", %{d_socket: d_socket, o_socket: o_socket} = context do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       # changing assigned asset for the device on o_socket
       payload = %{
@@ -161,7 +161,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
 
     test "valid (unassign device from asset)",
          %{d_socket: d_socket, o_socket: o_socket} = context do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => context.device.id,
@@ -178,7 +178,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
     end
 
     test "invalid (invalid asset)", %{d_socket: d_socket, device: device} do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => device.id,
@@ -191,7 +191,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
     end
 
     test "invalid (invalid device)", %{d_socket: d_socket, asset: asset} do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => -1,
