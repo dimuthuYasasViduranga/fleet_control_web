@@ -20,10 +20,14 @@
         >
           Drop to Add Route
         </Container>
-        <!-- standard click to add -->
-        <div v-else class="add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
-          Click to Add Route
+        <div v-else class="grid-container">
+            <!-- standard click to add -->
+          <div class="grid-child add-route" :class="{ 'no-hover': !!draggedAsset }" @click="onAddRoute()">
+            Click to Add Route
+          </div>
+          <div class="grid-child clear-routes" @click="onConfirmClearAllRoutes()">Clear All Routes</div>
         </div>
+       
       </template>
       <br v-else />
 
@@ -407,6 +411,22 @@ export default {
         }
       });
     },
+    onConfirmClearAllRoutes() { 
+       if(this.structure.routes.length > 0) {
+        const ok = 'yes';
+        const opts = {
+          title: 'Clear All Routes',
+          body: 'All routes assigned will be removed.\n\nAre you sure you want to continue?', 
+          ok,
+        };
+       
+        this.$modal.create(ConfirmModal, opts)
+          .onClose(resp => {
+            if (resp === ok) {
+              this.clearAllRoutes();
+          }})
+       }                                
+    },
     clearRoute(digUnitId, loadId) {
       if (!digUnitId && !loadId) {
         return;
@@ -417,16 +437,17 @@ export default {
         return d.digUnitId === digUnitId && d.loadId === loadId;
       });
 
-      if (haulTrucks.length === 0) {
-        console.error('[dnd] Cannot clear route as there are no haul trucks to move');
-        return;
+      if (haulTrucks.length > 0) { 
+        this.structure.removeAllDumpsFor(digUnitId, loadId);
+        this.massSetHaulTrucks(haulTrucks);
       }
-
-      this.structure.removeAllDumpsFor(digUnitId, loadId);
-
-      if (haulTrucks.length) {
-        this.massSetHaulTrucks(haulTrucks, null, null, null);
+      else {
+         console.error('[dnd] Cannot clear route as there are no haul trucks to move');
       }
+    },
+    clearAllRoutes() { 
+        this.structure.removeAll();
+        this.massSetHaulTrucks(this.localHaulTrucks);
     },
     onRequestAddDump({ digUnitId = null, loadId = null }) {
       // do not allow dumps if they are already present
@@ -613,7 +634,8 @@ export default {
 
 <style>
 .dnd-route-main .add-route,
-.dnd-route-main .new-dig-unit-container {
+.dnd-route-main .new-dig-unit-container,
+.dnd-route-main .clear-routes {
   user-select: none;
   height: 3rem;
   line-height: 3rem;
@@ -632,4 +654,12 @@ export default {
   background-color: #20323b;
   opacity: 1;
 }
+
+.dnd-route-main .grid-container {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    grid-gap: 20px;
+}
+
+
 </style>

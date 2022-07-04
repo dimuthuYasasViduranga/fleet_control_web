@@ -45,6 +45,10 @@ export class RouteStructure {
       return r._digUnitId !== digUnitId || r._loadId !== loadId;
     });
   }
+
+  removeAll() { 
+    this._routes = [];
+  }
 }
 
 export class Route {

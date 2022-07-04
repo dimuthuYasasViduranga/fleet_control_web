@@ -213,6 +213,7 @@ function toHaulTruckDispatchEvent(assets, locations, dispatches) {
       assetId: d.assetId,
       assetName,
       digUnitName,
+      digUnitId: d.digUnitId,
       loadLocation,
       dumpLocation,
       timestamp: copyDate(d.timestamp),

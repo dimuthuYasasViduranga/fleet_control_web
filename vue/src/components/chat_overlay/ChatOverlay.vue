@@ -161,8 +161,8 @@ export default {
     },
   },
   created() {
-    this.setAction('chat-open', this.open);
-    this.setAction('feed-filter-changed', this.onSetFeedFilter);
+    this.$eventBus.$on('chat-open', this.open);
+    this.$eventBus.$on('feed-filter-changed', this.onSetFeedFilter);
   },
   mounted() {
     const filters = this.showEvents;
@@ -171,9 +171,6 @@ export default {
     });
   },
   methods: {
-    setAction(action, callback) {
-      this.$eventBus.$on(action, callback);
-    },
     alongEventBus(action, event) {
       this.$eventBus.$emit(action, event);
     },

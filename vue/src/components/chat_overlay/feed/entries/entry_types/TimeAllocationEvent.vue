@@ -1,8 +1,9 @@
 <template>
   <div class="time-allocation-event" :class="typeClass">
-    <div class="asset-name">{{ entry.assetName }} |</div>
-    <div class="time-code">{{ entry.timeCodeGroup }} &mdash; {{ entry.timeCode }}</div>
-    <div class="duration">{{ duration }}</div>
+    <a :href="entry.assetName" class="asset-name" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
+    <span> | </span>
+    <span class="time-code">{{ entry.timeCodeGroup }} &mdash; {{ entry.timeCode }}</span>
+    <span class="duration">{{ duration }}</span>
   </div>
 </template>
 
@@ -35,6 +36,18 @@ export default {
       return `${daysStr}${formatSeconds(remainder)}`;
     },
   },
+
+  methods: {
+    openAssetMessages(assetId) {
+
+      const opts = {
+        scroll: 'bottom',
+        assetId: assetId 
+      };
+
+      this.$eventBus.$emit('chat-open', opts);
+    },
+  }
 };
 </script>
 
@@ -48,6 +61,7 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  white-space: pre;
 }
 
 .time-allocation-event .asset-name,
@@ -57,9 +71,7 @@ export default {
 
 .time-allocation-event .time-code {
   width: 100%;
-  padding-left: 0.25rem;
 }
-
 .time-allocation-event.ready {
   border-color: darkgreen;
   background-color: rgba(0, 128, 0, 0.158);
@@ -69,4 +81,9 @@ export default {
   border-color: darkorange;
   background-color: rgba(150, 85, 0, 0.233);
 }
+
+.time-allocation-event a {
+  color: darkgrey;
+}
+
 </style>
