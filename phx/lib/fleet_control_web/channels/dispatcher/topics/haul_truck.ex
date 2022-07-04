@@ -13,6 +13,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
 
   alias FleetControlWeb.Broadcast
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("set dispatch", payload, socket) do
     set_dispatch(payload, socket)
   end
@@ -61,10 +63,4 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
         |> Broadcast.send_track()
     end
   end
-
-  defp to_error({:error, reason}), do: to_error(reason)
-
-  defp to_error(%Ecto.Changeset{} = changeset), do: to_error(hd(changeset.errors))
-
-  defp to_error(reason), do: {:error, %{error: reason}}
 end

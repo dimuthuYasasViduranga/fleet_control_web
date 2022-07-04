@@ -2,6 +2,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   alias FleetControlWeb.Broadcast
   alias FleetControl.OperatorAgent
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   @decorate authorized(:can_edit_operators)
   def handle_in("operator:add", payload, socket) do
     %{

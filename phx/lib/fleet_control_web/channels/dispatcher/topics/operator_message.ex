@@ -4,6 +4,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
   alias FleetControl.OperatorMessageTypeAgent
   alias FleetControl.OperatorMessageAgent
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("operator-message:acknowledge", nil, socket) do
     {:reply, to_error("No message id given"), socket}
   end

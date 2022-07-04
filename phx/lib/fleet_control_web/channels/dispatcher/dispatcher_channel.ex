@@ -14,14 +14,11 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControlWeb.Broadcast
 
   alias FleetControl.Helper
-  alias FleetControl.OperatorTimeAllocation
   alias FleetControl.DigUnitActivityAgent
   alias FleetControl.DeviceAuthServer
-  alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.AssetRadioAgent
   alias FleetControl.TimeAllocation
   alias FleetControl.CalendarAgent
-  alias FleetControl.HaulAgent
   alias FleetControl.RoutingAgent
 
   alias FleetControlWeb.DispatcherChannel.Setup
@@ -99,6 +96,10 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.DispatcherMessage.handle_in(subtopic, payload, socket)
   end
 
+  def handle_in("time-allocation:" <> subtopic, payload, socket) do
+    Topics.TimeAllocation.handle_in(subtopic, payload, socket)
+  end
+
   def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->
@@ -117,155 +118,6 @@ defmodule FleetControlWeb.DispatcherChannel do
     AssetRadioAgent.set(asset_id, radio_number)
     Broadcast.send_asset_radios()
     {:reply, :ok, socket}
-  end
-
-
-  def handle_in("set allocation", %{"asset_id" => asset_id} = allocation, socket) do
-    allocation = Map.put(allocation, :created_by_dispatcher, true)
-
-    case TimeAllocation.Agent.add(allocation) do
-      {:ok, _} ->
-        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
-        Broadcast.send_allocations_to_dispatcher()
-
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  def handle_in(
-        "mass set allocations",
-        %{"time_code_id" => time_code_id, "asset_ids" => asset_ids},
-        socket
-      ) do
-    asset_ids = Enum.uniq(asset_ids)
-
-    case TimeAllocation.Agent.mass_add(time_code_id, asset_ids, created_by_dispatcher: true) do
-      {:ok, _, _, _} ->
-        Enum.each(asset_ids, &Broadcast.send_active_allocation_to(%{asset_id: &1}))
-        Broadcast.send_allocations_to_dispatcher(:no_alert)
-
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_time_allocations)
-  def handle_in("edit time allocations", allocations, socket) do
-    allocations = Enum.map(allocations, &Map.put(&1, :updated_by_dispatcher, true))
-
-    TimeAllocation.Agent.update_all(allocations)
-    |> case do
-      {:error, reason} ->
-        {:reply, to_error(reason), socket}
-
-      {:ok, _, _, _} ->
-        allocations
-        |> Enum.map(& &1["asset_id"])
-        |> Enum.uniq()
-        |> Enum.each(&Broadcast.send_active_allocation_to(%{asset_id: &1}))
-
-        Broadcast.send_allocations_to_dispatcher()
-
-        {:reply, :ok, socket}
-    end
-  end
-
-  @decorate authorized(:can_lock_time_allocations)
-  def handle_in("lock time allocations", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
-    dispatcher_id = get_dispatcher_id(socket)
-
-    case TimeAllocation.Agent.lock(ids, cal_id, dispatcher_id) do
-      {:ok, %{new: []}} ->
-        {:reply, :ok, socket}
-
-      {:ok, %{new: new_elements}} ->
-        # only send to assets if there is a new active for them
-        new_elements
-        |> Enum.filter(&is_nil(&1.end_time))
-        |> Enum.map(& &1.asset_id)
-        |> Enum.uniq()
-        |> Enum.each(&Broadcast.send_active_allocation_to(%{asset_id: &1}))
-
-        Broadcast.send_allocations_to_dispatcher()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_lock_time_allocations)
-  def handle_in("unlock time allocations", ids, socket) when is_list(ids) do
-    case TimeAllocation.Agent.unlock(ids) do
-      {:ok, %{new: []}} ->
-        {:reply, :ok, socket}
-
-      {:ok, _} ->
-        Broadcast.send_allocations_to_dispatcher()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  def handle_in("get time allocation data", calendar_id, socket) do
-    case CalendarAgent.get(%{id: calendar_id}) do
-      nil ->
-        {:reply, to_error("shift does not exist"), socket}
-
-      shift ->
-        range = %{start_time: shift.shift_start, end_time: shift.shift_end}
-        allocations = FleetControl.TimeAllocation.EctoQueries.fetch_by_range!(range)
-
-        device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
-
-        timeusage = HaulAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
-        cycles = HaulAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
-
-        payload = %{
-          shift: shift,
-          allocations: allocations,
-          device_assignments: device_assignments,
-          timeusage: timeusage,
-          cycles: cycles
-        }
-
-        {:reply, {:ok, payload}, socket}
-    end
-  end
-
-  def handle_in("get operator time allocation data", calendar_id, socket) do
-    case CalendarAgent.get(%{id: calendar_id}) do
-      nil ->
-        {:reply, to_error("shift does not exists"), socket}
-
-      shift ->
-        now = NaiveDateTime.utc_now()
-
-        end_time =
-          case NaiveDateTime.compare(shift.shift_end, now) == :gt do
-            true -> now
-            _ -> shift.shift_end
-          end
-
-        report =
-          OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
-          |> OperatorTimeAllocation.build_report()
-          |> Map.put(:end_time, shift.shift_end)
-
-        payload = %{
-          shift: shift,
-          data: report
-        }
-
-        {:reply, {:ok, payload}, socket}
-    end
   end
 
   @decorate authorized(:can_edit_routing)
@@ -323,7 +175,6 @@ defmodule FleetControlWeb.DispatcherChannel do
   @doc """
   Converts multiple errors types into a format useable for a socket error response
   """
-  @spec to_error(any) :: {:error, %{error: any}}
   def to_error({:error, reason}), do: to_error(reason)
 
   def to_error(%Ecto.Changeset{} = changeset), do: to_error(hd(changeset.errors))

@@ -1,11 +1,10 @@
 defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
-  @moduledoc false
-
-  use FleetControlWeb.Authorization.Decorator
-
   alias FleetControl.DigUnitActivityAgent
 
+  use FleetControlWeb.Authorization.Decorator
   alias FleetControlWeb.Broadcast
+
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
   @decorate authorized(:can_dispatch)
   def handle_in("set activity", activity, socket) do

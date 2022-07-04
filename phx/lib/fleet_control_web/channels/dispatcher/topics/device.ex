@@ -9,6 +9,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.DigUnitActivityAgent
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("force-logout", %{"device_id" => device_id} = payload, socket) do
     time_code_id = payload["time_code_id"]
 

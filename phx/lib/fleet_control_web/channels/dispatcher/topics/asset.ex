@@ -8,6 +8,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Asset do
 
   alias FleetControlWeb.Broadcast
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("set-enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
     case set_asset_enabled(asset_id, bool) do
       :ok -> {:reply, :ok, socket}

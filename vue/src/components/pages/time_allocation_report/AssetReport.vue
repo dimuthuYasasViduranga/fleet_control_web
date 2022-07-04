@@ -378,7 +378,7 @@ export default {
       );
 
       this.$channel
-        .push('get time allocation data', shift.id)
+        .push('time-allocation:get-data', shift.id)
         .receive('ok', data => {
           loading.close();
           if (data.shift.id !== shift.id) {

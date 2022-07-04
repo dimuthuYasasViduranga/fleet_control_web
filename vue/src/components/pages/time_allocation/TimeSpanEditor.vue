@@ -767,7 +767,7 @@ export default {
       });
 
       this.pushTopic(
-        'edit time allocations',
+        'time-allocation:edit',
         payload,
         'Editing Time Allocations',
         'update',
@@ -833,7 +833,7 @@ export default {
           };
 
           this.pushTopic(
-            'lock time allocations',
+            'time-allocation:lock',
             payload,
             'Locking Time Allocations',
             'lock',
@@ -862,7 +862,7 @@ export default {
           }
 
           this.pushTopic(
-            'unlock time allocations',
+            'time-allocation:unlock',
             ids,
             'Unlocking Time Allocations',
             'unlock',

@@ -2,6 +2,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DispatcherMessage do
   alias FleetControlWeb.Broadcast
   alias FleetControl.DispatcherMessageAgent
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("dispatcher-message:add", payload, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 

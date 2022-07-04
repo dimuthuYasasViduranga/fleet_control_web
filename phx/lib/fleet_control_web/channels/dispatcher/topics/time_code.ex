@@ -2,6 +2,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeCode do
   alias FleetControl.TimeCodeAgent
   alias FleetControlWeb.Broadcast
 
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
   def handle_in("time-code:set-tree-elements", payload, socket) do
     %{
       "asset_type_id" => asset_type_id,
