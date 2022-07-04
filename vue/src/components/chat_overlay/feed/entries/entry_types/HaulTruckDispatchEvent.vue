@@ -2,13 +2,14 @@
   <div class="haul-truck-dispatch-event">
     <div class="title">
       <a v-if="entry.assetName" :href="entry.assetName" @click.prevent="openAssetMessages(entry.assetId)">{{ entry.assetName }}</a>
-      <span v-else>'Unknown'</span>
+      <span v-else class="italics">Unknown</span>
       <span> | </span>
       <span v-if="isUnassigned" class="italics">Unassigned</span>
-      <span v-if="entry.digUnitName" :class="{ italics: !sourceName }">
+      <span v-if="entry.digUnitName">
          <a :href="entry.digUnitName" @click.prevent="openAssetMessages(entry.digUnitId)">{{entry.digUnitName}}</a>
       </span>
-      <span v-else>'No Source'</span>
+      <span v-else-if="entry.loadLocation">{{ entry.loadLocation }}</span>
+      <span v-else :class="italics">No Source</span>
 
       {{ arrow }}
       <span :class="{ italics: !dumpName }">
@@ -73,4 +74,5 @@ export default {
 .haul-truck-dispatch-event a { 
   color: darkgray;
 }
+
 </style>
