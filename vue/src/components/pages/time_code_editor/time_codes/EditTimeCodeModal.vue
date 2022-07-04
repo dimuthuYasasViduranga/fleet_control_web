@@ -129,7 +129,7 @@ export default {
       );
 
       this.$channel
-        .push('update time code', payload)
+        .push('time-code:update', payload)
         .receive('ok', () => {
           loading.close();
           this.$toaster.info(`Time Code ${payload.id ? 'Updated' : 'Created'}`);

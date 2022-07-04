@@ -11,15 +11,12 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias DispatcherChannel.Topics
   alias DispatcherChannel.Report
 
-  alias FleetControlWeb.Settings
   alias FleetControlWeb.Broadcast
 
   alias FleetControl.Helper
   alias FleetControl.OperatorTimeAllocation
   alias FleetControl.AssetAgent
-  alias FleetControl.ActivityAgent
   alias FleetControl.DeviceAgent
-  alias FleetControl.DispatcherAgent
   alias FleetControl.OperatorAgent
   alias FleetControl.OperatorMessageTypeAgent
   alias FleetControl.OperatorMessageAgent
@@ -28,18 +25,13 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControl.DigUnitActivityAgent
   alias FleetControl.DeviceAuthServer
   alias FleetControl.DeviceAssignmentAgent
-  alias FleetControl.EngineHoursAgent
   alias FleetControl.AssetRadioAgent
-  alias FleetControl.TimeCodeAgent
   alias FleetControl.TimeAllocation
   alias FleetControl.CalendarAgent
   alias FleetControl.HaulAgent
-  alias FleetControl.TrackAgent
-  alias FleetControl.PreStartAgent
-  alias FleetControl.PreStartSubmissionAgent
   alias FleetControl.RoutingAgent
-  alias FleetControl.LiveQueueAgent
-  alias FleetControl.DeviceConnectionAgent
+
+  alias FleetControlWeb.DispatcherChannel.Setup
 
   alias Phoenix.Socket
 
@@ -47,75 +39,10 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 
-  @spec join(topic, any(), Socket.t()) ::
-          {:error, %{reason: String.t()}} | {:ok, map(), Socket.t()}
   def join("dispatchers:all", _params, socket) do
     send(self(), :after_join)
-
-    {devices, accept_until} = DeviceAuthServer.get()
-
-    pending_devices = %{
-      devices: devices,
-      accept_until: accept_until
-    }
-
-    resp = %{
-      permissions: socket.assigns.permissions,
-      settings: Settings.get(),
-      # constants
-      time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(),
-      operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(),
-      operators: OperatorAgent.all(),
-      dispatchers: DispatcherAgent.all(),
-      pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
-      pre_start_control_categories: PreStartAgent.categories(),
-      routing: RoutingAgent.get(),
-
-      # devices
-      devices: DeviceAgent.safe_all(),
-      device_assignments: %{
-        current: DeviceAssignmentAgent.current(),
-        historic: DeviceAssignmentAgent.historic()
-      },
-      pending_devices: pending_devices,
-      device_connections: DeviceConnectionAgent.get(),
-
-      # common
-      live_queue: LiveQueueAgent.get(),
-      activities: ActivityAgent.get(),
-      operator_messages: OperatorMessageAgent.all(),
-      dispatcher_messages: DispatcherMessageAgent.all(),
-      engine_hours: %{
-        current: EngineHoursAgent.current(),
-        historic: EngineHoursAgent.historic()
-      },
-      radio_numbers: AssetRadioAgent.all(),
-      time_allocations: %{
-        active: TimeAllocation.Agent.active(),
-        historic: TimeAllocation.Agent.historic()
-      },
-      fleetops_data: HaulAgent.get(),
-      pre_start_forms: PreStartAgent.all(),
-      current_pre_start_submissions: PreStartSubmissionAgent.current(),
-      tracks: TrackAgent.all(),
-
-      # haul truck
-      haul_truck: %{
-        dispatches: %{
-          current: HaulTruckDispatchAgent.current(),
-          historic: HaulTruckDispatchAgent.historic()
-        }
-      },
-
-      # dig unit
-      dig_unit: %{
-        activities: %{
-          current: DigUnitActivityAgent.current(),
-          historic: DigUnitActivityAgent.historic()
-        }
-      }
-    }
-
+    permissions = socket.assigns.permissions
+    resp = Setup.join(permissions)
     {:ok, resp, socket}
   end
 
@@ -153,6 +80,16 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.Track.handle_in(subtopic, payload, socket)
   end
 
+  @decorate authorized(:can_edit_time_codes)
+  def handle_in("time-code:" <> subtopic, payload, socket) do
+    Topics.TimeCode.handle_in(subtopic, payload, socket)
+  end
+
+  @decorate authorized(:can_edit_asset_roster)
+  def handle_in("asset:" <> subtopic, payload, socket) do
+    Topics.Asset.handle_in(subtopic, payload, socket)
+  end
+
   def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->
@@ -164,14 +101,6 @@ defmodule FleetControlWeb.DispatcherChannel do
     end
 
     {:noreply, socket}
-  end
-
-  @decorate authorized(:can_edit_asset_roster)
-  def handle_in("asset:set enabled", %{"asset_id" => asset_id, "state" => bool}, socket) do
-    case set_asset_enabled(asset_id, bool) do
-      :ok -> {:reply, :ok, socket}
-      error -> {:reply, to_error(error), socket}
-    end
   end
 
   def handle_in("set radio number", payload, socket) do
@@ -233,6 +162,18 @@ defmodule FleetControlWeb.DispatcherChannel do
     end
   end
 
+  @decorate authorized(:can_edit_devices)
+  def handle_in("set device details", %{"device_id" => device_id, "details" => details}, socket) do
+    case DeviceAgent.update_details(device_id, details) do
+      {:ok, _} ->
+        Broadcast.send_devices_to_dispatcher()
+        {:reply, :ok, socket}
+
+      error ->
+        {:reply, to_error(error), socket}
+    end
+  end
+
   def handle_in("acknowledge operator message", nil, socket) do
     {:reply, to_error("No message id given"), socket}
   end
@@ -253,70 +194,6 @@ defmodule FleetControlWeb.DispatcherChannel do
     Broadcast.send_activity(nil, "dispatcher", "operator message acknowledged")
 
     {:reply, :ok, socket}
-  end
-
-  @decorate authorized(:can_edit_time_codes)
-  def handle_in("set time code tree elements", payload, socket) do
-    %{
-      "asset_type_id" => asset_type_id,
-      "elements" => elements
-    } = payload
-
-    case TimeCodeAgent.set_time_code_tree_elements(asset_type_id, elements) do
-      {:error, reason} ->
-        {:reply, to_error(reason), socket}
-
-      {:ok, _inserted} ->
-        Broadcast.send_time_code_tree_elements_to(%{id: asset_type_id})
-        {:reply, :ok, socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_time_codes)
-  def handle_in("update time code", payload, socket) do
-    case TimeCodeAgent.add_or_update_time_code(payload) do
-      {:ok, _} ->
-        Broadcast.send_time_code_data_to_all()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_time_codes)
-  def handle_in("update time code group", %{"id" => id, "alias" => alias_name}, socket) do
-    case TimeCodeAgent.update_group(id, alias_name) do
-      {:ok, _} ->
-        Broadcast.send_time_code_data_to_all()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
-  @decorate authorized(:can_edit_time_codes)
-  def handle_in("bulk add time codes", %{"time_codes" => time_codes}, socket) do
-    time_codes =
-      Enum.map(time_codes, fn tc ->
-        %{
-          name: tc["name"],
-          code: tc["code"],
-          group_id: tc["group_id"],
-          category_id: tc["category_id"]
-        }
-      end)
-
-    case TimeCodeAgent.bulk_add_time_codes(time_codes) do
-      {:ok, _time_codes} ->
-        Broadcast.send_time_code_data_to_all()
-
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
   end
 
   @decorate authorized(:can_edit_messages)
@@ -667,18 +544,6 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_devices)
-  def handle_in("set device details", %{"device_id" => device_id, "details" => details}, socket) do
-    case DeviceAgent.update_details(device_id, details) do
-      {:ok, _} ->
-        Broadcast.send_devices_to_dispatcher()
-        {:reply, :ok, socket}
-
-      error ->
-        {:reply, to_error(error), socket}
-    end
-  end
-
   defp add_default_time_allocation(asset_id, time_code_id) do
     %{
       asset_id: asset_id,
@@ -757,61 +622,6 @@ defmodule FleetControlWeb.DispatcherChannel do
 
     Broadcast.send_activity(%{asset_id: asset_id}, "dispatcher", "device assigned")
     Broadcast.send_assignments_to_all()
-  end
-
-  defp set_asset_enabled(nil, _), do: {:error, :invalid_asset}
-
-  defp set_asset_enabled(asset_id, true) do
-    case AssetAgent.set_enabled(asset_id, true) do
-      :ok ->
-        no_task_id = TimeCodeAgent.no_task_id()
-        add_default_time_allocation(asset_id, no_task_id)
-
-        Broadcast.send_asset_data_to_all()
-        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
-        Broadcast.send_allocations_to_dispatcher()
-        Broadcast.send_assignments_to_all()
-
-        :ok
-
-      error ->
-        error
-    end
-  end
-
-  defp set_asset_enabled(asset_id, false) do
-    case AssetAgent.set_enabled(asset_id, false) do
-      :ok ->
-        disabled_id = TimeCodeAgent.disabled_id()
-        add_default_time_allocation(asset_id, disabled_id)
-
-        Broadcast.force_logout(%{asset_id: asset_id})
-        DeviceAssignmentAgent.clear(asset_id)
-        HaulTruckDispatchAgent.clear(asset_id)
-        DigUnitActivityAgent.clear(asset_id)
-
-        case HaulTruckDispatchAgent.clear_dig_unit(asset_id) do
-          {:ok, dispatches} ->
-            identifiers = Enum.map(dispatches, &%{asset_id: &1.asset_id})
-            Broadcast.HaulTruck.send_dispatches(identifiers)
-
-          _ ->
-            nil
-        end
-
-        Broadcast.send_asset_data_to_all()
-        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
-        Broadcast.send_allocations_to_dispatcher()
-
-        Broadcast.DigUnit.send_activities_to_all()
-
-        Broadcast.send_assignments_to_all()
-
-        :ok
-
-      error ->
-        error
-    end
   end
 
   @doc """

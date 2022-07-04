@@ -153,7 +153,7 @@ export default {
         ['set operators', data => dispatch('constants/setOperators', data.operators)],
         ['set dispatchers', data => dispatch('constants/setDispatchers', data.dispatchers)],
         [
-          'set time code tree elements',
+          'time-code:set-tree-elements',
           data => dispatch('constants/setTimeCodeTreeElements', data.time_code_tree_elements),
         ],
         [

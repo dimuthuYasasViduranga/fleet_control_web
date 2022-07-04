@@ -497,7 +497,7 @@ defmodule FleetControlWeb.Broadcast do
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "set time code tree elements", payload)
+    Endpoint.broadcast(@dispatch, "time-code:set-tree-elements", payload)
   end
 
   def send_time_code_tree_elements_to(identifier) do
@@ -510,7 +510,7 @@ defmodule FleetControlWeb.Broadcast do
           time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(id)
         }
 
-        broadcast_to_asset_type(%{type: asset_type}, "set time code tree elements", payload)
+        broadcast_to_asset_type(%{type: asset_type}, "time-code:set-tree-elements", payload)
     end
 
     send_time_code_tree_elements()
