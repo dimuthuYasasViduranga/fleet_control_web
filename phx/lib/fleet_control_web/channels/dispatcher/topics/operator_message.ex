@@ -1,16 +1,19 @@
 defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
   alias FleetControlWeb.Broadcast
 
+  alias FleetControl.Helper
   alias FleetControl.OperatorMessageTypeAgent
   alias FleetControl.OperatorMessageAgent
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  def handle_in("operator-message:acknowledge", nil, socket) do
+  use FleetControlWeb.Authorization.Decorator
+
+  def handle_in("acknowledge", nil, socket) do
     {:reply, to_error("No message id given"), socket}
   end
 
-  def handle_in("operator-message:acknowledge", operator_msg_id, socket) do
+  def handle_in("acknowledge", operator_msg_id, socket) do
     operator_msg_id
     |> OperatorMessageAgent.acknowledge(Helper.naive_timestamp())
     |> case do
@@ -29,7 +32,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
   end
 
   @decorate authorized(:can_edit_messages)
-  def handle_in("operator-message:update-message-type", payload, socket) do
+  def handle_in("update-message-type", payload, socket) do
     case payload["override"] do
       true -> OperatorMessageTypeAgent.override(payload)
       _ -> OperatorMessageTypeAgent.update(payload)
@@ -46,7 +49,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
 
   @decorate authorized(:can_edit_messages)
   def handle_in(
-        "operator-message:set-type-tree",
+        "set-type-tree",
         %{"asset_type_id" => asset_type_id, "ids" => ids},
         socket
       )

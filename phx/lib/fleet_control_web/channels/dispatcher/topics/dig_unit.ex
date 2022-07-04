@@ -19,10 +19,4 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
         {:reply, to_error(error), socket}
     end
   end
-
-  defp to_error({:error, reason}), do: to_error(reason)
-
-  defp to_error(%Ecto.Changeset{} = changeset), do: to_error(hd(changeset.errors))
-
-  defp to_error(reason), do: {:error, %{error: reason}}
 end

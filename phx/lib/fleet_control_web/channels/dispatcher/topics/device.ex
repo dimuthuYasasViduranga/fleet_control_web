@@ -9,7 +9,9 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.DigUnitActivityAgent
 
+  use FleetControlWeb.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+  require Logger
 
   def handle_in("force-logout", %{"device_id" => device_id} = payload, socket) do
     time_code_id = payload["time_code_id"]
@@ -41,7 +43,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
         socket
       ) do
     Enum.each(asset_ids, fn asset_id ->
-      add_default_time_allocation(asset_id, time_code_id)
+      DispatcherChannel.add_default_time_allocation(asset_id, time_code_id)
       |> case do
         {:ok, _} ->
           Broadcast.send_active_allocation_to(%{asset_id: asset_id})

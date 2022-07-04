@@ -41,7 +41,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Asset do
     case AssetAgent.set_enabled(asset_id, false) do
       :ok ->
         disabled_id = TimeCodeAgent.disabled_id()
-        add_default_time_allocation(asset_id, disabled_id)
+        DispatcherChannel.add_default_time_allocation(asset_id, disabled_id)
 
         Broadcast.force_logout(%{asset_id: asset_id})
         DeviceAssignmentAgent.clear(asset_id)

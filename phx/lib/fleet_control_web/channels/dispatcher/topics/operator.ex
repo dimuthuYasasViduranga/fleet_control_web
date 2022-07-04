@@ -3,9 +3,10 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   alias FleetControl.OperatorAgent
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+  use FleetControlWeb.Authorization.Decorator
 
   @decorate authorized(:can_edit_operators)
-  def handle_in("operator:add", payload, socket) do
+  def handle_in("add", payload, socket) do
     %{
       "name" => name,
       "nickname" => nickname,
@@ -23,7 +24,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   end
 
   @decorate authorized(:can_edit_operators)
-  def handle_in("operator:update", payload, socket) do
+  def handle_in("update", payload, socket) do
     %{
       "id" => id,
       "name" => name,
@@ -44,7 +45,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   end
 
   @decorate authorized(:can_edit_operators)
-  def handle_in("operator:bulk-add", %{"operators" => operators}, socket) do
+  def handle_in("bulk-add", %{"operators" => operators}, socket) do
     operators =
       Enum.map(operators, fn o ->
         %{
@@ -65,7 +66,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   end
 
   @decorate authorized(:can_edit_operators)
-  def handle_in("operator:set-enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
+  def handle_in("set-enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
     case enabled do
       true ->
         OperatorAgent.restore(operator_id)

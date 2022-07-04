@@ -14,20 +14,12 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControlWeb.Broadcast
 
   alias FleetControl.Helper
-  alias FleetControl.DigUnitActivityAgent
-  alias FleetControl.DeviceAuthServer
   alias FleetControl.AssetRadioAgent
   alias FleetControl.TimeAllocation
   alias FleetControl.CalendarAgent
   alias FleetControl.RoutingAgent
 
   alias FleetControlWeb.DispatcherChannel.Setup
-
-  alias Phoenix.Socket
-
-  @type topic :: String.t()
-
-  defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 
   def join("dispatchers:all", _params, socket) do
     send(self(), :after_join)

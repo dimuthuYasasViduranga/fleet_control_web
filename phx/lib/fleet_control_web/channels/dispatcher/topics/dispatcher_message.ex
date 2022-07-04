@@ -4,7 +4,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DispatcherMessage do
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  def handle_in("dispatcher-message:add", payload, socket) do
+  def handle_in("add", payload, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
     payload
@@ -20,7 +20,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DispatcherMessage do
     end
   end
 
-  def handle_in("dispatcher-message:mass-add", payload, socket) do
+  def handle_in("mass-add", payload, socket) do
     %{
       "asset_ids" => asset_ids,
       "message" => message,
@@ -45,4 +45,6 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DispatcherMessage do
         {:reply, to_error(reason), socket}
     end
   end
+
+  defp get_dispatcher_id(socket), do: socket.assigns[:current_user][:id]
 end

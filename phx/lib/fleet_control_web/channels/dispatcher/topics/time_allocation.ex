@@ -7,6 +7,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
 
   alias FleetControlWeb.Broadcast
 
+  use FleetControlWeb.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
   def handle_in("set", %{"asset_id" => asset_id} = allocation, socket) do
@@ -66,7 +67,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
 
   @decorate authorized(:can_lock_time_allocations)
   def handle_in("lock", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
-    dispatcher_id = get_dispatcher_id(socket)
+    dispatcher_id = socket.assigns[:current_user][:id]
 
     case TimeAllocation.Agent.lock(ids, cal_id, dispatcher_id) do
       {:ok, %{new: []}} ->
