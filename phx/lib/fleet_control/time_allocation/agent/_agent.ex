@@ -68,7 +68,7 @@ defmodule FleetControl.TimeAllocation.Agent do
             state.historic
             |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
             |> Enum.concat(completed_allocs)
-            |> cull()
+            |> cull_historic()
 
           active_changes =
             active_allocs
@@ -103,7 +103,7 @@ defmodule FleetControl.TimeAllocation.Agent do
             state.historic
             |> Enum.reject(&Enum.member?(deleted_ids, &1.id))
             |> Enum.concat(unlocked_allocs)
-            |> cull()
+            |> cull_historic()
 
           state = Map.put(state, :historic, historic)
           {{:ok, data}, state}
@@ -114,7 +114,7 @@ defmodule FleetControl.TimeAllocation.Agent do
     end)
   end
 
-  def cull(list) do
+  defp cull_historic(list) do
     now = NaiveDateTime.utc_now()
     min_timestamp = NaiveDateTime.add(now, -@max_age, :second)
 
