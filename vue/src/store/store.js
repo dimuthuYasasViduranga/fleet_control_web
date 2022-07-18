@@ -33,7 +33,6 @@ function applyParser(data, key, parser) {
 export function parseGenericData(data) {
   applyParser(data, 'start_time', toUtcDate);
   applyParser(data, 'end_time', toUtcDate);
-  applyParser(data, 'end_time', toUtcDate);
   applyParser(data, 'timestamp', toUtcDate);
   applyParser(data, 'server_timestamp', toUtcDate);
   // applyParser(data, 'geofence', parseGeofence);
