@@ -1,13 +1,15 @@
 <template>
   <div id="layout">
-    <hxHeader :username="username" :logout="logout" >
+    <hxHeader :username="username" :logout="logout">
       <slot name="header"></slot>
     </hxHeader>
 
     <div v-if="username" id="body">
       <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
       <div :class="smallShowPage">
-        <router-view class="view"></router-view>
+        <router-view v-slot="{ Component }">
+          <component :is="Component" class="view" />
+        </router-view>
       </div>
     </div>
 
@@ -18,9 +20,9 @@
 </template>
 
 <script>
-import hxHeader from './layout/Header.vue'
-import hxNavbar from './layout/Navbar.vue'
-import hxFooter from './layout/Footer.vue'
+import hxHeader from './layout/Header.vue';
+import hxNavbar from './layout/Navbar.vue';
+import hxFooter from './layout/Footer.vue';
 
 export default {
   name: 'Layout',
@@ -28,7 +30,7 @@ export default {
     routes: Array,
     username: String,
     logout: Function,
-    login: Function
+    login: Function,
   },
   components: {
     hxHeader,
@@ -36,18 +38,17 @@ export default {
     hxFooter,
   },
   data: () => {
-    return { smallShowPage: "showPage" };
+    return { smallShowPage: 'showPage' };
   },
   methods: {
     hidePage() {
-      this.smallShowPage = "hidePage";
+      this.smallShowPage = 'hidePage';
     },
     showPage() {
-      this.smallShowPage = "showPage";
+      this.smallShowPage = 'showPage';
     },
-  }
-}
-
+  },
+};
 </script>
 
 <style>
@@ -56,11 +57,11 @@ body {
 }
 
 input {
-    border-radius: 0;
+  border-radius: 0;
 }
 
 #layout {
-  font-family: "GE Inspira Sans", sans-serif;
+  font-family: 'GE Inspira Sans', sans-serif;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
 
@@ -75,17 +76,18 @@ input {
 #body {
   flex: 1;
   flex-direction: column;
-  position: relative; 
-  display: flex; 
-  box-sizing: inherit; 
-  min-height: calc(100vh - 8rem); 
+  position: relative;
+  display: flex;
+  box-sizing: inherit;
+  min-height: calc(100vh - 8rem);
 }
 
 .view {
   margin-left: 4rem;
 }
 
-.hidePage, .showPage {
+.hidePage,
+.showPage {
   display: contents;
 }
 
