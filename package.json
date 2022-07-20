@@ -5,7 +5,7 @@
   "dependencies": {
     "vue": "^3.1.0",
     "@vue/compat": "^3.1.0",
-    "vue-router": "^3.0.1"
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
     "@vue/compiler-sfc": "^3.1.0",

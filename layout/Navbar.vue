@@ -15,7 +15,7 @@
     <div id="nav-bar" :class="smallShowNav">
       <div v-for="route in routes" :key="route.path">
         <div v-if="route.gap" :id="route.path" class="nav-gap"></div>
-        <router-link v-else-if="route.path !== '*'" :to="route.path" class="nav-item">
+        <router-link v-else-if="route.path !== '/:catchAll(.*)'" :to="route.path" class="nav-item">
           <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper">
             <div class="nav-icon-wrapper">
               <icon :icon="route.icon" v-bind="route.iconProps || {}" />
