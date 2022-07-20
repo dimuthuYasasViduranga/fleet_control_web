@@ -7,7 +7,9 @@
     <div v-if="username" id="body">
       <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
       <div :class="smallShowPage">
-        <router-view class="view"></router-view>
+        <router-view v-slot="{ Component }">
+          <component :is="Component" class="view" />
+        </router-view>
       </div>
     </div>
 
