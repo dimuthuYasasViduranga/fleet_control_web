@@ -15,8 +15,8 @@
     <div id="nav-bar" :class="smallShowNav">
       <div v-for="route in routes" :key="route.path">
         <div v-if="route.gap" :id="route.path" class="nav-gap"></div>
-        <router-link v-else-if="route.path !== '/:catchAll(.*)'" :to="route.path" class="nav-item">
-          <div :id="route.path" @click.capture="closeNav" class="nav-item-wrapper">
+        <router-link v-else-if="route.name !== 'NotFound'" :to="route.path" class="nav-item">
+          <div :id="route.path" class="nav-item-wrapper" @click.capture="closeNav">
             <div class="nav-icon-wrapper">
               <icon :icon="route.icon" v-bind="route.iconProps || {}" />
             </div>
@@ -34,7 +34,7 @@
 import icon from '../Icon.vue';
 
 export default {
-  name: 'hxNavbar',
+  name: 'HxNavbar',
   components: {
     icon,
   },
