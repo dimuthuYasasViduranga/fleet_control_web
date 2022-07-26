@@ -23,17 +23,17 @@ import hxNavbar from './layout/Navbar.vue';
 import hxFooter from './layout/Footer.vue';
 
 export default {
-  name: 'Layout',
+  name: 'LayoutPage',
+  components: {
+    hxHeader,
+    hxNavbar,
+    hxFooter,
+  },
   props: {
     routes: Array,
     username: String,
     logout: Function,
     login: Function,
-  },
-  components: {
-    hxHeader,
-    hxNavbar,
-    hxFooter,
   },
   data: () => {
     return { smallShowPage: 'showPage' };
