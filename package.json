@@ -2,6 +2,13 @@
   "name": "hx-layout",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.vue",
+    "format": "prettier .  --write"
+  },
   "dependencies": {
     "vue": "^3.1.0",
     "@vue/compat": "^3.1.0",
