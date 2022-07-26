@@ -7,11 +7,7 @@
     <div v-if="username" id="body">
       <hxNavbar :routes="routes" @showPage="showPage" @hidePage="hidePage" />
       <div :class="smallShowPage">
-        <Transition name="page-transition" mode="out-in">
-          <router-view v-slot="{ Component }" class="view">
-            <component :is="Component" />
-          </router-view>
-        </Transition>
+        <router-view class="view"></router-view>
       </div>
     </div>
 
@@ -100,16 +96,5 @@ input {
   .hidePage {
     display: none;
   }
-}
-
-.page-transition-enter-active,
-.page-transition-leave-active {
-  transition: 400ms ease all;
-}
-
-.page-transition-enter-from,
-.page-transition-leave-to {
-  opacity: 0;
-  transform: translate(60px);
 }
 </style>
