@@ -1,11 +1,7 @@
-import { createApp, configureCompat } from 'vue';
+import { createApp } from 'vue';
 
 import setupRouter from './setup_routes';
 import App from './App.vue';
-
-configureCompat({
-  MODE: 3,
-});
 
 declare var document: { location: { href: string } };
 // config
