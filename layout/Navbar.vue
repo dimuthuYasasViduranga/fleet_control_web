@@ -18,7 +18,7 @@
         <router-link v-else-if="route.name !== 'NotFound'" :to="route.path" class="nav-item">
           <div :id="route.path" class="nav-item-wrapper" @click.capture="closeNav">
             <div class="nav-icon-wrapper">
-              <icon :icon="route.meta.icon" v-bind="route.iconProps || {}" />
+              <icon :icon="route.meta.icon" v-bind="route.meta.iconProps || {}" />
             </div>
             <p class="nav-label">
               {{ route.name }}
