@@ -54,7 +54,9 @@ spec:
                     "Tip please",
                     "Smoko after you tip thanks",
                     "Lunch after you tip thanks",
-                    "Parkup after tip thanks"
+                    "Parkup after tip thanks", 
+                    "Refuel now",
+                    "Tip at Surge"
                   ],
                   track_method: :gps_gate,
                   permissions: [
