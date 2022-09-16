@@ -1,6 +1,34 @@
 ## Changelog
 
-## pending [unreleased]
+## 0.15.7
+- Added new quick messages requested by site.
+## 0.15.6
+- 🐛 fix channel disconnect bug 
+
+## 0.15.5
+- ✨ add clear all routes feature
+- ✨ add click to direct message support from live feed
+- 🧹 minor chat overlay code cleanup
+## 0.15.4
+- update to latest slack logger
+## 0.15.3
+- 🔧 standardise and update kube config
+## 0.15.2
+- 🧹 simplify insert logic
+## 0.15.1
+- 🐛 update asset path
+## 0.15.0
+- 🐛 time allocation fixes
+- ✅ tests fixed
+## 0.14.9
+- 🐛 bugfix rename no wifi file
+
+## 0.14.8
+- send ttatic data as json
+
+## 0.14.7
+- Added wdl-prod release kubernetes configuration file
+- restrict cookies per app, use portal for auth redirects
 
 ## 0.14.6
 - 💄 pre-start comments now respect new line character
