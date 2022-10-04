@@ -73,6 +73,7 @@ defmodule DispatchWeb.Application do
 
     :ok = DispatchWeb.Timers.start()
 
+    System.cmd("epmd", ["-daemon"])
     Node.start(:"fleet-control-ui", :shortnames)
 
     return
