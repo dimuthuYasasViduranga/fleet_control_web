@@ -63,7 +63,9 @@ defmodule DispatchWeb.Application do
           {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
           DispatchWeb.Endpoint,
           DispatchWeb.Presence,
-          {DispatchWeb.ChannelWatcher, :operators}
+          {DispatchWeb.ChannelWatcher, :operators},
+          {HpsData.Comms.NodesMonitor, [["maintenance-ui"]]},
+          HpsData.Comms.PubSub.pubsub_server()
         ]
       ]
       |> List.flatten()
