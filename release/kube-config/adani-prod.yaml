@@ -41,11 +41,6 @@ spec:
               name: configmap
           - secretRef:
               name: secrets
-          envFrom:
-          - configMapRef:
-              name: configmap
-          - secretRef:
-              name: secrets
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-adani-prod
