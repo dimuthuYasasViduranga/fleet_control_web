@@ -30,7 +30,7 @@ export default {
   methods: {
     onAcknowledge() {
       if (this.entry.acknowledged === false && this.entry.messageId) {
-        this.$channel.push('acknowledge operator message', this.entry.messageId);
+        this.$channel.push('operator-message:acknowledge', this.entry.messageId);
       }
     },
   },

@@ -1,10 +1,10 @@
-defmodule DispatchWeb.DispatcherChannel.Test do
-  use DispatchWeb.ChannelCase
+defmodule FleetControlWeb.DispatcherChannel.Test do
+  use FleetControlWeb.ChannelCase
   @moduletag :channel
 
-  alias Dispatch.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
-  alias DispatchWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
-  alias DispatchWeb.Authorization.Permissions
+  alias FleetControl.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
+  alias FleetControlWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
+  alias FleetControlWeb.Authorization.Permissions
 
   import Phoenix.Socket, only: [assign: 3]
 
@@ -69,7 +69,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
 
   describe "add dispatcher message -" do
     test "valid", %{d_socket: d_socket, o_socket: o_socket, asset: %{id: asset_id}} do
-      topic = "add dispatcher message"
+      topic = "dispatcher-message:add"
 
       payload = %{
         "message" => "Test message",
@@ -91,7 +91,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
     end
 
     test "invalid (missing keys)", %{d_socket: d_socket, asset: %{id: asset_id}} do
-      topic = "add dispatcher message"
+      topic = "dispatcher-message:add"
 
       payload = %{
         "asset_id" => asset_id,
@@ -106,7 +106,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
 
   describe "add mass dispatcher message -" do
     test "valid", %{d_socket: d_socket, o_socket: o_socket, asset: %{id: asset_id}} do
-      topic = "add mass dispatcher message"
+      topic = "dispatcher-message:mass-add"
 
       payload = %{
         "asset_ids" => [asset_id],
@@ -127,7 +127,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
     end
 
     test "invalid (missing keys)", %{d_socket: d_socket} do
-      topic = "add mass dispatcher message"
+      topic = "dispatcher-message:mass-add"
 
       payload = %{
         "asset_ids" => [],
@@ -142,7 +142,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
 
   describe "set assigned asset -" do
     test "valid (change asset)", %{d_socket: d_socket, o_socket: o_socket} = context do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       # changing assigned asset for the device on o_socket
       payload = %{
@@ -161,7 +161,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
 
     test "valid (unassign device from asset)",
          %{d_socket: d_socket, o_socket: o_socket} = context do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => context.device.id,
@@ -178,7 +178,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
     end
 
     test "invalid (invalid asset)", %{d_socket: d_socket, device: device} do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => device.id,
@@ -191,7 +191,7 @@ defmodule DispatchWeb.DispatcherChannel.Test do
     end
 
     test "invalid (invalid device)", %{d_socket: d_socket, asset: asset} do
-      topic = "set assigned asset"
+      topic = "device:set-assigned-asset"
 
       payload = %{
         "device_id" => -1,

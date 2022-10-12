@@ -1,11 +1,11 @@
-defmodule DispatchWeb.Gettext do
+defmodule FleetControlWeb.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 
   By using [Gettext](https://hexdocs.pm/gettext),
   your module gains a set of macros for translations, for example:
 
-      import DispatchWeb.Gettext
+      import FleetControlWeb.Gettext
 
       # Simple translation
       gettext("Here is the string to translate")
@@ -20,5 +20,5 @@ defmodule DispatchWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :dispatch_web
+  use Gettext, otp_app: :fleet_control_web
 end

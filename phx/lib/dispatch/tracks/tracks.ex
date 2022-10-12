@@ -1,6 +1,6 @@
-defmodule Dispatch.Tracks do
-  alias Dispatch.{Location, LocationAgent, AssetAgent, TrackAgent}
-  alias DispatchWeb.Broadcast
+defmodule FleetControl.Tracks do
+  alias FleetControl.{Location, LocationAgent, AssetAgent, TrackAgent}
+  alias FleetControlWeb.Broadcast
 
   @type simple_track :: map
   @type extended_track :: map
@@ -60,7 +60,7 @@ defmodule Dispatch.Tracks do
 
   @spec update_track_agent() :: :ok
   def update_track_agent() do
-    track_method = Application.get_env(:dispatch_web, :track_method, :gps_gate)
+    track_method = Application.get_env(:fleet_control_web, :track_method, :gps_gate)
 
     case fetch_tracks(track_method) do
       {:ok, tracks} ->

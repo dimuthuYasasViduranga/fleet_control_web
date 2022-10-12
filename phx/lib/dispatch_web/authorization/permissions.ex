@@ -1,5 +1,5 @@
-defmodule DispatchWeb.Authorization.Permissions do
-  alias DispatchWeb.Authorization.AzureGraph
+defmodule FleetControlWeb.Authorization.Permissions do
+  alias FleetControlWeb.Authorization.AzureGraph
 
   @spec default_permissions() :: map()
   def default_permissions() do
@@ -32,7 +32,7 @@ defmodule DispatchWeb.Authorization.Permissions do
 
   def fetch_permissions(user_id) do
     assigned_groups = AzureGraph.group_ids(user_id)
-    config = Application.get_env(:dispatch_web, :permissions, %{})
+    config = Application.get_env(:fleet_control_web, :permissions, %{})
 
     generate_permissions(config, assigned_groups)
   end

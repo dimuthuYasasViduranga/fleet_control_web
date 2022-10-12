@@ -1,4 +1,4 @@
-defmodule Dispatch.LoadStyleAgent do
+defmodule FleetControl.LoadStyleAgent do
   @moduledoc """
   Stores all load styles. Does not update once loaded
   """
@@ -6,7 +6,7 @@ defmodule Dispatch.LoadStyleAgent do
 
   require Logger
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
 
   alias HpsData.{AssetType}
   alias HpsData.Repo

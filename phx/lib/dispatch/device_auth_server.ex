@@ -1,8 +1,8 @@
-defmodule Dispatch.DeviceAuthServer do
+defmodule FleetControl.DeviceAuthServer do
   use GenServer
-  alias DispatchWeb.Endpoint
-  alias Dispatch.{Helper, DeviceAgent, Token}
-  alias DispatchWeb.Broadcast.Authentication
+  alias FleetControlWeb.Endpoint
+  alias FleetControl.{Helper, DeviceAgent, Token}
+  alias FleetControlWeb.Broadcast.Authentication
 
   require Logger
 

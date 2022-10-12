@@ -1,9 +1,9 @@
-defmodule Dispatch.OperatorMessageAgent do
+defmodule FleetControl.OperatorMessageAgent do
   use Agent
 
   require Logger
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Schemas.Dispatch.{OperatorMessage, Acknowledge}
 
   alias HpsData.Repo

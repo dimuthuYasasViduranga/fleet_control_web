@@ -1,11 +1,11 @@
-defmodule Dispatch.AssetAgent do
+defmodule FleetControl.AssetAgent do
   @moduledoc """
   Stores all assets and asset types. Does not update once loaded
   """
   use Agent
   import Ecto.Query, only: [from: 2]
 
-  alias Dispatch.{AgentHelper, Helper}
+  alias FleetControl.{AgentHelper, Helper}
   alias HpsData.{Asset, AssetType}
   alias HpsData.Repo
 
@@ -32,7 +32,7 @@ defmodule Dispatch.AssetAgent do
   end
 
   defp get_secondary_type(type) do
-    Application.get_env(:dispatch_web, :secondary_types, %{})
+    Application.get_env(:fleet_control_web, :secondary_types, %{})
     |> Map.get(type)
   end
 

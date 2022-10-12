@@ -1,4 +1,4 @@
-defmodule DispatchWeb.ChannelWatcher do
+defmodule FleetControlWeb.ChannelWatcher do
   # https://stackoverflow.com/questions/33934029/how-to-detect-if-a-user-left-a-phoenix-channel-due-to-a-network-disconnect
   use GenServer
 

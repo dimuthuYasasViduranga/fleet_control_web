@@ -1,5 +1,5 @@
-defmodule DispatchWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :dispatch_web
+defmodule FleetControlWeb.Endpoint do
+  use Phoenix.Endpoint, otp_app: :fleet_control_web
   use Appsignal.Phoenix
 
   mix_env =
@@ -16,24 +16,24 @@ defmodule DispatchWeb.Endpoint do
     "x-xss-protection" => "1; mode=block"
   }
 
-  socket("/fleet-control/operator-socket", DispatchWeb.OperatorSocket,
+  socket("/fleet-control/operator-socket", FleetControlWeb.OperatorSocket,
     websocket: true,
     longpoll: false
   )
 
-  socket("/fleet-control/dispatcher-socket", DispatchWeb.DispatcherSocket,
+  socket("/fleet-control/dispatcher-socket", FleetControlWeb.DispatcherSocket,
     websocket: true,
     longpoll: false
   )
 
-  socket("/fleet-control/device-auth-socket", DispatchWeb.DeviceAuthSocket,
+  socket("/fleet-control/device-auth-socket", FleetControlWeb.DeviceAuthSocket,
     websocket: true,
     longpoll: false
   )
 
   plug(Plug.Static,
     at: "/fleet-control",
-    from: {:dispatch_web, "priv/static/main"},
+    from: {:fleet_control_web, "priv/static/main"},
     gzip: false,
     only: ~w(css fonts images index.html js media favicon.ico robots.txt),
     headers: secure_headers
@@ -92,5 +92,5 @@ defmodule DispatchWeb.Endpoint do
     end)
   end
 
-  plug(DispatchWeb.Router)
+  plug(FleetControlWeb.Router)
 end

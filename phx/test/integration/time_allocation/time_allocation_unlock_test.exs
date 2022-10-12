@@ -1,12 +1,11 @@
-defmodule Dispatch.TimeAllocation.UnlockTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.TimeAllocation.UnlockTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{
+  alias FleetControl.{
     CalendarAgent,
     AssetAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
     DispatcherAgent
   }
 
@@ -30,7 +29,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
   end
 
   defp add_with_logs(ta) do
-    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.add(ta) end)
     assert log =~ "[error] Time allocation created without recording it's source"
     result
   end
@@ -61,7 +60,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     ready = Enum.find(time_codes, &(&1.name == "Dig Ore")).id
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
 
-    TimeAllocationAgent.start_link([])
+    FleetControl.TimeAllocation.Agent.start_link([])
     DispatcherAgent.start_link([])
     {:ok, dispatcher} = DispatcherAgent.add("1234", "test")
 
@@ -99,10 +98,12 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, lock_data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, lock_data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       [locked] = lock_data.new
 
-      {:ok, unlocked_data} = TimeAllocationAgent.unlock([locked.id])
+      {:ok, unlocked_data} = FleetControl.TimeAllocation.Agent.unlock([locked.id])
       [unlocked] = unlocked_data.new
 
       # Return
@@ -116,8 +117,8 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
       assert unlocked.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [unlocked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [unlocked]
 
       # Database
       assert_db_contains(TimeAllocation, unlocked)
@@ -126,7 +127,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     end
 
     test "valid (no ids)" do
-      {:ok, unlocked_data} = TimeAllocationAgent.unlock([])
+      {:ok, unlocked_data} = FleetControl.TimeAllocation.Agent.unlock([])
 
       # Return
       assert unlocked_data.deleted_ids == []
@@ -134,8 +135,8 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
       assert unlocked_data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # Database
       assert_db_count(TimeAllocation, 0)
@@ -157,11 +158,12 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
         to_alloc(asset.id, ready, b_start, b_end)
         |> add_with_logs()
 
-      {:ok, lock_data} = TimeAllocationAgent.lock([initial_a.id], cal_id, context.dispatcher)
+      {:ok, lock_data} =
+        FleetControl.TimeAllocation.Agent.lock([initial_a.id], cal_id, context.dispatcher)
 
       [locked_a] = lock_data.new
 
-      {:ok, unlocked_data} = TimeAllocationAgent.unlock([locked_a.id, initial_b.id])
+      {:ok, unlocked_data} = FleetControl.TimeAllocation.Agent.unlock([locked_a.id, initial_b.id])
       [unlocked] = unlocked_data.new
 
       # Return
@@ -175,8 +177,8 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
       assert unlocked.time_code_id == initial_a.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [initial_b, unlocked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial_b, unlocked]
 
       # Database
       assert_db_contains(TimeAllocation, [initial_b, unlocked])
@@ -185,7 +187,7 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
     end
 
     test "valid (invalid ids)" do
-      {:ok, unlocked_data} = TimeAllocationAgent.unlock([-1])
+      {:ok, unlocked_data} = FleetControl.TimeAllocation.Agent.unlock([-1])
 
       # Return
       assert unlocked_data.ignored_ids == [-1]
@@ -193,8 +195,8 @@ defmodule Dispatch.TimeAllocation.UnlockTest do
       assert unlocked_data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # Database
       assert_db_count(TimeAllocation, 0)

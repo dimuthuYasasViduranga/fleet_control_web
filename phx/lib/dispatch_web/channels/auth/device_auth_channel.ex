@@ -1,7 +1,7 @@
-defmodule DispatchWeb.DeviceAuthChannel do
+defmodule FleetControlWeb.DeviceAuthChannel do
   @moduledoc false
 
-  use DispatchWeb, :channel
+  use FleetControlWeb, :channel
 
   alias Phoenix.Socket
 

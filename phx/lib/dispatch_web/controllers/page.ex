@@ -1,11 +1,11 @@
-defmodule DispatchWeb.PageController do
+defmodule FleetControlWeb.PageController do
   @moduledoc nil
 
-  use DispatchWeb, :controller
+  use FleetControlWeb, :controller
 
-  alias DispatchWeb.Authorization
-  alias DispatchWeb.Guardian
-  alias Dispatch.DispatcherAgent
+  alias FleetControlWeb.Authorization
+  alias FleetControlWeb.Guardian
+  alias FleetControl.DispatcherAgent
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def index(conn, _) do
@@ -28,7 +28,7 @@ defmodule DispatchWeb.PageController do
     whitelist = Authorization.Whitelist.get(user[:user_id])
 
     data = %{
-      data: Dispatch.StaticData.fetch(),
+      data: FleetControl.StaticData.fetch(),
       whitelist: whitelist,
       user_token: token,
       user: user,
@@ -53,7 +53,7 @@ defmodule DispatchWeb.PageController do
   end
 
   defp get_user(conn) do
-    case Application.get_env(:dispatch_web, :bypass_auth, false) do
+    case Application.get_env(:fleet_control_web, :bypass_auth, false) do
       true ->
         {:ok, user} = DispatcherAgent.add(nil, "dev")
 

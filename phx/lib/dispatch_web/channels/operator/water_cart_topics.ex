@@ -1,8 +1,8 @@
-defmodule DispatchWeb.OperatorChannel.WaterCartTopics do
+defmodule FleetControlWeb.OperatorChannel.WaterCartTopics do
   @moduledoc """
   Holds all water cart specific topics
   """
-  alias Dispatch.HaulTruckDispatchAgent
+  alias FleetControl.HaulTruckDispatchAgent
 
   def get_asset_type_state(_asset, _operator_id) do
     %{

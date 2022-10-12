@@ -1,26 +1,26 @@
-defmodule DispatchWeb.DispatcherChannel.HaulTruckTopics do
+defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
   @moduledoc """
   Holds all haul truck specific topics to make the dispatcher channel cleaner
   """
 
-  use DispatchWeb.Authorization.Decorator
+  use FleetControlWeb.Authorization.Decorator
 
-  alias Dispatch.{
+  alias FleetControl.{
     HaulTruckDispatchAgent,
     TrackAgent,
     Tracks
   }
 
-  alias DispatchWeb.Broadcast
+  alias FleetControlWeb.Broadcast
 
-  @decorate authorized(:can_dispatch)
-  def handle_in("haul:set dispatch", payload, socket) do
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
+
+  def handle_in("set dispatch", payload, socket) do
     set_dispatch(payload, socket)
   end
 
-  @decorate authorized(:can_dispatch)
   def handle_in(
-        "haul:set mass dispatch",
+        "set mass dispatch",
         %{"asset_ids" => asset_ids, "dispatch" => dispatch},
         socket
       ) do
@@ -63,10 +63,4 @@ defmodule DispatchWeb.DispatcherChannel.HaulTruckTopics do
         |> Broadcast.send_track()
     end
   end
-
-  defp to_error({:error, reason}), do: to_error(reason)
-
-  defp to_error(%Ecto.Changeset{} = changeset), do: to_error(hd(changeset.errors))
-
-  defp to_error(reason), do: {:error, %{error: reason}}
 end

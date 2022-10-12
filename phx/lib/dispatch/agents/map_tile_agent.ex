@@ -1,4 +1,4 @@
-defmodule Dispatch.MapTileAgent do
+defmodule FleetControl.MapTileAgent do
   @moduledoc """
   Holds the manifest document for google map custom tile image endpoints
 
@@ -15,7 +15,8 @@ defmodule Dispatch.MapTileAgent do
 
   require Logger
 
-  defp get_map_tile_endpoint(), do: Application.get_env(:dispatch_web, :map_tile_endpoint, nil)
+  defp get_map_tile_endpoint(),
+    do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
 
   def start_link(_opts), do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
 

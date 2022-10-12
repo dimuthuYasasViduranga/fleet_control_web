@@ -1,11 +1,11 @@
-defmodule DispatchWeb.OperatorSocket do
+defmodule FleetControlWeb.OperatorSocket do
   @moduledoc nil
 
   use Phoenix.Socket
   # 2 weeks in seconds
   @max_age 14 * 24 * 3600
 
-  channel "operators:*", DispatchWeb.OperatorChannel
+  channel "operators:*", FleetControlWeb.OperatorChannel
 
   def connect(%{"operator_token" => operator_token}, socket, _connect_info) do
     case Phoenix.Token.verify(socket, "operator socket", operator_token, max_age: @max_age) do

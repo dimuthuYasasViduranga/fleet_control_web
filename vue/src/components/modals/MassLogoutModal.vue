@@ -74,7 +74,7 @@ export default {
       };
 
       this.$channel
-        .push('mass logout', payload)
+        .push('device:mass-force-logout', payload)
         .receive('ok', () => {
           this.$toaster.info(`Mass logout | ${payload.asset_ids.length} affected`);
           this.close();

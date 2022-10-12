@@ -1,7 +1,7 @@
-defmodule Dispatch.StaticData do
+defmodule FleetControl.StaticData do
   @moduledoc nil
 
-  alias Dispatch.{
+  alias FleetControl.{
     AssetAgent,
     OperatorAgent,
     LocationAgent,
@@ -23,8 +23,8 @@ defmodule Dispatch.StaticData do
       timezone: CalendarAgent.timezone(),
       quick_messages: get_quick_messages(),
       map_config: %{
-        key: Application.get_env(:dispatch_web, :g_map_key),
-        center: Application.get_env(:dispatch_web, :map_center),
+        key: Application.get_env(:fleet_control_web, :g_map_key),
+        center: Application.get_env(:fleet_control_web, :map_center),
         manifest: MapTileAgent.get()
       },
       assets: AssetAgent.get_assets(),
@@ -45,12 +45,12 @@ defmodule Dispatch.StaticData do
   end
 
   defp get_location_assignment_layout() do
-    Application.get_env(:dispatch_web, :location_assignment_layout)
+    Application.get_env(:fleet_control_web, :location_assignment_layout)
     |> Map.new()
   end
 
   defp get_quick_messages() do
-    Application.get_env(:dispatch_web, :quick_messages, [])
+    Application.get_env(:fleet_control_web, :quick_messages, [])
     |> Enum.map(&parse_quick_message/1)
     |> Enum.reject(&is_nil/1)
   end

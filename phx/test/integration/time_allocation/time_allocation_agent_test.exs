@@ -1,8 +1,8 @@
-defmodule Dispatch.TimeAllocationAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.FleetControl.TimeAllocation.AgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{Helper, AssetAgent, TimeAllocationAgent, TimeCodeAgent}
+  alias FleetControl.{Helper, AssetAgent, TimeCodeAgent}
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
 
   import ExUnit.CaptureLog
@@ -26,7 +26,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
     no_task = Enum.find(time_codes, &(&1.name == "No Task")).id
 
-    TimeAllocationAgent.start_link([])
+    FleetControl.TimeAllocation.Agent.start_link([])
     [asset: asset, asset_b: asset_b, ready: ready, exception: exception, no_task: no_task]
   end
 
@@ -48,13 +48,13 @@ defmodule Dispatch.TimeAllocationAgentTest do
   end
 
   defp update_all_with_logs(updates) do
-    {result, log} = with_log(fn -> TimeAllocationAgent.update_all(updates) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.update_all(updates) end)
     assert log =~ "[error] Time allocation updated without recording the source of the update"
     result
   end
 
   defp add_with_logs(ta) do
-    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.add(ta) end)
     assert log =~ "[error] Time allocation created without recording it's source"
     result
   end
@@ -62,9 +62,9 @@ defmodule Dispatch.TimeAllocationAgentTest do
   describe "Refresh -" do
     test "load no entries on startup" do
       # the agent _used_ to insert nulled maps for every asset
-      initial = TimeAllocationAgent.active()
-      :ok = TimeAllocationAgent.refresh!()
-      current = TimeAllocationAgent.active()
+      initial = FleetControl.TimeAllocation.Agent.active()
+      :ok = FleetControl.TimeAllocation.Agent.refresh!()
+      current = FleetControl.TimeAllocation.Agent.active()
 
       # store
       assert initial == []
@@ -87,10 +87,10 @@ defmodule Dispatch.TimeAllocationAgentTest do
         to_alloc(asset.id, ready, second_at, nil)
         |> add_with_logs()
 
-      cache_active = TimeAllocationAgent.active()
-      cache_historic = TimeAllocationAgent.historic()
+      cache_active = FleetControl.TimeAllocation.Agent.active()
+      cache_historic = FleetControl.TimeAllocation.Agent.historic()
 
-      :ok = TimeAllocationAgent.refresh!(now)
+      :ok = FleetControl.TimeAllocation.Agent.refresh!(now)
 
       # return
       assert cache_active == [second]
@@ -101,8 +101,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(historic_a.end_time, second.start_time)
 
       # store
-      assert TimeAllocationAgent.active() == cache_active
-      assert TimeAllocationAgent.historic() == cache_historic
+      assert FleetControl.TimeAllocation.Agent.active() == cache_active
+      assert FleetControl.TimeAllocation.Agent.historic() == cache_historic
 
       # database
       assert_db_contains(TimeAllocation, second)
@@ -127,15 +127,15 @@ defmodule Dispatch.TimeAllocationAgentTest do
         |> Repo.insert!()
         |> TimeAllocation.to_map()
 
-      :ok = TimeAllocationAgent.refresh!()
+      :ok = FleetControl.TimeAllocation.Agent.refresh!()
 
       # return
       assert invalid.end_time == nil
       assert valid.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [valid]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [valid]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [invalid, valid])
@@ -158,7 +158,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
         |> Repo.insert!()
         |> TimeAllocation.to_map()
 
-      :ok = TimeAllocationAgent.refresh!()
+      :ok = FleetControl.TimeAllocation.Agent.refresh!()
 
       {:ok, [deleted], updated, active_after_delete} =
         update_all_with_logs([Map.put(invalid, :deleted, true)])
@@ -173,8 +173,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert active_after_delete == nil
 
       # store
-      assert TimeAllocationAgent.active() == [valid]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [valid]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [valid, deleted])
@@ -195,7 +195,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert actual.end_time == nil
 
       # store (actives never in historic)
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -221,8 +221,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert second.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [second]
-      assert TimeAllocationAgent.historic() == [completed_first]
+      assert FleetControl.TimeAllocation.Agent.active() == [second]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed_first]
 
       # database
       assert_db_contains(TimeAllocation, second)
@@ -242,8 +242,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -262,8 +262,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -282,8 +282,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -298,12 +298,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      historic_before = TimeAllocationAgent.historic()
+      historic_before = FleetControl.TimeAllocation.Agent.historic()
 
       {:ok, [deleted], updated, new_active} =
         update_all_with_logs([Map.put(completed, :deleted, true)])
 
-      historic_after = TimeAllocationAgent.historic()
+      historic_after = FleetControl.TimeAllocation.Agent.historic()
 
       # return
       assert updated == []
@@ -312,7 +312,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert new_active == nil
 
       # store
-      assert TimeAllocationAgent.active() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
       assert historic_before == [completed]
       assert historic_after == []
 
@@ -331,12 +331,12 @@ defmodule Dispatch.TimeAllocationAgentTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      historic_before = TimeAllocationAgent.historic()
+      historic_before = FleetControl.TimeAllocation.Agent.historic()
 
       {:ok, [deleted], updated, new_active} =
         update_all_with_logs([Map.put(completed, :deleted, true)])
 
-      historic_after = TimeAllocationAgent.historic()
+      historic_after = FleetControl.TimeAllocation.Agent.historic()
 
       # return
       assert updated == []
@@ -345,7 +345,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert new_active == nil
 
       # store
-      assert TimeAllocationAgent.active() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
       assert historic_before == []
       assert historic_after == []
 
@@ -376,8 +376,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert new_active == nil
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -412,8 +412,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, updated_end_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [completed, deleted])
@@ -446,8 +446,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(updated.start_time, updated_start_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [updated]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [updated]
 
       # database
       assert_db_contains(TimeAllocation, [updated, deleted])
@@ -480,8 +480,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(updated.end_time, updated_end_time)
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [updated, deleted])
@@ -502,7 +502,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
         to_alloc(asset.id, ready, outside_start, outside_end)
         |> add_with_logs()
 
-      cached_historic = TimeAllocationAgent.historic()
+      cached_historic = FleetControl.TimeAllocation.Agent.historic()
 
       {:ok, [deleted], [inside_range], new_active} =
         update_all_with_logs([
@@ -523,8 +523,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       # store
       assert cached_historic == []
-      assert TimeAllocationAgent.historic() == [inside_range]
-      assert TimeAllocationAgent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [inside_range]
+      assert FleetControl.TimeAllocation.Agent.active() == []
 
       # database
       assert_db_contains(TimeAllocation, [deleted, inside_range])
@@ -546,7 +546,7 @@ defmodule Dispatch.TimeAllocationAgentTest do
         to_alloc(asset.id, ready, inside_start, inside_end)
         |> add_with_logs()
 
-      cached_historic = TimeAllocationAgent.historic()
+      cached_historic = FleetControl.TimeAllocation.Agent.historic()
 
       {:ok, [deleted], [outside_range], new_active} =
         update_all_with_logs([
@@ -568,8 +568,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
 
       # store
       assert cached_historic == [inside_range]
-      assert TimeAllocationAgent.historic() == []
-      assert TimeAllocationAgent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
 
       # database
       assert_db_contains(TimeAllocation, [deleted, outside_range])
@@ -592,8 +592,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert actual.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [actual]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [actual]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -613,8 +613,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert actual.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [actual]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [actual]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -639,8 +639,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert active.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_contains(TimeAllocation, [active, completed])
@@ -666,8 +666,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert active.end_time == nil
 
       # store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [completed]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [completed]
 
       # database
       assert_db_contains(TimeAllocation, [active, completed])
@@ -686,8 +686,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(actual.start_time, future) == :lt
 
       # store
-      assert TimeAllocationAgent.active() == [actual]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [actual]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -715,8 +715,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(actual.start_time, next_start) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == [actual]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [actual]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -735,8 +735,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert actual.time_code_id == no_task
 
       # store
-      assert TimeAllocationAgent.active() == [actual]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [actual]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, actual)
@@ -771,8 +771,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert error == {:error, :start_before_active}
 
       # store
-      assert TimeAllocationAgent.active() == [initial]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, initial)
@@ -795,8 +795,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -822,8 +822,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [active, completed])
@@ -849,8 +849,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [active, completed])
@@ -876,8 +876,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, end_time) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, [active, completed])
@@ -898,8 +898,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, timestamp) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, completed)
@@ -921,8 +921,8 @@ defmodule Dispatch.TimeAllocationAgentTest do
       assert NaiveDateTime.compare(completed.end_time, start_time) == :eq
 
       # store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # database
       assert_db_contains(TimeAllocation, completed)

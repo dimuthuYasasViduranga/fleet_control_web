@@ -1,6 +1,6 @@
-defmodule Dispatch.ActivityAgent do
+defmodule FleetControl.ActivityAgent do
   use Agent
-  alias Dispatch.Culling
+  alias FleetControl.Culling
 
   @cull_opts %{
     time_key: :server_timestamp,

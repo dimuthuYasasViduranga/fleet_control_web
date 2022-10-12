@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Broadcast.HaulTruck do
+defmodule FleetControlWeb.Broadcast.HaulTruck do
   @moduledoc """
   Broadcast extensions specific to "Haul Truck" class assets
   """
@@ -6,9 +6,9 @@ defmodule DispatchWeb.Broadcast.HaulTruck do
   @operators "operators"
   @dispatch "dispatchers:all"
 
-  alias DispatchWeb.{Endpoint, Broadcast}
+  alias FleetControlWeb.{Endpoint, Broadcast}
 
-  alias Dispatch.{AssetAgent, HaulTruckDispatchAgent}
+  alias FleetControl.{AssetAgent, HaulTruckDispatchAgent}
 
   def send_dispatches(identifiers \\ []) when is_list(identifiers) do
     Enum.each(identifiers, &send_dispatch_to_asset/1)

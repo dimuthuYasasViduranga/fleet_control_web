@@ -1,6 +1,7 @@
-defmodule Dispatch.TimeAllocationAgent.Data do
+defmodule FleetControl.TimeAllocation.EctoQueries do
   alias HpsData.Asset
-  alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode}
+  alias HpsData.Schemas.Dispatch.TimeAllocation
+  alias HpsData.Schemas.Dispatch.TimeCode
   alias HpsData.Repo
 
   import Ecto.Query, only: [from: 2, subquery: 1]
@@ -24,13 +25,6 @@ defmodule Dispatch.TimeAllocationAgent.Data do
     quote do
       map(unquote(q), @select_data_keys)
     end
-  end
-
-  def culling_opts() do
-    %{
-      time_key: :end_time,
-      max_age: 24 * 60 * 60
-    }
   end
 
   @doc """

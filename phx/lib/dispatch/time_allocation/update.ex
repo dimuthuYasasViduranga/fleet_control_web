@@ -1,7 +1,8 @@
-defmodule Dispatch.TimeAllocationAgent.Update do
-  alias Dispatch.Helper, as: DHelper
-  alias Dispatch.AgentHelper
-  alias Dispatch.TimeAllocationAgent.{Data, Helper}
+defmodule FleetControl.TimeAllocation.Update do
+  alias FleetControl.Helper, as: DHelper
+  alias FleetControl.AgentHelper
+  alias FleetControl.TimeAllocation.EctoQueries
+  alias FleetControl.TimeAllocation.Helper
   alias Ecto.Multi
 
   alias HpsData.Schemas.Dispatch.TimeAllocation
@@ -9,24 +10,6 @@ defmodule Dispatch.TimeAllocationAgent.Update do
 
   require Logger
 
-  @type state :: map
-  @type allocation :: map
-  @type deleted_alloc :: allocation
-  @type updated_alloc :: allocation
-  @type new_active_alloc :: allocation
-
-  @spec update_all(list(map), state) ::
-          {{:ok, list(deleted_alloc), list(updated_alloc), new_active_alloc | nil}, state}
-          | {{:error,
-              :invalid_id
-              | :end_before_start
-              | :cannot_remove_end_time
-              | :cannot_change_asset
-              | :multiple_assets
-              | :missing_keys
-              | :cannot_change_locked
-              | :cannot_set_locked
-              | term}, state}
   def update_all(updates, state) when is_list(updates) do
     updates =
       updates
@@ -56,7 +39,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
         now = DHelper.naive_timestamp()
         new_allocs = Enum.map(new_allocs, &Map.put(&1, :inserted_at, now))
 
-        delete_query = Data.delete_query(ids_to_delete)
+        delete_query = EctoQueries.delete_query(ids_to_delete)
 
         delete_updates = [deleted: true, deleted_at: DHelper.naive_timestamp()]
 
@@ -92,7 +75,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
       |> Enum.map(& &1[:id])
       |> Enum.reject(&is_nil/1)
 
-    allocs_affected = Data.get_allocations_to_update(ids)
+    allocs_affected = EctoQueries.get_allocations_to_update(ids)
 
     asset_ids =
       (updates ++ allocs_affected)
@@ -131,10 +114,12 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     end
   end
 
+  def has_keys?(map, keys), do: Enum.all?(keys, &Map.has_key?(map, &1))
+
   defp is_invalid_allocation?(alloc, affected_allocs, max_timestamp) do
     affected_alloc = Enum.find(affected_allocs, &(&1.id == alloc[:id]))
 
-    !Helper.has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) ||
+    !has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) ||
       alloc.start_time == nil ||
       Helper.naive_compare?(alloc.start_time, [:gt], alloc.end_time) ||
       Helper.naive_compare?(alloc.start_time, [:eq, :gt], max_timestamp) ||
@@ -246,8 +231,6 @@ defmodule Dispatch.TimeAllocationAgent.Update do
     {[commit | resp], state}
   end
 
-  @spec update_agent({:ok, TimeAllocation | map} | term, map) ::
-          {{:ok, allocation} | term, map}
   def update_agent({:ok, %TimeAllocation{} = alloc}, state) do
     alloc = TimeAllocation.to_map(alloc)
     update_agent({:ok, alloc}, state)
@@ -282,7 +265,7 @@ defmodule Dispatch.TimeAllocationAgent.Update do
             :historic,
             completed,
             &(&1.id == completed.id),
-            Data.culling_opts()
+            %{time_key: :end_time, max_age: 24 * 60 * 60}
           )
 
         _ ->

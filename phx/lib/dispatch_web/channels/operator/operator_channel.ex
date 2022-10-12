@@ -1,16 +1,16 @@
-defmodule DispatchWeb.OperatorChannel do
+defmodule FleetControlWeb.OperatorChannel do
   @moduledoc nil
 
-  use DispatchWeb, :channel
+  use FleetControlWeb, :channel
   use Appsignal.Instrumentation.Decorators
 
   require Logger
 
   alias __MODULE__.{HaulTruckTopics, DigUnitTopics, WaterCartTopics}
 
-  alias DispatchWeb.{Settings, Presence, Broadcast, ChannelWatcher}
+  alias FleetControlWeb.{Settings, Presence, Broadcast, ChannelWatcher}
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     Tracks,
     AssetAgent,
@@ -22,7 +22,7 @@ defmodule DispatchWeb.OperatorChannel do
     DeviceAssignmentAgent,
     EngineHoursAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
+    TimeAllocation,
     LocationAgent,
     TrackAgent,
     MaterialTypeAgent,
@@ -314,7 +314,7 @@ defmodule DispatchWeb.OperatorChannel do
     |> Enum.each(fn {asset_id, allocs} ->
       allocs
       |> Enum.map(&Map.put(&1, :created_by_operator, true))
-      |> TimeAllocationAgent.update_all()
+      |> TimeAllocation.Agent.update_all()
 
       Broadcast.send_active_allocation_to(%{asset_id: asset_id})
     end)
@@ -328,7 +328,7 @@ defmodule DispatchWeb.OperatorChannel do
     exceptions
     |> Enum.map(&Helper.to_atom_map!/1)
     |> Enum.map(&Map.put(&1, :created_by_operator, true))
-    |> TimeAllocationAgent.update_all()
+    |> TimeAllocation.Agent.update_all()
 
     Enum.each(exceptions, &Broadcast.send_active_allocation_to(%{asset_id: &1["asset_id"]}))
     Broadcast.send_allocations_to_dispatcher()
@@ -422,7 +422,7 @@ defmodule DispatchWeb.OperatorChannel do
 
     dispatcher_messages = DispatcherMessageAgent.all(asset_id)
 
-    active_allocation = TimeAllocationAgent.get_active(%{asset_id: asset_id})
+    active_allocation = TimeAllocation.Agent.get_active(%{asset_id: asset_id})
 
     locations =
       LocationAgent.active_locations()

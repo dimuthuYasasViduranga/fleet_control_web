@@ -1,4 +1,4 @@
-defmodule Dispatch.RoutingAgent.Data do
+defmodule FleetControl.RoutingAgent.Data do
   alias HpsData.Schemas.Dispatch.Route
   alias HpsData.Repo
 

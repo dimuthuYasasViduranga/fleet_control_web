@@ -73,7 +73,7 @@ export default {
       );
 
       this.$channel
-        .push('set device details', payload)
+        .push('device:set-details', payload)
         .receive('ok', () => {
           loading.close();
           this.$toaster.info('Device details updated');

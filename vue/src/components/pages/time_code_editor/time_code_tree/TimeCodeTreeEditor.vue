@@ -212,7 +212,7 @@ export default {
       };
 
       this.$channel
-        .push('set time code tree elements', payload)
+        .push('time-code:set-tree-elements', payload)
         .receive('ok', () => this.$toaster.info('Time code tree updated'))
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to update time code tree'));

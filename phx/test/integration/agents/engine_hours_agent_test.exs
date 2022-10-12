@@ -1,8 +1,8 @@
-defmodule Dispatch.EngineHoursAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.EngineHoursAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{AssetAgent, EngineHoursAgent}
+  alias FleetControl.{AssetAgent, EngineHoursAgent}
   alias HpsData.Schemas.Dispatch.EngineHours
 
   defp to_engine_hours(asset_id, hours, timestamp \\ NaiveDateTime.utc_now()) do

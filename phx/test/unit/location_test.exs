@@ -1,8 +1,8 @@
-defmodule Dispatch.LocationTest do
+defmodule FleetControl.LocationTest do
   use ExUnit.Case, async: true
   @moduletag :unit
 
-  alias Dispatch.Location
+  alias FleetControl.Location
 
   setup do
     geofence = %Geo.Polygon{

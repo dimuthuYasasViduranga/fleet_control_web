@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Authorization.Decorator do
+defmodule FleetControlWeb.Authorization.Decorator do
   use Decorator.Define, authorized: 1, only_in: 1
 
   @type reply :: {:reply, term, Phoenix.Socket.t()}

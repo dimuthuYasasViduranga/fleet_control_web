@@ -1,20 +1,20 @@
-defmodule DispatchWeb.AuthController do
+defmodule FleetControlWeb.AuthController do
   @moduledoc """
   Authentication endpoint functions.
   """
 
-  use DispatchWeb, :controller
+  use FleetControlWeb, :controller
 
   require Logger
 
   alias AzureADOpenId
-  alias Dispatch.Token
-  alias Dispatch.OperatorAgent
-  alias Dispatch.DeviceAgent
-  alias Dispatch.DispatcherAgent
+  alias FleetControl.Token
+  alias FleetControl.OperatorAgent
+  alias FleetControl.DeviceAgent
+  alias FleetControl.DispatcherAgent
 
-  alias DispatchWeb.Broadcast
-  alias DispatchWeb.Guardian
+  alias FleetControlWeb.Broadcast
+  alias FleetControlWeb.Guardian
 
   @path "fleet-control"
 
@@ -23,7 +23,7 @@ defmodule DispatchWeb.AuthController do
   """
   @spec login(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def login(conn, _) do
-    base_uri = Application.get_env(:dispatch_web, :url)
+    base_uri = Application.get_env(:fleet_control_web, :url)
     redirect_uri = "#{base_uri}/auth/callback"
     auth_url = AzureADOpenId.authorize_url!(redirect_uri) <> "&state=" <> @path
     redirect(conn, external: auth_url)
@@ -59,7 +59,7 @@ defmodule DispatchWeb.AuthController do
   @spec logout(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def logout(conn, _) do
     logout_url =
-      Application.get_env(:dispatch_web, :url)
+      Application.get_env(:fleet_control_web, :url)
       |> get_logout_redirect()
 
     conn

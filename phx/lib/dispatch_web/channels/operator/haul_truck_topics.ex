@@ -1,11 +1,11 @@
-defmodule DispatchWeb.OperatorChannel.HaulTruckTopics do
+defmodule FleetControlWeb.OperatorChannel.HaulTruckTopics do
   @moduledoc """
   Holds the haul truck specific topics to make the operator channel cleaner
   """
   require Logger
 
-  alias Dispatch.HaulTruckDispatchAgent
-  alias DispatchWeb.Broadcast
+  alias FleetControl.HaulTruckDispatchAgent
+  alias FleetControlWeb.Broadcast
 
   def get_asset_type_state(%{id: asset_id, type: "Haul Truck"}, _operator_id) do
     %{

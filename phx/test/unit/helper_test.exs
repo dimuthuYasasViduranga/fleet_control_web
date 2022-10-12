@@ -1,8 +1,8 @@
-defmodule Dispatch.Helper.Test do
+defmodule FleetControl.Helper.Test do
   use ExUnit.Case, async: true
   @moduletag :unit
 
-  alias Dispatch.Helper
+  alias FleetControl.Helper
 
   defp to_span(start_time, end_time) do
     %{start_time: start_time, end_time: end_time}

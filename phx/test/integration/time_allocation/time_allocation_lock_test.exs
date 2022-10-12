@@ -1,12 +1,11 @@
-defmodule Dispatch.TimeAllocation.LockTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.TimeAllocation.LockTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{
+  alias FleetControl.{
     CalendarAgent,
     AssetAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
     DispatcherAgent
   }
 
@@ -30,7 +29,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
   end
 
   defp add_with_logs(ta) do
-    {result, log} = with_log(fn -> TimeAllocationAgent.add(ta) end)
+    {result, log} = with_log(fn -> FleetControl.TimeAllocation.Agent.add(ta) end)
     assert log =~ "[error] Time allocation created without recording it's source"
     result
   end
@@ -61,7 +60,7 @@ defmodule Dispatch.TimeAllocation.LockTest do
     ready = Enum.find(time_codes, &(&1.name == "Dig Ore")).id
     exception = Enum.find(time_codes, &(&1.name == "Damage")).id
 
-    TimeAllocationAgent.start_link([])
+    FleetControl.TimeAllocation.Agent.start_link([])
     DispatcherAgent.start_link([])
     {:ok, dispatcher} = DispatcherAgent.add("1234", "test")
 
@@ -99,7 +98,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -117,8 +118,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert locked.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # Database
       assert_db_contains(TimeAllocation, locked)
@@ -136,7 +137,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -154,8 +157,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert locked.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # Database
       assert_db_contains(TimeAllocation, locked)
@@ -173,7 +176,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked] = data.new
 
@@ -191,8 +196,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert locked.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # Database
       assert_db_contains(TimeAllocation, locked)
@@ -209,7 +214,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, split] = data.new
 
@@ -233,8 +240,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert split.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [locked, split]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked, split]
 
       # Database
       assert_db_contains(TimeAllocation, [locked, split])
@@ -251,7 +258,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, split] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -275,8 +284,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert split.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [split, locked]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [split, locked]
 
       # Database
       assert_db_contains(TimeAllocation, [locked, split])
@@ -293,7 +302,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [split_before, locked, split_after] =
@@ -325,8 +336,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert split_after.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [split_after, locked, split_before]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [split_after, locked, split_before]
 
       # Database
       assert_db_contains(TimeAllocation, [split_before, locked, split_after])
@@ -343,7 +354,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, end_time)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -352,8 +364,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [initial]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [initial]
 
       # Database
       assert_db_contains(TimeAllocation, [initial])
@@ -361,7 +373,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
     end
 
     test "valid (no elements)", context do
-      {:ok, data} = TimeAllocationAgent.lock([], context.calendar.id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([], context.calendar.id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -370,8 +383,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # Database
       assert_db_count(TimeAllocation, 0)
@@ -394,7 +407,11 @@ defmodule Dispatch.TimeAllocation.LockTest do
         |> add_with_logs()
 
       {:ok, data} =
-        TimeAllocationAgent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
+        FleetControl.TimeAllocation.Agent.lock(
+          [initial_a.id, initial_b.id],
+          cal_id,
+          context.dispatcher
+        )
 
       lock = data.lock
       [locked_a, locked_b] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
@@ -419,8 +436,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert locked_b.time_code_id == initial_b.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == [locked_b, locked_a]
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked_b, locked_a]
 
       # Database
       assert_db_contains(TimeAllocation, [locked_a, locked_b])
@@ -428,7 +445,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
     end
 
     test "valid (no allocs found for ids)", context do
-      {:ok, data} = TimeAllocationAgent.lock([-1], context.calendar.id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([-1], context.calendar.id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -437,30 +455,30 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == []
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == []
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # Database
       assert_db_count(TimeAllocation, 0)
     end
 
     test "invalid (no dispatcher id)", context do
-      error = TimeAllocationAgent.lock([], context.calendar.id, nil)
+      error = FleetControl.TimeAllocation.Agent.lock([], context.calendar.id, nil)
       assert error == {:error, :invalid_dispatcher}
     end
 
     test "invalid (invalid dispatcher)", context do
-      error = TimeAllocationAgent.lock([], context.calendar.id, -1)
+      error = FleetControl.TimeAllocation.Agent.lock([], context.calendar.id, -1)
       assert error == {:error, :invalid_dispatcher}
     end
 
     test "invalid (no calendar id)", context do
-      error = TimeAllocationAgent.lock([], nil, context.dispatcher)
+      error = FleetControl.TimeAllocation.Agent.lock([], nil, context.dispatcher)
       assert error == {:error, :invalid_calendar}
     end
 
     test "invalid (invalid calendar)", context do
-      error = TimeAllocationAgent.lock([], -1, context.dispatcher)
+      error = FleetControl.TimeAllocation.Agent.lock([], -1, context.dispatcher)
       assert error == {:error, :invalid_calendar}
     end
   end
@@ -476,7 +494,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -498,8 +518,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # Database
       assert_db_contains(TimeAllocation, [locked, active])
@@ -516,7 +536,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -538,8 +560,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [locked]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked]
 
       # Database
       assert_db_contains(TimeAllocation, [locked, active])
@@ -555,7 +577,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
       [before, locked, active] = Enum.sort_by(data.new, & &1.start_time, {:asc, NaiveDateTime})
 
@@ -585,8 +609,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [locked, before]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [locked, before]
 
       # Database
       assert_db_contains(TimeAllocation, [before, locked, active])
@@ -602,7 +626,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [locked, alloc_after, active] =
@@ -632,8 +658,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [alloc_after, locked]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [alloc_after, locked]
 
       # Database
       assert_db_contains(TimeAllocation, [locked, alloc_after, active])
@@ -649,7 +675,9 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
+
       lock = data.lock
 
       [alloc_before, locked, alloc_after, active] =
@@ -685,8 +713,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active.time_code_id == initial.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active]
-      assert TimeAllocationAgent.historic() == [alloc_after, locked, alloc_before]
+      assert FleetControl.TimeAllocation.Agent.active() == [active]
+      assert FleetControl.TimeAllocation.Agent.historic() == [alloc_after, locked, alloc_before]
 
       # Database
       assert_db_contains(TimeAllocation, [alloc_before, locked, alloc_after, active])
@@ -702,7 +730,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
         to_alloc(asset.id, ready, start_time, nil)
         |> add_with_logs()
 
-      {:ok, data} = TimeAllocationAgent.lock([initial.id], cal_id, context.dispatcher)
+      {:ok, data} =
+        FleetControl.TimeAllocation.Agent.lock([initial.id], cal_id, context.dispatcher)
 
       # Return
       assert data.lock == nil
@@ -711,8 +740,8 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert data.new == []
 
       # Store
-      assert TimeAllocationAgent.active() == [initial]
-      assert TimeAllocationAgent.historic() == []
+      assert FleetControl.TimeAllocation.Agent.active() == [initial]
+      assert FleetControl.TimeAllocation.Agent.historic() == []
 
       # Database
       assert_db_contains(TimeAllocation, [initial])
@@ -734,7 +763,11 @@ defmodule Dispatch.TimeAllocation.LockTest do
         |> add_with_logs()
 
       {:ok, data} =
-        TimeAllocationAgent.lock([initial_a.id, initial_b.id], cal_id, context.dispatcher)
+        FleetControl.TimeAllocation.Agent.lock(
+          [initial_a.id, initial_b.id],
+          cal_id,
+          context.dispatcher
+        )
 
       lock = data.lock
 
@@ -771,9 +804,12 @@ defmodule Dispatch.TimeAllocation.LockTest do
       assert active_b.time_code_id == initial_b.time_code_id
 
       # Store
-      assert TimeAllocationAgent.active() == [active_a, active_b]
+      assert FleetControl.TimeAllocation.Agent.active() == [active_a, active_b]
 
-      assert Enum.sort_by(TimeAllocationAgent.historic(), & &1.asset_id) == [locked_a, locked_b]
+      assert Enum.sort_by(FleetControl.TimeAllocation.Agent.historic(), & &1.asset_id) == [
+               locked_a,
+               locked_b
+             ]
 
       # Database
       assert_db_contains(TimeAllocation, [locked_a, locked_b, active_a, active_b])

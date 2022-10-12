@@ -1,7 +1,7 @@
-defmodule DispatchWeb.Authorization.Plug.LoadAuthPermissions do
+defmodule FleetControlWeb.Authorization.Plug.LoadAuthPermissions do
   import Plug.Conn
 
-  alias DispatchWeb.Authorization.Permissions
+  alias FleetControlWeb.Authorization.Permissions
 
   def init(options), do: options
 

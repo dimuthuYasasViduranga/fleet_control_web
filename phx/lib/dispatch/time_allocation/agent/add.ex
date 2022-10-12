@@ -1,6 +1,7 @@
-defmodule Dispatch.TimeAllocationAgent.Add do
-  alias Dispatch.Helper, as: DHelper
-  alias Dispatch.TimeAllocationAgent.{Helper, Update}
+defmodule FleetControl.TimeAllocation.Add do
+  alias FleetControl.Helper, as: DHelper
+  alias FleetControl.TimeAllocation.Helper
+  alias FleetControl.TimeAllocation.Update
 
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
@@ -9,23 +10,15 @@ defmodule Dispatch.TimeAllocationAgent.Add do
 
   require Logger
 
-  @type state :: map
-  @type allocation :: map
-  @type input_alloc :: %{
-          asset_id: integer,
-          time_code_id: integer,
-          start_time: NaiveDateTime.t() | integer,
-          end_time: NaiveDateTime.t() | integer | nil
-        }
-
-  @spec add(module, map | input_alloc) :: {:ok, allocation} | {:error, :invalid_keys | term}
   def add(module, %{"asset_id" => _asset_id} = alloc) do
     alloc = DHelper.to_atom_map!(alloc)
     add(module, alloc)
   end
 
   def add(module, alloc) do
-    if Helper.has_keys?(alloc, [:asset_id, :time_code_id, :start_time, :end_time]) do
+    [:asset_id, :time_code_id, :start_time, :end_time]
+    |> Enum.all?(&Map.has_key?(alloc, &1))
+    |> if do
       unless alloc[:created_by_operator] || alloc[:created_by_dispatcher] do
         Logger.error("Time allocation created without recording it's source")
       end

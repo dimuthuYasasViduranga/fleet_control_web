@@ -1,33 +1,25 @@
-defmodule Dispatch.TimeAllocationAgent.MassAdd do
-  alias Dispatch.TimeAllocationAgent.{Data, Update}
+defmodule FleetControl.TimeAllocation.MassAdd do
+  alias FleetControl.TimeAllocation.EctoQueries
+  alias FleetControl.TimeAllocation.Update
 
   alias Ecto.Multi
-  alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.TimeAllocation
 
   require Logger
 
-  @type state :: map()
-  @type allocation :: map()
-  @type deleted_alloc :: allocation
-  @type updated_alloc :: allocation
-  @type active_alloc :: allocation
+  def add(time_code_id, asset_ids, params, state, repo \\ HpsData.Repo) do
+    now = NaiveDateTime.utc_now()
 
-  @spec add(integer, list(integer), keyword(), state) ::
-          {:ok, list(deleted_alloc), list(updated_alloc), list(active_alloc)} | {:error, term}
-  def add(time_code_id, asset_ids, params, state) do
-    timestamp = NaiveDateTime.utc_now()
+    {to_delete_ids, new_allocs} = compose_data(state, asset_ids, time_code_id, params, now)
 
-    {to_delete_ids, new_allocs} = compose_data(state, asset_ids, time_code_id, params, timestamp)
+    delete_query = EctoQueries.delete_query(to_delete_ids)
 
-    delete_query = Data.delete_query(to_delete_ids)
-
-    delete_updates = [deleted: true, deleted_at: timestamp]
+    delete_updates = [deleted: true, deleted_at: now]
 
     Multi.new()
     |> Multi.update_all(:deleted, delete_query, [set: delete_updates], returning: true)
     |> Multi.insert_all(:new, TimeAllocation, new_allocs, returning: true)
-    |> Repo.transaction()
+    |> repo.transaction()
     |> case do
       {:ok, commits} ->
         {deleted_allocs, state} = add_commits_to_agent(commits.deleted, state)

@@ -1,14 +1,13 @@
-defmodule DispatchWeb.DispatcherChannel.DigUnitTopics do
-  @moduledoc false
+defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
+  alias FleetControl.DigUnitActivityAgent
 
-  use DispatchWeb.Authorization.Decorator
+  use FleetControlWeb.Authorization.Decorator
+  alias FleetControlWeb.Broadcast
 
-  alias Dispatch.DigUnitActivityAgent
-
-  alias DispatchWeb.Broadcast
+  import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
   @decorate authorized(:can_dispatch)
-  def handle_in("dig:set activity", activity, socket) do
+  def handle_in("set activity", activity, socket) do
     case DigUnitActivityAgent.add(activity) do
       {:ok, activity} ->
         identifier = %{asset_id: activity.asset_id}
@@ -20,10 +19,4 @@ defmodule DispatchWeb.DispatcherChannel.DigUnitTopics do
         {:reply, to_error(error), socket}
     end
   end
-
-  defp to_error({:error, reason}), do: to_error(reason)
-
-  defp to_error(%Ecto.Changeset{} = changeset), do: to_error(hd(changeset.errors))
-
-  defp to_error(reason), do: {:error, %{error: reason}}
 end

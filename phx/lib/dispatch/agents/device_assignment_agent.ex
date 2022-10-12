@@ -1,11 +1,11 @@
-defmodule Dispatch.DeviceAssignmentAgent do
+defmodule FleetControl.DeviceAssignmentAgent do
   @moduledoc """
   Holds both the current assignments and a transient history of assignments
   There is no guarentee that historic contains the current assignment, due to some
     current assignments being older than the transient history limit
   """
 
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   use Agent
   import Ecto.Query, only: [from: 2, subquery: 1]
   import Ecto.Query.API, only: [map: 2]

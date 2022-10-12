@@ -1,7 +1,7 @@
-defmodule Dispatch.LiveQueueAgent do
+defmodule FleetControl.LiveQueueAgent do
   use Agent
 
-  alias Dispatch.LiveQueue
+  alias FleetControl.LiveQueue
 
   @type track :: map()
 

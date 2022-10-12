@@ -1,6 +1,6 @@
-defmodule Dispatch do
-  alias Dispatch.{DispatcherAgent, PreStartSubmissionAgent}
-  alias DispatchWeb.Broadcast
+defmodule FleetControl do
+  alias FleetControl.{DispatcherAgent, PreStartSubmissionAgent}
+  alias FleetControlWeb.Broadcast
 
   def set_pre_start_ticket(user_id, name, params) do
     {:ok, dispatcher} = DispatcherAgent.add(user_id, name)

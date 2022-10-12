@@ -202,7 +202,7 @@ export default {
       };
 
       this.$channel
-        .push('add dispatcher message', payload)
+        .push('dispatcher-message:add', payload)
         .receive('ok', () => this.close())
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to send message'));
@@ -217,7 +217,7 @@ export default {
       };
 
       this.$channel
-        .push('add mass dispatcher message', payload)
+        .push('dispatcher-message:mass-add', payload)
         .receive('ok', () => this.close())
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to send message'));

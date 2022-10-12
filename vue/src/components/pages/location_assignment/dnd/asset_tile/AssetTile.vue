@@ -263,7 +263,7 @@ export default {
         time_code_id: timeCodeId,
       };
 
-      this.$channel.push('force logout device', payload);
+      this.$channel.push('device:force-logout', payload);
     },
     openMap() {
       const opts = {

@@ -1,10 +1,10 @@
-defmodule Dispatch.PreStartAgent do
+defmodule FleetControl.PreStartAgent do
   @moduledoc """
   Used to hold all current pre-start definitions
   """
 
   use Agent
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
   require Logger
 
   alias HpsData.Schemas.Dispatch.PreStart

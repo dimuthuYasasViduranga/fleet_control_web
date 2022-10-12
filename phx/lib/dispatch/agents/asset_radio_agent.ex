@@ -1,4 +1,4 @@
-defmodule Dispatch.AssetRadioAgent do
+defmodule FleetControl.AssetRadioAgent do
   @moduledoc """
   Store for all asset radio settings
   """
@@ -6,7 +6,7 @@ defmodule Dispatch.AssetRadioAgent do
   use Agent
   require Logger
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
   alias HpsData.Schemas.Dispatch.AssetRadio
   alias HpsData.Repo
 

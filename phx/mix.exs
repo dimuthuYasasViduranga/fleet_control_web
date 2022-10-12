@@ -1,9 +1,9 @@
-defmodule DispatchWeb.MixProject do
+defmodule FleetControlWeb.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :dispatch_web,
+      app: :fleet_control_web,
       version: "0.1.0",
       build_path: "_build",
       config_path: "config/config.exs",
@@ -20,7 +20,7 @@ defmodule DispatchWeb.MixProject do
   end
 
   def application do
-    mod = {DispatchWeb.Application, []}
+    mod = {FleetControlWeb.Application, []}
     apps = [:logger, :runtime_tools]
 
     case Mix.env() do

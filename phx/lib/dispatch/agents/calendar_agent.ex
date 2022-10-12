@@ -1,4 +1,4 @@
-defmodule Dispatch.CalendarAgent do
+defmodule FleetControl.CalendarAgent do
   @moduledoc """
   Used to store all calendar information
   """
@@ -7,7 +7,7 @@ defmodule Dispatch.CalendarAgent do
   require Logger
   import Ecto.Query, only: [from: 2]
 
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
   alias HpsData.Dim.{Calendar, ShiftType, Timezone}
   alias HpsData.Repo
 

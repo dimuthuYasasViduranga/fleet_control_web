@@ -1,8 +1,8 @@
-defmodule Dispatch.Unit.OperatorTimeAllocationTest do
+defmodule FleetControl.Unit.OperatorTimeAllocationTest do
   use ExUnit.Case
   @moduletag :unit
 
-  alias Dispatch.OperatorTimeAllocation
+  alias FleetControl.OperatorTimeAllocation
 
   defp to_span(start_time, end_time), do: %{start_time: start_time, end_time: end_time}
 

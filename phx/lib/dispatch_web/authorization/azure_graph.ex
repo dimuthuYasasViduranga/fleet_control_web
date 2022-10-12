@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Authorization.AzureGraph do
+defmodule FleetControlWeb.Authorization.AzureGraph do
   alias OAuth2.Client
   alias OAuth2.Strategy.ClientCredentials
 

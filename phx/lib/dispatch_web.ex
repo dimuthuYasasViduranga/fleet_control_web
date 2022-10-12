@@ -1,14 +1,14 @@
-defmodule DispatchWeb do
+defmodule FleetControlWeb do
   @moduledoc """
   """
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: DispatchWeb
+      use Phoenix.Controller, namespace: FleetControlWeb
 
       import Plug.Conn
-      import DispatchWeb.Gettext
-      alias DispatchWeb.Router.Helpers, as: Routes
+      import FleetControlWeb.Gettext
+      alias FleetControlWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -16,14 +16,14 @@ defmodule DispatchWeb do
     quote do
       use Phoenix.View,
         root: "lib/dispatch_server_web/templates",
-        namespace: DispatchWeb
+        namespace: FleetControlWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_flash: 1, get_flash: 2, view_module: 1]
 
-      import DispatchWeb.ErrorHelpers
-      import DispatchWeb.Gettext
-      alias DispatchWeb.Router.Helpers, as: Routes
+      import FleetControlWeb.ErrorHelpers
+      import FleetControlWeb.Gettext
+      alias FleetControlWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -38,7 +38,7 @@ defmodule DispatchWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import DispatchWeb.Gettext
+      import FleetControlWeb.Gettext
     end
   end
 

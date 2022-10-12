@@ -1,15 +1,15 @@
-defmodule DispatchWeb.DeviceAuthController do
+defmodule FleetControlWeb.DeviceAuthController do
   @moduledoc """
   Authorization for devices
   """
 
-  use DispatchWeb, :controller
+  use FleetControlWeb, :controller
 
   require Logger
 
   alias AzureADOpenId
 
-  alias Dispatch.DeviceAuthServer
+  alias FleetControl.DeviceAuthServer
 
   def request_device_auth(conn, %{"device_uuid" => device_uuid} = params) do
     case DeviceAuthServer.request_device_authorization(device_uuid, params["details"] || %{}) do

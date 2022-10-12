@@ -1,7 +1,7 @@
-defmodule Dispatch.DeviceConnectionAgent do
+defmodule FleetControl.DeviceConnectionAgent do
   use Agent
 
-  alias Dispatch.{AgentHelper, DeviceAgent}
+  alias FleetControl.{AgentHelper, DeviceAgent}
 
   @type status :: :connected | :disconnected | :not_seen
 

@@ -1,4 +1,4 @@
-defmodule DispatchWeb.Broadcast do
+defmodule FleetControlWeb.Broadcast do
   @moduledoc """
   The centralised module for broadcasting actions to multiple action types.
 
@@ -14,9 +14,9 @@ defmodule DispatchWeb.Broadcast do
 
   require Logger
 
-  alias DispatchWeb.{Settings, Presence, Endpoint}
+  alias FleetControlWeb.{Settings, Presence, Endpoint}
 
-  alias Dispatch.{
+  alias FleetControl.{
     Helper,
     DispatcherAgent,
     OperatorAgent,
@@ -30,7 +30,7 @@ defmodule DispatchWeb.Broadcast do
     EngineHoursAgent,
     AssetRadioAgent,
     TimeCodeAgent,
-    TimeAllocationAgent,
+    TimeAllocation,
     LocationAgent,
     CalendarAgent,
     HaulAgent,
@@ -236,7 +236,7 @@ defmodule DispatchWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "set operator message type tree", payload)
+    Endpoint.broadcast(@dispatch, "operator-message:set-type-tree", payload)
   end
 
   def send_operator_message_type_tree_to(asset_type_id) do
@@ -244,7 +244,7 @@ defmodule DispatchWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    broadcast_to_asset_type(%{type_id: asset_type_id}, "set operator message type tree", payload)
+    broadcast_to_asset_type(%{type_id: asset_type_id}, "operator-message:set-type-tree", payload)
   end
 
   def send_dispatchers() do
@@ -351,7 +351,7 @@ defmodule DispatchWeb.Broadcast do
   def send_active_allocation_to(identifier) do
     case get_assignment(identifier) do
       {device, assignment, _type} ->
-        allocation = TimeAllocationAgent.get_active(%{asset_id: assignment.asset_id})
+        allocation = TimeAllocation.Agent.get_active(%{asset_id: assignment.asset_id})
 
         Endpoint.broadcast("#{@operators}:#{device.uuid}", "set allocation", %{
           allocation: allocation
@@ -364,8 +364,8 @@ defmodule DispatchWeb.Broadcast do
 
   def send_allocations_to_dispatcher(action \\ :alert) do
     payload = %{
-      historic: TimeAllocationAgent.historic(),
-      active: TimeAllocationAgent.active(),
+      historic: TimeAllocation.Agent.historic(),
+      active: TimeAllocation.Agent.active(),
       action: action
     }
 
@@ -497,7 +497,7 @@ defmodule DispatchWeb.Broadcast do
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "set time code tree elements", payload)
+    Endpoint.broadcast(@dispatch, "time-code:set-tree-elements", payload)
   end
 
   def send_time_code_tree_elements_to(identifier) do
@@ -510,7 +510,7 @@ defmodule DispatchWeb.Broadcast do
           time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(id)
         }
 
-        broadcast_to_asset_type(%{type: asset_type}, "set time code tree elements", payload)
+        broadcast_to_asset_type(%{type: asset_type}, "time-code:set-tree-elements", payload)
     end
 
     send_time_code_tree_elements()

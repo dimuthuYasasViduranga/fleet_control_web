@@ -1,4 +1,4 @@
-defmodule Dispatch.RoutingAgent.Validation do
+defmodule FleetControl.RoutingAgent.Validation do
   @type vertex :: %{
           id: integer,
           lat: number,

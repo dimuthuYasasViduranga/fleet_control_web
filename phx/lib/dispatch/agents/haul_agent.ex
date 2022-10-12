@@ -1,8 +1,8 @@
-defmodule Dispatch.HaulAgent do
+defmodule FleetControl.HaulAgent do
   @moduledoc """
   Holds live (ish) fleetops data and provides helper functions to retrieve time uasge
   """
-  alias Dispatch.AgentHelper
+  alias FleetControl.AgentHelper
   use Agent
 
   require Logger

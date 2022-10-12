@@ -1,7 +1,7 @@
-defmodule DispatchWeb.Guardian do
+defmodule FleetControlWeb.Guardian do
   @moduledoc nil
 
-  use Guardian, otp_app: :dispatch_web
+  use Guardian, otp_app: :fleet_control_web
 
   require Logger
 

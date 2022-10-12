@@ -1,11 +1,11 @@
-defmodule Dispatch.DispatcherAgent do
+defmodule FleetControl.DispatcherAgent do
   @moduledoc """
   Store for all dispatcher user information
   """
 
   use Agent
-  alias Dispatch.AgentHelper
-  alias Dispatch.Culling
+  alias FleetControl.AgentHelper
+  alias FleetControl.Culling
   require Logger
 
   alias HpsData.Schemas.Dispatch.Dispatcher

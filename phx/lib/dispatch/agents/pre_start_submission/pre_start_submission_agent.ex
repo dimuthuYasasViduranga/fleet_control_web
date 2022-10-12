@@ -1,10 +1,10 @@
-defmodule Dispatch.PreStartSubmissionAgent do
+defmodule FleetControl.PreStartSubmissionAgent do
   @moduledoc """
   Used to hold all current pre-start submission data
   """
 
   use Agent
-  alias Dispatch.{Helper, AgentHelper}
+  alias FleetControl.{Helper, AgentHelper}
   require Logger
 
   alias __MODULE__.Data

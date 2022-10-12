@@ -1,9 +1,9 @@
-defmodule DispatchWeb.Timers do
+defmodule FleetControlWeb.Timers do
   @moduledoc false
 
-  alias DispatchWeb.DispatcherChannel.RefreshTopics
-  alias Dispatch.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
-  alias DispatchWeb.Broadcast
+  alias FleetControlWeb.DispatcherChannel.Topics
+  alias FleetControl.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
+  alias FleetControlWeb.Broadcast
 
   @default_calendar_interval 24 * 3600 * 1000
   @default_location_interval 30 * 60 * 1000
@@ -40,14 +40,14 @@ defmodule DispatchWeb.Timers do
     :ok
   end
 
-  defp get_interval(key, fallback), do: Application.get_env(:dispatch_web, key, fallback)
+  defp get_interval(key, fallback), do: Application.get_env(:fleet_control_web, key, fallback)
 
   defp start_interval!(interval, module, func, args) do
     {:ok, {:interval, _}} = :timer.apply_interval(interval, module, func, args)
   end
 
   defp start_refresh_interval!(agent, interval) do
-    start_interval!(interval, RefreshTopics, :refresh, [agent])
+    start_interval!(interval, Topics.Refresh, :refresh, [agent])
   end
 
   defp start_live_queue_interval!(interval) do
@@ -55,7 +55,7 @@ defmodule DispatchWeb.Timers do
   end
 
   defp start_track_interval!(interval) do
-    start_interval!(interval, Dispatch.Tracks, :update_track_agent, [])
+    start_interval!(interval, FleetControl.Tracks, :update_track_agent, [])
   end
 
   defp start_track_broadcast_interval!(interval) do

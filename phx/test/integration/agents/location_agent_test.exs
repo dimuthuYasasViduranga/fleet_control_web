@@ -1,9 +1,9 @@
-defmodule Dispatch.LocationAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.LocationAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
   alias HpsData.Dim
-  alias Dispatch.LocationAgent
+  alias FleetControl.LocationAgent
   # there needs to be a test for locations set in the future (robhustness)
 
   setup_all _ do
