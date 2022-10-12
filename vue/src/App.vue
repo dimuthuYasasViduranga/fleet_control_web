@@ -61,7 +61,7 @@ export default {
   },
   computed: {
     ...mapState('connection', {
-      channelAlive: state => state.isAlive,
+      channelHealthy: state => state.isAlive && state.isConnected,
       userToken: state => state.userToken,
     }),
     ...mapState('constants', {
@@ -69,9 +69,9 @@ export default {
     }),
   },
   watch: {
-    channelAlive(newAlive, oldAlive) {
-      if (oldAlive && !newAlive) {
-        console.error('[Channel] The channel has been corrupted, recreating');
+    channelHealthy(newHealth, oldHealth) {
+      if (oldHealth && !newHealth) {
+        console.error('[Channel] The channel has become unhealthy, recreating');
         this.initialiseChannel();
       }
     },

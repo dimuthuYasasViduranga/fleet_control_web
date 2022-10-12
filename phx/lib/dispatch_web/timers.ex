@@ -77,6 +77,13 @@ defmodule FleetControlWeb.Timers do
 
   def broadcast_tracks() do
     tracks = TrackAgent.all()
-    Syncro.Broadcast.broadcast("tracks:set", %{tracks: tracks})
+    topic = "tracks:set"
+    msg = %{tracks: tracks}
+
+    Phoenix.PubSub.broadcast(
+      :hps_data,
+      topic,
+      {topic, msg}
+    )
   end
 end

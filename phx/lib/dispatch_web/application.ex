@@ -60,10 +60,12 @@ defmodule FleetControlWeb.Application do
         ],
         agents(),
         [
-          {Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
-          FleetControlWeb.Endpoint,
-          FleetControlWeb.Presence,
-          {FleetControlWeb.ChannelWatcher, :operators}
+          {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
+          DispatchWeb.Endpoint,
+          DispatchWeb.Presence,
+          {DispatchWeb.ChannelWatcher, :operators},
+          {HpsData.Comms.NodesMonitor, [["maintenance-ui"]]},
+          HpsData.Comms.PubSub.pubsub_server()
         ]
       ]
       |> List.flatten()
@@ -73,6 +75,7 @@ defmodule FleetControlWeb.Application do
 
     :ok = FleetControlWeb.Timers.start()
 
+    System.cmd("epmd", ["-daemon"])
     Node.start(:"fleet-control-ui", :shortnames)
 
     return
