@@ -60,7 +60,7 @@ ENV MIX_ENV=prod \
 
 ## Install App 
 WORKDIR /release
-COPY --from=builder /builder/_build/prod/rel/dispatch_web .
+COPY --from=builder /builder/_build/prod/rel/fleet_control_web .
 
 ## check appsignal
 RUN ls -s lib/appsignal*/priv/appsignal_extension.so
