@@ -68,4 +68,4 @@ RUN ls -s lib/appsignal*/priv/appsignal_extension.so
 ## RUN
 RUN chown -R nobody: .
 USER nobody
-CMD ["bin/fleet-control_web", "start"]
+CMD ["bin/fleet_control_web", "start"]
