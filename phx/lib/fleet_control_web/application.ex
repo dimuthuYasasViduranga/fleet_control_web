@@ -60,10 +60,10 @@ defmodule FleetControlWeb.Application do
         ],
         agents(),
         [
-          {Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
-          DispatchWeb.Endpoint,
-          DispatchWeb.Presence,
-          {DispatchWeb.ChannelWatcher, :operators},
+          {Phoenix.PubSub, [name: FleetControl.PubSub, adapter: Phoenix.PubSub.PG2]},
+          FleetControlWeb.Endpoint,
+          FleetControlWeb.Presence,
+          {FleetControlWeb.ChannelWatcher, :operators},
           {HpsData.Comms.NodesMonitor, [["maintenance-ui"]]},
           HpsData.Comms.PubSub.pubsub_server()
         ]
