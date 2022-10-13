@@ -60,7 +60,7 @@ defmodule FleetControlWeb.Application do
         ],
         agents(),
         [
-          {Phoenix.PubSub, [name: FleetControl.PubSub, adapter: Phoenix.PubSub.PG2]},
+          {Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]},
           FleetControlWeb.Endpoint,
           FleetControlWeb.Presence,
           {FleetControlWeb.ChannelWatcher, :operators},

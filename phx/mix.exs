@@ -35,7 +35,7 @@ defmodule FleetControlWeb.MixProject do
   defp deps() do
     [
       # web
-      {:phoenix, "~> 1.5"},
+      {:phoenix, "~> 1.6"},
       {:phoenix_pubsub, "~> 2.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.3"},
