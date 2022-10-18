@@ -349,7 +349,7 @@ export default {
       };
 
       this.$channel
-        .push('get time allocation data', shift.id)
+        .push('time-allocation:get-data', shift.id)
         .receive('ok', data => {
           this.disableShiftSelect = false;
 
@@ -407,7 +407,7 @@ export default {
       };
 
       this.$channel
-        .push('lock time allocations', payload)
+        .push('time-allocation:lock', payload)
         .receive('ok', () => {
           this.$toaster.info('Time Allocations Locked');
           this.onRefresh();
@@ -441,7 +441,7 @@ export default {
         .map(a => a.id);
 
       this.$channel
-        .push('unlock time allocations', allocIds)
+        .push('time-allocation:unlock', allocIds)
         .receive('ok', () => {
           this.$toaster.info('Time Allocations Unlocked');
           this.onRefresh();

@@ -1,8 +1,8 @@
-defmodule Dispatch.DispatcherMessageTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.DispatcherMessageTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.DispatcherAgent
+  alias FleetControl.DispatcherAgent
   alias HpsData.Schemas.Dispatch.Dispatcher
 
   setup do

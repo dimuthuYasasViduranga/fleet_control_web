@@ -268,7 +268,7 @@ export default {
       const payload = { time_codes: timeCodes };
 
       this.$channel
-        .push('bulk add time codes', payload)
+        .push('time-code:bulk-add', payload)
         .receive('ok', () => this.close())
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to bulk update at this time'));

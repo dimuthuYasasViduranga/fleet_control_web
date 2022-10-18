@@ -58,7 +58,7 @@ export default {
       };
 
       this.$channel
-        .push('mass set allocations', payload)
+        .push('time-allocation:mass-set', payload)
         .receive('ok', () => {
           this.$toaster.info(`Mass Allocations | ${payload.asset_ids.length} affected`);
           this.close();

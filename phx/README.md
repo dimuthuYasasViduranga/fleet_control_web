@@ -1,4 +1,4 @@
-# DispatchServer
+# FleetControlServer
 
 To start your Phoenix server:
 

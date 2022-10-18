@@ -196,7 +196,7 @@ export default {
         answers: validAnswers,
         timestamp: Date.now(),
       };
-      this.$channel.push('add dispatcher message', body);
+      this.$channel.push('dispatcher-message:add', body);
       this.clearMsg();
     },
   },

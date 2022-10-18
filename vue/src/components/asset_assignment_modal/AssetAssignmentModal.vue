@@ -104,7 +104,7 @@ export default {
           deleted: false,
         };
 
-        this.$channel.push('set allocation', allocation);
+        this.$channel.push('time-allocation:set', allocation);
       }
 
       this.close();

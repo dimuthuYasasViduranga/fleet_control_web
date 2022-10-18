@@ -191,7 +191,7 @@ export default {
       this.shiftInTransit = shift.id;
 
       this.$channel
-        .push('get operator time allocation data', shift.id)
+        .push('time-allocation:get-operator-data', shift.id)
         .receive('ok', data => {
           this.shiftSelectDisabled = false;
 

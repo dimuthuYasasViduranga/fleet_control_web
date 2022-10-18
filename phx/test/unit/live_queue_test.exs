@@ -1,8 +1,8 @@
-defmodule Dispatch.LiveQueueTest do
+defmodule FleetControl.LiveQueueTest do
   use ExUnit.Case, async: true
   @moduletag :unit
 
-  alias Dispatch.LiveQueue
+  alias FleetControl.LiveQueue
 
   @dist_per_lng_at_equator 115_000
 

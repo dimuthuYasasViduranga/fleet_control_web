@@ -212,14 +212,14 @@ export default {
         asset_id: deviceInput.assetId,
       };
 
-      this.$channel.push('set assigned asset', assignment);
+      this.$channel.push('device:set-assigned-asset', assignment);
     },
     onForceLogout({ deviceId, timeCodeId }) {
       const payload = {
         device_id: deviceId,
         time_code_id: timeCodeId || null,
       };
-      this.$channel.push('force logout device', payload);
+      this.$channel.push('device:force-logout', payload);
     },
     onAuthorize(uuid) {
       this.recentlyAuthorized.push(uuid);

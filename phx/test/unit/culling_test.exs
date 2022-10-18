@@ -1,8 +1,8 @@
-defmodule Dispatch.CullingTest do
+defmodule FleetControl.CullingTest do
   use ExUnit.Case
   @moduletag :unit
 
-  alias Dispatch.Culling
+  alias FleetControl.Culling
 
   describe "add -" do
     test "single element" do

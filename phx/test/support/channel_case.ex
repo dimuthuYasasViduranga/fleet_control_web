@@ -1,4 +1,4 @@
-defmodule DispatchWeb.ChannelCase do
+defmodule FleetControlWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -22,17 +22,20 @@ defmodule DispatchWeb.ChannelCase do
       # Import conveniences for testing with channels
       import Phoenix.ChannelTest
       import Bureaucrat.Helpers
-      import DispatchWeb.ChannelCase
+      import FleetControlWeb.ChannelCase
 
       # The default endpoint for testing
-      @endpoint DispatchWeb.Endpoint
+      @endpoint FleetControlWeb.Endpoint
     end
   end
 
   setup_all _ do
-    start_supervised!({Phoenix.PubSub, [name: DispatchWeb.PubSub, adapter: Phoenix.PubSub.PG2]})
-    start_supervised!(DispatchWeb.Endpoint, [])
-    start_supervised!(DispatchWeb.Presence, [])
+    start_supervised!(
+      {Phoenix.PubSub, [name: FleetControlWeb.PubSub, adapter: Phoenix.PubSub.PG2]}
+    )
+
+    start_supervised!(FleetControlWeb.Endpoint, [])
+    start_supervised!(FleetControlWeb.Presence, [])
 
     start_supervised!(HpsData.Repo, [])
     start_supervised!(HpsData.Encryption.Vault, [])
@@ -47,13 +50,13 @@ defmodule DispatchWeb.ChannelCase do
     end
 
     start_agents()
-    start_supervised!({DispatchWeb.ChannelWatcher, :operators}, [])
+    start_supervised!({FleetControlWeb.ChannelWatcher, :operators}, [])
 
     :ok
   end
 
   defp start_agents() do
-    DispatchWeb.Application.agents()
+    FleetControlWeb.Application.agents()
     |> Enum.reject(&Enum.member?(@agents_not_started, &1))
     |> Enum.map(&start_supervised!/1)
   end

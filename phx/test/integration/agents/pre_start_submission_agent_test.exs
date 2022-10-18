@@ -1,8 +1,8 @@
-defmodule Dispatch.PreStartSubmissionAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.PreStartSubmissionAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{
+  alias FleetControl.{
     AssetAgent,
     OperatorAgent,
     DispatcherAgent,

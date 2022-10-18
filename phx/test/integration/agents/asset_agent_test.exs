@@ -1,8 +1,8 @@
-defmodule DispatchWeb.AssetAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControlWeb.AssetAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.AssetAgent
+  alias FleetControl.AssetAgent
   alias HpsData.{Asset, AssetType}
 
   setup do

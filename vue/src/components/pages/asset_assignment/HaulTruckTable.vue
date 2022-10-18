@@ -317,7 +317,7 @@ export default {
       };
 
       this.$channel
-        .push('set allocation', payload)
+        .push('time-allocation:set', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to update allocation'));
     },

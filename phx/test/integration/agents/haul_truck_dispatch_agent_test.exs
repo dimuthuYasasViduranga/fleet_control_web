@@ -1,8 +1,8 @@
-defmodule Dispatch.HaulTruckDispatchAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.HaulTruckDispatchAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.{Helper, AssetAgent, HaulTruckDispatchAgent}
+  alias FleetControl.{Helper, AssetAgent, HaulTruckDispatchAgent}
   alias HpsData.Dim.Location
   alias HpsData.Schemas.Dispatch.HaulDispatch
 

@@ -1,8 +1,8 @@
-defmodule Dispatch.CalendarAgentTest do
-  use DispatchWeb.RepoCase
+defmodule FleetControl.CalendarAgentTest do
+  use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias Dispatch.CalendarAgent
+  alias FleetControl.CalendarAgent
   alias HpsData.Dim.Calendar
 
   setup do

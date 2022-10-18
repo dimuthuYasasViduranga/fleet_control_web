@@ -3,13 +3,13 @@ import Config
 config :phoenix, :json_library, Jason
 
 config :appsignal, :config,
-  opt_app: :dispatch_web,
+  opt_app: :fleet_control_web,
   name: "fleet-control-test",
   env: Mix.env(),
   active: false
 
 # General application configuration
-config :dispatch_web,
+config :fleet_control_web,
   ecto_repos: [HpsData.Repo],
   map_center: %{
     latitude: -32.847896,
@@ -80,10 +80,10 @@ config :hps_data, HpsData.Repo,
   hostname: "localhost"
 
 # Configures the endpoint
-config :dispatch_web, DispatchWeb.Endpoint,
+config :fleet_control_web, FleetControlWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: DispatchWeb.ErrorView, accepts: ~w(json)],
-  pubsub_server: DispatchWeb.PubSub,
+  render_errors: [view: FleetControlWeb.ErrorView, accepts: ~w(json)],
+  pubsub_server: FleetControlWeb.PubSub,
   secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw"
 
 # Logger
@@ -96,7 +96,7 @@ config :logger, :console,
 
 # authentication
 config :azure_ad_openid, AzureADOpenId, tenant: "a8180769-6e40-4a3c-a14a-e1e69ff1da11"
-config :dispatch_web, DispatchWeb.Guardian, issuer: "dispatch_web"
+config :fleet_control_web, FleetControlWeb.Guardian, issuer: "dispatch_web"
 config :joken, default_signer: "a;lwnsev;lahselkansekbjbklsdfa;khwes"
 
 import_config "#{Mix.env()}.exs"

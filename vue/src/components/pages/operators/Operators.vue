@@ -77,7 +77,7 @@ export default {
       };
 
       this.$channel
-        .push('set operator enabled', payload)
+        .push('operator:set-enabled', payload)
         .receive('error', resp => this.$toaster.error(resp.error))
         .receive('timeout', () => this.$toaster.noComms('Unable to change status at this time'));
     },

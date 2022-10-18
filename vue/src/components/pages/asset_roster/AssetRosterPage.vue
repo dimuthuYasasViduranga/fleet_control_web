@@ -105,7 +105,7 @@ export default {
         state: bool,
       };
       this.$channel
-        .push('asset:set enabled', payload)
+        .push('asset:set-enabled', payload)
         .receive('ok', () => {
           const stateName = bool ? 'Enabled' : 'Disabled';
           asset.enabled = bool;

@@ -88,7 +88,7 @@ export default {
       );
 
       this.$channel
-        .push('update time code group', payload)
+        .push('time-code:update-group', payload)
         .receive('ok', () => {
           loading.close();
           this.close();
