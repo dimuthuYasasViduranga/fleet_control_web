@@ -35,6 +35,11 @@ spec:
       containers:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 1Gi
           imagePullPolicy: "Always"
           envFrom:
           - configMapRef:
