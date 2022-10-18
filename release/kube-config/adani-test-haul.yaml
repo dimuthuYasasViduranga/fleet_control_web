@@ -35,12 +35,17 @@ spec:
       containers:
         - name: fleet-control-ui
           image: hxreg.azurecr.io/fleet-control-ui
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 1Gi
           imagePullPolicy: "Always"
           envFrom:
-          - configMapRef:
-              name: configmap
-          - secretRef:
-              name: secrets
+            - configMapRef:
+                name: configmap
+            - secretRef:
+                name: secrets
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-adani-test-haul
