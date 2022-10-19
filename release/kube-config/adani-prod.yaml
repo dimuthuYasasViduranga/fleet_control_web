@@ -80,6 +80,7 @@ spec:
                   ],
                   settings: [
                     use_device_gps: true,
+                    use_pre_starts: false,
                     prompt_exception_on_logout: true,
                     prompt_engine_hours_on_login: true,
                     prompt_engine_hours_on_logout: false,

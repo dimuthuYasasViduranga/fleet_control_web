@@ -20,6 +20,7 @@ config :fleet_control_web,
   track_method: :gps_gate,
   settings: [
     use_device_gps: false,
+    use_pre_starts: true,
     prompt_exception_on_logout: true,
     prompt_engine_hours_on_login: false,
     prompt_engine_hours_on_logout: false,
