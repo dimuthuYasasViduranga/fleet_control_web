@@ -126,6 +126,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
           cycles: cycles
         }
 
+        Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
         {:reply, {:ok, payload}, socket}
     end
   end
@@ -154,6 +155,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
           data: report
         }
 
+        Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
         {:reply, {:ok, payload}, socket}
     end
   end

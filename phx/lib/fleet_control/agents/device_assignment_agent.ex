@@ -256,35 +256,23 @@ defmodule FleetControl.DeviceAssignmentAgent do
   end
 
   defp get_search_query(timestamp, ">") do
-    from(a in Asset,
+    from(da in DeviceAssignment,
+      where: da.timestamp > ^timestamp,
+      group_by: da.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MIN(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ? and timestamp > ?",
-            a.id,
-            ^timestamp
-          )
+        asset_id: da.asset_id,
+        timestamp: min(da.timestamp)
       }
     )
   end
 
   defp get_search_query(timestamp, "<") do
-    from(a in Asset,
+    from(da in DeviceAssignment,
+      where: da.timestamp < ^timestamp,
+      group_by: da.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MAX(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ? and timestamp < ?",
-            a.id,
-            ^timestamp
-          )
+        asset_id: da.asset_id,
+        timestamp: max(da.timestamp)
       }
     )
   end

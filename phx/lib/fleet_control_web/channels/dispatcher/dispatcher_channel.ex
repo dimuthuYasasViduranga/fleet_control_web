@@ -138,13 +138,19 @@ defmodule FleetControlWeb.DispatcherChannel do
     report_end = Helper.to_naive(end_time)
     reports = Report.generate_report(report_start, report_end, asset_ids)
 
+    IO.inspect("report:time allocation")
+    Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
     {:reply, {:ok, %{reports: reports}}, socket}
   end
 
   def handle_in("report:time allocation", calendar_id, socket) when is_integer(calendar_id) do
     case CalendarAgent.get(%{id: calendar_id}) do
       %{shift_start: start_time, shift_end: end_time} ->
-        reports = Report.generate_report(start_time, end_time)
+        reports_pid = Task.async(fn -> Report.generate_report(start_time, end_time) end)
+        reports = Task.await(reports_pid, 10_000)
+
+        IO.inspect("report:time allocation - calendar")
+        Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
         {:reply, {:ok, %{reports: reports}}, socket}
 
       _ ->
