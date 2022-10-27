@@ -57,15 +57,17 @@ defmodule FleetControl.DigUnitActivityAgent do
   defp get_current_activities() do
     max_query = get_latest_query()
 
-    from(a in subquery(max_query),
+    from(md in subquery(max_query),
+      join: a in Asset,
+      on: [id: md.asset_id],
       join: at in AssetType,
       on: [id: a.asset_type_id],
       join: d in DigUnitActivity,
-      on: [asset_id: a.asset_id, timestamp: a.timestamp],
+      on: [asset_id: md.asset_id, timestamp: md.timestamp],
       where: at.type in ^@dig_unit_types,
       select: %{
         id: d.id,
-        asset_id: a.asset_id,
+        asset_id: a.id,
         location_id: d.location_id,
         material_type_id: d.material_type_id,
         load_style_id: d.load_style_id,
@@ -251,18 +253,11 @@ defmodule FleetControl.DigUnitActivityAgent do
   end
 
   defp get_latest_query() do
-    from(a in Asset,
+    from(d in DigUnitActivity,
+      group_by: d.asset_id,
       select: %{
-        asset_id: a.id,
-        asset_type_id: a.asset_type_id,
-        timestamp:
-          fragment(
-            "SELECT
-              MAX(timestamp)
-            FROM dis_dig_unit_activity
-            WHERE asset_id = ?",
-            a.id
-          )
+        asset_id: d.asset_id,
+        timestamp: max(d.timestamp)
       }
     )
   end

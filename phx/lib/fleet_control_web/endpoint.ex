@@ -18,17 +18,17 @@ defmodule FleetControlWeb.Endpoint do
 
   socket("/fleet-control/operator-socket", FleetControlWeb.OperatorSocket,
     websocket: true,
-    longpoll: false,
+    longpoll: false
   )
 
   socket("/fleet-control/dispatcher-socket", FleetControlWeb.DispatcherSocket,
     websocket: true,
-    longpoll: false,
+    longpoll: false
   )
 
   socket("/fleet-control/device-auth-socket", FleetControlWeb.DeviceAuthSocket,
     websocket: true,
-    longpoll: false,
+    longpoll: false
   )
 
   plug(Plug.Static,
