@@ -16,8 +16,6 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
     "MEM"
   ]
 
-  require Logger
-
   @min_tu_duration 60
 
   @spec generate_report(NaiveDateTime.t(), NaiveDateTime.t()) :: list(list)
@@ -38,17 +36,9 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
       get_cycles(start_time, end_time)
       |> Enum.group_by(& &1.asset_id)
 
-    NaiveDateTime.diff(now, NaiveDateTime.utc_now())
-    |> inspect()
-    |> Logger.info(label: :cycle)
-
     device_assignments =
       get_device_assignments(start_time, end_time)
       |> Enum.group_by(& &1.asset_id)
-
-    NaiveDateTime.diff(now, NaiveDateTime.utc_now())
-    |> inspect()
-    |> Logger.info(label: :assignments)
 
     engine_hours =
       get_engine_hours(start_time, end_time)
