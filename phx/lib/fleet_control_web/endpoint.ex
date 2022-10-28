@@ -30,8 +30,8 @@ defmodule FleetControlWeb.Endpoint do
     websocket: true,
     longpoll: false
   )
-  
-  socket "/live", Phoenix.LiveView.Socket
+
+  socket "/fleet-control/live", Phoenix.LiveView.Socket
 
   plug(Plug.Static,
     at: "/fleet-control",

@@ -66,7 +66,7 @@ defmodule FleetControlWeb.Router do
 
   scope "/fleet-control" do
     pipe_through [:browser, :authorized]
-    live_dashboard "/dashboard"
+    live_dashboard "/dashboard", live_socket_path: "/fleet-control/live"
   end
 
 end
