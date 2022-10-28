@@ -56,10 +56,6 @@ defmodule FleetControlWeb.Router do
     post "/request_device_auth", DeviceAuthController, :request_device_auth
   end
 
-  pipeline :admins_only do
-    plug :admin_basic_auth
-  end
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -68,16 +64,9 @@ defmodule FleetControlWeb.Router do
   end
 
 
-scope "/" do
-  pipe_through [:browser, :admins_only]
-  live_dashboard "/dashboard"
-end
-
-
-  defp admin_basic_auth(conn, _opts) do
-    username = System.fetch_env!("AUTH_USERNAME")
-    password = System.fetch_env!("AUTH_PASSWORD")
-    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
+  scope "/fleet-control" do
+    pipe_through [:browser, :authorized]
+    live_dashboard "/dashboard"
   end
 
 end
