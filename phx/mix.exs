@@ -21,7 +21,7 @@ defmodule FleetControlWeb.MixProject do
 
   def application do
     mod = {FleetControlWeb.Application, []}
-    apps = [:logger, :runtime_tools]
+    apps = [:logger, :runtime_tools, :os_mon]
 
     case Mix.env() do
       :test -> [extra_applications: apps]
@@ -45,6 +45,7 @@ defmodule FleetControlWeb.MixProject do
       {:appsignal_phoenix, "~> 2.0"},
       {:decorator, "~> 1.2"},
       {:phoenix_live_dashboard, "~> 0.7"},
+      {:ecto_psql_extras, "~> 0.6"},
 
       # dispatch
       {:topo, "~> 0.4.0"},
