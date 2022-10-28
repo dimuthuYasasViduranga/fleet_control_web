@@ -85,7 +85,8 @@ config :fleet_control_web, FleetControlWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: FleetControlWeb.ErrorView, accepts: ~w(json)],
   pubsub_server: FleetControlWeb.PubSub,
-  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw"
+  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw",
+  live_view: [signing_salt: "dCfpvb3F+PdEhJDfzvpCM7UBzV3JIWQA"]
 
 # Logger
 config :logger, :console,

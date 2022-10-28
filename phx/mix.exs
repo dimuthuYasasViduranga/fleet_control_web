@@ -44,6 +44,7 @@ defmodule FleetControlWeb.MixProject do
       {:guardian, "~> 2.2"},
       {:appsignal_phoenix, "~> 2.0"},
       {:decorator, "~> 1.2"},
+      {:phoenix_live_dashboard, "~> 0.7"},
 
       # dispatch
       {:topo, "~> 0.4.0"},
