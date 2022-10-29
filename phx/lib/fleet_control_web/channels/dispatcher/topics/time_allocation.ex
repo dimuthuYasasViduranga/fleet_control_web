@@ -127,6 +127,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
         }
 
         send(socket.transport_pid, :garbage_collect)
+        send(self(), :garbage_collect)
         {:reply, {:ok, payload}, socket}
     end
   end

@@ -37,6 +37,11 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
+  def handle_info(:garbage_collect, socket) do
+    :erlang.garbage_collect()
+    {:noreply, socket}
+  end
+
   @decorate channel_action()
   def handle_in("refresh:" <> subtopic, payload, socket) do
     Topics.Refresh.handle_in(subtopic, payload, socket)
