@@ -25,6 +25,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     send(self(), :after_join)
     permissions = socket.assigns.permissions
     resp = Setup.join(permissions)
+    send(socket.transport_pid, :garbage_collect)
     {:ok, resp, socket}
   end
 
@@ -138,7 +139,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     report_end = Helper.to_naive(end_time)
     reports = Report.generate_report(report_start, report_end, asset_ids)
 
-    Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
+    send(socket.transport_pid, :garbage_collect)
     {:reply, {:ok, %{reports: reports}}, socket}
   end
 
@@ -148,7 +149,7 @@ defmodule FleetControlWeb.DispatcherChannel do
         reports_pid = Task.async(fn -> Report.generate_report(start_time, end_time) end)
         reports = Task.await(reports_pid, 10_000)
 
-        Process.send_after(socket.transport_pid, :garbage_collect, 1_000)
+        send(socket.transport_pid, :garbage_collect)
         {:reply, {:ok, %{reports: reports}}, socket}
 
       _ ->
