@@ -433,10 +433,13 @@ defmodule FleetControlWeb.OperatorChannel do
     other_tracks = TrackAgent.all() |> Enum.reject(&(&1.asset_id == asset_id))
 
     common_state = %{
+      # props
       settings: Settings.get(),
       device_id: assignment[:device_id],
       asset_id: asset_id,
       operator_id: operator_id,
+
+      # dimension
       assets: AssetAgent.get_assets(),
       asset_types: AssetAgent.get_types(),
       asset_radios: AssetRadioAgent.all(),
@@ -448,17 +451,19 @@ defmodule FleetControlWeb.OperatorChannel do
       time_codes: TimeCodeAgent.get_time_codes(),
       time_code_groups: TimeCodeAgent.get_time_code_groups(),
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements(asset_type_id),
-      device_assignments: DeviceAssignmentAgent.current(),
-      dig_unit_activities: DigUnitActivityAgent.current(),
-      assignment: assignment,
-      dispatcher_messages: dispatcher_messages,
-      unread_operator_messages: OperatorMessageAgent.unread(asset_id),
       operator_message_types: OperatorMessageTypeAgent.types(),
       operator_message_type_tree: OperatorMessageTypeAgent.tree_elements(asset_type_id),
+
+      # dispatch
+      assignment: assignment,
+      device_assignments: DeviceAssignmentAgent.current(),
+      dig_unit_activities: DigUnitActivityAgent.current(),
+      dispatcher_messages: dispatcher_messages,
+      unread_operator_messages: OperatorMessageAgent.unread(asset_id),
       engine_hours: EngineHoursAgent.get_asset(asset_id),
       allocation: active_allocation,
-      track: latest_track,
-      other_tracks: other_tracks,
+
+      # prestarts
       pre_start_ticket_status_types: PreStartSubmissionAgent.ticket_status_types(),
       pre_start_control_categories: PreStartAgent.categories(),
       pre_start_forms: PreStartAgent.all(),
@@ -466,8 +471,12 @@ defmodule FleetControlWeb.OperatorChannel do
         current: PreStartSubmissionAgent.current(asset_id),
         historic: PreStartSubmissionAgent.historic(asset_id)
       },
+
+      # maps and tracks
       map_manifest: MapTileAgent.get(),
-      routing: RoutingAgent.get()
+      routing: RoutingAgent.get(),
+      track: latest_track,
+      other_tracks: other_tracks
     }
 
     # get asset type is defined through using Topics
