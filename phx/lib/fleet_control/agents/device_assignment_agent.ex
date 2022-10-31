@@ -240,17 +240,11 @@ defmodule FleetControl.DeviceAssignmentAgent do
   end
 
   defp get_latest_query() do
-    from(a in Asset,
+    from(d in DeviceAssignment,
+      group_by: d.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MAX(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ?",
-            a.id
-          )
+        asset_id: d.asset_id,
+        timestamp: max(d.timestamp)
       }
     )
   end
