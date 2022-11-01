@@ -33,6 +33,7 @@ defmodule FleetControlWeb.Router do
     pipe_through :authorized
 
     get "/api/static_data", PageController, :static_data
+    get "/api/haul", HaulController, :recent
   end
 
   scope "/fleet-control", FleetControlWeb do

@@ -161,6 +161,7 @@ function groupByAsset(assets, timeAllocations, deviceAssignments, timeusage, all
     const assignments = deviceAssignments.filter(da => da.assetId === assetId);
     const tus = timeusage.filter(tu => tu.assetId === assetId);
     const cycles = allCycles.filter(c => c.assetId === assetId);
+
     return {
       asset,
       timeAllocations: allocations,
@@ -291,6 +292,7 @@ export default {
   },
   mounted() {
     this.setActiveInterval();
+    this.$store.dispatch('updateFleetOpsData', this.$hostname);
   },
   methods: {
     setActiveInterval() {
@@ -302,6 +304,7 @@ export default {
       this.now = now;
       if (this.mode === 'live') {
         this.range = getRange({ now: this.now, width: this.liveTimeScale * HOURS_TO_MS });
+        this.$store.dispatch('updateFleetOpsData', this.$hostname);
       }
     },
     setTimeScaleValue(value) {

@@ -177,7 +177,6 @@ export default {
 
         // shared
         ['set live queue', data => dispatch('setLiveQueue', data)],
-        ['set fleetops data', data => dispatch('setFleetOpsData', data)],
         [
           'set engine hours',
           data => {
@@ -262,7 +261,6 @@ export default {
         ],
         ['setCurrentEngineHours', resp.engine_hours.current],
         ['setHistoricEngineHours', resp.engine_hours.historic],
-        ['setFleetOpsData', resp.fleetops_data],
         ['setCurrentPreStartSubmissions', resp.current_pre_start_submissions],
         ['trackStore/setTracks', resp.tracks],
 

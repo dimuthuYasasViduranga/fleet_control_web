@@ -84,8 +84,7 @@ export default {
       const minEpoch = this.minDatetime ? this.minDatetime.getTime() : 0;
       return this.allTimeAllocations.filter(
         ta =>
-          ta.assetId === this.selectedAssetId &&
-          (!ta.endTime || ta.endTime.getTime() > minEpoch),
+          ta.assetId === this.selectedAssetId && (!ta.endTime || ta.endTime.getTime() > minEpoch),
       );
     },
     deviceAssignments() {
@@ -106,6 +105,9 @@ export default {
   },
   created() {
     this.$eventBus.$on('live-time-allocation-open', this.open);
+  },
+  mounted() {
+    this.$store.dispatch('updateFleetOpsData', this.$hostname);
   },
   methods: {
     close() {

@@ -12,6 +12,7 @@ defmodule FleetControl.Haul do
   @recency 12 * 3600
 
   def recent() do
+    now = NaiveDateTime.utc_now()
     recent = NaiveDateTime.add(now, -@recency)
     fetch_by_range!(%{start_time: recent, end_time: now})
   end

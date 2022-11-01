@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import axios from 'axios';
 
 import Toaster from '@/code/toaster';
 import * as Transforms from './transforms.js';
@@ -22,7 +23,6 @@ import trackStore from './modules/track_store.js';
 import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
-
 
 function applyParser(data, key, parser) {
   if (data[key]) {
@@ -119,7 +119,6 @@ export function parseCycle(cycle) {
   const duration = endTime - startTime;
   return {
     id: cycle.id,
-    dimAssetId: cycle.dim_asset_id,
     assetId: cycle.asset_id,
     assetName: cycle.asset_name,
 
@@ -164,7 +163,6 @@ export function parseCycle(cycle) {
 export function parseTimeusage(tu) {
   return {
     id: tu.id,
-    dimAssetId: tu.dim_asset_id,
     assetId: tu.asset_id,
     assetName: tu.asset_name,
 
@@ -570,11 +568,21 @@ const actions = {
     const formattedMessages = messages.map(parseDispatcherMessage);
     commit('setDispatcherMessages', formattedMessages);
   },
-  setFleetOpsData({ commit }, { cycles = [], timeusage = [] }) {
-    const formattedCycles = cycles.map(parseCycle);
-    const formattedTimeUsage = timeusage.map(parseTimeusage);
-    commit('setFleetOpsCycles', formattedCycles);
-    commit('setFleetOpsTimeusage', formattedTimeUsage);
+  updateFleetOpsData({ commit, state }, hostname) {
+    const now = new Date();
+    const timeDiff = now - state.fleetOps.lastUpdated;
+    const tenMinutes = 600_000;
+
+    if (!timeDiff || timeDiff > tenMinutes) {
+      axios
+        .get(`${hostname}/api/haul`)
+        .then(({data}) => {
+          const formattedCycles = data.cycles.map(parseCycle);
+          const formattedTimeUsage = data.timeusage.map(parseTimeusage);
+
+          commit('setFleetOps', [formattedCycles, formattedTimeUsage, now]);
+        });
+    }
   },
   setCurrentPreStartSubmissions({ commit }, submissions = []) {
     const formattedSubmissions = submissions.map(parsePreStartSubmission);
@@ -636,11 +644,10 @@ const mutations = {
   setDispatcherMessages(state, messages = []) {
     state.dispatcherMessages = messages;
   },
-  setFleetOpsCycles(state, cycles = []) {
+  setFleetOps(state, [cycles, timeusage, now]) {
     state.fleetOps.cycles = cycles;
-  },
-  setFleetOpsTimeusage(state, timeusage = []) {
     state.fleetOps.timeusage = timeusage;
+    state.fleetOps.lastUpdated = now;
   },
   setCurrentPreStartSubmissions(state, submissions = []) {
     notifyPreStartSubmissionChanges(state, submissions);

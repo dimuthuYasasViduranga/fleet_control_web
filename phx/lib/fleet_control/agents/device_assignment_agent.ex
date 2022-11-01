@@ -5,14 +5,13 @@ defmodule FleetControl.DeviceAssignmentAgent do
     current assignments being older than the transient history limit
   """
 
-  alias FleetControl.{Helper, AgentHelper}
   use Agent
+  alias FleetControl.{Helper, AgentHelper}
   import Ecto.Query, only: [from: 2, subquery: 1]
   import Ecto.Query.API, only: [map: 2]
 
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DeviceAssignment
-  alias HpsData.Asset
 
   @cull_opts %{
     time_key: :timestamp,
