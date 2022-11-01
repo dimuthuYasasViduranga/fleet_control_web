@@ -24,7 +24,19 @@ defmodule FleetControlWeb.DispatcherChannel do
   def join("dispatchers:all", _params, socket) do
     send(self(), :after_join)
     permissions = socket.assigns.permissions
+    user = socket.assigns.current_user
     resp = Setup.join(permissions)
+
+    Process.register(
+      self(),
+      String.to_atom("dispatcher_channel_" <> user <> "_" <> inspect(self()))
+    )
+
+    Process.register(
+      socket.transport_pid,
+      String.to_atom("dispatcher_socket_" <> user <> "_" <> inspect(self()))
+    )
+
     send(socket.transport_pid, :garbage_collect)
     {:ok, resp, socket}
   end
