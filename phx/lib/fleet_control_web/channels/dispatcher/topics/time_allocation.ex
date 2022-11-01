@@ -1,7 +1,7 @@
 defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
   alias FleetControl.OperatorTimeAllocation
   alias FleetControl.TimeAllocation
-  alias FleetControl.HaulAgent
+  alias FleetControl.Haul
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.CalendarAgent
 
@@ -115,8 +115,8 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
 
         device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
-        timeusage = HaulAgent.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
-        cycles = HaulAgent.fetch_cycles_by_range!(%{calendar_id: calendar_id})
+        timeusage = Haul.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
+        cycles = Haul.fetch_cycles_by_range!(%{calendar_id: calendar_id})
 
         payload = %{
           shift: shift,

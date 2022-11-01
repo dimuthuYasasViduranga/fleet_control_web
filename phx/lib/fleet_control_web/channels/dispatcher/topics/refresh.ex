@@ -64,12 +64,6 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
     :ok
   end
 
-  def refresh("fleetops agent") do
-    :ok = FleetControl.HaulAgent.refresh!()
-    Broadcast.send_fleetops_data_to_all()
-    :ok
-  end
-
   def refresh("pre-start agent") do
     :ok = FleetControl.PreStartAgent.refresh!()
     Broadcast.send_pre_start_forms_to_all()

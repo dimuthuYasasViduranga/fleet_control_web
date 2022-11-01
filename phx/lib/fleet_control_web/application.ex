@@ -31,7 +31,6 @@ defmodule FleetControlWeb.Application do
       FleetControl.AssetRadioAgent,
       FleetControl.LoadStyleAgent,
       FleetControl.MapTileAgent,
-      FleetControl.HaulAgent,
       FleetControl.MaterialTypeAgent,
       FleetControl.PreStartAgent,
       FleetControl.PreStartSubmissionAgent,
