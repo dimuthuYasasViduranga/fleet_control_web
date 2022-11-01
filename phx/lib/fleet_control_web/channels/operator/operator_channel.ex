@@ -54,8 +54,13 @@ defmodule FleetControlWeb.OperatorChannel do
 
     DeviceConnectionAgent.set(device_uuid, :connected, NaiveDateTime.utc_now())
 
-    Process.register(self(), String.to_atom("operator_channel_" <> device_uuid))
-    Process.register(socket.transport_pid, String.to_atom("operator_socket_" <> device_uuid))
+    try do
+      Process.register(self(), String.to_atom("operator_channel_" <> device_uuid))
+      Process.register(socket.transport_pid, String.to_atom("operator_socket_" <> device_uuid))
+    rescue
+      e in ArgumentError ->
+        Logger.warn(e.message)
+    end
 
     Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
     {:ok, socket}

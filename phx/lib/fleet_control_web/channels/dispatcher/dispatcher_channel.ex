@@ -27,14 +27,21 @@ defmodule FleetControlWeb.DispatcherChannel do
     resp = Setup.join(permissions)
 
     user_id = socket.assigns.current_user.id
-    Process.register(
-      self(),
-      String.to_atom("dispatcher_channel_" <> inspect(user_id) <> "_" <> inspect(self()))
-    )
-    Process.register(
-      socket.transport_pid,
-      String.to_atom("dispatcher_socket_" <> inspect(user_id) <> "_" <> inspect(self()))
-    )
+
+    try do
+      Process.register(
+        self(),
+        String.to_atom("dispatcher_channel_" <> inspect(user_id) <> "_" <> inspect(self()))
+      )
+
+      Process.register(
+        socket.transport_pid,
+        String.to_atom("dispatcher_socket_" <> inspect(user_id) <> "_" <> inspect(self()))
+      )
+    rescue
+      e in ArgumentError ->
+        Logger.warn(e.message)
+    end
 
     send(socket.transport_pid, :garbage_collect)
     {:ok, resp, socket}
