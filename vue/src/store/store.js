@@ -571,7 +571,6 @@ const actions = {
       });
     }
   },
-  },
   setLiveQueue({ commit }, queue = {}) {
     const formattedQueues = parseLiveQueue(queue);
     commit('setLiveQueue', formattedQueues);
