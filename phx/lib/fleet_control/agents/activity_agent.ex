@@ -1,6 +1,7 @@
 defmodule FleetControl.ActivityAgent do
   use Agent
   alias FleetControl.Culling
+  alias FleetControlWeb.Endpoint
 
   @cull_opts %{
     time_key: :server_timestamp,
