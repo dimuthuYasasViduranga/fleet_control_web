@@ -459,8 +459,6 @@ defmodule FleetControlWeb.Broadcast do
     }
 
     ActivityAgent.append(activity)
-    activities = ActivityAgent.get()
-    Endpoint.broadcast(@dispatch, "set activity log", %{activities: activities})
   end
 
   def send_activity(identifier, source, activity_type, timestamp) do
@@ -478,8 +476,6 @@ defmodule FleetControlWeb.Broadcast do
         }
 
         ActivityAgent.append(activity)
-        activities = ActivityAgent.get()
-        Endpoint.broadcast(@dispatch, "set activity log", %{activities: activities})
 
       _ ->
         nil

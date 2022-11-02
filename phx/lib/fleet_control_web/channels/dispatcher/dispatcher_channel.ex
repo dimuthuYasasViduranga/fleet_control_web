@@ -116,6 +116,11 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.TimeAllocation.handle_in(subtopic, payload, socket)
   end
 
+  def handle_in("activity-log:get-all", _payload, socket) do
+    resp = ActivityAgent.get()
+    {:reply, {:ok, resp}, socket}
+  end
+
   def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->

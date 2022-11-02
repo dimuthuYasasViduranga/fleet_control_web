@@ -201,6 +201,7 @@ const state = {
   operatorMessages: Array(),
   dispatcherMessages: Array(),
   activityLog: Array(),
+  activitySequenceNumber: Number(),
   liveQueue: Array(),
   fleetOps: {
     cycles: Array(),
@@ -552,9 +553,10 @@ const actions = {
     const formattedAllocations = allocs.map(parseTimeAllocation);
     commit('setHistoricTimeAllocations', formattedAllocations);
   },
-  setActivityLog({ commit }, activities = []) {
-    const formattedActivities = activities.map(parseActivity);
-    commit('setActivityLog', formattedActivities);
+  setActivityLog({ commit }, data) {
+    const formattedActivities = data.activities.map(parseActivity);
+    data.activities = formattedActivities;
+    commit('setActivityLog', data);
   },
   setLiveQueue({ commit }, queue = {}) {
     const formattedQueues = parseLiveQueue(queue);
@@ -631,8 +633,29 @@ const mutations = {
   setHistoricTimeAllocations(state, allocs = []) {
     state.historicTimeAllocations = allocs;
   },
-  setActivityLog(state, log = []) {
-    state.activityLog = log;
+  setActivityLog(state, data) {
+    console.dir('set activity', data);
+    state.activitySequenceNumber = data.sequence_number;
+    state.activityLog = data.activities;
+  },
+  appendActivityLog(state, {data, channel}) {
+    console.dir('append activity', data);
+    const sequenceNumber = data.sequence_number;
+    const activity = data.activity;
+
+    if(state.activitySequenceNumber + 1 === sequenceNumber) {
+      state.activitySequenceNumber = sequenceNumber;
+      state.activityLog = state.activityLog.unshift(activity);
+    }
+    else {
+      // syncronise
+      channel.push('activity-log:get-all')
+      .receive('ok', resp => {
+        console.dir('syncronise', resp);
+        state.activitySequenceNumber = resp.sequence_number;
+        state.activityLog = resp.activities;
+      });
+    }
   },
   setLiveQueue(state, queues = []) {
     state.liveQueue = queues;

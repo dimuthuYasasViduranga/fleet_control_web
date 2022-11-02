@@ -184,7 +184,7 @@ export default {
             dispatch('setHistoricEngineHours', data.historic);
           },
         ],
-        ['set activity log', data => dispatch('setActivityLog', data.activities)],
+        ['append activity log', data => dispatch('appendActivityLog', {data, channel: this.$channel})],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
         [
