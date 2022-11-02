@@ -18,6 +18,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControl.TimeAllocation
   alias FleetControl.CalendarAgent
   alias FleetControl.RoutingAgent
+  alias FleetControl.ActivityAgent
 
   alias FleetControlWeb.DispatcherChannel.Setup
 
