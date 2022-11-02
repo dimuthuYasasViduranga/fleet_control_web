@@ -559,7 +559,7 @@ const actions = {
     commit('setActivityLog', data);
   },
   appendActivityLog({commit}, {data, channel}) {
-    if(state.activitySequenceNumber + 1 === data.sequenceNumber) {
+    if(state.activitySequenceNumber + 1 === data.sequence_number) {
       commit('appendActivityLog', data);
     }
     else {
