@@ -652,9 +652,11 @@ const mutations = {
     state.activityLog = data.activities;
   },
   appendActivityLog(state, data) {
-    console.dir('append activity', data);
+    const activity = [data.activity].concat([...state.activityLog])
+    console.dir('append activity', data, state.activityLog, activity);
+
+    state.activityLog = activity;
     state.activitySequenceNumber = data.sequence_number;
-    state.activityLog = state.activityLog.unshift(data.activity);
   },
   setLiveQueue(state, queues = []) {
     state.liveQueue = queues;
