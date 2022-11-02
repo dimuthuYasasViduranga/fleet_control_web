@@ -558,6 +558,20 @@ const actions = {
     data.activities = formattedActivities;
     commit('setActivityLog', data);
   },
+  appendActivityLog({commit}, {data, channel}) {
+    if(state.activitySequenceNumber + 1 === data.sequenceNumber) {
+      commit('appendActivityLog', data);
+    }
+    else {
+      // syncronise
+      channel.push('activity-log:get-all')
+      .receive('ok', resp => {
+        console.dir('syncronise', resp);
+        commit('setActivityLog', resp);
+      });
+    }
+  },
+  },
   setLiveQueue({ commit }, queue = {}) {
     const formattedQueues = parseLiveQueue(queue);
     commit('setLiveQueue', formattedQueues);
@@ -638,24 +652,10 @@ const mutations = {
     state.activitySequenceNumber = data.sequence_number;
     state.activityLog = data.activities;
   },
-  appendActivityLog(state, {data, channel}) {
+  appendActivityLog(state, data) {
     console.dir('append activity', data);
-    const sequenceNumber = data.sequence_number;
-    const activity = data.activity;
-
-    if(state.activitySequenceNumber + 1 === sequenceNumber) {
-      state.activitySequenceNumber = sequenceNumber;
-      state.activityLog = state.activityLog.unshift(activity);
-    }
-    else {
-      // syncronise
-      channel.push('activity-log:get-all')
-      .receive('ok', resp => {
-        console.dir('syncronise', resp);
-        state.activitySequenceNumber = resp.sequence_number;
-        state.activityLog = resp.activities;
-      });
-    }
+    state.activitySequenceNumber = data.sequence_number;
+    state.activityLog = state.activityLog.unshift(data.activity);
   },
   setLiveQueue(state, queues = []) {
     state.liveQueue = queues;
