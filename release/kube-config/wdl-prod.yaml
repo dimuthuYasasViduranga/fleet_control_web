@@ -117,7 +117,8 @@ spec:
                       "/route_map",
                       "/pre_start_editor",
                       "/pre_start_submissions",
-                      "/asset_overview"
+                      "/asset_overview",
+                      "/agents"
                     ],
                   },
                 ]
