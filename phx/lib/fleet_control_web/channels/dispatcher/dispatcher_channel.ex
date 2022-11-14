@@ -32,12 +32,12 @@ defmodule FleetControlWeb.DispatcherChannel do
     try do
       Process.register(
         self(),
-        String.to_atom("dispatcher_channel_" <> inspect(user_id) <> "_" <> inspect(self()))
+        String.to_atom("dispatcher_channel_" <> inspect(user_id))
       )
 
       Process.register(
         socket.transport_pid,
-        String.to_atom("dispatcher_socket_" <> inspect(user_id) <> "_" <> inspect(self()))
+        String.to_atom("dispatcher_socket_" <> inspect(user_id))
       )
     rescue
       e in ArgumentError ->
