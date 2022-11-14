@@ -651,7 +651,7 @@ const mutations = {
     state.activityLog = data.activities;
   },
   appendActivityLog(state, data) {
-    const activity = [data.activity].concat([...state.activityLog])
+    const activity = [data.activity, ...state.activityLog]
     state.activityLog = activity;
     state.activitySequenceNumber = data.sequence_number;
   },
