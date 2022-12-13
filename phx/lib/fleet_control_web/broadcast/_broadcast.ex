@@ -94,7 +94,7 @@ defmodule FleetControlWeb.Broadcast do
 
   defp do_broadcast(recipient, event, payload) do
     Appsignal.increment_counter("broadcast", 1, %{event: event})
-    Endpoint.broadcast(recipients, event, payload)
+    Endpoint.broadcast(recipient, event, payload)
   end
 
   @doc """
@@ -247,7 +247,7 @@ defmodule FleetControlWeb.Broadcast do
 
   def send_dispatchers() do
     dispatchers = DispatcherAgent.all()
-    do_broadcast!(@dispatch, "set dispatchers", %{dispatchers: dispatchers})
+    do_broadcast(@dispatch, "set dispatchers", %{dispatchers: dispatchers})
   end
 
   def send_operators_to_all() do
