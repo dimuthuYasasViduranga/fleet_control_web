@@ -43,11 +43,11 @@ defmodule FleetControlWeb.OperatorChannel do
   @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
   def join("operators:" <> _device_uuid, _params, socket) do
     enable_leave(socket)
-    send(sjelf(), :after_join)
+    send(self(), :after_join)
     operator_id = socket.assigns.operator_id
     device_uuid = socket.assigns.device_uuid
     device_id = socket.assigns.device_id
-    appsig_inc(topic, socket)
+    appsignal_inc("join", socket)
     Logger.info(
       "[Joined operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}"
     )
@@ -86,7 +86,7 @@ defmodule FleetControlWeb.OperatorChannel do
   end
 
   def handle_in(topic, payload, socket) do
-    appsig_inc(topic, socket)
+    appsignal_inc(topic, socket)
     do_handle_in(topic, payload, socket)
   end
 
@@ -95,7 +95,12 @@ defmodule FleetControlWeb.OperatorChannel do
           | {:reply, :ok, Socket.t()}
   @decorate channel_action()
   defp do_handle_in("get device state", params, socket) do
+    operator_id = socket.assigns.operator_id
+    device_id = socket.assigns.device_id
+    device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
 
+    assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
+    asset_id = assignment[:asset_id]
     # update device information (if available)
     update_device_info(device_id, params["details"])
 
@@ -565,13 +570,13 @@ defmodule FleetControlWeb.OperatorChannel do
     end
   end
 
-defp appsig_inc(event, socket) do
+defp appsignal_inc(event, socket) do
     operator_id = socket.assigns.operator_id
     device_id = socket.assigns.device_id
-    device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
+    device_uuid = socket.assigns.device_uuid
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
-    Appsignal.increment_counter("op-channel", 1, %{event: event, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
+    Appsignal.increment_counter("op-channel", 1, %{event: event, operator_id: operator_id, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
   end
 
 end

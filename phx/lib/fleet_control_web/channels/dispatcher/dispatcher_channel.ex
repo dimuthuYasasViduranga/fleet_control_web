@@ -28,7 +28,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     resp = Setup.join(permissions)
 
     user_id = socket.assigns.current_user.id
-    appsig_inc("join", socket)
+    appsignal_inc("join", socket)
     try do
       Process.register(
         self(),
@@ -62,7 +62,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   end
 
   def handle_in(topic, payload, socket) do
-    appsig_inc(topic, socket)
+    appsignal_inc(topic, socket)
     do_handle_in(topic, payload, socket)
   end
 
@@ -215,7 +215,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   def to_error(reason), do: {:error, %{error: reason}}
 
-  defp appsig_inc(event, socket) do
+  defp appsignal_inc(event, socket) do
     user_id = socket.assigns.current_user.id
     Appsignal.increment_counter("dis-channel", 1, %{event: event, user_id: inspect(user_id)})
   end
