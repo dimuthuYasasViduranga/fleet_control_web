@@ -576,7 +576,7 @@ defp appsignal_inc(event, socket) do
     device_uuid = socket.assigns.device_uuid
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
-    Appsignal.increment_counter("op-channel", 1, %{event: event, operator_id: operator_id, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
+    Appsignal.increment_counter("op_channel", 1, %{event: event, operator_id: operator_id, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
   end
 
 end
