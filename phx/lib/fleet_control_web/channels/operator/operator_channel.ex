@@ -565,13 +565,13 @@ defmodule FleetControlWeb.OperatorChannel do
     end
   end
 
-defp appsig_inc(topic, socket) do
+defp appsig_inc(event, socket) do
     operator_id = socket.assigns.operator_id
     device_id = socket.assigns.device_id
     device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
-    Appsignal.increment_counter("op-channel", 1, %{topic: topic, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
+    Appsignal.increment_counter("op-channel", 1, %{event: event, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
   end
 
 end
