@@ -216,6 +216,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   def to_error(reason), do: {:error, %{error: reason}}
 
   defp appsig_inc(topic, socket) do
+    user_id = socket.assigns.current_user.id
     Appsignal.increment_counter("dis-channel", 1, %{topic: topic, user_id: inspect(user_id)})
   end
 
