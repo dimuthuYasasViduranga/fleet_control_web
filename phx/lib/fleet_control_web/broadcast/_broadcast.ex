@@ -13,7 +13,6 @@ defmodule FleetControlWeb.Broadcast do
   @dispatch "dispatchers:all"
 
   require Logger
-
   alias FleetControlWeb.{Settings, Presence, Endpoint}
 
   alias FleetControl.{
@@ -93,6 +92,11 @@ defmodule FleetControlWeb.Broadcast do
     end
   end
 
+  defp do_broadcast(recipient, event, payload) do
+    Appsignal.increment_counter("broadcast", 1, %{event: event})
+    Endpoint.broadcast(recipients, event, payload)
+  end
+
   @doc """
   Used to broadcast to all assignments that have a device. There is no guarentee that the message is received.
 
@@ -115,7 +119,7 @@ defmodule FleetControlWeb.Broadcast do
           end
           |> case do
             nil -> nil
-            payload -> Endpoint.broadcast("#{@operators}:#{device.uuid}", topic, payload)
+            payload -> do_broadcast("#{@operators}:#{device.uuid}", topic, payload)
           end
 
         nil ->
@@ -130,7 +134,7 @@ defmodule FleetControlWeb.Broadcast do
     |> Enum.map(fn asset ->
       case get_assignment(%{asset_id: asset.id}) do
         {device, _assignment, _type} ->
-          Endpoint.broadcast("#{@operators}:#{device.uuid}", topic, payload)
+          do_broadcast("#{@operators}:#{device.uuid}", topic, payload)
 
         _ ->
           nil
@@ -143,7 +147,7 @@ defmodule FleetControlWeb.Broadcast do
     case get_assignment(identifier) do
       {device, assignment, _type} ->
         Logger.info("[ForceLogout] device `#{device.id}`(#{device.uuid})")
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "force logout", opts)
+        do_broadcast("#{@operators}:#{device.uuid}", "force logout", opts)
 
         if Map.get(opts, :clear_operator, false) and assignment.asset_id do
           Logger.info("[ForceLogout] clearing operator for device `#{device.id}`(#{device.uuid})")
@@ -156,7 +160,7 @@ defmodule FleetControlWeb.Broadcast do
 
       {device} ->
         Logger.info("[ForceLogout] device `#{device.id}`(#{device.uuid})")
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "force logout", opts)
+        do_broadcast("#{@operators}:#{device.uuid}", "force logout", opts)
 
         send_assignments_to_all()
         send_activity(%{device_id: device.id}, "operator", "operator logout")
@@ -178,7 +182,7 @@ defmodule FleetControlWeb.Broadcast do
       locations: active_locations
     }
 
-    Endpoint.broadcast(@dispatch, "set location data", payload)
+    do_broadcast(@dispatch, "set location data", payload)
     broadcast_all_operators("set location data", payload)
   end
 
@@ -187,7 +191,7 @@ defmodule FleetControlWeb.Broadcast do
       routing: RoutingAgent.get()
     }
 
-    Endpoint.broadcast(@dispatch, "set routing data", payload)
+    do_broadcast(@dispatch, "set routing data", payload)
     broadcast_all_operators("set routing data", payload)
   end
 
@@ -197,7 +201,7 @@ defmodule FleetControlWeb.Broadcast do
       asset_types: AssetAgent.get_types()
     }
 
-    Endpoint.broadcast(@dispatch, "set asset data", payload)
+    do_broadcast(@dispatch, "set asset data", payload)
   end
 
   def send_calendar_data_to_all() do
@@ -206,12 +210,12 @@ defmodule FleetControlWeb.Broadcast do
       shift_types: CalendarAgent.shift_types()
     }
 
-    Endpoint.broadcast(@dispatch, "set calendar data", payload)
+    do_broadcast(@dispatch, "set calendar data", payload)
   end
 
   def send_time_code_data_to_all() do
     payload = TimeCodeAgent.get()
-    Endpoint.broadcast(@dispatch, "set time code data", payload)
+    do_broadcast(@dispatch, "set time code data", payload)
     broadcast_all_operators("set time code data", payload)
   end
 
@@ -221,7 +225,7 @@ defmodule FleetControlWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "set operator message types", payload)
+    do_broadcast(@dispatch, "set operator message types", payload)
     broadcast_all_operators("set operator message types", payload)
   end
 
@@ -230,7 +234,7 @@ defmodule FleetControlWeb.Broadcast do
       message_type_tree: OperatorMessageTypeAgent.tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "operator-message:set-type-tree", payload)
+    do_broadcast(@dispatch, "operator-message:set-type-tree", payload)
   end
 
   def send_operator_message_type_tree_to(asset_type_id) do
@@ -243,7 +247,7 @@ defmodule FleetControlWeb.Broadcast do
 
   def send_dispatchers() do
     dispatchers = DispatcherAgent.all()
-    Endpoint.broadcast!(@dispatch, "set dispatchers", %{dispatchers: dispatchers})
+    do_broadcast!(@dispatch, "set dispatchers", %{dispatchers: dispatchers})
   end
 
   def send_operators_to_all() do
@@ -251,13 +255,13 @@ defmodule FleetControlWeb.Broadcast do
       operators: OperatorAgent.all()
     }
 
-    Endpoint.broadcast(@dispatch, "set operators", payload)
+    do_broadcast(@dispatch, "set operators", payload)
     broadcast_all_operators("set operators", payload)
   end
 
   def send_operator_messages_to_dispatcher() do
     messages = OperatorMessageAgent.all()
-    Endpoint.broadcast(@dispatch, "set operator messages", %{messages: messages})
+    do_broadcast(@dispatch, "set operator messages", %{messages: messages})
   end
 
   def send_unread_operator_messages_to_operator(asset_id) do
@@ -265,7 +269,7 @@ defmodule FleetControlWeb.Broadcast do
       {device, _assignment, _type} ->
         unread = OperatorMessageAgent.unread(asset_id)
 
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "set unread messages", %{
+        do_broadcast("#{@operators}:#{device.uuid}", "set unread messages", %{
           messages: unread
         })
 
@@ -286,7 +290,7 @@ defmodule FleetControlWeb.Broadcast do
 
   defp send_dispatcher_messages_to_dispatcher() do
     messages = DispatcherMessageAgent.all()
-    Endpoint.broadcast(@dispatch, "set dispatcher messages", %{messages: messages})
+    do_broadcast(@dispatch, "set dispatcher messages", %{messages: messages})
   end
 
   defp send_dispatcher_message_to_operator(identifier) do
@@ -294,7 +298,7 @@ defmodule FleetControlWeb.Broadcast do
       {device, assignment, _type} ->
         messages = DispatcherMessageAgent.all(assignment.asset_id)
 
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "set dispatcher messages", %{
+        do_broadcast("#{@operators}:#{device.uuid}", "set dispatcher messages", %{
           messages: messages
         })
 
@@ -305,7 +309,7 @@ defmodule FleetControlWeb.Broadcast do
 
   def send_devices_to_dispatcher() do
     devices = DeviceAgent.safe_all()
-    Endpoint.broadcast(@dispatch, "set devices", %{devices: devices})
+    do_broadcast(@dispatch, "set devices", %{devices: devices})
   end
 
   def send_assignments_to_all() do
@@ -314,7 +318,7 @@ defmodule FleetControlWeb.Broadcast do
       current: DeviceAssignmentAgent.current()
     }
 
-    Endpoint.broadcast(@dispatch, "set device assignments", payload)
+    do_broadcast(@dispatch, "set device assignments", payload)
     broadcast_all_operators("set device assignments", %{assignments: payload.current})
   end
 
@@ -324,7 +328,7 @@ defmodule FleetControlWeb.Broadcast do
       historic: EngineHoursAgent.historic()
     }
 
-    Endpoint.broadcast(@dispatch, "set engine hours", payload)
+    do_broadcast(@dispatch, "set engine hours", payload)
   end
 
   def send_engine_hours_to(identifier) do
@@ -333,7 +337,7 @@ defmodule FleetControlWeb.Broadcast do
         engine_hours =
           Enum.find(EngineHoursAgent.current(), &(&1.asset_id == assignment.asset_id))
 
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "set engine hours", %{
+        do_broadcast("#{@operators}:#{device.uuid}", "set engine hours", %{
           engine_hours: engine_hours
         })
 
@@ -347,7 +351,7 @@ defmodule FleetControlWeb.Broadcast do
       {device, assignment, _type} ->
         allocation = TimeAllocation.Agent.get_active(%{asset_id: assignment.asset_id})
 
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "set allocation", %{
+        do_broadcast("#{@operators}:#{device.uuid}", "set allocation", %{
           allocation: allocation
         })
 
@@ -363,7 +367,7 @@ defmodule FleetControlWeb.Broadcast do
       action: action
     }
 
-    Endpoint.broadcast(@dispatch, "set time allocations", payload)
+    do_broadcast(@dispatch, "set time allocations", payload)
   end
 
   def send_pre_start_forms_to_all() do
@@ -371,7 +375,7 @@ defmodule FleetControlWeb.Broadcast do
       pre_start_forms: PreStartAgent.all()
     }
 
-    Endpoint.broadcast(@dispatch, "set pre-start forms", payload)
+    do_broadcast(@dispatch, "set pre-start forms", payload)
 
     broadcast_all_operators("set pre-start forms", payload)
   end
@@ -381,7 +385,7 @@ defmodule FleetControlWeb.Broadcast do
       categories: PreStartAgent.categories()
     }
 
-    Endpoint.broadcast(@dispatch, "set pre-start categories", payload)
+    do_broadcast(@dispatch, "set pre-start categories", payload)
     broadcast_all_operators("set pre-start categories", payload)
   end
 
@@ -389,7 +393,7 @@ defmodule FleetControlWeb.Broadcast do
     current = PreStartSubmissionAgent.current()
     historic = PreStartSubmissionAgent.historic()
 
-    Endpoint.broadcast(@dispatch, "set pre-start submissions", %{current: current})
+    do_broadcast(@dispatch, "set pre-start submissions", %{current: current})
 
     broadcast_all_operators("set pre-start submissions", fn _device, %{asset_id: asset_id} ->
       asset_current = Enum.find(current, &(&1.asset_id == asset_id))
@@ -428,14 +432,14 @@ defmodule FleetControlWeb.Broadcast do
     # send to target in question
     case get_assignment(%{asset_id: track.asset_id}) do
       {device, _assignment, _type} ->
-        Endpoint.broadcast("#{@operators}:#{device.uuid}", "set track", payload)
+        do_broadcast("#{@operators}:#{device.uuid}", "set track", payload)
 
       _ ->
         nil
     end
 
     # send to dispatcher
-    Endpoint.broadcast(@dispatch, "new track", payload)
+    do_broadcast(@dispatch, "new track", payload)
 
     # send to all other assets
     broadcast_all_operators("other track", payload, &(&1.id != track.asset_id))
@@ -444,7 +448,7 @@ defmodule FleetControlWeb.Broadcast do
   def send_settings_to_all() do
     settings = Settings.get()
 
-    Endpoint.broadcast(@dispatch, "set settings", settings)
+    do_broadcast(@dispatch, "set settings", settings)
     broadcast_all_operators("set settings", settings)
   end
 
@@ -487,7 +491,7 @@ defmodule FleetControlWeb.Broadcast do
       time_code_tree_elements: TimeCodeAgent.get_time_code_tree_elements()
     }
 
-    Endpoint.broadcast(@dispatch, "time-code:set-tree-elements", payload)
+    do_broadcast(@dispatch, "time-code:set-tree-elements", payload)
   end
 
   def send_time_code_tree_elements_to(identifier) do
@@ -507,17 +511,17 @@ defmodule FleetControlWeb.Broadcast do
   end
 
   def send_live_queue(queue) do
-    Endpoint.broadcast(@dispatch, "set live queue", queue)
+    do_broadcast(@dispatch, "set live queue", queue)
   end
 
   def send_presence_state() do
     presence_list = Presence.list(@dispatch)
-    Endpoint.broadcast(@dispatch, "presence_state", presence_list)
+    do_broadcast(@dispatch, "presence_state", presence_list)
   end
 
   def send_asset_radios() do
     payload = %{asset_radios: AssetRadioAgent.all()}
-    Endpoint.broadcast(@dispatch, "set asset radios", payload)
+    do_broadcast(@dispatch, "set asset radios", payload)
     broadcast_all_operators("set asset radios", payload)
   end
 
@@ -525,7 +529,7 @@ defmodule FleetControlWeb.Broadcast do
 
   def set_dispatcher_data(keys, value, parser_type) when is_list(keys) do
     data = %{keys: keys, value: value, parser_type: parser_type}
-    Endpoint.broadcast(@dispatch, "setVuexData", data)
+    do_broadcast(@dispatch, "setVuexData", data)
   end
 
   def set_dispatcher_data(key, value, parser_type),
