@@ -43,11 +43,11 @@ defmodule FleetControlWeb.OperatorChannel do
   @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
   def join("operators:" <> _device_uuid, _params, socket) do
     enable_leave(socket)
-    send(self(), :after_join)
+    send(sjelf(), :after_join)
     operator_id = socket.assigns.operator_id
     device_uuid = socket.assigns.device_uuid
     device_id = socket.assigns.device_id
-
+    appsig_inc(topic, socket)
     Logger.info(
       "[Joined operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}"
     )
@@ -62,7 +62,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Logger.warn(e.message)
     end
 
-    Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
+    Broadcast.send_activity(%{device_uuid: device_uuid}, "operator", "operator login")
     {:ok, socket}
   end
 
@@ -85,17 +85,16 @@ defmodule FleetControlWeb.OperatorChannel do
     {:noreply, socket}
   end
 
-  @spec handle_in(String.t(), map(), Socket.t()) ::
+  def handle_in(topic, payload, socket) do
+    appsig_inc(topic, socket)
+    do_handle_in(topic, payload, socket)
+  end
+
+  @spec do_handle_in(String.t(), map(), Socket.t()) ::
           {:noreply, Socket.t()}
           | {:reply, :ok, Socket.t()}
   @decorate channel_action()
-  def handle_in("get device state", params, socket) do
-    operator_id = socket.assigns.operator_id
-    device_id = socket.assigns.device_id
-    device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
-
-    assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
-    asset_id = assignment[:asset_id]
+  defp do_handle_in("get device state", params, socket) do
 
     # update device information (if available)
     update_device_info(device_id, params["details"])
@@ -135,7 +134,7 @@ defmodule FleetControlWeb.OperatorChannel do
     {:noreply, socket}
   end
 
-  def handle_in("logout", %{}, socket) do
+  defp do_handle_in("logout", %{}, socket) do
     device_id = socket.assigns.device_id
     device_uuid = socket.assigns.device_uuid
     operator_id = socket.assigns.operator_id
@@ -158,7 +157,8 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit offline logins", logins, socket) when is_list(logins) do
+  defp do_handle_in("submit offline logins", logins, socket) when is_list(logins) do
+    appsignal_inc("submit offline logins", socket)
     device_id = socket.assigns.device_id
     now = NaiveDateTime.utc_now()
 
@@ -197,7 +197,8 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit logouts", logouts, socket) when is_list(logouts) do
+  defp do_handle_in("submit logouts", logouts, socket) when is_list(logouts) do
+    appsignal_inc("submit logouts", socket)
     device_id = socket.assigns.device_id
     now = NaiveDateTime.utc_now()
 
@@ -233,8 +234,9 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit dispatcher message acknowledgements", acknowledgements, socket)
+  defp do_handle_in("submit dispatcher message acknowledgements", acknowledgements, socket)
       when is_list(acknowledgements) do
+    appsignal_inc("submit dispatcher message acknowledgements", socket)
     device_id = socket.assigns.device_id
 
     Enum.each(acknowledgements, fn acknowledgement ->
@@ -259,7 +261,8 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit messages", messages, socket) when is_list(messages) do
+  defp do_handle_in("submit messages", messages, socket) when is_list(messages) do
+    appsignal_inc("submit messages", socket)
     Enum.each(messages, fn message ->
       case OperatorMessageAgent.new(message) do
         {:ok, message} ->
@@ -286,8 +289,9 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit engine hours", engine_hours_list, socket)
+  defp do_handle_in("submit engine hours", engine_hours_list, socket)
       when is_list(engine_hours_list) do
+    appsignal_inc("submit engine hours", socket)
     engine_hours_list
     |> Enum.filter(&(!is_nil(&1["asset_id"])))
     |> Enum.map(fn engine_hours ->
@@ -315,7 +319,8 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit allocations", allocations, socket) when is_list(allocations) do
+  defp do_handle_in("submit allocations", allocations, socket) when is_list(allocations) do
+    appsignal_inc("submit allocations", socket)
     allocations
     |> Enum.map(&Helper.to_atom_map!/1)
     |> Enum.group_by(& &1.asset_id)
@@ -332,7 +337,8 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit exceptions", exceptions, socket) when is_list(exceptions) do
+  defp do_handle_in("submit exceptions", exceptions, socket) when is_list(exceptions) do
+    appsignal_inc("submit exceptions", socket)
     exceptions
     |> Enum.map(&Helper.to_atom_map!/1)
     |> Enum.map(&Map.put(&1, :created_by_operator, true))
@@ -344,7 +350,7 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("submit pre-start submissions", submissions, socket) when is_list(submissions) do
+  defp do_handle_in("submit pre-start submissions", submissions, socket) when is_list(submissions) do
     Enum.each(submissions, &PreStartSubmissionAgent.add/1)
 
     Broadcast.send_pre_start_submissions_to_all()
@@ -352,7 +358,7 @@ defmodule FleetControlWeb.OperatorChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in("set device track", track, socket) do
+  defp do_handle_in("set device track", track, socket) do
     with true <- Settings.get(:use_device_gps),
          %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
          {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
@@ -364,11 +370,11 @@ defmodule FleetControlWeb.OperatorChannel do
     {:noreply, socket}
   end
 
-  def handle_in("haul:" <> _ = topic, payload, socket) do
+  defp do_handle_in("haul:" <> _ = topic, payload, socket) do
     HaulTruckTopics.handle_in(topic, payload, socket)
   end
 
-  def handle_in("dig:" <> _ = topic, payload, socket) do
+  defp do_handle_in("dig:" <> _ = topic, payload, socket) do
     DigUnitTopics.handle_in(topic, payload, socket)
   end
 
@@ -558,4 +564,14 @@ defmodule FleetControlWeb.OperatorChannel do
         nil
     end
   end
+
+defp appsig_inc(topic, socket) do
+    operator_id = socket.assigns.operator_id
+    device_id = socket.assigns.device_id
+    device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
+    assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
+    asset_id = assignment[:asset_id]
+    Appsignal.increment_counter("op-channel", 1, %{topic: topic, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
+  end
+
 end
