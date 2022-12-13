@@ -62,7 +62,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Logger.warn(e.message)
     end
 
-    Broadcast.send_activity(%{device_uuid: device_uuid}, "operator", "operator login")
+    Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
     {:ok, socket}
   end
 
@@ -367,7 +367,7 @@ defmodule FleetControlWeb.OperatorChannel do
     with true <- Settings.get(:use_device_gps),
          %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
          {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
-      Broadcast.send_track(track)
+      Broadcast.send_track(track, __MODULE__)
     else
       _ -> nil
     end
@@ -570,10 +570,11 @@ defmodule FleetControlWeb.OperatorChannel do
     end
   end
 
-defp appsignal_inc(event, socket) do
-    operator_id = socket.assigns.operator_id
-    device_id = socket.assigns.device_id
-    device_uuid = socket.assigns.device_uuid
+  defp appsignal_inc(event, socket) do
+    sock = socket.assigns
+    operator_id = sock[:operator_id]
+    device_id = sock[:device_id]
+    device_uuid = sock[:device_uuid]
     assignment = DeviceAssignmentAgent.get(%{device_id: device_id})
     asset_id = assignment[:asset_id]
     Appsignal.increment_counter("op_channel", 1, %{event: event, operator_id: operator_id, device_id: device_id, device_uuid: device_uuid, asset_id: asset_id})
