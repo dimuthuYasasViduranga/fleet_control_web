@@ -99,6 +99,7 @@ defmodule FleetControl.TimeAllocation.EctoQueries do
   end
 
   defp get_latest_query() do
+    # FIXME complicated and slow
     from(a in Asset,
       select: %{
         asset_id: a.id,

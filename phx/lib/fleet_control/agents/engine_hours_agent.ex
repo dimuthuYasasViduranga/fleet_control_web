@@ -168,6 +168,7 @@ defmodule FleetControl.EngineHoursAgent do
   end
 
   defp get_latest_query() do
+    # FIXME complicated and slow
     from(a in Asset,
       select: %{
         asset_id: a.id,
@@ -185,6 +186,7 @@ defmodule FleetControl.EngineHoursAgent do
 
   # though string interpolation would be nicer, this is the NON-sql injection way of doing it
   defp get_search_query(timestamp, ">") do
+    # FIXME complicated and slow
     from(a in Asset,
       select: %{
         asset_id: a.id,
@@ -202,6 +204,7 @@ defmodule FleetControl.EngineHoursAgent do
   end
 
   defp get_search_query(timestamp, "<") do
+    # FIXME complicated and slow
     from(a in Asset,
       select: %{
         asset_id: a.id,
