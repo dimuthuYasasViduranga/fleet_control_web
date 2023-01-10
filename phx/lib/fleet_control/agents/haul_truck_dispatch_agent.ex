@@ -316,6 +316,7 @@ defmodule FleetControl.HaulTruckDispatchAgent do
   end
 
   defp get_latest_query() do
+    # FIXME complicated and slow
     from(a in Asset,
       select: %{
         asset_id: a.id,
