@@ -93,7 +93,7 @@ defmodule FleetControlWeb.Broadcast do
   end
 
   defp do_broadcast(recipient, event, payload) do
-    Appsignal.increment_counter("broadcast", 1, %{event: event})
+    Appsignal.increment_counter("broadcast", 1, %{recipient: recipient, event: event})
     Appsignal.increment_counter("broadcast_payload_size", :erlang.external_size(payload), %{event: event})
 
     Endpoint.broadcast(recipient, event, payload)
