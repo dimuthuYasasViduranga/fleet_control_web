@@ -367,7 +367,6 @@ defmodule FleetControlWeb.OperatorChannel do
     with true <- Settings.get(:use_device_gps),
          %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
          {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
-      Broadcast.send_track(track, __MODULE__)
     else
       _ -> nil
     end
