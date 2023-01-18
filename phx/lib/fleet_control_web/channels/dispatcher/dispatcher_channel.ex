@@ -28,7 +28,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     resp = Setup.join(permissions)
 
     user_id = socket.assigns.current_user.id
-    appsignal_inc("join", socket)
+
     try do
       Process.register(
         self(),
@@ -61,74 +61,68 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
-  def handle_in(topic, payload, socket) do
-    appsignal_inc(topic, socket)
-    do_handle_in(topic, payload, socket)
-  end
-
-
   @decorate channel_action()
-  def do_handle_in("refresh:" <> subtopic, payload, socket) do
+  def handle_in("refresh:" <> subtopic, payload, socket) do
     Topics.Refresh.handle_in(subtopic, payload, socket)
   end
 
   @decorate authorized(:can_dispatch)
-  def do_handle_in("haul:" <> subtopic, payload, socket) do
+  def handle_in("haul:" <> subtopic, payload, socket) do
     Topics.HaulTruck.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("auth:" <> subtopic, payload, socket) do
+  def handle_in("auth:" <> subtopic, payload, socket) do
     Topics.Auth.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("dig:" <> subtopic, payload, socket) do
+  def handle_in("dig:" <> subtopic, payload, socket) do
     Topics.DigUnit.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("pre-start:" <> subtopic, payload, socket) do
+  def handle_in("pre-start:" <> subtopic, payload, socket) do
     Topics.PreStart.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("track:" <> subtopic, payload, socket) do
+  def handle_in("track:" <> subtopic, payload, socket) do
     Topics.Track.handle_in(subtopic, payload, socket)
   end
 
   @decorate authorized(:can_edit_time_codes)
-  def do_handle_in("time-code:" <> subtopic, payload, socket) do
+  def handle_in("time-code:" <> subtopic, payload, socket) do
     Topics.TimeCode.handle_in(subtopic, payload, socket)
   end
 
   @decorate authorized(:can_edit_asset_roster)
-  def do_handle_in("asset:" <> subtopic, payload, socket) do
+  def handle_in("asset:" <> subtopic, payload, socket) do
     Topics.Asset.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("device:" <> subtopic, payload, socket) do
+  def handle_in("device:" <> subtopic, payload, socket) do
     Topics.Device.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("operator:" <> subtopic, payload, socket) do
+  def handle_in("operator:" <> subtopic, payload, socket) do
     Topics.Operator.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("operator-message:" <> subtopic, payload, socket) do
+  def handle_in("operator-message:" <> subtopic, payload, socket) do
     Topics.OperatorMessage.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("dispatcher-message:" <> subtopic, payload, socket) do
+  def handle_in("dispatcher-message:" <> subtopic, payload, socket) do
     Topics.DispatcherMessage.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("time-allocation:" <> subtopic, payload, socket) do
+  def handle_in("time-allocation:" <> subtopic, payload, socket) do
     Topics.TimeAllocation.handle_in(subtopic, payload, socket)
   end
 
-  def do_handle_in("activity-log:get-all", _payload, socket) do
+  def handle_in("activity-log:get-all", _payload, socket) do
     resp = ActivityAgent.get()
     {:reply, {:ok, resp}, socket}
   end
 
-  def do_handle_in("set page visited", payload, socket) do
+  def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->
         nil
@@ -141,7 +135,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
-  def do_handle_in("set radio number", payload, socket) do
+  def handle_in("set radio number", payload, socket) do
     %{"asset_id" => asset_id, "radio_number" => radio_number} = payload
     AssetRadioAgent.set(asset_id, radio_number)
     Broadcast.send_asset_radios()
@@ -149,7 +143,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   end
 
   @decorate authorized(:can_edit_routing)
-  def do_handle_in("routing:update", payload, socket) do
+  def handle_in("routing:update", payload, socket) do
     case RoutingAgent.update(
            payload["route_id"],
            payload["vertices"],
@@ -165,7 +159,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     end
   end
 
-  def do_handle_in(
+  def handle_in(
         "report:time allocation",
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
         socket
@@ -178,7 +172,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:reply, {:ok, %{reports: reports}}, socket}
   end
 
-  def do_handle_in("report:time allocation", calendar_id, socket) when is_integer(calendar_id) do
+  def handle_in("report:time allocation", calendar_id, socket) when is_integer(calendar_id) do
     case CalendarAgent.get(%{id: calendar_id}) do
       %{shift_start: start_time, shift_end: end_time} ->
         reports_pid = Task.async(fn -> Report.generate_report(start_time, end_time) end)
@@ -214,10 +208,4 @@ defmodule FleetControlWeb.DispatcherChannel do
   def to_error({key, {reason, _extra}}), do: to_error("#{key} - #{reason}")
 
   def to_error(reason), do: {:error, %{error: reason}}
-
-  defp appsignal_inc(event, socket) do
-    user_id = socket.assigns.current_user.id
-    Appsignal.increment_counter("dis_channel", 1, %{event: event, user_id: inspect(user_id)})
-  end
-
 end
