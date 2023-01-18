@@ -443,8 +443,8 @@ defmodule FleetControlWeb.Broadcast do
     # send to dispatcher
     do_broadcast(@dispatch, "new track", payload)
 
-    # send track to excavators, so it can prepare for trucks arriving soon
-    broadcast_all_operators("other track", payload, &(&1.type == "Excavator" && &1.id != track.asset_id))
+    # send track to dig units to visualise and prepare for trucks arriving soon
+    broadcast_all_operators("other track", payload, &(&1.type in ["Excavator", "Loader"] && &1.id != track.asset_id))
   end
 
   def send_settings_to_all() do
