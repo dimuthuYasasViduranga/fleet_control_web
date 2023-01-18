@@ -1,17 +1,27 @@
-// To use Phoenix channels, the first step is to import Socket
-// and connect at the socket path in 'lib/my_app/endpoint.ex':
-
 import { Socket, Presence } from 'phoenix';
 import { copyDate } from './time';
-
+const pako = require('pako');
 function create(hostname, userToken, presenceSyncCallback) {
   // create socket
   const wsHostname = hostname.replace(/^http/, 'ws');
+  const textDecoder = new TextDecoder()
 
-  const socket = new Socket(`${wsHostname}/dispatcher-socket`, {
-    params: { token: userToken },
-  });
-
+  let socket = new Socket(`${wsHostname}/dispatcher-socket`,  { 
+    params: {token: userToken},
+    decode: (bin, callback)  =>  {
+      let bytes = pako.ungzip(bin) // decompress the payload
+      let msg = textDecoder.decode(bytes) // convert sequence of utf-8 octets into javascript utf16 string 
+      let [join_ref, ref, topic, event, payload] = JSON.parse(msg);
+        return callback({ join_ref, ref, topic, event, payload });
+    },
+    encode: (msg, callback) => {
+      let payload = [msg.join_ref, msg.ref, msg.topic, msg.event, msg.payload]
+      let compressedPayload = pako.gzip(JSON.stringify(payload))
+        return callback(compressedPayload);
+    }
+  })
+  
+  
   // join channel, setup presence
   const channel = socket.channel('dispatchers:all', {});
   const presence = new Presence(channel);

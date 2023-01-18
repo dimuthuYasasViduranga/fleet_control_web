@@ -17,12 +17,12 @@ defmodule FleetControlWeb.Endpoint do
   }
 
   socket("/fleet-control/operator-socket", FleetControlWeb.OperatorSocket,
-    websocket: true,
+    websocket: [serializer: [{FleetControlWeb.Serializer, "2.0.0"}]],
     longpoll: false
   )
 
   socket("/fleet-control/dispatcher-socket", FleetControlWeb.DispatcherSocket,
-    websocket: true,
+    websocket:  [serializer: [{FleetControlWeb.Serializer, "2.0.0"}]],
     longpoll: false
   )
 
