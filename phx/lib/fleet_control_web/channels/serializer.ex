@@ -22,12 +22,12 @@ defmodule FleetControlWeb.Serializer do
       %{status: reply.status, response: reply.payload}
     ]
     data |> encode("msg-reply")
-  end
+end
 
 
   def encode!(%Message{payload: %{}} = msg) do
     data = [msg.join_ref, msg.ref, msg.topic, msg.event, msg.payload]
-    data |> encode("msg")
+    data |> encode("msg-outgoing")
   end
 
   defp encode(data, kind) do
