@@ -102,7 +102,13 @@ defmodule FleetControlWeb.Broadcast do
   If payload is a function, it can allow for conditional broadcast per asset
   """
   @spec broadcast_all_operators(String.t(), map | fun, fun | nil) :: :ok
-  def broadcast_all_operators(topic, payload_or_func, asset_filter \\ nil) do
+
+  # this is an optimization for where we have a single payload to go to every operator
+  def broadcast_all_operators(topic, payload_or_func) when not is_function(payload_or_func) do
+    do_broadcast("#{@operators}:all", topic, payload_or_func)
+  end
+
+  def broadcast_all_operators(topic, payload_or_func, asset_filter) do
     assets =
       case asset_filter do
         nil -> AssetAgent.get_assets()
