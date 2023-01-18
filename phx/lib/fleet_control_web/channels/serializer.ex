@@ -35,7 +35,7 @@ defmodule FleetControlWeb.Serializer do
     bin = data |> Jason.encode_to_iodata! |> :zlib.gzip
 
     Appsignal.increment_counter(kind, 1, %{recipient: topic, event: event})
-    Appsignal.increment_counter("{kind}-payload-size", :erlang.byte_size(bin), %{event: event})
+    Appsignal.increment_counter("#{kind}-payload-size", :erlang.byte_size(bin), %{event: event})
 
     {:socket_push, :binary, bin}
   end
