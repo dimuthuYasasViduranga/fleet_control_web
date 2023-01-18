@@ -35,7 +35,7 @@ end
     bin = data |> Jason.encode_to_iodata! |> :zlib.gzip
 
     Appsignal.increment_counter(kind, 1, %{recipient: topic, event: event})
-    Appsignal.increment_counter("#{kind}-payload-size", :erlang.byte_size(bin), %{event: event})
+    Appsignal.increment_counter("#{kind}-payload-size", :erlang.byte_size(bin), %{recipient: topic, event: event})
 
     {:socket_push, :binary, bin}
   end
@@ -46,7 +46,7 @@ end
     [join_ref, ref, topic, event, payload | _] = decoded_msg
 
     Appsignal.increment_counter("incoming-msg", 1, %{recipient: topic, event: event})
-    Appsignal.increment_counter("incoming-msg-size", :erlang.byte_size(message), %{event: event})
+    Appsignal.increment_counter("incoming-msg-size", :erlang.byte_size(message), %{recipient: topic, event: event})
 
     %Message{
       topic: topic,
