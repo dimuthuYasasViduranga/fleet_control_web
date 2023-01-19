@@ -58,6 +58,7 @@ defmodule FleetControlWeb.MixProject do
       {:slack_logger_backend,
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.4", only: [:prod]},
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.1"},
+      {:recon, "~> 2.5"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
