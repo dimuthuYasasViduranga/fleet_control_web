@@ -80,7 +80,7 @@ spec:
                   ],
                   settings: [
                     use_device_gps: false,
-                    use_pre_starts: true,
+                    use_pre_starts: false,
                     prompt_exception_on_logout: true,
                     prompt_engine_hours_on_login: true,
                     prompt_engine_hours_on_logout: false,
@@ -115,8 +115,6 @@ spec:
                       "/engine_hours",
                       "/agents",
                       "/route_map",
-                      "/pre_start_editor",
-                      "/pre_start_submissions",
                       "/asset_overview"
                     ],
                   },

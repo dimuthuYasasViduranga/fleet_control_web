@@ -74,8 +74,6 @@ spec:
                     can_edit_messages: :any,
                     can_refresh_agents: :any,
                     can_edit_routing: :any,
-                    can_edit_pre_starts: :any,
-                    can_edit_pre_start_tickets: :any,
                     can_edit_asset_roster: :any
                   ],
                   settings: [
@@ -115,8 +113,6 @@ spec:
                       "/engine_hours",
                       "/agents",
                       "/route_map",
-                      "/pre_start_editor",
-                      "/pre_start_submissions",
                       "/asset_overview"
                     ],
                   },
