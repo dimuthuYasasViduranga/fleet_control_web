@@ -38,31 +38,21 @@ defmodule FleetControlWeb.OperatorChannel do
 
   alias Phoenix.Socket
 
-  @type topic :: String.t()
 
-  @spec join(topic, any(), Socket.t()) :: {:ok, Socket.t()}
   def join("operators:" <> _device_uuid, _params, socket) do
-    enable_leave(socket)
-    send(self(), :after_join)
-    operator_id = socket.assigns.operator_id
-    device_uuid = socket.assigns.device_uuid
-    device_id = socket.assigns.device_id
+    task = Task.async(fn ->
+      enable_leave(socket)
+      send(self(), :after_join)
+      operator_id = socket.assigns.operator_id
+      device_uuid = socket.assigns.device_uuid
+      device_id = socket.assigns.device_id
 
-    Logger.info(
-      "[Joined operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}"
-    )
+      Logger.info("[Joined operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}")
 
-    DeviceConnectionAgent.set(device_uuid, :connected, NaiveDateTime.utc_now())
+      DeviceConnectionAgent.set(device_uuid, :connected, NaiveDateTime.utc_now())
+    end)
 
-    try do
-      Process.register(self(), String.to_atom("operator_channel_" <> device_uuid))
-      Process.register(socket.transport_pid, String.to_atom("operator_socket_" <> device_uuid))
-    rescue
-      e in ArgumentError ->
-        Logger.warn(e.message)
-    end
-
-    Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
+    Task.await(task)
     {:ok, socket}
   end
 
@@ -76,12 +66,17 @@ defmodule FleetControlWeb.OperatorChannel do
 
   @spec handle_info(:after_join, Socket.t()) :: {:noreply, Socket.t()}
   def handle_info(:after_join, socket) do
-    "operators:" <> device_uuid = socket.topic
+    task = Task.async(fn ->
+      "operators:" <> device_uuid = socket.topic
 
-    timestamp = System.system_time(:second)
-    info = %{online_at: inspect(timestamp)}
+      timestamp = System.system_time(:second)
+      info = %{online_at: inspect(timestamp)}
 
-    {:ok, _} = Presence.track(socket.channel_pid, "dispatchers:all", device_uuid, info)
+      {:ok, _} = Presence.track(socket.channel_pid, "dispatchers:all", device_uuid, info)
+    end)
+
+    Task.await(task)
+
     {:noreply, socket}
   end
 
@@ -89,7 +84,15 @@ defmodule FleetControlWeb.OperatorChannel do
           {:noreply, Socket.t()}
           | {:reply, :ok, Socket.t()}
   @decorate channel_action()
+
   def handle_in("get device state", params, socket) do
+    task = Task.async(fn -> _handle_in_get_state(socket, params) end)
+    Task.await(task)
+    send(self(), :gc)
+    {:noreply, socket}
+  end
+
+  defp _handle_in_get_state(socket,params) do
     operator_id = socket.assigns.operator_id
     device_id = socket.assigns.device_id
     device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
@@ -131,245 +134,290 @@ defmodule FleetControlWeb.OperatorChannel do
       end
 
     push(socket, "set device state", state)
-
-    {:noreply, socket}
   end
 
+
   def handle_in("logout", %{}, socket) do
-    device_id = socket.assigns.device_id
-    device_uuid = socket.assigns.device_uuid
-    operator_id = socket.assigns.operator_id
+    task = Task.async(fn ->
+      device_id = socket.assigns.device_id
+      device_uuid = socket.assigns.device_uuid
+      operator_id = socket.assigns.operator_id
 
-    case DeviceAssignmentAgent.get_asset_id(%{device_id: device_id}) do
-      nil ->
-        nil
+      case DeviceAssignmentAgent.get_asset_id(%{device_id: device_id}) do
+        nil ->
+          nil
 
-      asset_id ->
-        change = %{operator_id: nil, timestamp: Helper.naive_timestamp()}
-        DeviceAssignmentAgent.change(asset_id, change)
+        asset_id ->
+          change = %{operator_id: nil, timestamp: Helper.naive_timestamp()}
+          DeviceAssignmentAgent.change(asset_id, change)
 
-        Broadcast.send_assignments_to_all()
-        Broadcast.send_activity(%{asset_id: asset_id}, "operator", "operator logout")
-    end
+          Broadcast.send_assignments_to_all()
+          Broadcast.send_activity(%{asset_id: asset_id}, "operator", "operator logout")
+      end
 
-    Logger.info("[Left operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}")
-    Presence.untrack(socket, device_uuid)
+      Logger.info("[Left operators] device: #{device_id}[#{device_uuid}], operator: #{operator_id}")
+      Presence.untrack(socket, device_uuid)
+    end)
+
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit offline logins", logins, socket) when is_list(logins) do
-    device_id = socket.assigns.device_id
-    now = NaiveDateTime.utc_now()
+    task = Task.async(fn ->
+      device_id = socket.assigns.device_id
+      now = NaiveDateTime.utc_now()
 
-    logins
-    |> Enum.map(fn login ->
-      %{
-        device_id: device_id,
-        asset_id: login["asset_id"],
-        operator_id: login["operator_id"],
-        timestamp: Helper.to_naive(login["timestamp"]),
-        server_timestamp: now
-      }
+      logins
+      |> Enum.map(fn login ->
+        %{
+          device_id: device_id,
+          asset_id: login["asset_id"],
+          operator_id: login["operator_id"],
+          timestamp: Helper.to_naive(login["timestamp"]),
+          server_timestamp: now
+        }
+      end)
+      |> Enum.reject(fn login ->
+        any_nils =
+          login
+          |> Map.values()
+          |> Enum.any?(&is_nil/1)
+
+        in_future = NaiveDateTime.compare(login.timestamp, now) == :gt
+
+        any_nils || in_future
+      end)
+      |> Enum.each(fn login ->
+        DeviceAssignmentAgent.new(login)
+
+        Broadcast.send_activity(
+          %{device_id: login.device_id},
+          "operator",
+          "operator login",
+          login.timestamp
+        )
+      end)
+
+      Broadcast.send_assignments_to_all()
     end)
-    |> Enum.reject(fn login ->
-      any_nils =
-        login
-        |> Map.values()
-        |> Enum.any?(&is_nil/1)
 
-      in_future = NaiveDateTime.compare(login.timestamp, now) == :gt
+    Task.await(task)
 
-      any_nils || in_future
-    end)
-    |> Enum.each(fn login ->
-      DeviceAssignmentAgent.new(login)
-
-      Broadcast.send_activity(
-        %{device_id: login.device_id},
-        "operator",
-        "operator login",
-        login.timestamp
-      )
-    end)
-
-    Broadcast.send_assignments_to_all()
     {:reply, :ok, socket}
   end
 
   def handle_in("submit logouts", logouts, socket) when is_list(logouts) do
-    device_id = socket.assigns.device_id
-    now = NaiveDateTime.utc_now()
+    task = Task.async(fn ->
+      device_id = socket.assigns.device_id
+      now = NaiveDateTime.utc_now()
 
-    logouts
-    |> Enum.reject(fn logout ->
-      asset_id = logout["asset_id"]
-      timestamp = logout["timestamp"]
+      logouts
+      |> Enum.reject(fn logout ->
+        asset_id = logout["asset_id"]
+        timestamp = logout["timestamp"]
 
-      is_nil(asset_id) || !timestamp ||
-        NaiveDateTime.compare(Helper.to_naive(timestamp), now) == :gt
+        is_nil(asset_id) || !timestamp ||
+          NaiveDateTime.compare(Helper.to_naive(timestamp), now) == :gt
+      end)
+      |> Enum.each(fn logout ->
+        timestamp = logout["timestamp"]
+        asset_id = logout["asset_id"]
+
+        DeviceAssignmentAgent.new(%{
+          asset_id: asset_id,
+          device_id: device_id,
+          operator_id: nil,
+          timestamp: timestamp,
+          server_timestamp: now
+        })
+
+        Broadcast.send_activity(
+          %{device_id: device_id},
+          "operator",
+          "operator logout",
+          timestamp
+        )
+      end)
+
+      Broadcast.send_assignments_to_all()
     end)
-    |> Enum.each(fn logout ->
-      timestamp = logout["timestamp"]
-      asset_id = logout["asset_id"]
 
-      DeviceAssignmentAgent.new(%{
-        asset_id: asset_id,
-        device_id: device_id,
-        operator_id: nil,
-        timestamp: timestamp,
-        server_timestamp: now
-      })
+    Task.await(task)
 
-      Broadcast.send_activity(
-        %{device_id: device_id},
-        "operator",
-        "operator logout",
-        timestamp
-      )
-    end)
-
-    Broadcast.send_assignments_to_all()
     {:reply, :ok, socket}
   end
 
   def handle_in("submit dispatcher message acknowledgements", acknowledgements, socket)
       when is_list(acknowledgements) do
-    device_id = socket.assigns.device_id
 
-    Enum.each(acknowledgements, fn acknowledgement ->
-      timestamp = acknowledgement["timestamp"]
+    task = Task.async(fn ->
+      device_id = socket.assigns.device_id
 
-      DispatcherMessageAgent.acknowledge(
-        acknowledgement["id"],
-        acknowledgement["answer"],
-        device_id,
-        timestamp
-      )
+      Enum.each(acknowledgements, fn acknowledgement ->
+        timestamp = acknowledgement["timestamp"]
 
-      Broadcast.send_activity(
-        %{device_id: device_id},
-        "operator",
-        "dispatcher message acknowledged",
-        timestamp
-      )
+        DispatcherMessageAgent.acknowledge(
+          acknowledgement["id"],
+          acknowledgement["answer"],
+          device_id,
+          timestamp
+        )
+
+        Broadcast.send_activity(
+          %{device_id: device_id},
+          "operator",
+          "dispatcher message acknowledged",
+          timestamp
+        )
+      end)
+
+      Broadcast.send_dispatcher_messages_to(%{device_id: device_id})
     end)
 
-    Broadcast.send_dispatcher_messages_to(%{device_id: device_id})
+    Task.await(task)
+
     {:reply, :ok, socket}
   end
 
   def handle_in("submit messages", messages, socket) when is_list(messages) do
-    Enum.each(messages, fn message ->
-      case OperatorMessageAgent.new(message) do
-        {:ok, message} ->
-          Broadcast.send_activity(
-            %{asset_id: message.asset_id},
-            "operator",
-            "operator message",
-            message.timestamp
-          )
+    task = Task.async(fn ->
+      Enum.each(messages, fn message ->
+        case OperatorMessageAgent.new(message) do
+          {:ok, message} ->
+            Broadcast.send_activity(
+              %{asset_id: message.asset_id},
+              "operator",
+              "operator message",
+              message.timestamp
+            )
 
-        _ ->
-          nil
-      end
+          _ ->
+            nil
+        end
+      end)
+
+      Broadcast.send_operator_messages_to_dispatcher()
+
+      # for each asset in the messages, send unread operator messages
+      messages
+      |> Enum.map(& &1["asset_id"])
+      |> Enum.uniq()
+      |> Enum.each(&Broadcast.send_unread_operator_messages_to_operator/1)
     end)
 
-    Broadcast.send_operator_messages_to_dispatcher()
-
-    # for each asset in the messages, send unread operator messages
-    messages
-    |> Enum.map(& &1["asset_id"])
-    |> Enum.uniq()
-    |> Enum.each(&Broadcast.send_unread_operator_messages_to_operator/1)
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit engine hours", engine_hours_list, socket)
       when is_list(engine_hours_list) do
-    engine_hours_list
-    |> Enum.filter(&(!is_nil(&1["asset_id"])))
-    |> Enum.map(fn engine_hours ->
-      case EngineHoursAgent.new(engine_hours) do
-        {:ok, eh} ->
-          Broadcast.send_activity(
-            %{asset_id: eh.asset_id},
-            "operator",
-            "engine hours updated",
-            eh.timestamp
-          )
 
-          eh.asset_id
+    task = Task.async(fn ->
+      engine_hours_list
+      |> Enum.filter(&(!is_nil(&1["asset_id"])))
+      |> Enum.map(fn engine_hours ->
+        case EngineHoursAgent.new(engine_hours) do
+          {:ok, eh} ->
+            Broadcast.send_activity(
+              %{asset_id: eh.asset_id},
+              "operator",
+              "engine hours updated",
+              eh.timestamp
+            )
 
-        _ ->
-          nil
-      end
+            eh.asset_id
+
+          _ ->
+            nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.each(&Broadcast.send_engine_hours_to(%{asset_id: &1}))
+
+      Broadcast.send_engine_hours_to_dispatcher()
     end)
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.each(&Broadcast.send_engine_hours_to(%{asset_id: &1}))
 
-    Broadcast.send_engine_hours_to_dispatcher()
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit allocations", allocations, socket) when is_list(allocations) do
-    allocations
-    |> Enum.map(&Helper.to_atom_map!/1)
-    |> Enum.group_by(& &1.asset_id)
-    |> Enum.each(fn {asset_id, allocs} ->
-      allocs
-      |> Enum.map(&Map.put(&1, :created_by_operator, true))
-      |> TimeAllocation.Agent.update_all()
+    task = Task.async(fn ->
+      allocations
+      |> Enum.map(&Helper.to_atom_map!/1)
+      |> Enum.group_by(& &1.asset_id)
+      |> Enum.each(fn {asset_id, allocs} ->
+        allocs
+        |> Enum.map(&Map.put(&1, :created_by_operator, true))
+        |> TimeAllocation.Agent.update_all()
 
-      Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+        Broadcast.send_active_allocation_to(%{asset_id: asset_id})
+      end)
+
+      Broadcast.send_allocations_to_dispatcher()
     end)
 
-    Broadcast.send_allocations_to_dispatcher()
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit exceptions", exceptions, socket) when is_list(exceptions) do
-    exceptions
-    |> Enum.map(&Helper.to_atom_map!/1)
-    |> Enum.map(&Map.put(&1, :created_by_operator, true))
-    |> TimeAllocation.Agent.update_all()
+    task = Task.async(fn ->
+      exceptions
+      |> Enum.map(&Helper.to_atom_map!/1)
+      |> Enum.map(&Map.put(&1, :created_by_operator, true))
+      |> TimeAllocation.Agent.update_all()
 
-    Enum.each(exceptions, &Broadcast.send_active_allocation_to(%{asset_id: &1["asset_id"]}))
-    Broadcast.send_allocations_to_dispatcher()
+      Enum.each(exceptions, &Broadcast.send_active_allocation_to(%{asset_id: &1["asset_id"]}))
+      Broadcast.send_allocations_to_dispatcher()
+    end)
+
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit pre-start submissions", submissions, socket) when is_list(submissions) do
-    Enum.each(submissions, &PreStartSubmissionAgent.add/1)
+    task = Task.async(fn ->
+      Enum.each(submissions, &PreStartSubmissionAgent.add/1)
+      Broadcast.send_pre_start_submissions_to_all()
+    end)
 
-    Broadcast.send_pre_start_submissions_to_all()
+    Task.await(task)
 
     {:reply, :ok, socket}
   end
 
   def handle_in("set device track", track, socket) do
-    with true <- Settings.get(:use_device_gps),
-         %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
-         {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
-      Broadcast.send_track(track)
-    else
-      _ -> nil
-    end
+    task = Task.async(fn ->
+      with true <- Settings.get(:use_device_gps),
+        %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
+          {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
+        Broadcast.send_track(track)
+      else
+        _ -> nil
+      end
+    end)
+
+    Task.await(task)
 
     {:noreply, socket}
   end
 
   def handle_in("haul:" <> _ = topic, payload, socket) do
-    HaulTruckTopics.handle_in(topic, payload, socket)
+    task = Task.async(fn -> HaulTruckTopics.handle_in(topic, payload, socket) end)
+    Task.await(task)
   end
 
   def handle_in("dig:" <> _ = topic, payload, socket) do
-    DigUnitTopics.handle_in(topic, payload, socket)
+    task = Task.async(fn -> DigUnitTopics.handle_in(topic, payload, socket) end)
+    Task.await(task)
   end
 
   defp get_connect_type(params) do
@@ -558,4 +606,11 @@ defmodule FleetControlWeb.OperatorChannel do
         nil
     end
   end
+
+  def handle_info(:gc, socket) do
+    send(socket.transport_pid, :garbage_collect)
+    :erlang.garbage_collect()
+    {:noreply, socket}
+  end
+
 end

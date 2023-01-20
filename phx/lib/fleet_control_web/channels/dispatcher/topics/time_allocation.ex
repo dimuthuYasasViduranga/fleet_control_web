@@ -105,59 +105,79 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
   end
 
   def handle_in("get-data", calendar_id, socket) do
+
+    ref = Phoenix.Channel.socket_ref(socket)
+
     case CalendarAgent.get(%{id: calendar_id}) do
       nil ->
         {:reply, to_error("shift does not exist"), socket}
 
       shift ->
-        range = %{start_time: shift.shift_start, end_time: shift.shift_end}
-        allocations = FleetControl.TimeAllocation.EctoQueries.fetch_by_range!(range)
+        task = Task.async(fn ->
+          range = %{start_time: shift.shift_start, end_time: shift.shift_end}
+          allocations = FleetControl.TimeAllocation.EctoQueries.fetch_by_range!(range)
 
-        device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
+          device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
-        timeusage = Haul.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
-        cycles = Haul.fetch_cycles_by_range!(%{calendar_id: calendar_id})
+          timeusage = Haul.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
+          cycles = Haul.fetch_cycles_by_range!(%{calendar_id: calendar_id})
 
-        payload = %{
-          shift: shift,
-          allocations: allocations,
-          device_assignments: device_assignments,
-          timeusage: timeusage,
-          cycles: cycles
-        }
+          payload = %{
+            shift: shift,
+            allocations: allocations,
+            device_assignments: device_assignments,
+            timeusage: timeusage,
+            cycles: cycles
+          }
 
-        send(socket.transport_pid, :garbage_collect)
-        send(self(), :garbage_collect)
-        {:reply, {:ok, payload}, socket}
+          Phoenix.Channel.reply(ref, {:ok, payload}) end)
+        Task.await(task)
+        send(self(), :gc)
+
+        {:noreply, socket}
     end
   end
 
   def handle_in("get-operator-data", calendar_id, socket) do
+    ref = Phoenix.Channel.socket_ref(socket)
+
     case CalendarAgent.get(%{id: calendar_id}) do
       nil ->
         {:reply, to_error("shift does not exists"), socket}
 
       shift ->
-        now = NaiveDateTime.utc_now()
+        task = Task.async(fn ->
+          now = NaiveDateTime.utc_now()
 
-        end_time =
-          case NaiveDateTime.compare(shift.shift_end, now) == :gt do
-            true -> now
-            _ -> shift.shift_end
-          end
+          end_time =
+            case NaiveDateTime.compare(shift.shift_end, now) == :gt do
+              true -> now
+              _ -> shift.shift_end
+            end
 
-        report =
-          OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
-          |> OperatorTimeAllocation.build_report()
-          |> Map.put(:end_time, shift.shift_end)
+          report =
+            OperatorTimeAllocation.fetch_data(shift.shift_start, end_time)
+            |> OperatorTimeAllocation.build_report()
+            |> Map.put(:end_time, shift.shift_end)
 
-        payload = %{
-          shift: shift,
-          data: report
-        }
+          payload = %{
+            shift: shift,
+            data: report
+          }
 
-        send(socket.transport_pid, :garbage_collect)
-        {:reply, {:ok, payload}, socket}
+          Phoenix.Channel.reply(ref, {:ok, payload})  end)
+
+        Task.await(task)
+        send(self(), :gc)
+
+        {:noreply, socket}
     end
   end
+
+  def handle_info(:gc, socket) do
+    send(socket.transport_pid, :garbage_collect)
+    :erlang.garbage_collect()
+    {:noreply, socket}
+  end
+
 end

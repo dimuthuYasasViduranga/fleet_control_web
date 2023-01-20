@@ -881,9 +881,8 @@ export default {
 
       this.$channel
         .push('report:time allocation', payload)
-        .receive('ok', data => {
+        .receive('ok', reports => {
           this.reportInTransit = false;
-          const reports = data.reports;
 
           if (!reports) {
             this.events = null;

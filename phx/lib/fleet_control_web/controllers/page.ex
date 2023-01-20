@@ -17,14 +17,9 @@ defmodule FleetControlWeb.PageController do
     end
   end
 
-  @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
-  def static_data(conn, _) do
+  defp static_work_fn(token, conn) do
     user = get_session(conn, :current_user)
-
     authorized = Map.get(conn.assigns.permissions, :authorized, false)
-
-    {conn, token} = get_token(conn)
-
     whitelist = Authorization.Whitelist.get(user[:user_id])
 
     data = %{
@@ -35,9 +30,20 @@ defmodule FleetControlWeb.PageController do
       authorized: authorized
     }
 
+    data |> Jason.encode!
+
+  end
+
+  @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
+  def static_data(conn, _) do
+    {conn, token} = get_token(conn)
+    task = Task.async(fn -> static_work_fn(token, conn) end)
+    payload = Task.await(task)
+
     conn
     |> assign(:user_token, token)
-    |> json(data)
+    |> send_resp(200, payload)
+
   end
 
   defp get_token(conn) do
