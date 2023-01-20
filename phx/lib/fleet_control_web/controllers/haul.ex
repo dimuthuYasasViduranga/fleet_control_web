@@ -4,7 +4,8 @@ defmodule FleetControlWeb.HaulController do
   use FleetControlWeb, :controller
 
   def recent(conn, _) do
-    data = FleetControl.Haul.recent()
-    json(conn, data)
+    task = Task.async(fn -> Jason.encode!(FleetControl.Haul.recent()) end)
+    data = Task.await(task)
+    conn |> send_resp(200, data)
   end
 end

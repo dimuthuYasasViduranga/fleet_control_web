@@ -64,10 +64,8 @@ defmodule FleetControlWeb.Router do
     plug :put_secure_browser_headers
   end
 
-
   scope "/fleet-control" do
     pipe_through [:browser, :authorized]
     live_dashboard "/dashboard", live_socket_path: "/fleet-control/live"
   end
-
 end

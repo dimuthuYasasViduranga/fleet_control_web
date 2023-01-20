@@ -24,28 +24,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   def join("dispatchers:all", _params, socket) do
     send(self(), :after_join)
-    permissions = socket.assigns.permissions
-    resp = Setup.join(permissions)
-
-    user_id = socket.assigns.current_user.id
-
-    try do
-      Process.register(
-        self(),
-        String.to_atom("dispatcher_channel_" <> inspect(user_id) <> "_" <> inspect(self()))
-      )
-
-      Process.register(
-        socket.transport_pid,
-        String.to_atom("dispatcher_socket_" <> inspect(user_id) <> "_" <> inspect(self()))
-      )
-    rescue
-      e in ArgumentError ->
-        Logger.warn(e.message)
-    end
-
-    send(socket.transport_pid, :garbage_collect)
-    {:ok, resp, socket}
+    {:ok, socket}
   end
 
   def join(_topic, _params, _socket), do: {:error, %{reason: "unauthorized"}}
@@ -56,12 +35,30 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
-  def handle_info(:garbage_collect, socket) do
+  def handle_info(:gc, socket) do
+    send(socket.transport_pid, :garbage_collect)
     :erlang.garbage_collect()
     {:noreply, socket}
   end
 
   @decorate channel_action()
+
+  def handle_in("get initial data", _payload, socket) do
+    ref = Phoenix.Channel.socket_ref(socket)
+    permissions = socket.assigns.permissions
+
+    task =
+      Task.async(fn ->
+        resp = Setup.join(permissions)
+        Phoenix.Channel.reply(ref, {:ok, resp})
+      end)
+
+    Task.await(task)
+    send(self(), :gc)
+
+    {:noreply, socket}
+  end
+
   def handle_in("refresh:" <> subtopic, payload, socket) do
     Topics.Refresh.handle_in(subtopic, payload, socket)
   end
@@ -118,8 +115,18 @@ defmodule FleetControlWeb.DispatcherChannel do
   end
 
   def handle_in("activity-log:get-all", _payload, socket) do
-    resp = ActivityAgent.get()
-    {:reply, {:ok, resp}, socket}
+    ref = Phoenix.Channel.socket_ref(socket)
+
+    task =
+      Task.async(fn ->
+        resp = ActivityAgent.get()
+        Phoenix.Channel.reply(ref, {:ok, resp})
+      end)
+
+    Task.await(task)
+    send(self(), :gc)
+
+    {:noreply, socket}
   end
 
   def handle_in("set page visited", payload, socket) do
@@ -164,22 +171,35 @@ defmodule FleetControlWeb.DispatcherChannel do
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
         socket
       ) do
-    report_start = Helper.to_naive(start_time)
-    report_end = Helper.to_naive(end_time)
-    reports = Report.generate_report(report_start, report_end, asset_ids)
+    ref = Phoenix.Channel.socket_ref(socket)
 
-    send(socket.transport_pid, :garbage_collect)
-    {:reply, {:ok, %{reports: reports}}, socket}
+    task =
+      Task.async(fn ->
+        report_start = Helper.to_naive(start_time)
+        report_end = Helper.to_naive(end_time)
+        report = Report.generate_report(report_start, report_end, asset_ids)
+        Phoenix.Channel.reply(ref, {:ok, report})
+      end)
+
+    Task.await(task, 10_000)
+    send(self(), :gc)
+    {:noreply, socket}
   end
 
   def handle_in("report:time allocation", calendar_id, socket) when is_integer(calendar_id) do
+    ref = Phoenix.Channel.socket_ref(socket)
+
     case CalendarAgent.get(%{id: calendar_id}) do
       %{shift_start: start_time, shift_end: end_time} ->
-        reports_pid = Task.async(fn -> Report.generate_report(start_time, end_time) end)
-        reports = Task.await(reports_pid, 10_000)
+        task =
+          Task.async(fn ->
+            report = Report.generate_report(start_time, end_time)
+            Phoenix.Channel.reply(ref, {:ok, report})
+          end)
 
-        send(socket.transport_pid, :garbage_collect)
-        {:reply, {:ok, %{reports: reports}}, socket}
+        Task.await(task, 10_000)
+        send(self(), :gc)
+        {:noreply, socket}
 
       _ ->
         {:reply, to_error("shift does not exist"), socket}

@@ -233,8 +233,8 @@ export default {
 
       this.$channel
         .push('report:time allocation', shift.id)
-        .receive('ok', data => {
-          const reports = (data.reports || []).map(r => parseReport(r, this.operators));
+        .receive('ok', data  => {
+          const reports = (data || []).map(r => parseReport(r, this.operators));
           reports.sort((a, b) => a.asset.name.localeCompare(b.asset.name));
           if (this.reportInTransit === this.shift.id) {
             this.reports = reports;
