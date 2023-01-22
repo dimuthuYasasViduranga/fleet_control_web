@@ -4,7 +4,8 @@ defmodule FleetControl.HaulTest do
 
   alias FleetControl.{CalendarAgent, Haul}
   alias HpsData.Dim
-  alias HpsData.Haul.Cylce
+  alias HpsData.Haul.State
+  alias HpsData.Haul.Cycle
   alias HpsData.Haul.TimeUsage
 
   setup_all _ do
@@ -128,7 +129,7 @@ defmodule FleetControl.HaulTest do
           }
         end)
 
-      {_count, inserted_states} = Repo.insert_all(Haul.State, states, returning: true)
+      {_count, inserted_states} = Repo.insert_all(State, states, returning: true)
 
       # add state id required for time usage elements
       tu_elements =
