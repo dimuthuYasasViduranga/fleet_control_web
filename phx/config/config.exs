@@ -78,7 +78,8 @@ config :hps_data, HpsData.Repo,
   ],
   username: "postgres",
   password: "postgres",
-  hostname: "localhost"
+  hostname: "localhost",
+  log: false
 
 # Configures the endpoint
 config :fleet_control_web, FleetControlWeb.Endpoint,

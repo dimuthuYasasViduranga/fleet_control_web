@@ -40,17 +40,22 @@ defmodule FleetControlWeb.Authorization.AzureGraph do
   defp http_get(url), do: http_get(url, get_token())
 
   defp http_get(url, {:ok, token}) do
-    HTTPoison.get(url, Authorization: token)
-    |> case do
-      {:ok, %{status_code: 200, body: body}} ->
-        Jason.decode(body)
+    task =
+      Task.async(fn ->
+        HTTPoison.get(url, Authorization: token)
+        |> case do
+          {:ok, %{status_code: 200, body: body}} ->
+            Jason.decode(body)
 
-      {:ok, %{body: body}} ->
-        {:error, Jason.decode!(body)}
+          {:ok, %{body: body}} ->
+            {:error, Jason.decode!(body)}
 
-      error ->
-        error
-    end
+          error ->
+            error
+        end
+      end)
+
+    Task.await(task)
   end
 
   defp http_get(_, _), do: {:error, :invalid_token}
