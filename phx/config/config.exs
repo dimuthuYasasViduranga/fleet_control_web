@@ -73,6 +73,9 @@ config :hps_data, HpsData.Repo,
   adapter: Ecto.Adapters.Postgres,
   ssl_opts: [log_level: :error],
   pool_size: 10,
+  # allow longer queue to ensure response
+  queue_target: 5_000,
+  queue_interval: 100_000,
   parameters: [
     {:application_name, "fleet-control"}
   ],
