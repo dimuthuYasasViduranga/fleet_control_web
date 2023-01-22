@@ -1,7 +1,7 @@
 defmodule FleetControlWeb.OperatorChannel do
   @moduledoc nil
 
-  use FleetControlWeb, :channel
+  use Phoenix.Channel
   use Appsignal.Instrumentation.Decorators
 
   require Logger

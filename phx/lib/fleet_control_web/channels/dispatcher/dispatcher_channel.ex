@@ -5,8 +5,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   use Appsignal.Instrumentation.Decorators
   use FleetControlWeb.Authorization.Decorator
 
-  use FleetControlWeb, :channel
-
+  use Phoenix.Channel
   alias FleetControlWeb.DispatcherChannel
   alias DispatcherChannel.Topics
   alias DispatcherChannel.Report

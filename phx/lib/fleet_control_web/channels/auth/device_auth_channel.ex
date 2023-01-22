@@ -1,8 +1,7 @@
 defmodule FleetControlWeb.DeviceAuthChannel do
   @moduledoc false
 
-  use FleetControlWeb, :channel
-
+  use Phoenix.Channel
   alias Phoenix.Socket
 
   @type topic :: String.t()
