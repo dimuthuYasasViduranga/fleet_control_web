@@ -105,4 +105,12 @@ defmodule FleetControl.Helper do
       true -> :no_overlap
     end
   end
+
+  def memleak(n) do
+    b4 = :recon.proc_count(:memory, n)
+    :recon.bin_leak(1)
+    afta = :recon.proc_count(:memory, n)
+
+    for item <- b4, do: dbg(item)
+  end
 end
