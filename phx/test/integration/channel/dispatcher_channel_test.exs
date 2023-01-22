@@ -27,10 +27,16 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
         timestamp: NaiveDateTime.utc_now()
       })
 
+    dispatcher =
+      %{user_id: "test", name: "test"}
+      |> HpsData.Schemas.Dispatch.Dispatcher.new()
+      |> HpsData.Repo.insert!()
+
     {:ok, _, d_socket} =
       DispatcherSocket
       |> socket("user_id", %{})
       |> assign(:permissions, Permissions.full_permissions())
+      |> assign(:current_user, %{id: dispatcher.id})
       |> subscribe_and_join(DispatcherChannel, @dispatcher)
 
     {:ok, _, o_socket} =
