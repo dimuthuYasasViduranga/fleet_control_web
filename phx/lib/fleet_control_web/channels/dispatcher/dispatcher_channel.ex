@@ -22,7 +22,6 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControlWeb.DispatcherChannel.Setup
 
   def join("dispatchers:all", _params, socket) do
-    send(self(), :after_join)
     {:ok, socket}
   end
 
@@ -43,6 +42,7 @@ defmodule FleetControlWeb.DispatcherChannel do
   @decorate channel_action()
 
   def handle_in("get initial data", _payload, socket) do
+    send(self(), :after_join)
     ref = Phoenix.Channel.socket_ref(socket)
     permissions = socket.assigns.permissions
 
