@@ -22,8 +22,6 @@ defmodule FleetControlWeb.DispatcherChannel.Setup do
   alias FleetControl.PreStartAgent
   alias FleetControl.PreStartSubmissionAgent
 
-  alias FleetControl.HaulAgent
-
   def join(permissions) do
     {devices, accept_until} = DeviceAuthServer.get()
 
@@ -67,7 +65,6 @@ defmodule FleetControlWeb.DispatcherChannel.Setup do
         active: TimeAllocation.Agent.active(),
         historic: TimeAllocation.Agent.historic()
       },
-      fleetops_data: HaulAgent.get(),
       pre_start_forms: PreStartAgent.all(),
       current_pre_start_submissions: PreStartSubmissionAgent.current(),
       tracks: TrackAgent.all(),

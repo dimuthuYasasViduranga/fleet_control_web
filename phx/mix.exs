@@ -21,7 +21,7 @@ defmodule FleetControlWeb.MixProject do
 
   def application do
     mod = {FleetControlWeb.Application, []}
-    apps = [:logger, :runtime_tools]
+    apps = [:logger, :runtime_tools, :os_mon]
 
     case Mix.env() do
       :test -> [extra_applications: apps]
@@ -44,6 +44,8 @@ defmodule FleetControlWeb.MixProject do
       {:guardian, "~> 2.2"},
       {:appsignal_phoenix, "~> 2.0"},
       {:decorator, "~> 1.2"},
+      {:phoenix_live_dashboard, "~> 0.7"},
+      {:ecto_psql_extras, "~> 0.6"},
 
       # dispatch
       {:topo, "~> 0.4.0"},
@@ -56,6 +58,7 @@ defmodule FleetControlWeb.MixProject do
       {:slack_logger_backend,
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.4", only: [:prod]},
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.1"},
+      {:recon, "~> 2.5"},
 
       # test
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},

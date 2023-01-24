@@ -51,6 +51,8 @@ spec:
               value: fleet_control_ui_kube-adani-test-haul
             - name: RELEASE_NODE
               value: fleet-control-ui@fleet-control-ui.fleet-control-ui
+            - name: ERL_FULLSWEEP_AFTER
+              value: "20"
             - name: DISPATCH
               value: |
                 [

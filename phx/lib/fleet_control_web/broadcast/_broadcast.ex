@@ -33,7 +33,6 @@ defmodule FleetControlWeb.Broadcast do
     TimeAllocation,
     LocationAgent,
     CalendarAgent,
-    HaulAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
     RoutingAgent
@@ -208,11 +207,6 @@ defmodule FleetControlWeb.Broadcast do
     }
 
     Endpoint.broadcast(@dispatch, "set calendar data", payload)
-  end
-
-  def send_fleetops_data_to_all() do
-    payload = HaulAgent.get()
-    Endpoint.broadcast(@dispatch, "set fleetops data", payload)
   end
 
   def send_time_code_data_to_all() do
@@ -443,8 +437,12 @@ defmodule FleetControlWeb.Broadcast do
     # send to dispatcher
     Endpoint.broadcast(@dispatch, "new track", payload)
 
-    # send to all other assets
-    broadcast_all_operators("other track", payload, &(&1.id != track.asset_id))
+    # send track to excavators, so it can prepare for trucks arriving soon
+    broadcast_all_operators(
+      "other track",
+      payload,
+      &(&1.type in ["Excavator", "Loader"] && &1.id != track.asset_id)
+    )
   end
 
   def send_settings_to_all() do
@@ -465,8 +463,6 @@ defmodule FleetControlWeb.Broadcast do
     }
 
     ActivityAgent.append(activity)
-    activities = ActivityAgent.get()
-    Endpoint.broadcast(@dispatch, "set activity log", %{activities: activities})
   end
 
   def send_activity(identifier, source, activity_type, timestamp) do
@@ -484,8 +480,6 @@ defmodule FleetControlWeb.Broadcast do
         }
 
         ActivityAgent.append(activity)
-        activities = ActivityAgent.get()
-        Endpoint.broadcast(@dispatch, "set activity log", %{activities: activities})
 
       _ ->
         nil

@@ -18,7 +18,8 @@ defmodule FleetControl.MapTileAgent do
   defp get_map_tile_endpoint(),
     do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
 
-  def start_link(_opts), do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+  def start_link(_opts),
+    do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__, hibernate_after: 30_0000)
 
   def child_spec(opts) do
     %{
@@ -43,16 +44,21 @@ defmodule FleetControl.MapTileAgent do
   defp get_manifest(nil), do: {:error, :no_endpoint}
 
   defp get_manifest(endpoint) do
-    manifest_endpoint = "#{endpoint}/#{@manifest_name}"
+    task =
+      Task.async(fn ->
+        manifest_endpoint = "#{endpoint}/#{@manifest_name}"
 
-    case HTTPoison.get(manifest_endpoint) do
-      {:ok, %{status_code: 200, body: body}} ->
-        manifest = Jason.decode!(body)
-        {:ok, manifest}
+        case HTTPoison.get(manifest_endpoint) do
+          {:ok, %{status_code: 200, body: body}} ->
+            manifest = Jason.decode!(body)
+            {:ok, manifest}
 
-      _ ->
-        {:error, :http_error}
-    end
+          _ ->
+            {:error, :http_error}
+        end
+      end)
+
+    Task.await(task)
   end
 
   defp update_manifest_data(state, manifest) do

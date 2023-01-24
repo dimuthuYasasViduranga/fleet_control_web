@@ -31,6 +31,8 @@ defmodule FleetControlWeb.Endpoint do
     longpoll: false
   )
 
+  socket "/fleet-control/live", Phoenix.LiveView.Socket
+
   plug(Plug.Static,
     at: "/fleet-control",
     from: {:fleet_control_web, "priv/static/main"},

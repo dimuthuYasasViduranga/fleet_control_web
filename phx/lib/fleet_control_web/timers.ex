@@ -7,7 +7,6 @@ defmodule FleetControlWeb.Timers do
 
   @default_calendar_interval 24 * 3600 * 1000
   @default_location_interval 30 * 60 * 1000
-  @default_fleetops_interval 10 * 60 * 1000
   @default_live_queue_interval 10 * 1000
   @default_track_interval 10 * 1000
   @default_track_broadcast_interval 60 * 1000
@@ -22,11 +21,6 @@ defmodule FleetControlWeb.Timers do
     start_refresh_interval!(
       "location agent",
       get_interval(:location_interval, @default_location_interval)
-    )
-
-    start_refresh_interval!(
-      "fleetops agent",
-      get_interval(:fleetops_interval, @default_fleetops_interval)
     )
 
     start_live_queue_interval!(get_interval(:live_queue_interval, @default_live_queue_interval))

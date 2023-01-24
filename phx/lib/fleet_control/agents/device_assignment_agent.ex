@@ -5,14 +5,13 @@ defmodule FleetControl.DeviceAssignmentAgent do
     current assignments being older than the transient history limit
   """
 
-  alias FleetControl.{Helper, AgentHelper}
   use Agent
+  alias FleetControl.{Helper, AgentHelper}
   import Ecto.Query, only: [from: 2, subquery: 1]
   import Ecto.Query.API, only: [map: 2]
 
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DeviceAssignment
-  alias HpsData.Asset
 
   @cull_opts %{
     time_key: :timestamp,
@@ -240,51 +239,33 @@ defmodule FleetControl.DeviceAssignmentAgent do
   end
 
   defp get_latest_query() do
-    from(a in Asset,
+    from(d in DeviceAssignment,
+      group_by: d.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MAX(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ?",
-            a.id
-          )
+        asset_id: d.asset_id,
+        timestamp: max(d.timestamp)
       }
     )
   end
 
   defp get_search_query(timestamp, ">") do
-    from(a in Asset,
+    from(da in DeviceAssignment,
+      where: da.timestamp > ^timestamp,
+      group_by: da.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MIN(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ? and timestamp > ?",
-            a.id,
-            ^timestamp
-          )
+        asset_id: da.asset_id,
+        timestamp: min(da.timestamp)
       }
     )
   end
 
   defp get_search_query(timestamp, "<") do
-    from(a in Asset,
+    from(da in DeviceAssignment,
+      where: da.timestamp < ^timestamp,
+      group_by: da.asset_id,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-                MAX(timestamp)
-              FROM dis_device_assignment
-              WHERE asset_id = ? and timestamp < ?",
-            a.id,
-            ^timestamp
-          )
+        asset_id: da.asset_id,
+        timestamp: max(da.timestamp)
       }
     )
   end

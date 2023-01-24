@@ -1,54 +1,26 @@
-defmodule FleetControl.HaulAgent do
-  @moduledoc """
-  Holds live (ish) fleetops data and provides helper functions to retrieve time uasge
-  """
-  alias FleetControl.AgentHelper
-  use Agent
-
+defmodule FleetControl.Haul do
   require Logger
 
   import Ecto.Query, only: [from: 2, subquery: 1]
 
-  alias HpsData.{Asset, Dim, Haul}
+  alias HpsData.Asset
+  alias HpsData.Dim
   alias HpsData.Repo
-
-  @type timeusage :: map
-  @type cycle :: map
+  alias HpsData.Haul.Cycle
+  alias HpsData.Haul.TimeUsage
 
   @recency 12 * 3600
 
-  def start_link(_opts), do: AgentHelper.start_link(&init/0)
-
-  defp init(now \\ NaiveDateTime.utc_now()) do
+  def recent() do
+    now = NaiveDateTime.utc_now()
     recent = NaiveDateTime.add(now, -@recency)
-
     fetch_by_range!(%{start_time: recent, end_time: now})
   end
-
-  @spec refresh!(NaiveDateTime.t()) :: :ok
-  def refresh!(timestamp \\ NaiveDateTime.utc_now()) do
-    AgentHelper.set(__MODULE__, init(timestamp))
-  end
-
-  @spec get() :: %{cycles: list(cycle), timeusage: list(timeusage)}
-  def get() do
-    %{
-      timeusage: timeusage(),
-      cycles: cycles()
-    }
-  end
-
-  @spec timeusage() :: list(timeusage)
-  def timeusage(), do: Agent.get(__MODULE__, & &1.timeusage)
-
-  @spec cycles() :: list(cycle)
-  def cycles(), do: Agent.get(__MODULE__, & &1.cycles)
 
   @doc """
   Returns all cycles that have any period within the specified range
   This includes start and end, start_only, end_only and a cycle that goes over the entire range
   """
-  @spec fetch_by_range!(map) :: %{cycles: list(cycle), timeusage: list(timeusage)}
   def fetch_by_range!(range) do
     cycles = fetch_cycles_by_range!(range)
     timeusage = fetch_timeusage_by_range!(range)
@@ -56,7 +28,6 @@ defmodule FleetControl.HaulAgent do
     %{cycles: cycles, timeusage: timeusage}
   end
 
-  @spec fetch_cycles_by_range!(map) :: list(cycle)
   def fetch_cycles_by_range!(%{calendar_id: cal_id}) do
     fn query ->
       from([c] in query,
@@ -77,7 +48,7 @@ defmodule FleetControl.HaulAgent do
   end
 
   defp fetch_cycles(where) do
-    query = where.(Haul.Cycle)
+    query = where.(Cycle)
 
     from([c] in query,
       join: ht in Dim.HaulTruck,
@@ -129,7 +100,6 @@ defmodule FleetControl.HaulAgent do
     |> Repo.all()
   end
 
-  @spec fetch_timeusage_by_range!(map) :: list(timeusage)
   def fetch_timeusage_by_range!(%{calendar_id: cal_id}) do
     fn query ->
       from([tu] in query,
@@ -153,7 +123,7 @@ defmodule FleetControl.HaulAgent do
   end
 
   defp fetch_timeusage(where) do
-    query = where.(Haul.TimeUsage)
+    query = where.(TimeUsage)
 
     from([tu] in query,
       join: ht in Dim.HaulTruck,

@@ -1,5 +1,6 @@
 defmodule FleetControlWeb.Router do
   use FleetControlWeb, :router
+  import Phoenix.LiveDashboard.Router
 
   pipeline :api do
     plug :accepts, ["json"]
@@ -32,6 +33,7 @@ defmodule FleetControlWeb.Router do
     pipe_through :authorized
 
     get "/api/static_data", PageController, :static_data
+    get "/api/haul", HaulController, :recent
   end
 
   scope "/fleet-control", FleetControlWeb do
@@ -53,5 +55,17 @@ defmodule FleetControlWeb.Router do
 
     # initial request for authorization
     post "/request_device_auth", DeviceAuthController, :request_device_auth
+  end
+
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  scope "/fleet-control" do
+    pipe_through [:browser, :authorized]
+    live_dashboard "/dashboard", live_socket_path: "/fleet-control/live"
   end
 end
