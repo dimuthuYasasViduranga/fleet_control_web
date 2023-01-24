@@ -86,15 +86,9 @@ defmodule FleetControlWeb.OperatorChannel do
     {:noreply, socket}
   end
 
-  @spec handle_in(String.t(), map(), Socket.t()) ::
-          {:noreply, Socket.t()}
-          | {:reply, :ok, Socket.t()}
-  @decorate channel_action()
-
-  def handle_in("get device state", params, socket) do
-    task = Task.async(fn -> _handle_in_get_state(socket, params) end)
-    Task.await(task)
-    send(self(), :gc)
+  def handle_info(:gc, socket) do
+    send(socket.transport_pid, :garbage_collect)
+    :erlang.garbage_collect()
     {:noreply, socket}
   end
 
@@ -140,6 +134,18 @@ defmodule FleetControlWeb.OperatorChannel do
       end
 
     push(socket, "set device state", state)
+  end
+
+  @spec handle_in(String.t(), map(), Socket.t()) ::
+          {:noreply, Socket.t()}
+          | {:reply, :ok, Socket.t()}
+  @decorate channel_action()
+
+  def handle_in("get device state", params, socket) do
+    task = Task.async(fn -> _handle_in_get_state(socket, params) end)
+    Task.await(task)
+    send(self(), :gc)
+    {:noreply, socket}
   end
 
   def handle_in("logout", %{}, socket) do
@@ -621,11 +627,5 @@ defmodule FleetControlWeb.OperatorChannel do
       nil ->
         nil
     end
-  end
-
-  def handle_info(:gc, socket) do
-    send(socket.transport_pid, :garbage_collect)
-    :erlang.garbage_collect()
-    {:noreply, socket}
   end
 end
