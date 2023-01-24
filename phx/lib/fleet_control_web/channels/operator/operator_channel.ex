@@ -92,7 +92,7 @@ defmodule FleetControlWeb.OperatorChannel do
     {:noreply, socket}
   end
 
-  defp _handle_in_get_state(socket, params) do
+  defp do_handle_in_get_state(socket, params) do
     operator_id = socket.assigns.operator_id
     device_id = socket.assigns.device_id
     device_name = "#{device_id}[#{socket.assigns.device_uuid}]"
@@ -142,7 +142,7 @@ defmodule FleetControlWeb.OperatorChannel do
   @decorate channel_action()
 
   def handle_in("get device state", params, socket) do
-    task = Task.async(fn -> _handle_in_get_state(socket, params) end)
+    task = Task.async(fn -> do_handle_in_get_state(socket, params) end)
     Task.await(task)
     send(self(), :gc)
     {:noreply, socket}
