@@ -24,7 +24,7 @@ defmodule FleetControl.AgentHelper do
         :timer.sleep(@error_timeout)
         start_link(init_func)
     else
-      state -> Agent.start_link(fn -> state end, name: caller_module, hibernate_after: 60_000)
+      state -> Agent.start_link(fn -> state end, name: caller_module, hibernate_after: 600_000)
     end
   end
 

@@ -19,7 +19,7 @@ defmodule FleetControl.MapTileAgent do
     do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
 
   def start_link(_opts),
-    do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__, hibernate_after: 30_0000)
+    do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__, hibernate_after: 300_000)
 
   def child_spec(opts) do
     %{
