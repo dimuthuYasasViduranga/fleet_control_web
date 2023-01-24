@@ -39,10 +39,11 @@ defmodule FleetControlWeb.OperatorChannel do
   alias Phoenix.Socket
 
   def join("operators:" <> _device_uuid, _params, socket) do
+    send(self(), :after_join)
+
     task =
       Task.async(fn ->
         enable_leave(socket)
-        send(self(), :after_join)
         operator_id = socket.assigns.operator_id
         device_uuid = socket.assigns.device_uuid
         device_id = socket.assigns.device_id
@@ -52,9 +53,11 @@ defmodule FleetControlWeb.OperatorChannel do
         )
 
         DeviceConnectionAgent.set(device_uuid, :connected, NaiveDateTime.utc_now())
+        Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
       end)
 
     Task.await(task)
+
     {:ok, socket}
   end
 
