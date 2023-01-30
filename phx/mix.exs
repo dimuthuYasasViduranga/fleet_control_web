@@ -64,7 +64,9 @@ defmodule FleetControlWeb.MixProject do
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
       {:bureaucrat, "~> 0.2.7", only: :test},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:gradient, github: "esl/gradient", only: [:dev], runtime: false}
     ]
   end
 
