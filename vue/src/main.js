@@ -12,7 +12,6 @@ import { Modal } from 'hx-vue';
 
 import setupRouter from './code/routes';
 import App from './App.vue';
-import UnauthorizedApp from './UnauthorizedApp.vue';
 import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
 import Channel from './code/channel.js';
@@ -109,15 +108,6 @@ async function startApp(staticData) {
   }).$mount('#app');
 }
 
-async function startUnauthorized(user) {
-  const props = { user };
-  new Vue({
-    render(createElement) {
-      return createElement(UnauthorizedApp, { props });
-    },
-  }).$mount('#app');
-}
-
 async function startUnknownError(error) {
   const props = { error };
   new Vue({
@@ -130,12 +120,7 @@ async function startUnknownError(error) {
 axios
   .get(`${hostname}/api/static_data`)
   .then(resp => {
-    if (resp.data.authorized) {
-      startApp(resp.data);
-      return;
-    }
-
-    startUnauthorized(resp.data.user);
+    startApp(resp.data);
   })
   .catch(error => {
     console.error(error);

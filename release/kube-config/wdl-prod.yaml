@@ -65,7 +65,6 @@ spec:
                   ],
                   track_method: :gps_gate,
                   permissions: [
-                    authorized: :any,
                     can_dispatch: :any,
                     can_edit_devices: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],
                     can_edit_operators: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],

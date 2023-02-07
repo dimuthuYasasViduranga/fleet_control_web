@@ -65,21 +65,6 @@ spec:
                     "Please go for fuel if you haven't already"
                   ],
                   track_method: :gps_gate,
-                  permissions: [
-                    authorized: :any,
-                    can_dispatch: :any,
-                    can_edit_devices: :any,
-                    can_edit_operators: :any,
-                    can_edit_time_allocations: :any,
-                    can_lock_time_allocations: :any,
-                    can_edit_time_codes: :any,
-                    can_edit_messages: :any,
-                    can_refresh_agents: :any,
-                    can_edit_routing: :any,
-                    can_edit_pre_starts: :any,
-                    can_edit_pre_start_tickets: :any,
-                    can_edit_asset_roster: :any
-                  ],
                   settings: [
                     use_device_gps: false,
                     use_pre_starts: false,

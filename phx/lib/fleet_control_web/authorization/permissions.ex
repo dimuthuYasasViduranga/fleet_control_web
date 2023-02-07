@@ -4,7 +4,6 @@ defmodule FleetControlWeb.Authorization.Permissions do
   @spec default_permissions() :: map()
   def default_permissions() do
     %{
-      authorized: false,
       can_dispatch: false,
       can_edit_devices: false,
       can_edit_operators: false,
