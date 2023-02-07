@@ -40,11 +40,12 @@ defmodule FleetControlWeb.Authorization.Permissions do
   end
 
   defp generate_permissions(config, assigned_groups) do
-    default_permissions()
+    set_permissions(false)
     |> Enum.map(fn {permission, _} ->
       {permission, is_member_of?(config[permission], assigned_groups)}
     end)
     |> Enum.into(%{})
+    |> Map.put(:authorized, true)
   end
 
   defp is_member_of?(:any, _), do: true
