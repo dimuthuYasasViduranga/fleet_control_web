@@ -7,16 +7,10 @@ defmodule FleetControlWeb.Authorization.Plug.LoadAuthPermissions do
 
   def call(conn, opts) do
     permissions =
-      case opts[:full_access] do
-        true ->
-          Permissions.full_permissions()
-
-        _ ->
-          conn
-          |> get_session(:current_user)
-          |> Map.get(:user_id)
-          |> Permissions.fetch_permissions()
-      end
+      conn
+      |> get_session(:current_user)
+      |> Map.get(:user_id)
+      |> Permissions.fetch_permissions()
 
     assign(conn, :permissions, permissions)
   end

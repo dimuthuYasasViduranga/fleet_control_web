@@ -1,39 +1,42 @@
 defmodule FleetControlWeb.Authorization.Permissions do
   alias FleetControlWeb.Authorization.AzureGraph
 
-  @spec default_permissions() :: map()
-  def default_permissions() do
-    %{
-      can_dispatch: false,
-      can_edit_devices: false,
-      can_edit_operators: false,
-      can_edit_time_allocations: false,
-      can_lock_time_allocations: false,
-      can_edit_time_codes: false,
-      can_edit_messages: false,
-      can_refresh_agents: false,
-      can_edit_routing: false,
-      can_edit_pre_starts: false,
-      can_edit_pre_start_tickets: false,
-      can_edit_asset_roster: false
-    }
-  end
-
-  @spec full_permissions() :: map()
-  def full_permissions() do
-    default_permissions()
-    |> Enum.map(fn {key, _} -> {key, true} end)
-    |> Enum.into(%{})
-  end
-
-  @spec fetch_permissions(user_id :: String.t()) :: map
-  def fetch_permissions(nil), do: default_permissions()
-
+  @doc """
+  assigned in both socket and session
+  """
   def fetch_permissions(user_id) do
+    bypass_auth = Application.compile_env(:fleet_control_web, :bypass_auth, false)
+
+    cond do
+      bypass_auth -> set_permissions(true)
+      is_nil(user_id) -> set_permissions(false)
+      true -> do_fetch_permissions(user_id)
+    end
+  end
+
+  defp do_fetch_permissions(user_id) do
     assigned_groups = AzureGraph.group_ids(user_id)
     config = Application.get_env(:fleet_control_web, :permissions, %{})
 
     generate_permissions(config, assigned_groups)
+  end
+
+  defp set_permissions(value) do
+    %{
+      authorized: value,
+      can_dispatch: value,
+      can_edit_devices: value,
+      can_edit_operators: value,
+      can_edit_time_allocations: value,
+      can_lock_time_allocations: value,
+      can_edit_time_codes: value,
+      can_edit_messages: value,
+      can_refresh_agents: value,
+      can_edit_routing: value,
+      can_edit_pre_starts: value,
+      can_edit_pre_start_tickets: value,
+      can_edit_asset_roster: value
+    }
   end
 
   defp generate_permissions(config, assigned_groups) do
@@ -45,9 +48,7 @@ defmodule FleetControlWeb.Authorization.Permissions do
   end
 
   defp is_member_of?(:any, _), do: true
-
   defp is_member_of?(nil, _), do: false
-
   defp is_member_of?(_, nil), do: false
 
   defp is_member_of?(groups, targets) when is_list(targets) do

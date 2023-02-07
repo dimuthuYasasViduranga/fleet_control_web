@@ -12,7 +12,7 @@ defmodule FleetControlWeb.DispatcherSocket do
   def connect(%{"token" => token}, socket, _connect_info) do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: @max_age) do
       {:ok, user} ->
-        permissions = get_permissions(user[:user_id])
+        permissions = Permissions.fetch_permissions(user[:user_id])
 
         socket =
           socket
@@ -27,11 +27,4 @@ defmodule FleetControlWeb.DispatcherSocket do
   end
 
   def id(socket), do: "dispatcher:#{socket.assigns.current_user.user_id}"
-
-  defp get_permissions(user_id) do
-    case Application.get_env(:fleet_control_web, :bypass_auth, false) do
-      true -> Permissions.full_permissions()
-      _ -> Permissions.fetch_permissions(user_id)
-    end
-  end
 end
