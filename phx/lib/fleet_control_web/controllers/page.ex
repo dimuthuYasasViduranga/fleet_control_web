@@ -24,7 +24,6 @@ defmodule FleetControlWeb.PageController do
     task =
       Task.async(fn ->
         user = get_session(conn, :current_user)
-        authorized = Map.get(conn.assigns.permissions, :authorized, false)
         whitelist = Authorization.Whitelist.get(user[:user_id])
 
         data = %{
@@ -32,7 +31,7 @@ defmodule FleetControlWeb.PageController do
           whitelist: whitelist,
           user_token: token,
           user: user,
-          authorized: authorized
+          authorized: true
         }
 
         data |> Jason.encode!()

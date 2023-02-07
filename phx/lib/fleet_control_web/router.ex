@@ -20,8 +20,6 @@ defmodule FleetControlWeb.Router do
       plug Guardian.Plug.LoadResource
       plug Guardian.Plug.EnsureAuthenticated
     end
-
-    plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions
   end
 
   scope "/fleet-control", FleetControlWeb do

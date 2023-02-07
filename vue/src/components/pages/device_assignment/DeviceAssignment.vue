@@ -152,7 +152,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_devices,
+      readonly: state => !state.permissions.fleet_control_edit_devices,
       assets: state => state.assets,
       assetIcons: state => state.icons,
       operators: state => state.operators,

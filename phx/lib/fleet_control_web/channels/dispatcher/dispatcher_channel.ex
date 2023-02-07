@@ -44,7 +44,12 @@ defmodule FleetControlWeb.DispatcherChannel do
   def handle_in("get initial data", _payload, socket) do
     send(self(), :after_join)
     ref = Phoenix.Channel.socket_ref(socket)
-    permissions = socket.assigns.permissions
+
+    permissions =
+      socket.current_user.user_id
+      |> HpsPhx.Authorization.user_permissions()
+      |> Enum.map(&{&1, true})
+      |> Enum.into(%{})
 
     task =
       Task.async(fn ->
