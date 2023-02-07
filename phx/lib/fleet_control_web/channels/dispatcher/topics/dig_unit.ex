@@ -1,12 +1,12 @@
 defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
   alias FleetControl.DigUnitActivityAgent
 
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
   alias FleetControlWeb.Broadcast
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  @decorate authorized(:can_dispatch)
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("set activity", activity, socket) do
     case DigUnitActivityAgent.add(activity) do
       {:ok, activity} ->

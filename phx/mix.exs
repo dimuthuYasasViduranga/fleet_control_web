@@ -57,6 +57,7 @@ defmodule FleetControlWeb.MixProject do
       {:azure_ad_openid, "~> 0.3.2"},
       {:slack_logger_backend,
        git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.4", only: [:prod]},
+      {:hps_phx, git: "https://github.com/Haultrax/hps_phx.git", tag: "0.0.2"},
       {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.1"},
       {:recon, "~> 2.5"},
 

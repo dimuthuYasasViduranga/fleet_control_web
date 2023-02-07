@@ -3,7 +3,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
   Holds all haul truck specific topics to make the dispatcher channel cleaner
   """
 
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
   alias FleetControl.{
     HaulTruckDispatchAgent,
@@ -15,10 +15,12 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("set dispatch", payload, socket) do
     set_dispatch(payload, socket)
   end
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in(
         "set mass dispatch",
         %{"asset_ids" => asset_ids, "dispatch" => dispatch},

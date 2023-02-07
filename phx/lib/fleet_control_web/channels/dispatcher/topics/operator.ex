@@ -3,9 +3,9 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
   alias FleetControl.OperatorAgent
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
-  @decorate authorized(:can_edit_operators)
+  @decorate authorized_channel("fleet_control_edit_operators")
   def handle_in("add", payload, socket) do
     %{
       "name" => name,
@@ -23,7 +23,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
     end
   end
 
-  @decorate authorized(:can_edit_operators)
+  @decorate authorized_channel("fleet_control_edit_operators")
   def handle_in("update", payload, socket) do
     %{
       "id" => id,
@@ -44,7 +44,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
     end
   end
 
-  @decorate authorized(:can_edit_operators)
+  @decorate authorized_channel("fleet_control_edit_operators")
   def handle_in("bulk-add", %{"operators" => operators}, socket) do
     operators =
       Enum.map(operators, fn o ->
@@ -65,7 +65,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Operator do
     end
   end
 
-  @decorate authorized(:can_edit_operators)
+  @decorate authorized_channel("fleet_control_edit_operators")
   def handle_in("set-enabled", %{"id" => operator_id, "enabled" => enabled}, socket) do
     case enabled do
       true ->
