@@ -64,20 +64,6 @@ spec:
                     "Tip at Surge"
                   ],
                   track_method: :gps_gate,
-                  permissions: [
-                    can_dispatch: :any,
-                    can_edit_devices: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],
-                    can_edit_operators: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"],
-                    can_edit_time_allocations: ["506ddd9e-efb4-4814-a6cc-21e4ef05e26e"],
-                    can_lock_time_allocations: ["506ddd9e-efb4-4814-a6cc-21e4ef05e26e"],
-                    can_edit_time_codes: ["8a4529b3-a27a-4c4c-b9df-0edc52435b65"],
-                    can_edit_messages: ["13b70a64-efcb-4d44-bd67-d6f06c7a7483"],
-                    can_refresh_agents: ["9ea83df3-9bd8-4caa-967f-0ac1e1701fb7"],
-                    can_edit_routing: ["0e91d7c5-51d0-432c-8e3d-ad92a77e9224"],
-                    can_edit_pre_starts: ["a242a8fa-0fc8-4621-859a-a6f9fe0ed5be"],
-                    can_edit_pre_start_tickets: :any,
-                    can_edit_asset_roster: ["d4c0d301-90a4-44f8-9869-b3ad34d36fce"]
-                  ],
                   settings: [
                     use_device_gps: true,
                     use_pre_starts: true,
