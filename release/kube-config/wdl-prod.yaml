@@ -42,10 +42,10 @@ spec:
               memory: 1Gi
           imagePullPolicy: "Always"
           envFrom:
-          - configMapRef:
-              name: configmap
-          - secretRef:
-              name: secrets
+            - configMapRef:
+                name: configmap
+            - secretRef:
+                name: secrets
           env:
             - name: APPSIGNAL_APP_NAME
               value: fleet_control_ui_kube-wdl-prod
@@ -84,26 +84,24 @@ spec:
                       order_by: "dig-unit"
                     }
                   ],
-                  route_white_list: %{
-                    :default => [
-                      "/asset_assignment",
-                      "/location_assignment",
-                      "/mine_map",
-                      "/operators",
-                      "/asset_roster",
-                      "/device_assignment",
-                      "/asset_status",
-                      "/time_allocation",
-                      "/operator_time_allocation",
-                      "/time_allocation_report",
-                      "/time_code_editor",
-                      "/message_editor",
-                      "/engine_hours",
-                      "/route_map",
-                      "/pre_start_editor",
-                      "/pre_start_submissions",
-                      "/asset_overview",
-                      "/agents"
-                    ],
-                  },
+                  route_white_list: [
+                    "/asset_assignment",
+                    "/location_assignment",
+                    "/mine_map",
+                    "/operators",
+                    "/asset_roster",
+                    "/device_assignment",
+                    "/asset_status",
+                    "/time_allocation",
+                    "/operator_time_allocation",
+                    "/time_allocation_report",
+                    "/time_code_editor",
+                    "/message_editor",
+                    "/engine_hours",
+                    "/route_map",
+                    "/pre_start_editor",
+                    "/pre_start_submissions",
+                    "/asset_overview",
+                    "/agents"
+                  ],
                 ]

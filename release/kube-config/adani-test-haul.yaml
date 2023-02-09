@@ -85,24 +85,22 @@ spec:
                       order_by: "dig-unit"
                     }
                   ],
-                  route_white_list: %{
-                    :default => [
-                      "/asset_assignment",
-                      "/location_assignment",
-                      "/mine_map",
-                      "/operators",
-                      "/asset_roster",
-                      "/device_assignment",
-                      "/asset_status",
-                      "/time_allocation",
-                      "/operator_time_allocation",
-                      "/time_allocation_report",
-                      "/time_code_editor",
-                      "/message_editor",
-                      "/engine_hours",
-                      "/agents",
-                      "/route_map",
-                      "/asset_overview"
-                    ],
-                  },
+                  route_white_list: [
+                    "/asset_assignment",
+                    "/location_assignment",
+                    "/mine_map",
+                    "/operators",
+                    "/asset_roster",
+                    "/device_assignment",
+                    "/asset_status",
+                    "/time_allocation",
+                    "/operator_time_allocation",
+                    "/time_allocation_report",
+                    "/time_code_editor",
+                    "/message_editor",
+                    "/engine_hours",
+                    "/agents",
+                    "/route_map",
+                    "/asset_overview"
+                  ],
                 ]

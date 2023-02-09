@@ -43,30 +43,28 @@ config :fleet_control_web,
       order_by: "location"
     }
   ],
-  route_white_list: %{
-    default: [
-      "/asset_assignment",
-      "/location_assignment",
-      "/mine_map",
-      "/asset_progress_line",
-      "/operators",
-      "/asset_roster",
-      "/device_assignment",
-      "/asset_status",
-      "/time_allocation",
-      "/operator_time_allocation",
-      "/time_allocation_report",
-      "/time_code_editor",
-      "/message_editor",
-      "/engine_hours",
-      "/debug",
-      "/agents",
-      "/route_map",
-      "/pre_start_editor",
-      "/pre_start_submissions",
-      "/asset_overview"
-    ]
-  }
+  route_white_list: [
+    "/asset_assignment",
+    "/location_assignment",
+    "/mine_map",
+    "/asset_progress_line",
+    "/operators",
+    "/asset_roster",
+    "/device_assignment",
+    "/asset_status",
+    "/time_allocation",
+    "/operator_time_allocation",
+    "/time_allocation_report",
+    "/time_code_editor",
+    "/message_editor",
+    "/engine_hours",
+    "/debug",
+    "/agents",
+    "/route_map",
+    "/pre_start_editor",
+    "/pre_start_submissions",
+    "/asset_overview"
+  ]
 
 # hpsdata
 config :hps_data, HpsData.Repo,

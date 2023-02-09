@@ -24,7 +24,7 @@ defmodule FleetControlWeb.PageController do
     task =
       Task.async(fn ->
         user = get_session(conn, :current_user)
-        whitelist = Authorization.Whitelist.get(user[:user_id])
+        whitelist = Application.get_env(:fleet_control_web, :route_white_list, [])
 
         data = %{
           data: FleetControl.StaticData.fetch(),
