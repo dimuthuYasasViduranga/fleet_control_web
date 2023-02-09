@@ -10,6 +10,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
   use HpsPhx.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("set", %{"asset_id" => asset_id} = allocation, socket) do
     allocation = Map.put(allocation, :created_by_dispatcher, true)
 
@@ -25,6 +26,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
     end
   end
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in(
         "mass-set",
         %{"time_code_id" => time_code_id, "asset_ids" => asset_ids},
