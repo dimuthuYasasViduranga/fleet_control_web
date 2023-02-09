@@ -3,7 +3,6 @@ defmodule FleetControlWeb.PageController do
 
   use FleetControlWeb, :controller
 
-  alias FleetControlWeb.Authorization
   alias FleetControlWeb.Guardian
   alias FleetControl.DispatcherAgent
 
@@ -26,22 +25,20 @@ defmodule FleetControlWeb.PageController do
         user = get_session(conn, :current_user)
         whitelist = Application.get_env(:fleet_control_web, :route_white_list, [])
 
-        data = %{
+        %{
           data: FleetControl.StaticData.fetch(),
           whitelist: whitelist,
           user_token: token,
           user: user,
           authorized: true
         }
-
-        data |> Jason.encode!()
       end)
 
     payload = Task.await(task)
 
     conn
     |> assign(:user_token, token)
-    |> send_resp(200, payload)
+    |> json(payload)
   end
 
   defp get_token(conn) do
@@ -57,20 +54,18 @@ defmodule FleetControlWeb.PageController do
   end
 
   defp get_user(conn) do
-    case Application.get_env(:fleet_control_web, :bypass_auth, false) do
-      true ->
-        {:ok, user} = DispatcherAgent.add(nil, "dev")
+    if Application.get_env(:fleet_control_web, :bypass_auth, false) do
+      {:ok, user} = DispatcherAgent.add("dev", "dev")
 
-        conn =
-          conn
-          |> put_session(:current_user, user)
-          |> Guardian.Plug.sign_in(user)
+      conn =
+        conn
+        |> put_session(:current_user, user)
+        |> Guardian.Plug.sign_in(user)
 
-        {conn, user}
-
-      _ ->
-        user = get_session(conn, :current_user)
-        {conn, user}
+      {conn, user}
+    else
+      user = get_session(conn, :current_user)
+      {conn, user}
     end
   end
 end

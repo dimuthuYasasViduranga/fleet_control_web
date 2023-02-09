@@ -46,10 +46,10 @@ defmodule FleetControlWeb.DispatcherChannel do
     ref = Phoenix.Channel.socket_ref(socket)
 
     permissions =
-      socket.current_user.user_id
+      socket.assigns.current_user.user_id
       |> HpsPhx.Authorization.user_permissions()
       |> Enum.map(&{&1, true})
-      |> Enum.into(%{})
+      |> Enum.into(%{authorized: true})
 
     task =
       Task.async(fn ->
