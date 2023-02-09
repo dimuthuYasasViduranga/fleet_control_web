@@ -14,7 +14,7 @@ const ASPECT_RATIOS = {
   top: 'xMidYMin meet',
   right: 'xMaxYMid meet',
   bottom: 'xMidYMax meet',
-  center: '',
+  center: 'xMidYMid meet',
 };
 
 function parseViewBox(values) {
