@@ -7,7 +7,6 @@ import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
-import { AVPlayer } from '@/code/audio.js';
 import { PageVisibility } from '@/code/visibility.js';
 
 import { parsePreStartForm } from './modules/constants.js';
@@ -23,6 +22,8 @@ import trackStore from './modules/track_store.js';
 import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
+
+const chime = new Audio( require('@/assets/audio/chime.mp3'));
 
 function applyParser(data, key, parser) {
   if (data[key]) {
@@ -400,7 +401,7 @@ function notifyUnreadMessages(oldMessages, newMessages) {
   const newUnread = newMessages.filter(m => !m.acknowledged).length;
 
   if (PageVisibility.hidden && newUnread > oldUnread) {
-    AVPlayer.chime();
+    chime.play();
   }
 
   if (!newUnread) {

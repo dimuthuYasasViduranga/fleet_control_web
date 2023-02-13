@@ -232,7 +232,8 @@ import Dately from '@/components/dately/Dately.vue';
 
 import { formatDateIn } from '@/code/time.js';
 import { Titler } from '@/code/titler.js';
-import { AVPlayer } from '@/code/audio.js';
+
+const chime = new Audio( require('@/assets/audio/chime.mp3'));
 
 const ASSET_ICONS = [
   DozerIcon,
@@ -356,7 +357,7 @@ export default {
       Titler.reset();
     },
     playSound() {
-      AVPlayer.chime();
+      chime.play();
     },
     onOpenContext(event) {
       const items = [
