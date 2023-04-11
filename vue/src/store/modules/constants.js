@@ -14,7 +14,7 @@ import FloatIcon from '@/components/icons/asset_icons/Float.vue';
 import ServiceVehicleIcon from '@/components/icons/asset_icons/ServiceVehicle.vue';
 import LightVehicleIcon from '@/components/icons/asset_icons/LightVehicle.vue';
 import LightingPlantIcon from '@/components/icons/asset_icons/LightingPlant.vue';
-import Timely from '@/code/timely';
+import Timely from '@/code/vue_properties/timely';
 
 const DEFAULT_ZOOM = 16;
 const LOAD_TYPES = ['load', 'load|dump'];

@@ -15,11 +15,11 @@ import App from './App.vue';
 import UnauthorizedApp from './UnauthorizedApp.vue';
 import UnknownErrorApp from './UnknownErrorApp.vue';
 import store from './store/store.js';
-import Channel from './code/channel.js';
-import Timely from './code/timely.js';
+import Channel from './code/vue_properties/channel.js';
+import Timely from './code/vue_properties/timely.js';
 import Toaster from './code/toaster.js';
-import ContextMenu from './code/context_menu.js';
-import Geolocation from './code/geolocation.js';
+import ContextMenu from './code/vue_properties/context_menu.js';
+import Geolocation from './code/vue_properties/geolocation.js';
 import { startFullscreenObserver } from './code/tooltip';
 
 import 'vue-datetime/dist/vue-datetime.css';

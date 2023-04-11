@@ -1,5 +1,5 @@
 import { Socket, Presence } from 'phoenix';
-import { copyDate } from './time';
+import { copyDate } from '../time';
 
 function create(hostname, userToken, presenceSyncCallback) {
   // create socket
