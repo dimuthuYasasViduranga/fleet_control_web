@@ -137,13 +137,13 @@ import RecenterIcon from '@/components/gmap/RecenterIcon.vue';
 import ResetZoomIcon from '@/components/gmap/ResetZoomIcon.vue';
 
 import { uniq } from '@/code/helpers.js';
-import { getUniqPaths } from '@/code/graph';
+import { getUniqPaths } from '@/code/truck_routes/graph';
 import { pixelsToMeters } from '@/code/distance';
 import { attachControl } from '@/components/gmap/gmapControls';
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
-import { coordsObjsToCoordArrays } from '@/code/turfHelpers';
+import { coordsObjsToCoordArrays } from '@/code/truck_routes/turfHelpers';
 import { segmentsToPolylines, getNodeGroups } from '../../common.js';
-import turf from '@/code/turf';
+import turf from '@/code/truck_routes/turf';
 
 const ROUTE_COLOR = 'darkred';
 const ROUTE_EDIT_COLOR = 'purple';

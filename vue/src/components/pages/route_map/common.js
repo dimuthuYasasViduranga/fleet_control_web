@@ -1,4 +1,4 @@
-import { stronglyConnectedComponents } from '@/code/graph_traversal';
+import { stronglyConnectedComponents } from '@/code/truck_routes/graph_traversal';
 import { copy, Dictionary, uniq } from '@/code/helpers';
 
 const DIRECTIONS = ['both', 'positive', 'negative'];

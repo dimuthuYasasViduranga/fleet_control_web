@@ -1,6 +1,6 @@
 import { fromRestrictedRoute, fromRoute, getClosestVertex } from './graph';
 import { dijkstra, dijkstraToVertices } from './graph_traversal';
-import { attributeFromList, Dictionary } from './helpers';
+import { attributeFromList, Dictionary } from '../helpers';
 import turf from './turf';
 import { coordsObjsToCoordArrays } from './turfHelpers';
 

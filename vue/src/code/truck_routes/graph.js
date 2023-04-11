@@ -1,5 +1,5 @@
-import { hasOrderedSubArray } from './helpers';
-import { haversineDistanceM } from './distance';
+import { hasOrderedSubArray } from '../helpers';
+import { haversineDistanceM } from '../distance';
 
 export function fromGraph(vertices, adjacency) {
   vertices = vertices || {};
