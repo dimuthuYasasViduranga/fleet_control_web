@@ -909,7 +909,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 /* --- modal styling --- */
 .time-span-editor-modal .modal-container-wrapper > .modal-container {

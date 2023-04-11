@@ -194,7 +194,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/googleMaps.css';
+@import '../../../assets/styles/googleMaps.css';
 .map_wrapper {
   padding-bottom: 2rem;
 }

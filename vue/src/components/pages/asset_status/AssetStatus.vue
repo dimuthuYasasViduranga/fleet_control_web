@@ -130,9 +130,9 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/table.css';
-@import '../../../assets/hxInput.css';
-@import '../../../assets/textColors.css';
+@import '../../../assets/styles/table.css';
+@import '../../../assets/styles/hxInput.css';
+@import '../../../assets/styles/textColors.css';
 
 .asset-status-page .gps-source-cel {
   width: 2rem;

@@ -259,7 +259,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 .time-allocation-report-page .shift-selector-wrapper {
   margin-left: 0.5rem;

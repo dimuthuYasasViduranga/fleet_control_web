@@ -200,7 +200,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/hxInput.css';
+@import '../../../../assets/styles/hxInput.css';
 
 .tree-view {
   padding: 1rem 0;

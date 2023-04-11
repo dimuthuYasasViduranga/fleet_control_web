@@ -55,7 +55,7 @@ export default {
 </script>
 
 <style>
-@import '../../assets/hxInput.css';
+@import '../../assets/styles/hxInput.css';
 
 .device-logout-modal-wrapper .modal-container {
   height: auto;

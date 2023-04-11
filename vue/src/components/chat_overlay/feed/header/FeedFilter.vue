@@ -82,7 +82,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/hxInput.css';
+@import '../../../../assets/styles/hxInput.css';
 
 .feed-filter {
   height: 100%;

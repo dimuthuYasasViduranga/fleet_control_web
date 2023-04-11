@@ -184,7 +184,10 @@ export default {
             dispatch('setHistoricEngineHours', data.historic);
           },
         ],
-        ['append activity log', data => dispatch('appendActivityLog', {data, channel: this.$channel})],
+        [
+          'append activity log',
+          data => dispatch('appendActivityLog', { data, channel: this.$channel }),
+        ],
         ['set operator messages', data => dispatch('setOperatorMessages', data.messages)],
         ['set dispatcher messages', data => dispatch('setDispatcherMessages', data.messages)],
         [
@@ -281,11 +284,11 @@ export default {
 </script>
 
 <style>
-@import './assets/tooltip.css';
-@import './assets/toasted.css';
-@import './assets/toggle.css';
-@import './assets/contextMenu.css';
-@import './assets/googleMaps.css';
+@import './assets/styles/contextMenu.css';
+@import './assets/styles/googleMaps.css';
+@import './assets/styles/toasted.css';
+@import './assets/styles/toggle.css';
+@import './assets/styles/tooltip.css';
 
 /* firefox scrollbar color was transparent */
 html {

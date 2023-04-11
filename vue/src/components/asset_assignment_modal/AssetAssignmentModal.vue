@@ -114,7 +114,7 @@ export default {
 </script>
 
 <style>
-@import '../../assets/hxInput.css';
+@import '../../assets/styles/hxInput.css';
 
 .asset-assignment {
   font-family: 'GE Inspira Sans', sans-serif;

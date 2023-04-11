@@ -29,7 +29,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 .nested-modal-wrapper .modal-container {
   max-width: 32rem;
