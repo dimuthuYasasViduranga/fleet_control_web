@@ -6,8 +6,8 @@ import Toaster from '@/code/toaster';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '@/code/time.js';
-import { Titler } from '@/code/titler.js';
-import { PageVisibility } from '@/code/visibility.js';
+import { Titler } from '@/store/titler.js';
+import { PageVisibility } from '@/store/visibility.js';
 
 import { parsePreStartForm } from './modules/constants.js';
 

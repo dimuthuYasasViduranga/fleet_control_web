@@ -231,7 +231,7 @@ import NestedModal from './NestedModal.vue';
 import Dately from '@/components/dately/Dately.vue';
 
 import { formatDateIn } from '@/code/time.js';
-import { Titler } from '@/code/titler.js';
+import { Titler } from '@/store/titler.js';
 
 const chime = new Audio( require('@/assets/audio/chime.mp3'));
 
