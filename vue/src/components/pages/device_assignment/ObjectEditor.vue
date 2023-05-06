@@ -75,7 +75,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 .object-editor {
   width: 10rem;
 }

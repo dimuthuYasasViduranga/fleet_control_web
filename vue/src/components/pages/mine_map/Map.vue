@@ -257,9 +257,9 @@ import HaulTruckInfo from './info/HaulTruckInfo.vue';
 import DigUnitInfo from './info/DigUnitInfo.vue';
 import GeofenceInfo from './info/GeofenceInfo.vue';
 import { attributeFromList } from '@/code/helpers';
-import { fromRoute } from '@/code/graph';
+import { fromRoute } from '@/code/truck_routes/graph';
 import { graphToSegments } from '../route_map/common';
-import { createHaulRoutes } from '@/code/route_gen.js';
+import { createHaulRoutes } from '@/code/truck_routes/route_gen.js';
 
 const DIG_UNIT_LOADING_RADIUS = 30;
 

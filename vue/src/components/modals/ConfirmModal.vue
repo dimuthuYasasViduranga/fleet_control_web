@@ -41,7 +41,7 @@ export default {
 </script>
 
 <style>
-@import '../../assets/hxInput.css';
+@import '../../assets/styles/hxInput.css';
 
 .confirm-modal-wrapper .modal-container {
   max-width: 32rem;

@@ -93,7 +93,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/iconColors.css';
+@import '../../../../assets/styles/iconColors.css';
 
 .contact {
   border: #425866 solid 2px;

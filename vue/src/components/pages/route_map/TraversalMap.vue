@@ -113,11 +113,11 @@ import GMapLabel from '@/components/gmap/GMapLabel.vue';
 
 import { setMapTypeOverlay } from '@/components/gmap/gmapCustomTiles';
 import { attachControl } from '@/components/gmap/gmapControls';
-import { fromRestrictedRoute, fromRoute } from '@/code/graph';
-import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/turfHelpers';
-import turf from '@/code/turf';
+import { fromRestrictedRoute, fromRoute } from '@/code/truck_routes/graph';
+import { coordsObjsToCoordArrays, locationFromPoint } from '@/code/truck_routes/turfHelpers';
+import turf from '@/code/truck_routes/turf';
 import { graphToSegments, segmentsToPolylines } from './common';
-import { JourneySelector } from '@/code/journey_selector.js';
+import { JourneySelector } from '@/code/truck_routes/journey_selector.js';
 
 const DRAG_UPDATE_INTERVAL = 50;
 const ROUTE_USED_COLOR = 'darkred';

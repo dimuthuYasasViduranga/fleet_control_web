@@ -54,7 +54,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 .message-box {
   height: 100%;

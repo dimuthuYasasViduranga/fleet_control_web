@@ -1,4 +1,4 @@
-import { copyDate, setTimeZone } from '../code/time';
+import { copyDate } from '../code/time';
 import { attributeFromList, chunkEvery, dedupBy, dedupByMany, toLookup } from '../code/helpers';
 
 export function toEvents(

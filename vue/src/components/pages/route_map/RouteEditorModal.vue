@@ -65,8 +65,8 @@ import ReviewPane from './panes/ReviewPane.vue';
 import FullscreenIcon from '@/components/icons/Fullscreen.vue';
 import MinimiseIcon from '@/components/icons/Minimise.vue';
 
-import { exitFullscreen, isElementFullscreen, requestFullscreen } from '@/code/fullscreen';
-import { fromRoute, Graph } from '@/code/graph';
+import { exitFullscreen, isElementFullscreen, requestFullscreen } from './fullscreen';
+import { fromRoute, Graph } from '@/code/truck_routes/graph';
 import { addPolylineToGraph, editGraph } from './route.js';
 import { attributeFromList, IdGen, toLookup } from '@/code/helpers';
 import { graphToSegments, nextDirection } from './common';

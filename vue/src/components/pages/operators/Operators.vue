@@ -101,8 +101,8 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/table.css';
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/table.css';
+@import '../../../assets/styles/hxInput.css';
 
 .operators-page .actions {
   display: flex;

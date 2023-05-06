@@ -280,7 +280,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../../assets/hxInput.css';
+@import '../../../../../assets/styles/hxInput.css';
 
 .fix-pane .blueprint {
   display: flex;

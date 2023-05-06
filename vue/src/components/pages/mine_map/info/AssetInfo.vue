@@ -199,7 +199,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/textColors.css';
+@import '../../../../assets/styles/textColors.css';
 </style>
 
 <style scoped>

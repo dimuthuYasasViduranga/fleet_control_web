@@ -233,7 +233,7 @@ export default {
 </style>
 
 <style scoped>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 .title {
   font-size: 2rem;
