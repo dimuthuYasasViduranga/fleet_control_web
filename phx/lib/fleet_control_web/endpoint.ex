@@ -1,6 +1,5 @@
 defmodule FleetControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :fleet_control_web
-  use Appsignal.Phoenix
 
   mix_env =
     if Code.ensure_compiled(Mix) do

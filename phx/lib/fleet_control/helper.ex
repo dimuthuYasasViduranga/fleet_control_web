@@ -124,7 +124,8 @@ defmodule FleetControl.Helper.Tracer do
   end
 
   def handle_info({:trace, _, :call, {mod, fun, args}}, state) do
-    IO.puts("called #{mod}.#{fun}(#{Enum.join(Enum.map(args, &inspect/1), ",")})")
+    args_string = Enum.map_join(args, ",", &inspect/1)
+    IO.puts("called #{mod}.#{fun}(#{args_string})")
     {:noreply, state}
   end
 
