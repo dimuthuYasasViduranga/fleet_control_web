@@ -7,7 +7,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
   def handle_in("acknowledge", nil, socket) do
     {:reply, to_error("No message id given"), socket}
@@ -31,7 +31,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_messages)
+  @decorate authorized_channel("fleet_control_edit_messages")
   def handle_in("update-message-type", payload, socket) do
     case payload["override"] do
       true -> OperatorMessageTypeAgent.override(payload)
@@ -47,7 +47,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.OperatorMessage do
     end
   end
 
-  @decorate authorized(:can_edit_messages)
+  @decorate authorized_channel("fleet_control_edit_messages")
   def handle_in(
         "set-type-tree",
         %{"asset_type_id" => asset_type_id, "ids" => ids},

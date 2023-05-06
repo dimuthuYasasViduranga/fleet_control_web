@@ -132,7 +132,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_pre_starts,
+      readonly: state => !state.permissions.fleet_control_edit_pre_starts,
       assetTypes: state => state.assetTypes,
       preStartForms: state => state.preStartForms,
       categories: state => state.preStartControlCategories,

@@ -103,7 +103,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_pre_start_tickets,
+      readonly: state => !state.permissions.fleet_control_edit_pre_start_tickets,
       statusTypes: state => state.preStartTicketStatusTypes,
     }),
   },

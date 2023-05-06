@@ -3,7 +3,7 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   require Logger
   use Appsignal.Instrumentation.Decorators
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
   use Phoenix.Channel
   alias FleetControlWeb.DispatcherChannel
@@ -44,7 +44,12 @@ defmodule FleetControlWeb.DispatcherChannel do
   def handle_in("get initial data", _payload, socket) do
     send(self(), :after_join)
     ref = Phoenix.Channel.socket_ref(socket)
-    permissions = socket.assigns.permissions
+
+    permissions =
+      socket.assigns.current_user.user_id
+      |> HpsPhx.Authorization.user_permissions()
+      |> Enum.map(&{&1, true})
+      |> Enum.into(%{authorized: true})
 
     task =
       Task.async(fn ->
@@ -62,7 +67,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.Refresh.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_dispatch)
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("haul:" <> subtopic, payload, socket) do
     Topics.HaulTruck.handle_in(subtopic, payload, socket)
   end
@@ -83,12 +88,12 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.Track.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_edit_time_codes)
+  @decorate authorized_channel("fleet_control_edit_time_codes")
   def handle_in("time-code:" <> subtopic, payload, socket) do
     Topics.TimeCode.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_edit_asset_roster)
+  @decorate authorized_channel("fleet_control_edit_asset_roster")
   def handle_in("asset:" <> subtopic, payload, socket) do
     Topics.Asset.handle_in(subtopic, payload, socket)
   end
@@ -148,7 +153,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_routing)
+  @decorate authorized_channel("fleet_control_edit_routing")
   def handle_in("routing:update", payload, socket) do
     case RoutingAgent.update(
            payload["route_id"],

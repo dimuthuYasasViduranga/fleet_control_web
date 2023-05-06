@@ -11,20 +11,14 @@ defmodule FleetControlWeb.Router do
   end
 
   pipeline :authorized do
-    case Application.compile_env(:fleet_control_web, :bypass_auth, false) do
-      true ->
-        plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions, full_access: true
+    unless Application.compile_env(:fleet_control_web, :bypass_auth, false) do
+      plug Guardian.Plug.Pipeline,
+        module: FleetControlWeb.Guardian,
+        error_handler: FleetControlWeb.AuthErrorHandler
 
-      _ ->
-        plug Guardian.Plug.Pipeline,
-          module: FleetControlWeb.Guardian,
-          error_handler: FleetControlWeb.AuthErrorHandler
-
-        plug Guardian.Plug.VerifySession
-        plug Guardian.Plug.LoadResource
-        plug Guardian.Plug.EnsureAuthenticated
-
-        plug FleetControlWeb.Authorization.Plug.LoadAuthPermissions
+      plug Guardian.Plug.VerifySession
+      plug Guardian.Plug.LoadResource
+      plug Guardian.Plug.EnsureAuthenticated
     end
   end
 

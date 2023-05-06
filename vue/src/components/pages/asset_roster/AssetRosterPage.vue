@@ -73,7 +73,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_asset_roster,
+      readonly: state => !state.permissions.fleet_control_edit_asset_roster,
       assets: state => state.allAssets.slice().sort((a, b) => a.name.localeCompare(b.name)),
       assetIcons: state => state.icons,
     }),

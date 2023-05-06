@@ -7,9 +7,10 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
 
   alias FleetControlWeb.Broadcast
 
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("set", %{"asset_id" => asset_id} = allocation, socket) do
     allocation = Map.put(allocation, :created_by_dispatcher, true)
 
@@ -25,6 +26,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
     end
   end
 
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in(
         "mass-set",
         %{"time_code_id" => time_code_id, "asset_ids" => asset_ids},
@@ -44,7 +46,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
     end
   end
 
-  @decorate authorized(:can_edit_time_allocations)
+  @decorate authorized_channel("fleet_control_edit_time_allocations")
   def handle_in("edit", allocations, socket) do
     allocations = Enum.map(allocations, &Map.put(&1, :updated_by_dispatcher, true))
 
@@ -65,7 +67,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
     end
   end
 
-  @decorate authorized(:can_lock_time_allocations)
+  @decorate authorized_channel("fleet_control_lock_time_allocations")
   def handle_in("lock", %{"ids" => ids, "calendar_id" => cal_id}, socket) do
     dispatcher_id = socket.assigns[:current_user][:id]
 
@@ -89,7 +91,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
     end
   end
 
-  @decorate authorized(:can_lock_time_allocations)
+  @decorate authorized_channel("fleet_control_lock_time_allocations")
   def handle_in("unlock", ids, socket) when is_list(ids) do
     case TimeAllocation.Agent.unlock(ids) do
       {:ok, %{new: []}} ->

@@ -1,7 +1,7 @@
 <template>
   <div class="route-map-page">
     <hxCard title="Route Map" :icon="lineIcon">
-      <button v-if="permissions.can_edit_routing" class="hx-btn" @click="onOpenEditor()">
+      <button v-if="permissions.fleet_control_edit_routing" class="hx-btn" @click="onOpenEditor()">
         Edit
       </button>
       <TraversalMap :assetTypes="assetTypes" :locations="locations" :route="activeRoute" />

@@ -72,7 +72,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_time_codes,
+      readonly: state => !state.permissions.fleet_control_edit_time_codes,
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
       timeCodeTreeElements: state => state.timeCodeTreeElements,

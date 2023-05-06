@@ -65,7 +65,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_operators,
+      readonly: state => !state.permissions.fleet_control_edit_operators,
       operators: state => state.operators,
     }),
   },

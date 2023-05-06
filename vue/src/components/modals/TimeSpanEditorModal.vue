@@ -57,8 +57,8 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      canEdit: state => state.permissions.can_edit_time_allocations,
-      canLock: state => state.permissions.can_lock_time_allocations,
+      canEdit: state => state.permissions.fleet_control_edit_time_allocations,
+      canLock: state => state.permissions.fleet_control_lock_time_allocations,
     }),
   },
   methods: {

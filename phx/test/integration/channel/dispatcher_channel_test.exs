@@ -4,11 +4,11 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
 
   alias FleetControl.{Helper, AssetAgent, DeviceAgent, OperatorAgent, DeviceAssignmentAgent}
   alias FleetControlWeb.{DispatcherSocket, DispatcherChannel, OperatorSocket, OperatorChannel}
-  alias FleetControlWeb.Authorization.Permissions
 
   import Phoenix.Socket, only: [assign: 3]
 
   @dispatcher "dispatchers:all"
+  @azure_user_id "aad_user_id"
   @uuid "abcdefg"
   @operator "operators:#{@uuid}"
 
@@ -35,8 +35,7 @@ defmodule FleetControlWeb.DispatcherChannel.Test do
     {:ok, _, d_socket} =
       DispatcherSocket
       |> socket("user_id", %{})
-      |> assign(:permissions, Permissions.full_permissions())
-      |> assign(:current_user, %{id: dispatcher.id})
+      |> assign(:current_user, %{id: dispatcher.id, user_id: @azure_user_id})
       |> subscribe_and_join(DispatcherChannel, @dispatcher)
 
     {:ok, _, o_socket} =

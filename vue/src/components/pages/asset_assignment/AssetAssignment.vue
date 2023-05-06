@@ -52,7 +52,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_dispatch,
+      readonly: state => !state.permissions.fleet_control_dispatch,
     }),
   },
 };
