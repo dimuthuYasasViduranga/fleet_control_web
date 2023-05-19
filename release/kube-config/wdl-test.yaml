@@ -82,10 +82,10 @@ spec:
                     "/time_code_editor",
                     "/message_editor",
                     "/engine_hours",
-                    "/agents",
                     "/route_map",
                     "/pre_start_editor",
                     "/pre_start_submissions",
-                    "/asset_overview"
+                    "/asset_overview",
+                    "/agents"
                   ],
                 ]
