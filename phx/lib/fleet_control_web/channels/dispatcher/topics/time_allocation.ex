@@ -135,7 +135,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
             Phoenix.Channel.reply(ref, {:ok, payload})
           end)
 
-        Task.await(task)
+        Task.await(task, 10_000)
         send(self(), :gc)
 
         {:noreply, socket}
