@@ -566,7 +566,6 @@ const actions = {
       // syncronise
       channel.push('activity-log:get-all')
       .receive('ok', resp => {
-        console.dir('syncronise', resp);
         commit('setActivityLog', resp);
       });
     }
@@ -647,13 +646,11 @@ const mutations = {
     state.historicTimeAllocations = allocs;
   },
   setActivityLog(state, data) {
-    console.dir('set activity', data);
     state.activitySequenceNumber = data.sequence_number;
     state.activityLog = data.activities;
   },
   appendActivityLog(state, data) {
     const activity = [data.activity].concat([...state.activityLog])
-    console.dir('append activity', data, state.activityLog, activity);
 
     state.activityLog = activity;
     state.activitySequenceNumber = data.sequence_number;

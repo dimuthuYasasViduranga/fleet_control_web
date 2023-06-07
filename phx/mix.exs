@@ -9,9 +9,9 @@ defmodule FleetControlWeb.MixProject do
       config_path: "config/config.exs",
       deps_path: "deps",
       lockfile: "mix.lock",
-      elixir: "~> 1.12",
+      elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      compilers: [:phoenix] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -35,7 +35,7 @@ defmodule FleetControlWeb.MixProject do
   defp deps() do
     [
       # web
-      {:phoenix, "~> 1.6"},
+      {:phoenix, "~> 1.6.15"},
       {:phoenix_pubsub, "~> 2.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.3"},

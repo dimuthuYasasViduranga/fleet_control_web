@@ -176,7 +176,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     case CalendarAgent.get(%{id: calendar_id}) do
       %{shift_start: start_time, shift_end: end_time} ->
         reports_pid = Task.async(fn -> Report.generate_report(start_time, end_time) end)
-        reports = Task.await(reports_pid, 10_000)
+        reports = Task.await(reports_pid, 20_000)
 
         send(socket.transport_pid, :garbage_collect)
         {:reply, {:ok, %{reports: reports}}, socket}
