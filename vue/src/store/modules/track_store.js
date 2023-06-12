@@ -3,7 +3,6 @@ import { toUtcDate } from '@/code/time';
 const PENDING_TRACK_MERGE_PERIOD = 10 * 1000;
 
 function parseTrack(track) {
-  const acc = track.accuracy || {};
   return {
     name: track.asset_name,
     assetId: parseInt(track.asset_id, 10),
@@ -20,10 +19,6 @@ function parseTrack(track) {
       historyId: track.location_history_id,
       name: track.location_name,
       type: track.location_type,
-    },
-    accuracy: {
-      vertical: acc.vertical || null,
-      horizontal: acc.horizontal || null,
     },
     timestamp: toUtcDate(track.timestamp),
     valid: track.valid,

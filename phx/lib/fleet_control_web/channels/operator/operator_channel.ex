@@ -465,7 +465,6 @@ defmodule FleetControlWeb.OperatorChannel do
   defp parse_device_track(track) do
     pos = track["position"]
     vel = track["velocity"]
-    acc = track["accuracy"]
 
     %{
       asset_id: track["asset_id"],
@@ -477,10 +476,6 @@ defmodule FleetControlWeb.OperatorChannel do
         lat: pos["lat"],
         lng: pos["lng"],
         alt: pos["alt"]
-      },
-      accuracy: %{
-        horizontal: acc["horizontal"],
-        vertical: acc["vertical"]
       },
       speed_ms: vel["speed"],
       heading: vel["heading"],
