@@ -416,18 +416,13 @@ defmodule FleetControlWeb.OperatorChannel do
   end
 
   def handle_in("set device track", track, socket) do
-    task =
-      Task.async(fn ->
-        with true <- Settings.get(:use_device_gps),
-             %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
-             {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
-          Broadcast.send_track(track)
-        else
-          _ -> nil
-        end
-      end)
-
-    Task.await(task)
+    with true <- Settings.get(:use_device_gps),
+         %{} = parsed_track <- Tracks.add_location(parse_device_track(track)),
+         {:ok, track} <- TrackAgent.add(parsed_track, :normal) do
+      Broadcast.send_track(track)
+    else
+      _ -> nil
+    end
 
     {:noreply, socket}
   end
