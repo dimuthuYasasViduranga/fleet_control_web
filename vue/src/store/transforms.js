@@ -55,7 +55,6 @@ export function toFullAsset(
   presence,
   currentDeviceAssignments,
   activeTimeAllocations,
-  liveQueueMap,
 ) {
   const assetId = asset.id;
   const radioNumber = attributeFromList(radioNumbers, 'assetId', assetId, 'number');
@@ -101,7 +100,6 @@ export function toFullAsset(
     hasDevice: !!device.id,
     present,
     status,
-    liveQueueInfo: liveQueueMap[asset.id],
     deviceAssignedAt: copyDate(deviceAssignment.timestamp),
   };
 }

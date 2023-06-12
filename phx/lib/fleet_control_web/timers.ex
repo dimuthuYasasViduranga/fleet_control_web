@@ -2,7 +2,7 @@ defmodule FleetControlWeb.Timers do
   @moduledoc false
 
   alias FleetControlWeb.DispatcherChannel.Topics
-  alias FleetControl.{HaulTruckDispatchAgent, TrackAgent, LiveQueueAgent}
+  alias FleetControl.{HaulTruckDispatchAgent, TrackAgent}
   alias FleetControlWeb.Broadcast
 
   @default_calendar_interval 24 * 3600 * 1000
@@ -23,8 +23,6 @@ defmodule FleetControlWeb.Timers do
       get_interval(:location_interval, @default_location_interval)
     )
 
-    start_live_queue_interval!(get_interval(:live_queue_interval, @default_live_queue_interval))
-
     start_track_interval!(get_interval(:track_interval, @default_track_interval))
 
     start_track_broadcast_interval!(
@@ -44,29 +42,12 @@ defmodule FleetControlWeb.Timers do
     start_interval!(interval, Topics.Refresh, :refresh, [agent])
   end
 
-  defp start_live_queue_interval!(interval) do
-    start_interval!(interval, __MODULE__, :update_live_queue, [])
-  end
-
   defp start_track_interval!(interval) do
     start_interval!(interval, FleetControl.Tracks, :update_track_agent, [])
   end
 
   defp start_track_broadcast_interval!(interval) do
     :timer.apply_interval(interval, __MODULE__, :broadcast_tracks, [])
-  end
-
-  def update_live_queue() do
-    haul_truck_dispatches = HaulTruckDispatchAgent.current()
-    track_map = TrackAgent.as_map()
-
-    case LiveQueueAgent.update_tracks(haul_truck_dispatches, track_map) do
-      {:ok, :changed, queue} ->
-        Broadcast.send_live_queue(queue)
-
-      _ ->
-        nil
-    end
   end
 
   def broadcast_tracks() do

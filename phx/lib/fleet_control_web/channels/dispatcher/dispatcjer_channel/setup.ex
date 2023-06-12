@@ -11,7 +11,6 @@ defmodule FleetControlWeb.DispatcherChannel.Setup do
   alias FleetControl.HaulTruckDispatchAgent
   alias FleetControl.TrackAgent
   alias FleetControl.AssetRadioAgent
-  alias FleetControl.LiveQueueAgent
   alias FleetControl.DeviceConnectionAgent
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.TimeAllocation
@@ -52,7 +51,6 @@ defmodule FleetControlWeb.DispatcherChannel.Setup do
       device_connections: DeviceConnectionAgent.get(),
 
       # common
-      live_queue: LiveQueueAgent.get(),
       activities: ActivityAgent.get(),
       operator_messages: OperatorMessageAgent.all(),
       dispatcher_messages: DispatcherMessageAgent.all(),

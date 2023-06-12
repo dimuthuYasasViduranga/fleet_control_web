@@ -510,10 +510,6 @@ defmodule FleetControlWeb.Broadcast do
     send_time_code_tree_elements()
   end
 
-  def send_live_queue(queue) do
-    Endpoint.broadcast(@dispatch, "set live queue", queue)
-  end
-
   def send_presence_state() do
     presence_list = Presence.list(@dispatch)
     Endpoint.broadcast(@dispatch, "presence_state", presence_list)

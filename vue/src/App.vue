@@ -176,7 +176,6 @@ export default {
         ['set routing data', data => dispatch('constants/setRoutingData', data.routing)],
 
         // shared
-        ['set live queue', data => dispatch('setLiveQueue', data)],
         [
           'set engine hours',
           data => {
@@ -253,7 +252,6 @@ export default {
         ['connection/setDeviceOnlineStatus', resp.device_connections],
 
         // shared
-        ['setLiveQueue', resp.live_queue],
         ['setActivityLog', resp.activities],
         ['setOperatorMessages', resp.operator_messages],
         ['setDispatcherMessages', resp.dispatcher_messages],
