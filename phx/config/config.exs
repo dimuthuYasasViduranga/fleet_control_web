@@ -17,6 +17,7 @@ config :fleet_control_web,
     zoom: 15
   },
   track_interval: 10_000,
+  # track_method has been removed, gps_gate is the only option now.
   track_method: :gps_gate,
   settings: [
     use_device_gps: false,
