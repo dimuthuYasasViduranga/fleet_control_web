@@ -65,15 +65,15 @@ defmodule FleetControl.Tracks do
         asset_map = get_asset_map()
         locations = LocationAgent.active_locations()
 
-        Enum.each(tracks, fn track ->
+        Enum.map(tracks, fn track ->
           track =
             track
             |> add_info(asset_map, locations)
             |> Map.put(:source, :server)
 
           with %{asset_id: _} <- track,
-               {:ok, added_track} <- TrackAgent.add(track) do
-            Broadcast.send_track(added_track)
+               {:ok, _added_track, track_delta} <- TrackAgent.add(track) do
+            Broadcast.send_track_delta(track_delta)
           else
             _ -> nil
           end

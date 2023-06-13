@@ -82,6 +82,40 @@ const mutations = {
   addTrack(state, track) {
     state.pendingTracks[track.assetId] = track;
   },
+  updateTrack(state, delta) {
+    track = state.tracks[delta.assetId];
+
+    if (!track || !delta) {
+      return;
+    }
+
+    // timestamp
+    if (delta.timestamp) {
+      timestamp = toUtcDate(delta.timestamp);
+      track.timestamp = timestamp;
+    }
+
+    // position
+    const pos = delta.position || track.position || {};
+    track.position.lat = parseFloat(pos.lat) || 0;
+    track.position.lng = parseFloat(pos.lng) || 0;
+    track.position.alt = parseFloat(pos.alt);
+
+    // velocity
+    track.velocity.heading = parseFloat(delta.heading || track.heading);
+    track.velocity.speed = parseFloat(delta.speed_ms || track.speed);
+
+    // location
+    track.location.id = delta.location_id || track.location.id;
+    track.location.historyId = delta.location_history_id || track.location.historyId;
+    track.location.name = delta.location_name || track.location.name;
+    track.location.type = delta.location_type || track.location.type;
+
+    // other
+    track.ignition = delta.ignition || track.ignition;
+    track.valid = delta.valid || track.valid;
+    track.source = delta.source || track.source;
+  }
 };
 
 export default {

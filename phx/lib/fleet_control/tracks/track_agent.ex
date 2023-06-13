@@ -43,8 +43,12 @@ defmodule FleetControl.TrackAgent do
       with true <- state.mode == source,
            true <- track[:asset_id] !== nil,
            true <- !existing || NaiveDateTime.compare(track.timestamp, existing.timestamp) == :gt do
+        track = Map.merge(existing, track)
+        track_delta = Map.to_list(track) -- Map.to_list(existing)
+        track_delta = Enum.into([asset_id: track.asset_id | track_delta], %{})
+
         state = put_in(state, [:tracks, track.asset_id], track)
-        {{:ok, track}, state}
+        {{:ok, track, track_delta}, state}
       else
         _ -> {{:error, :ignored}, state}
       end

@@ -194,6 +194,7 @@ export default {
           data => dispatch('setCurrentPreStartSubmissions', data.current),
         ],
         ['new track', resp => dispatch('trackStore/addTrack', resp.track)],
+        ['track_delta', resp => commit('trackStore/updateTrack', resp)],
         [
           'set time allocations',
           data => {

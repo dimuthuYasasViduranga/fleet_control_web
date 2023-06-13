@@ -420,6 +420,7 @@ defmodule FleetControlWeb.Broadcast do
     send_activity(identifier, source, activity_type, Helper.timestamp())
   end
 
+  # TODO delete this
   def send_track(nil), do: nil
 
   def send_track(track) do
@@ -441,6 +442,18 @@ defmodule FleetControlWeb.Broadcast do
     broadcast_all_operators(
       "other track",
       payload,
+      &(&1.type in ["Excavator", "Loader"] && &1.id != track.asset_id)
+    )
+  end
+
+  def send_track_delta(track_delta) do
+    # send to dispatcher
+    Endpoint.broadcast(@dispatch, "track_delta", track_delta)
+
+    # send track to excavators, so it can prepare for trucks arriving soon
+    broadcast_all_operators(
+      "track_delta",
+      track_delta,
       &(&1.type in ["Excavator", "Loader"] && &1.id != track.asset_id)
     )
   end
