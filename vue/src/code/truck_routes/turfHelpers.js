@@ -1,4 +1,4 @@
-import { approx } from './helpers';
+import { approx } from '../helpers';
 import turf from './turf';
 
 export function coordsObjsToCoordArrays(gCoords) {

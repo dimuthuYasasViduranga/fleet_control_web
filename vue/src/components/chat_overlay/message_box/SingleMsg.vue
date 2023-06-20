@@ -204,7 +204,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 .single-msg .button-send {
   max-height: 2rem;
   margin-left: 0.5rem;

@@ -45,7 +45,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/hxInput.css';
+@import '../../../../assets/styles/hxInput.css';
 
 .contact-header .live-feed {
   height: 2rem;

@@ -1,7 +1,7 @@
-import { haversineDistanceM } from './distance';
+import { haversineDistanceM } from '../distance';
 import { fromGraph, getClosestVertex, Graph } from './graph';
 import { dijkstra, dijkstraToVertices } from './graph_traversal';
-import { chunkEvery } from './helpers';
+import { chunkEvery } from '../helpers';
 import turf from './turf';
 import { coordsObjsToCoordArrays } from './turfHelpers';
 

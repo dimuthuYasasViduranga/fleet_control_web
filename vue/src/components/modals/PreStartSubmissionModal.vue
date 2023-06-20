@@ -369,7 +369,7 @@ export default {
 
 
 <style>
-@import '../../assets/textColors.css';
+@import '../../assets/styles/textColors.css';
 .pre-start-submission-modal-wrapper .modal-container {
   max-width: 60rem;
 }

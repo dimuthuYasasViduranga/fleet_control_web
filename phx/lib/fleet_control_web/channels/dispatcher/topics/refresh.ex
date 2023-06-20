@@ -3,11 +3,11 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
   Holds all topics relating to agent refreshing
   """
   require Logger
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
   alias FleetControlWeb.Broadcast
 
-  @decorate authorized(:can_refresh_agents)
+  @decorate authorized_channel("fleet_control_refresh_agents")
   def handle_in(subtopic, _, socket) do
     Logger.warn("Refreshing: #{subtopic}")
 
@@ -61,12 +61,6 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
   def refresh("time code agent") do
     :ok = FleetControl.TimeCodeAgent.refresh!()
     Broadcast.send_time_code_data_to_all()
-    :ok
-  end
-
-  def refresh("fleetops agent") do
-    :ok = FleetControl.HaulAgent.refresh!()
-    Broadcast.send_fleetops_data_to_all()
     :ok
   end
 

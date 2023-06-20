@@ -1,13 +1,13 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import axios from 'axios';
 
 import Toaster from '@/code/toaster';
 import * as Transforms from './transforms.js';
 import { toEvents } from './events.js';
 import { toUtcDate, copyDate } from '@/code/time.js';
-import { Titler } from '@/code/titler.js';
-import { AVPlayer } from '@/code/audio.js';
-import { PageVisibility } from '@/code/visibility.js';
+import { Titler } from '@/store/titler.js';
+import { PageVisibility } from '@/store/visibility.js';
 
 import { parsePreStartForm } from './modules/constants.js';
 
@@ -23,6 +23,7 @@ import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
 
+const chime = new Audio( require('@/assets/audio/chime.mp3'));
 
 function applyParser(data, key, parser) {
   if (data[key]) {
@@ -119,7 +120,6 @@ export function parseCycle(cycle) {
   const duration = endTime - startTime;
   return {
     id: cycle.id,
-    dimAssetId: cycle.dim_asset_id,
     assetId: cycle.asset_id,
     assetName: cycle.asset_name,
 
@@ -164,7 +164,6 @@ export function parseCycle(cycle) {
 export function parseTimeusage(tu) {
   return {
     id: tu.id,
-    dimAssetId: tu.dim_asset_id,
     assetId: tu.asset_id,
     assetName: tu.asset_name,
 
@@ -203,6 +202,7 @@ const state = {
   operatorMessages: Array(),
   dispatcherMessages: Array(),
   activityLog: Array(),
+  activitySequenceNumber: Number(),
   liveQueue: Array(),
   fleetOps: {
     cycles: Array(),
@@ -401,7 +401,7 @@ function notifyUnreadMessages(oldMessages, newMessages) {
   const newUnread = newMessages.filter(m => !m.acknowledged).length;
 
   if (PageVisibility.hidden && newUnread > oldUnread) {
-    AVPlayer.chime();
+    chime.play();
   }
 
   if (!newUnread) {
@@ -554,9 +554,22 @@ const actions = {
     const formattedAllocations = allocs.map(parseTimeAllocation);
     commit('setHistoricTimeAllocations', formattedAllocations);
   },
-  setActivityLog({ commit }, activities = []) {
-    const formattedActivities = activities.map(parseActivity);
-    commit('setActivityLog', formattedActivities);
+  setActivityLog({ commit }, data) {
+    const formattedActivities = data.activities.map(parseActivity);
+    data.activities = formattedActivities;
+    commit('setActivityLog', data);
+  },
+  appendActivityLog({commit}, {data, channel}) {
+    if(state.activitySequenceNumber + 1 === data.sequence_number) {
+      commit('appendActivityLog', data);
+    }
+    else {
+      // syncronise
+      channel.push('activity-log:get-all')
+      .receive('ok', resp => {
+        commit('setActivityLog', resp);
+      });
+    }
   },
   setLiveQueue({ commit }, queue = {}) {
     const formattedQueues = parseLiveQueue(queue);
@@ -570,11 +583,21 @@ const actions = {
     const formattedMessages = messages.map(parseDispatcherMessage);
     commit('setDispatcherMessages', formattedMessages);
   },
-  setFleetOpsData({ commit }, { cycles = [], timeusage = [] }) {
-    const formattedCycles = cycles.map(parseCycle);
-    const formattedTimeUsage = timeusage.map(parseTimeusage);
-    commit('setFleetOpsCycles', formattedCycles);
-    commit('setFleetOpsTimeusage', formattedTimeUsage);
+  updateFleetOpsData({ commit, state }, hostname) {
+    const now = new Date();
+    const timeDiff = now - state.fleetOps.lastUpdated;
+    const tenMinutes = 600_000;
+
+    if (!timeDiff || timeDiff > tenMinutes) {
+      axios
+        .get(`${hostname}/api/haul`)
+        .then(({data}) => {
+          const formattedCycles = data.cycles.map(parseCycle);
+          const formattedTimeUsage = data.timeusage.map(parseTimeusage);
+
+          commit('setFleetOps', [formattedCycles, formattedTimeUsage, now]);
+        });
+    }
   },
   setCurrentPreStartSubmissions({ commit }, submissions = []) {
     const formattedSubmissions = submissions.map(parsePreStartSubmission);
@@ -623,8 +646,15 @@ const mutations = {
   setHistoricTimeAllocations(state, allocs = []) {
     state.historicTimeAllocations = allocs;
   },
-  setActivityLog(state, log = []) {
-    state.activityLog = log;
+  setActivityLog(state, data) {
+    console.dir('set activity', data);
+    state.activitySequenceNumber = data.sequence_number;
+    state.activityLog = data.activities;
+  },
+  appendActivityLog(state, data) {
+    const activity = [data.activity].concat([...state.activityLog])
+    state.activityLog = activity;
+    state.activitySequenceNumber = data.sequence_number;
   },
   setLiveQueue(state, queues = []) {
     state.liveQueue = queues;
@@ -636,11 +666,10 @@ const mutations = {
   setDispatcherMessages(state, messages = []) {
     state.dispatcherMessages = messages;
   },
-  setFleetOpsCycles(state, cycles = []) {
+  setFleetOps(state, [cycles, timeusage, now]) {
     state.fleetOps.cycles = cycles;
-  },
-  setFleetOpsTimeusage(state, timeusage = []) {
     state.fleetOps.timeusage = timeusage;
+    state.fleetOps.lastUpdated = now;
   },
   setCurrentPreStartSubmissions(state, submissions = []) {
     notifyPreStartSubmissionChanges(state, submissions);

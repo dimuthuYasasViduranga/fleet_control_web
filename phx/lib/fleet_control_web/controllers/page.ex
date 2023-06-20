@@ -3,7 +3,6 @@ defmodule FleetControlWeb.PageController do
 
   use FleetControlWeb, :controller
 
-  alias FleetControlWeb.Authorization
   alias FleetControlWeb.Guardian
   alias FleetControl.DispatcherAgent
 
@@ -19,25 +18,27 @@ defmodule FleetControlWeb.PageController do
 
   @spec static_data(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def static_data(conn, _) do
-    user = get_session(conn, :current_user)
-
-    authorized = Map.get(conn.assigns.permissions, :authorized, false)
-
     {conn, token} = get_token(conn)
 
-    whitelist = Authorization.Whitelist.get(user[:user_id])
+    task =
+      Task.async(fn ->
+        user = get_session(conn, :current_user)
+        whitelist = Application.get_env(:fleet_control_web, :route_white_list, [])
 
-    data = %{
-      data: FleetControl.StaticData.fetch(),
-      whitelist: whitelist,
-      user_token: token,
-      user: user,
-      authorized: authorized
-    }
+        %{
+          data: FleetControl.StaticData.fetch(),
+          whitelist: whitelist,
+          user_token: token,
+          user: user,
+          authorized: true
+        }
+      end)
+
+    payload = Task.await(task)
 
     conn
     |> assign(:user_token, token)
-    |> json(data)
+    |> json(payload)
   end
 
   defp get_token(conn) do
@@ -53,20 +54,18 @@ defmodule FleetControlWeb.PageController do
   end
 
   defp get_user(conn) do
-    case Application.get_env(:fleet_control_web, :bypass_auth, false) do
-      true ->
-        {:ok, user} = DispatcherAgent.add(nil, "dev")
+    if Application.get_env(:fleet_control_web, :bypass_auth, false) do
+      {:ok, user} = DispatcherAgent.add("dev", "dev")
 
-        conn =
-          conn
-          |> put_session(:current_user, user)
-          |> Guardian.Plug.sign_in(user)
+      conn =
+        conn
+        |> put_session(:current_user, user)
+        |> Guardian.Plug.sign_in(user)
 
-        {conn, user}
-
-      _ ->
-        user = get_session(conn, :current_user)
-        {conn, user}
+      {conn, user}
+    else
+      user = get_session(conn, :current_user)
+      {conn, user}
     end
   end
 end

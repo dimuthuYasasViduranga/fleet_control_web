@@ -1,8 +1,5 @@
-// To use Phoenix channels, the first step is to import Socket
-// and connect at the socket path in 'lib/my_app/endpoint.ex':
-
 import { Socket, Presence } from 'phoenix';
-import { copyDate } from './time';
+import { copyDate } from '../time';
 
 function create(hostname, userToken, presenceSyncCallback) {
   // create socket
@@ -137,12 +134,18 @@ class Channel {
 
     channel
       .join()
-      .receive('ok', response => this._onConnect(response))
+      .receive('ok',  () => this.push("get initial data")
+        .receive('ok', resp => this._onConnect(resp))
+        .receive('error', resp => {
+        this._onDisconnect();
+        this._isConnected = false;
+        console.error('[Channel] Cannot get initial data', resp);
+        })
       .receive('error', resp => {
         this._onDisconnect();
         this._isConnected = false;
         console.error('[Channel] Cannot join', resp);
-      });
+      }));
 
     channel.onError(() => {
       if (this._mode !== 'normal') {

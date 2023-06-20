@@ -4,7 +4,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeCode do
 
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  def handle_in("time-code:set-tree-elements", payload, socket) do
+  def handle_in("set-tree-elements", payload, socket) do
     %{
       "asset_type_id" => asset_type_id,
       "elements" => elements
@@ -20,7 +20,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeCode do
     end
   end
 
-  def handle_in("time-code:update", payload, socket) do
+  def handle_in("update", payload, socket) do
     case TimeCodeAgent.add_or_update_time_code(payload) do
       {:ok, _} ->
         Broadcast.send_time_code_data_to_all()
@@ -31,7 +31,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeCode do
     end
   end
 
-  def handle_in("time-code:update-group", %{"id" => id, "alias" => alias_name}, socket) do
+  def handle_in("update-group", %{"id" => id, "alias" => alias_name}, socket) do
     case TimeCodeAgent.update_group(id, alias_name) do
       {:ok, _} ->
         Broadcast.send_time_code_data_to_all()
@@ -42,7 +42,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeCode do
     end
   end
 
-  def handle_in("time-code:bulk-add", %{"time_codes" => time_codes}, socket) do
+  def handle_in("bulk-add", %{"time_codes" => time_codes}, socket) do
     time_codes =
       Enum.map(time_codes, fn tc ->
         %{

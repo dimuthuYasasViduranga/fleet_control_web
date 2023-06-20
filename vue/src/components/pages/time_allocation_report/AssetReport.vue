@@ -437,7 +437,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 /* hxCard styling */
 .asset-report .hxCardIcon {

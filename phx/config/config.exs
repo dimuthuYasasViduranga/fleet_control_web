@@ -43,36 +43,37 @@ config :fleet_control_web,
       order_by: "location"
     }
   ],
-  route_white_list: %{
-    default: [
-      "/asset_assignment",
-      "/location_assignment",
-      "/mine_map",
-      "/asset_progress_line",
-      "/operators",
-      "/asset_roster",
-      "/device_assignment",
-      "/asset_status",
-      "/time_allocation",
-      "/operator_time_allocation",
-      "/time_allocation_report",
-      "/time_code_editor",
-      "/message_editor",
-      "/engine_hours",
-      "/debug",
-      "/agents",
-      "/route_map",
-      "/pre_start_editor",
-      "/pre_start_submissions",
-      "/asset_overview"
-    ]
-  }
+  route_white_list: [
+    "/asset_assignment",
+    "/location_assignment",
+    "/mine_map",
+    "/asset_progress_line",
+    "/operators",
+    "/asset_roster",
+    "/device_assignment",
+    "/asset_status",
+    "/time_allocation",
+    "/operator_time_allocation",
+    "/time_allocation_report",
+    "/time_code_editor",
+    "/message_editor",
+    "/engine_hours",
+    "/debug",
+    "/agents",
+    "/route_map",
+    "/pre_start_editor",
+    "/pre_start_submissions",
+    "/asset_overview"
+  ]
 
 # hpsdata
 config :hps_data, HpsData.Repo,
   adapter: Ecto.Adapters.Postgres,
   ssl_opts: [log_level: :error],
   pool_size: 10,
+  # allow longer queue to ensure response
+  queue_target: 5_000,
+  queue_interval: 100_000,
   parameters: [
     {:application_name, "fleet-control"}
   ],
@@ -85,7 +86,8 @@ config :fleet_control_web, FleetControlWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: FleetControlWeb.ErrorView, accepts: ~w(json)],
   pubsub_server: FleetControlWeb.PubSub,
-  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw"
+  secret_key_base: "8aeLYvJ4LClH+2/UpLwQzpZd+XYUydl/FXJlZ90IGnvaR3HxEa1Rs5iP0dSA88xw",
+  live_view: [signing_salt: "dCfpvb3F+PdEhJDfzvpCM7UBzV3JIWQA"]
 
 # Logger
 config :logger, :console,

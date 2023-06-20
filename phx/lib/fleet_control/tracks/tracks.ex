@@ -60,6 +60,11 @@ defmodule FleetControl.Tracks do
 
   @spec update_track_agent() :: :ok
   def update_track_agent() do
+    task = Task.async(fn -> do_update_track_agent() end)
+    Task.await(task)
+  end
+
+  defp do_update_track_agent() do
     track_method = Application.get_env(:fleet_control_web, :track_method, :gps_gate)
 
     case fetch_tracks(track_method) do

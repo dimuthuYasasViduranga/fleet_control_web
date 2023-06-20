@@ -65,7 +65,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_operators,
+      readonly: state => !state.permissions.fleet_control_edit_operators,
       operators: state => state.operators,
     }),
   },
@@ -101,8 +101,8 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/table.css';
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/table.css';
+@import '../../../assets/styles/hxInput.css';
 
 .operators-page .actions {
   display: flex;

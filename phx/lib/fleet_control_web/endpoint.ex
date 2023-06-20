@@ -1,6 +1,5 @@
 defmodule FleetControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :fleet_control_web
-  use Appsignal.Phoenix
 
   mix_env =
     if Code.ensure_compiled(Mix) do
@@ -30,6 +29,8 @@ defmodule FleetControlWeb.Endpoint do
     websocket: true,
     longpoll: false
   )
+
+  socket "/fleet-control/live", Phoenix.LiveView.Socket
 
   plug(Plug.Static,
     at: "/fleet-control",

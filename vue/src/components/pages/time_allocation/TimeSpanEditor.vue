@@ -881,9 +881,8 @@ export default {
 
       this.$channel
         .push('report:time allocation', payload)
-        .receive('ok', data => {
+        .receive('ok', reports => {
           this.reportInTransit = false;
-          const reports = data.reports;
 
           if (!reports) {
             this.events = null;
@@ -910,7 +909,7 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/hxInput.css';
 
 /* --- modal styling --- */
 .time-span-editor-modal .modal-container-wrapper > .modal-container {

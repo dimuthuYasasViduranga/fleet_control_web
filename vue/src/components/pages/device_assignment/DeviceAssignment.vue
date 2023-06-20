@@ -152,7 +152,7 @@ export default {
   },
   computed: {
     ...mapState('constants', {
-      readonly: state => !state.permissions.can_edit_devices,
+      readonly: state => !state.permissions.fleet_control_edit_devices,
       assets: state => state.assets,
       assetIcons: state => state.icons,
       operators: state => state.operators,
@@ -274,8 +274,8 @@ export default {
 </script>
 
 <style>
-@import '../../../assets/table.css';
-@import '../../../assets/hxInput.css';
+@import '../../../assets/styles/table.css';
+@import '../../../assets/styles/hxInput.css';
 
 .device-assignment .accept-new-devices {
   margin-right: 0.5rem;

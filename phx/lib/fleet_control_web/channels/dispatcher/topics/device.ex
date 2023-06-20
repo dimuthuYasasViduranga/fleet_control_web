@@ -9,7 +9,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.DigUnitActivityAgent
 
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
   require Logger
 
@@ -59,7 +59,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_devices)
+  @decorate authorized_channel("fleet_control_edit_devices")
   def handle_in("set-assigned-asset", payload, socket) do
     %{"device_id" => device_id, "asset_id" => asset_id} = payload
 
@@ -69,7 +69,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Device do
     end
   end
 
-  @decorate authorized(:can_edit_devices)
+  @decorate authorized_channel("fleet_control_edit_devices")
   def handle_in("set-details", %{"device_id" => device_id, "details" => details}, socket) do
     case DeviceAgent.update_details(device_id, details) do
       {:ok, _} ->

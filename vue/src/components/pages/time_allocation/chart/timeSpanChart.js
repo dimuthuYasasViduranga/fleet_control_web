@@ -1,4 +1,4 @@
-import d3 from '@/code/d3';
+import d3 from './d3';
 
 import { copyDate, setTimeZone, fromJSDate } from '@/code/time';
 import { dedupBy, attributeFromList } from '@/code/helpers';

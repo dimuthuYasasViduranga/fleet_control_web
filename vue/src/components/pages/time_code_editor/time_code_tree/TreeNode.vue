@@ -288,7 +288,7 @@ export default {
 </script>
 
 <style>
-@import '../../../../assets/hxInput.css';
+@import '../../../../assets/styles/hxInput.css';
 
 .tree-node {
   padding-left: 2rem;

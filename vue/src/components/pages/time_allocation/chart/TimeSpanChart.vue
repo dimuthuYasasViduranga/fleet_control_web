@@ -14,7 +14,7 @@
 
 <script>
 import Vue from 'vue';
-import d3 from '@/code/d3';
+import d3 from './d3';
 
 import { createChart, drawTimeline, defaultStyle, parseFill } from './timeSpanChart';
 import SlotWrapper from './SlotWrapper.vue';

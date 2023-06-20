@@ -1,9 +1,12 @@
-defmodule FleetControl.HaulAgentTest do
+defmodule FleetControl.HaulTest do
   use FleetControlWeb.RepoCase
   @moduletag :agent
 
-  alias FleetControl.{CalendarAgent, HaulAgent}
-  alias HpsData.{Dim, Haul}
+  alias FleetControl.{CalendarAgent, Haul}
+  alias HpsData.Dim
+  alias HpsData.Haul.State
+  alias HpsData.Haul.Cycle
+  alias HpsData.Haul.TimeUsage
 
   setup_all _ do
     [haul_truck | _] = Repo.all(Dim.HaulTruck)
@@ -22,7 +25,6 @@ defmodule FleetControl.HaulAgentTest do
   end
 
   setup do
-    HaulAgent.start_link([])
     :ok
   end
 
@@ -48,7 +50,7 @@ defmodule FleetControl.HaulAgentTest do
 
     Repo.transaction(fn ->
       cycle =
-        Repo.insert!(%Haul.Cycle{
+        Repo.insert!(%Cycle{
           haul_truck_id: haul_truck_id,
           calendar_id: calendar.id,
           start_time: start_time,
@@ -127,7 +129,7 @@ defmodule FleetControl.HaulAgentTest do
           }
         end)
 
-      {_count, inserted_states} = Repo.insert_all(Haul.State, states, returning: true)
+      {_count, inserted_states} = Repo.insert_all(State, states, returning: true)
 
       # add state id required for time usage elements
       tu_elements =
@@ -135,38 +137,8 @@ defmodule FleetControl.HaulAgentTest do
         |> Enum.zip(inserted_states)
         |> Enum.map(fn {tu, state} -> Map.put(tu, :state_id, state.id) end)
 
-      Repo.insert_all(Haul.TimeUsage, tu_elements)
+      Repo.insert_all(TimeUsage, tu_elements)
     end)
-  end
-
-  test "insert cycles then update", %{haul_truck: haul_truck} = context do
-    assert HaulAgent.cycles() == []
-    assert HaulAgent.timeusage() == []
-
-    tu_durations = [
-      EmptyHaul: 300,
-      QueueAtLoad: 0,
-      SpotAtLoad: 20,
-      Loading: 300,
-      FullHaul: 300,
-      QueueAtDump: 0,
-      SpotAtDump: 20,
-      Dumping: 30
-    ]
-
-    make_cycle(
-      context,
-      haul_truck.id,
-      ~N[2020-01-01 00:00:00.000000],
-      "Stock 01",
-      "Crusher",
-      tu_durations
-    )
-
-    HaulAgent.refresh!(~N[2020-01-01 01:00:00])
-
-    assert length(HaulAgent.cycles()) == 1
-    assert length(HaulAgent.timeusage()) != 0
   end
 
   describe "fetch by range! -" do
@@ -192,7 +164,7 @@ defmodule FleetControl.HaulAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        HaulAgent.fetch_by_range!(%{
+        Haul.fetch_by_range!(%{
           start_time: ~N[2020-01-01 00:00:00],
           end_time: ~N[2020-01-01 02:00:00]
         })
@@ -223,7 +195,7 @@ defmodule FleetControl.HaulAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        HaulAgent.fetch_by_range!(%{
+        Haul.fetch_by_range!(%{
           start_time: ~N[2020-01-01 01:05:00],
           end_time: ~N[2020-01-01 02:00:00]
         })
@@ -254,7 +226,7 @@ defmodule FleetControl.HaulAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        HaulAgent.fetch_by_range!(%{
+        Haul.fetch_by_range!(%{
           start_time: ~N[2020-01-01 00:00:00],
           end_time: ~N[2020-01-01 01:05:00]
         })
@@ -285,7 +257,7 @@ defmodule FleetControl.HaulAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        HaulAgent.fetch_by_range!(%{
+        Haul.fetch_by_range!(%{
           start_time: ~N[2020-01-01 01:01:00],
           end_time: ~N[2020-01-01 01:02:00]
         })
@@ -316,7 +288,7 @@ defmodule FleetControl.HaulAgentTest do
       )
 
       %{cycles: cycles, timeusage: timeusage} =
-        HaulAgent.fetch_by_range!(%{
+        Haul.fetch_by_range!(%{
           start_time: ~N[2020-01-02 00:00:00],
           end_time: ~N[2020-01-02 01:00:00]
         })

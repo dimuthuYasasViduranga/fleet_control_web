@@ -3,10 +3,9 @@ defmodule FleetControlWeb.DispatcherChannel do
 
   require Logger
   use Appsignal.Instrumentation.Decorators
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
 
-  use FleetControlWeb, :channel
-
+  use Phoenix.Channel
   alias FleetControlWeb.DispatcherChannel
   alias DispatcherChannel.Topics
   alias DispatcherChannel.Report
@@ -18,14 +17,12 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControl.TimeAllocation
   alias FleetControl.CalendarAgent
   alias FleetControl.RoutingAgent
+  alias FleetControl.ActivityAgent
 
   alias FleetControlWeb.DispatcherChannel.Setup
 
   def join("dispatchers:all", _params, socket) do
-    send(self(), :after_join)
-    permissions = socket.assigns.permissions
-    resp = Setup.join(permissions)
-    {:ok, resp, socket}
+    {:ok, socket}
   end
 
   def join(_topic, _params, _socket), do: {:error, %{reason: "unauthorized"}}
@@ -36,12 +33,41 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:noreply, socket}
   end
 
+  def handle_info(:gc, socket) do
+    send(socket.transport_pid, :garbage_collect)
+    :erlang.garbage_collect()
+    {:noreply, socket}
+  end
+
   @decorate channel_action()
+
+  def handle_in("get initial data", _payload, socket) do
+    send(self(), :after_join)
+    ref = Phoenix.Channel.socket_ref(socket)
+
+    permissions =
+      socket.assigns.current_user.user_id
+      |> HpsPhx.Authorization.user_permissions()
+      |> Enum.map(&{&1, true})
+      |> Enum.into(%{authorized: true})
+
+    task =
+      Task.async(fn ->
+        resp = Setup.join(permissions)
+        Phoenix.Channel.reply(ref, {:ok, resp})
+      end)
+
+    Task.await(task)
+    send(self(), :gc)
+
+    {:noreply, socket}
+  end
+
   def handle_in("refresh:" <> subtopic, payload, socket) do
     Topics.Refresh.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_dispatch)
+  @decorate authorized_channel("fleet_control_dispatch")
   def handle_in("haul:" <> subtopic, payload, socket) do
     Topics.HaulTruck.handle_in(subtopic, payload, socket)
   end
@@ -62,12 +88,12 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.Track.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_edit_time_codes)
+  @decorate authorized_channel("fleet_control_edit_time_codes")
   def handle_in("time-code:" <> subtopic, payload, socket) do
     Topics.TimeCode.handle_in(subtopic, payload, socket)
   end
 
-  @decorate authorized(:can_edit_asset_roster)
+  @decorate authorized_channel("fleet_control_edit_asset_roster")
   def handle_in("asset:" <> subtopic, payload, socket) do
     Topics.Asset.handle_in(subtopic, payload, socket)
   end
@@ -92,6 +118,21 @@ defmodule FleetControlWeb.DispatcherChannel do
     Topics.TimeAllocation.handle_in(subtopic, payload, socket)
   end
 
+  def handle_in("activity-log:get-all", _payload, socket) do
+    ref = Phoenix.Channel.socket_ref(socket)
+
+    task =
+      Task.async(fn ->
+        resp = ActivityAgent.get()
+        Phoenix.Channel.reply(ref, {:ok, resp})
+      end)
+
+    Task.await(task)
+    send(self(), :gc)
+
+    {:noreply, socket}
+  end
+
   def handle_in("set page visited", payload, socket) do
     case payload["page"] do
       nil ->
@@ -112,7 +153,7 @@ defmodule FleetControlWeb.DispatcherChannel do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_routing)
+  @decorate authorized_channel("fleet_control_edit_routing")
   def handle_in("routing:update", payload, socket) do
     case RoutingAgent.update(
            payload["route_id"],
@@ -134,18 +175,35 @@ defmodule FleetControlWeb.DispatcherChannel do
         %{"start_time" => start_time, "end_time" => end_time, "asset_ids" => asset_ids},
         socket
       ) do
-    report_start = Helper.to_naive(start_time)
-    report_end = Helper.to_naive(end_time)
-    reports = Report.generate_report(report_start, report_end, asset_ids)
+    ref = Phoenix.Channel.socket_ref(socket)
 
-    {:reply, {:ok, %{reports: reports}}, socket}
+    task =
+      Task.async(fn ->
+        report_start = Helper.to_naive(start_time)
+        report_end = Helper.to_naive(end_time)
+        report = Report.generate_report(report_start, report_end, asset_ids)
+        Phoenix.Channel.reply(ref, {:ok, report})
+      end)
+
+    Task.await(task, 10_000)
+    send(self(), :gc)
+    {:noreply, socket}
   end
 
   def handle_in("report:time allocation", calendar_id, socket) when is_integer(calendar_id) do
+    ref = Phoenix.Channel.socket_ref(socket)
+
     case CalendarAgent.get(%{id: calendar_id}) do
       %{shift_start: start_time, shift_end: end_time} ->
-        reports = Report.generate_report(start_time, end_time)
-        {:reply, {:ok, %{reports: reports}}, socket}
+        task =
+          Task.async(fn ->
+            report = Report.generate_report(start_time, end_time)
+            Phoenix.Channel.reply(ref, {:ok, report})
+          end)
+
+        Task.await(task, 10_000)
+        send(self(), :gc)
+        {:noreply, socket}
 
       _ ->
         {:reply, to_error("shift does not exist"), socket}

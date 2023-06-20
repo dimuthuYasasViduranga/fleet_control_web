@@ -5,10 +5,10 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
 
   alias FleetControl.{Helper, PreStartAgent, PreStartSubmissionAgent}
   alias FleetControlWeb.Broadcast
-  use FleetControlWeb.Authorization.Decorator
+  use HpsPhx.Authorization.Decorator
   import FleetControlWeb.DispatcherChannel, only: [to_error: 1]
 
-  @decorate authorized(:can_edit_pre_starts)
+  @decorate authorized_channel("fleet_control_edit_pre_starts")
   def handle_in(
         "add form",
         %{"asset_type_id" => asset_type_id, "sections" => sections} = data,
@@ -28,7 +28,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
     {:reply, :ok, socket}
   end
 
-  @decorate authorized(:can_edit_pre_starts)
+  @decorate authorized_channel("fleet_control_edit_pre_starts")
   def handle_in("update control categories", controls, socket)
       when is_list(controls) do
     controls
@@ -44,7 +44,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
     end
   end
 
-  @decorate authorized(:can_edit_pre_start_tickets)
+  @decorate authorized_channel("fleet_control_edit_pre_start_tickets")
   def handle_in("set response ticket", params, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
@@ -54,6 +54,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
     |> case do
       {:ok, ticket, _submission} ->
         Broadcast.send_pre_start_submissions_to_all()
+        # fixme possible socket_ref treatment
         {:reply, {:ok, %{ticket: ticket}}, socket}
 
       error ->
@@ -61,7 +62,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
     end
   end
 
-  @decorate authorized(:can_edit_pre_start_tickets)
+  @decorate authorized_channel("fleet_control_edit_pre_start_tickets")
   def handle_in("update response ticket status", params, socket) do
     dispatcher_id = get_dispatcher_id(socket)
 
@@ -97,6 +98,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
           submissions: submissions
         }
 
+        # fixme possible socket_ref treatment
         {:reply, {:ok, payload}, socket}
     end
   end

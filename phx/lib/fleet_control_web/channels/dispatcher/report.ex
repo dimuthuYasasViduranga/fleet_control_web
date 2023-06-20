@@ -3,7 +3,7 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
   Return a report of exceptions entered, using FleetOps timeusage to determine
   if any exceptions have been missed
   """
-  alias FleetControl.{Helper, AssetAgent, HaulAgent, DeviceAssignmentAgent, EngineHoursAgent}
+  alias FleetControl.{Helper, AssetAgent, Haul, DeviceAssignmentAgent, EngineHoursAgent}
 
   alias HpsData.Schemas.Dispatch.{TimeAllocation, TimeCode, TimeCodeGroup}
   alias HpsData.Repo
@@ -270,11 +270,11 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
   end
 
   defp get_timeusage(start_time, end_time) do
-    HaulAgent.fetch_timeusage_by_range!(%{start_time: start_time, end_time: end_time})
+    Haul.fetch_timeusage_by_range!(%{start_time: start_time, end_time: end_time})
   end
 
   defp get_cycles(start_time, end_time) do
-    HaulAgent.fetch_cycles_by_range!(%{start_time: start_time, end_time: end_time})
+    Haul.fetch_cycles_by_range!(%{start_time: start_time, end_time: end_time})
   end
 
   defp get_device_assignments(start_time, end_time) do
