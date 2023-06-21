@@ -551,7 +551,7 @@ defmodule FleetControlWeb.OperatorChannel do
       },
 
       # maps and tracks
-      map_manifest: MapTileAgent.get(),
+      map_manifest: %{},
       routing: RoutingAgent.get(),
       track: latest_track,
       other_tracks: other_tracks
