@@ -41,6 +41,13 @@ defmodule FleetControlWeb.OperatorChannel do
   def join("operators:" <> _device_uuid, _params, socket) do
     send(self(), :after_join)
 
+    try do
+      Process.register(self(), String.to_atom("operator_channel_#{device_uuid}"))
+      Process.register(socket.transport_pid, String.to_atom("operator_socket_#{device_uuid}"))
+    rescue
+      e in ArgumentError -> Logger.warn(e.message)
+    end
+
     task =
       Task.async(fn ->
         enable_leave(socket)
