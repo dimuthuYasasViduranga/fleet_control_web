@@ -31,7 +31,6 @@ defmodule FleetControlWeb.OperatorChannel do
     PreStartAgent,
     PreStartSubmissionAgent,
     DigUnitActivityAgent,
-    MapTileAgent,
     RoutingAgent,
     DeviceConnectionAgent
   }
@@ -42,6 +41,7 @@ defmodule FleetControlWeb.OperatorChannel do
     send(self(), :after_join)
 
     try do
+      device_uuid = socket.assigns.device_uuid
       Process.register(self(), String.to_atom("operator_channel_#{device_uuid}"))
       Process.register(socket.transport_pid, String.to_atom("operator_socket_#{device_uuid}"))
     rescue
