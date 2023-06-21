@@ -11,12 +11,7 @@ defmodule FleetControl.MapTileAgent do
   # failure cooldown (30 sec)
   @cooldown_timer 30 * 1000
 
-  @manifest_name "manifest.json"
-
   require Logger
-
-  defp get_map_tile_endpoint(),
-    do: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
 
   def start_link(_opts),
     do: GenServer.start_link(__MODULE__, :ok, name: __MODULE__, hibernate_after: 300_000)
@@ -33,7 +28,7 @@ defmodule FleetControl.MapTileAgent do
 
   def init(:ok) do
     state = %{
-      endpoint: get_map_tile_endpoint()
+      endpoint: Application.get_env(:fleet_control_web, :map_tile_endpoint, nil)
     }
 
     send(self(), :update_manifest)
@@ -46,7 +41,7 @@ defmodule FleetControl.MapTileAgent do
   defp get_manifest(endpoint) do
     task =
       Task.async(fn ->
-        manifest_endpoint = "#{endpoint}/#{@manifest_name}"
+        manifest_endpoint = "#{endpoint}/manifest.json"
 
         case HTTPoison.get(manifest_endpoint) do
           {:ok, %{status_code: 200, body: body}} ->
