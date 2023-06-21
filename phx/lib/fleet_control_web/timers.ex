@@ -2,12 +2,9 @@ defmodule FleetControlWeb.Timers do
   @moduledoc false
 
   alias FleetControlWeb.DispatcherChannel.Topics
-  alias FleetControl.{HaulTruckDispatchAgent, TrackAgent}
-  alias FleetControlWeb.Broadcast
 
   @default_calendar_interval 24 * 3600 * 1000
   @default_location_interval 30 * 60 * 1000
-  @default_live_queue_interval 10 * 1000
   @default_track_interval 10 * 1000
 
   @spec start() :: :ok

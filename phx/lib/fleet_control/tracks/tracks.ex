@@ -65,7 +65,7 @@ defmodule FleetControl.Tracks do
         asset_map = get_asset_map()
         locations = LocationAgent.active_locations()
 
-        Enum.map(tracks, fn track ->
+        Enum.each(tracks, fn track ->
           track =
             track
             |> add_info(asset_map, locations)

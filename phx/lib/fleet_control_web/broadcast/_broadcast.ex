@@ -454,7 +454,7 @@ defmodule FleetControlWeb.Broadcast do
     broadcast_all_operators(
       "track_delta",
       track_delta,
-      &(&1.type in ["Excavator", "Loader"] && &1.id != track.asset_id)
+      &(&1.type in ["Excavator", "Loader"] && &1.id != track_delta.asset_id)
     )
   end
 
