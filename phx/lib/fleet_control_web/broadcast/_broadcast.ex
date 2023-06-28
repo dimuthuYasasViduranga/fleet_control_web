@@ -31,7 +31,6 @@ defmodule FleetControlWeb.Broadcast do
     AssetRadioAgent,
     TimeCodeAgent,
     TimeAllocation,
-    LocationAgent,
     CalendarAgent,
     PreStartAgent,
     PreStartSubmissionAgent,
@@ -166,20 +165,6 @@ defmodule FleetControlWeb.Broadcast do
     end
 
     :ok
-  end
-
-  def send_location_data_to_all() do
-    active_locations =
-      LocationAgent.active_locations()
-      |> Enum.map(&Map.drop(&1, [:polygon]))
-
-    payload = %{
-      dim_locations: LocationAgent.dim_locations(),
-      locations: active_locations
-    }
-
-    Endpoint.broadcast(@dispatch, "set location data", payload)
-    broadcast_all_operators("set location data", payload)
   end
 
   def send_routing_data() do
