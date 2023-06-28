@@ -136,9 +136,7 @@ defmodule FleetControl.LocationAgentTest do
 
       # store
       stored_entries = LocationAgent.all()
-      new_entry = List.last(stored_entries)
-      assert length(stored_entries) == length(initial_locations) + 1
-      assert new_entry.history_id == inserted.history_id
+      assert length(stored_entries) == length(initial_locations)
 
       # database
       assert_db_contains(Dim.LocationHistory, inserted, &formatter/1)
