@@ -54,7 +54,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
     |> case do
       {:ok, ticket, _submission} ->
         Broadcast.send_pre_start_submissions_to_all()
-        # fixme possible socket_ref treatment
+        # TODO possible socket_ref treatment
         {:reply, {:ok, %{ticket: ticket}}, socket}
 
       error ->
@@ -98,7 +98,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.PreStart do
           submissions: submissions
         }
 
-        # fixme possible socket_ref treatment
+        # TODO possible socket_ref treatment
         {:reply, {:ok, payload}, socket}
     end
   end
