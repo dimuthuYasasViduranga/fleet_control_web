@@ -21,9 +21,13 @@ defmodule FleetControl.LocationAgent do
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
   defp init() do
+    locations =
+      pull_locations()
+      |> Enum.map(&parse_geofence/1)
+
     %{
       dim_locations: pull_dim_locations(),
-      locations: pull_locations() |> Enum.map(&parse_geofence/1)
+      locations: locations
     }
   end
 
@@ -38,6 +42,8 @@ defmodule FleetControl.LocationAgent do
   end
 
   defp pull_locations() do
+    now = NaiveDateTime.utc_now()
+
     from(lh in Dim.LocationHistory,
       left_join: mh in Dim.LocationMaterialHistory,
       on: lh.location_id == mh.location_id and lh.start_time == mh.start_time,
@@ -49,6 +55,7 @@ defmodule FleetControl.LocationAgent do
       on: [id: lgh.location_group_id],
       order_by: [asc: lh.start_time, asc: lh.id],
       where: lh.deleted == false,
+      where: is_nil(lh.end_time) or lh.end_time > ^now,
       select: %{
         start_time: lh.start_time,
         end_time: lh.end_time,
