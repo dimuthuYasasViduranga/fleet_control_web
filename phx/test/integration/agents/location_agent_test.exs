@@ -94,12 +94,12 @@ defmodule FleetControl.LocationAgentTest do
         |> formatter()
 
       # post refresh
-      LocationAgent.refresh!()
+      LocationAgent.refresh!(false)
 
       # store
       stored_entries = LocationAgent.all()
       new_entry = List.last(stored_entries)
-      assert length(stored_entries) == length(initial_locations) + 1
+      assert length(stored_entries) == length(initial_locations)
       assert new_entry.history_id == inserted.history_id
 
       # database
@@ -132,7 +132,7 @@ defmodule FleetControl.LocationAgentTest do
         |> formatter()
 
       # post refresh
-      LocationAgent.refresh!()
+      LocationAgent.refresh!(false)
 
       # store
       stored_entries = LocationAgent.all()
@@ -188,7 +188,7 @@ defmodule FleetControl.LocationAgentTest do
 
       Repo.insert_all(Dim.LocationHistory, new_locations)
 
-      LocationAgent.refresh!()
+      LocationAgent.refresh!(false)
 
       actual_between = LocationAgent.active_locations(~N[2020-08-11 00:00:00])
       actual_after = LocationAgent.active_locations(timestamp)

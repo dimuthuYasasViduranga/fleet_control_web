@@ -25,9 +25,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.Refresh do
   end
 
   def refresh("location agent") do
-    :ok = FleetControl.LocationAgent.refresh!()
-    Broadcast.send_location_data_to_all()
-    :ok
+    FleetControl.LocationAgent.refresh!()
   end
 
   def refresh("calendar agent") do
