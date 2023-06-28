@@ -600,7 +600,6 @@ const mutations = {
     state.historicTimeAllocations = allocs;
   },
   setActivityLog(state, data) {
-    console.dir('set activity', data);
     state.activitySequenceNumber = data.sequence_number;
     state.activityLog = data.activities;
   },
