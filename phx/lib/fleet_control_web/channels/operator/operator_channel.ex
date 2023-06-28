@@ -31,7 +31,6 @@ defmodule FleetControlWeb.OperatorChannel do
     PreStartAgent,
     PreStartSubmissionAgent,
     DigUnitActivityAgent,
-    MapTileAgent,
     RoutingAgent,
     DeviceConnectionAgent
   }
@@ -40,6 +39,14 @@ defmodule FleetControlWeb.OperatorChannel do
 
   def join("operators:" <> _device_uuid, _params, socket) do
     send(self(), :after_join)
+
+    try do
+      device_uuid = socket.assigns.device_uuid
+      Process.register(self(), String.to_atom("operator_channel_#{device_uuid}"))
+      Process.register(socket.transport_pid, String.to_atom("operator_socket_#{device_uuid}"))
+    rescue
+      e in ArgumentError -> Logger.warn(e.message)
+    end
 
     task =
       Task.async(fn ->
@@ -180,13 +187,14 @@ defmodule FleetControlWeb.OperatorChannel do
   end
 
   def handle_in("submit offline logins", logins, socket) when is_list(logins) do
+    device_id = socket.assigns.device_id
+
     task =
       Task.async(fn ->
-        device_id = socket.assigns.device_id
         now = NaiveDateTime.utc_now()
 
         logins
-        |> Enum.map(fn login ->
+        |> Stream.map(fn login ->
           %{
             device_id: device_id,
             asset_id: login["asset_id"],
@@ -195,7 +203,7 @@ defmodule FleetControlWeb.OperatorChannel do
             server_timestamp: now
           }
         end)
-        |> Enum.reject(fn login ->
+        |> Stream.reject(fn login ->
           any_nils =
             login
             |> Map.values()
@@ -215,23 +223,27 @@ defmodule FleetControlWeb.OperatorChannel do
             login.timestamp
           )
         end)
-
-        Broadcast.send_assignments_to_all()
       end)
 
-    Task.await(task)
+    case Task.yield(task, 60_000) do
+      {:ok, _} -> nil
+      nil -> Logger.error("Device #{device_id} has too many offline logins, some will be skipped")
+    end
+
+    Broadcast.send_assignments_to_all()
 
     {:reply, :ok, socket}
   end
 
   def handle_in("submit logouts", logouts, socket) when is_list(logouts) do
+    device_id = socket.assigns.device_id
+
     task =
       Task.async(fn ->
-        device_id = socket.assigns.device_id
         now = NaiveDateTime.utc_now()
 
         logouts
-        |> Enum.reject(fn logout ->
+        |> Stream.reject(fn logout ->
           asset_id = logout["asset_id"]
           timestamp = logout["timestamp"]
 
@@ -257,11 +269,17 @@ defmodule FleetControlWeb.OperatorChannel do
             timestamp
           )
         end)
-
-        Broadcast.send_assignments_to_all()
       end)
 
-    Task.await(task)
+    case Task.yield(task, 60_000) do
+      {:ok, _} ->
+        nil
+
+      nil ->
+        Logger.error("Device #{device_id} has too many offline logouts, some will be skipped")
+    end
+
+    Broadcast.send_assignments_to_all()
 
     {:reply, :ok, socket}
   end
@@ -541,7 +559,7 @@ defmodule FleetControlWeb.OperatorChannel do
       },
 
       # maps and tracks
-      map_manifest: MapTileAgent.get(),
+      map_manifest: %{},
       routing: RoutingAgent.get(),
       track: latest_track,
       other_tracks: other_tracks

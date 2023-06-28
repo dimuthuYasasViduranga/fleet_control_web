@@ -21,9 +21,13 @@ defmodule FleetControl.LocationAgent do
   def start_link(_opts), do: AgentHelper.start_link(&init/0)
 
   defp init() do
+    locations =
+      pull_locations()
+      |> Enum.map(&parse_geofence/1)
+
     %{
       dim_locations: pull_dim_locations(),
-      locations: pull_locations() |> Enum.map(&parse_geofence/1)
+      locations: locations
     }
   end
 
@@ -38,6 +42,8 @@ defmodule FleetControl.LocationAgent do
   end
 
   defp pull_locations() do
+    now = NaiveDateTime.utc_now()
+
     from(lh in Dim.LocationHistory,
       left_join: mh in Dim.LocationMaterialHistory,
       on: lh.location_id == mh.location_id and lh.start_time == mh.start_time,
@@ -49,6 +55,7 @@ defmodule FleetControl.LocationAgent do
       on: [id: lgh.location_group_id],
       order_by: [asc: lh.start_time, asc: lh.id],
       where: lh.deleted == false,
+      where: is_nil(lh.end_time) or lh.end_time > ^now,
       select: %{
         start_time: lh.start_time,
         end_time: lh.end_time,
@@ -69,6 +76,7 @@ defmodule FleetControl.LocationAgent do
       }
     )
     |> Repo.all()
+    |> Enum.filter(&Location.filter_location_by_timestamp(&1, now))
   end
 
   @spec parse_geofence(location) :: location
@@ -78,7 +86,32 @@ defmodule FleetControl.LocationAgent do
   end
 
   @spec refresh!() :: :ok
-  def refresh!(), do: AgentHelper.set(__MODULE__, &init/0)
+  def refresh!(broadcast? \\ true) do
+    Agent.update(__MODULE__, fn old_data ->
+      new_data = init()
+
+      if new_data != old_data do
+        Logger.warn("new locations")
+
+        active_locations =
+          new_data.locations
+          |> Enum.filter(&Location.filter_location_by_timestamp(&1, NaiveDateTime.utc_now()))
+          |> Enum.map(&Map.drop(&1, [:polygon]))
+
+        payload = %{
+          dim_locations: new_data.dim_locations,
+          locations: active_locations
+        }
+
+        if broadcast? do
+          FleetControlWeb.Endpoint.broadcast("dispatchers:all", "set location data", payload)
+          FleetControlWeb.Broadcast.broadcast_all_operators("set location data", payload)
+        end
+      end
+
+      new_data
+    end)
+  end
 
   @spec dim_locations() :: list(dim_location)
   def dim_locations(), do: Agent.get(__MODULE__, & &1.dim_locations)
@@ -88,7 +121,7 @@ defmodule FleetControl.LocationAgent do
 
   @spec active_locations() :: list(location)
   def active_locations() do
-    Enum.filter(all(), &Location.filter_location_by_timestamp(&1, NaiveDateTime.utc_now()))
+    all()
   end
 
   @spec active_locations(NaiveDateTime.t()) :: list(location)

@@ -22,6 +22,14 @@ defmodule FleetControlWeb.DispatcherChannel do
   alias FleetControlWeb.DispatcherChannel.Setup
 
   def join("dispatchers:all", _params, socket) do
+    try do
+      user_id = inspect(socket.assigns.current_user.id)
+      Process.register(self(), String.to_atom("dispatcher_channel_#{user_id}"))
+      Process.register(socket.transport_pid, String.to_atom("dispatcher_socket_#{user_id}"))
+    rescue
+      e in ArgumentError -> Logger.warn(e.message)
+    end
+
     {:ok, socket}
   end
 
