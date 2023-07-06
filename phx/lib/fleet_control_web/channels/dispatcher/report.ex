@@ -25,8 +25,9 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
     asset_ids = Enum.map(assets, & &1.id)
 
     allocations =
-      get_time_allocations(asset_ids, start_time, end_time)
+      get_time_allocations(start_time, end_time)
       |> Enum.group_by(& &1.asset_id)
+      |> Map.take(asset_ids)
 
     timeusage =
       get_timeusage(start_time, end_time)
@@ -244,13 +245,12 @@ defmodule FleetControlWeb.DispatcherChannel.Report do
   defp safe_div(_num, 0), do: 0
   defp safe_div(num, denum), do: num / denum
 
-  defp get_time_allocations(asset_ids, start_time, end_time) do
+  defp get_time_allocations(start_time, end_time) do
     from(ta in TimeAllocation,
       where:
         (ta.start_time < ^end_time and ta.end_time > ^start_time) or
           (is_nil(ta.end_time) and ta.start_time < ^end_time),
       where: ta.deleted == false,
-      where: ta.asset_id in ^asset_ids,
       join: tc in TimeCode,
       on: [id: ta.time_code_id],
       join: tcg in TimeCodeGroup,

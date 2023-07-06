@@ -17,6 +17,7 @@ config :fleet_control_web,
     zoom: 15
   },
   track_interval: 10_000,
+  # track_method has been removed, gps_gate is the only option now.
   track_method: :gps_gate,
   settings: [
     use_device_gps: false,
@@ -25,6 +26,7 @@ config :fleet_control_web,
     prompt_engine_hours_on_login: false,
     prompt_engine_hours_on_logout: false,
     prompt_pre_starts_on_login: false,
+    # use_live_queue has been removed, false is the only option now.
     use_live_queue: false
   ],
   location_update_interval: 3600,

@@ -158,21 +158,6 @@ export default {
     },
     tileClasses() {
       const classes = [getDesyncedClass(this.asset), getAndResolveExternalUpdateClass(this.asset)];
-
-      const queueInfo = this.asset.liveQueueInfo;
-
-      if (this.asset.type === 'Haul Truck' && queueInfo) {
-        classes.push(queueInfo.status);
-      }
-
-      if (this.asset.secondaryType === 'Dig Unit' && queueInfo) {
-        if (queueInfo.active.length) {
-          classes.push('loading');
-        } else if (!queueInfo.queued.length) {
-          classes.push('hang');
-        }
-      }
-
       return classes;
     },
     locationName() {

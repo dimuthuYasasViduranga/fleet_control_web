@@ -35,7 +35,6 @@ defmodule FleetControlWeb.Application do
       FleetControl.PreStartAgent,
       FleetControl.PreStartSubmissionAgent,
       FleetControl.RoutingAgent,
-      FleetControl.LiveQueueAgent,
 
       # agents that call other agents
       FleetControl.TimeAllocation.Agent,

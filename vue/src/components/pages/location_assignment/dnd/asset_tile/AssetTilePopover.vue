@@ -33,10 +33,6 @@
             {{ dispatchAcknowledged ? 'Yes' : 'No' }}
           </td>
         </tr>
-        <tr v-if="queueStatus === 'queued'">
-          <td class="key">Queue At Load</td>
-          <td class="value">{{ timeInQueue }}</td>
-        </tr>
       </template>
       <!-- dig unit only -->
       <template v-if="asset.secondaryType === 'Dig Unit'">
@@ -184,21 +180,6 @@ export default {
     },
     uuid() {
       return formatDeviceUUID(this.asset.deviceUUID);
-    },
-    queueStatus() {
-      return this.asset?.liveQueueInfo?.status;
-    },
-    timeInQueue() {
-      if (this.asset.type !== 'Haul Truck') {
-        return;
-      }
-      const startedAt = this.asset?.liveQueueInfo?.startedAt;
-      if (!startedAt) {
-        return;
-      }
-
-      const duration = this.$everySecond.timestamp - startedAt.getTime();
-      return formatSeconds(Math.trunc(duration / 1000));
     },
     connectionText() {
       if (this.asset.present) {

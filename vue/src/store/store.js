@@ -203,7 +203,6 @@ const state = {
   dispatcherMessages: Array(),
   activityLog: Array(),
   activitySequenceNumber: Number(),
-  liveQueue: Array(),
   fleetOps: {
     cycles: Array(),
     timeusage: Array(),
@@ -260,36 +259,6 @@ function parseTicket(ticket) {
     timestamp: toUtcDate(ticket.timestamp),
     serverTimestamp: toUtcDate(ticket.server_timestamp),
   };
-}
-
-function parseLiveQueue(queue) {
-  return Object.values(queue).map(queue => {
-    const active = parseLiveQueueElements(queue.active, queue.id, 'loading');
-    const queued = parseLiveQueueElements(queue.queued, queue.id, 'queued');
-    const outOfRange = parseLiveQueueElements(queue.out_of_range, queue.id, 'out_of_range');
-    return {
-      digUnitId: queue.id,
-      lastVisited: toUtcDate(queue.last_visited),
-      active,
-      queued,
-      outOfRange,
-      assetCount: active.length + queued.length + outOfRange.length,
-    };
-  });
-}
-
-function parseLiveQueueElements(elements = {}, digUnitId, status) {
-  return Object.values(elements).map(info => {
-    return {
-      assetId: info.id,
-      digUnitId,
-      status,
-      startedAt: toUtcDate(info.started_at),
-      lastUpdated: toUtcDate(info.last_updated),
-      chainDistance: info.chain_distance,
-      distanceToExcavator: info.distance_to_excavator,
-    };
-  });
 }
 
 function notifyPreStartSubmissionChanges(state, newSubs) {
@@ -421,17 +390,6 @@ const getters = {
     const { activeTimeAllocations } = state;
     const fullTimeCodes = getters['constants/fullTimeCodes'];
 
-    const liveQueue = state.settings?.use_live_queue ? state.liveQueue : [];
-
-    const liveQueueMap = {};
-    liveQueue.forEach(q => {
-      liveQueueMap[q.digUnitId] = q;
-
-      [q.active, q.queued, q.outOfRange].flat().forEach(e => {
-        liveQueueMap[e.assetId] = e;
-      });
-    });
-
     return assets.map(a =>
       Transforms.toFullAsset(
         a,
@@ -442,7 +400,6 @@ const getters = {
         presence,
         currentDeviceAssignments,
         activeTimeAllocations,
-        liveQueueMap,
       ),
     );
   },
@@ -571,10 +528,6 @@ const actions = {
       });
     }
   },
-  setLiveQueue({ commit }, queue = {}) {
-    const formattedQueues = parseLiveQueue(queue);
-    commit('setLiveQueue', formattedQueues);
-  },
   setOperatorMessages({ commit }, messages = []) {
     const formattedMessages = messages.map(parseOperatorMessage);
     commit('setOperatorMessages', formattedMessages);
@@ -647,7 +600,6 @@ const mutations = {
     state.historicTimeAllocations = allocs;
   },
   setActivityLog(state, data) {
-    console.dir('set activity', data);
     state.activitySequenceNumber = data.sequence_number;
     state.activityLog = data.activities;
   },
@@ -655,9 +607,6 @@ const mutations = {
     const activity = [data.activity].concat([...state.activityLog])
     state.activityLog = activity;
     state.activitySequenceNumber = data.sequence_number;
-  },
-  setLiveQueue(state, queues = []) {
-    state.liveQueue = queues;
   },
   setOperatorMessages(state, messages = []) {
     notifyUnreadMessages(state.operatorMessages, messages);

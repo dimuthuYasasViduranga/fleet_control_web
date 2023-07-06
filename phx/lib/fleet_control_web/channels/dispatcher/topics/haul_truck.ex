@@ -5,11 +5,9 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
 
   use HpsPhx.Authorization.Decorator
 
-  alias FleetControl.{
-    HaulTruckDispatchAgent,
-    TrackAgent,
-    Tracks
-  }
+  alias FleetControl.HaulTruckDispatchAgent
+  alias FleetControl.TrackAgent
+  alias FleetControl.Tracks
 
   alias FleetControlWeb.Broadcast
 
@@ -45,6 +43,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.HaulTruck do
       {:ok, dispatch} ->
         asset_id = dispatch.asset_id
         Broadcast.HaulTruck.send_dispatch(%{asset_id: asset_id})
+        # does set_dispatch really need to update track data?
         update_track_data(asset_id)
 
         {:reply, :ok, socket}
