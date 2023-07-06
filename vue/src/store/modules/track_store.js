@@ -83,7 +83,7 @@ const mutations = {
     state.pendingTracks[track.assetId] = track;
   },
   updateTrack(state, delta) {
-    track = state.tracks[delta.assetId];
+    let track = state.tracks[delta.assetId];
 
     if (!track || !delta) {
       return;
@@ -91,7 +91,7 @@ const mutations = {
 
     // timestamp
     if (delta.timestamp) {
-      timestamp = toUtcDate(delta.timestamp);
+      let timestamp = toUtcDate(delta.timestamp);
       track.timestamp = timestamp;
     }
 
