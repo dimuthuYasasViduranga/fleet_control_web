@@ -37,13 +37,12 @@ defmodule FleetControl.TrackAgent do
     Agent.get_and_update(__MODULE__, fn tracks ->
       existing = tracks[track.asset_id]
 
-      if is_nil(track[:asset_id]) || is_nil(track[:timestamp] || is_nil(existing)) do
+      if is_nil(track[:asset_id]) || is_nil(track[:timestamp]) do
         {{:error, :ignored}, tracks}
       else
-        time_delta = NaiveDateTime.diff(track.timestamp, existing.timestamp)
-
         # only update if at least 15 seconds in the future
-        if time_delta > 15 do
+        if is_nil(existing) || NaiveDateTime.diff(track.timestamp, existing.timestamp) > 15 do
+          existing = existing || %{}
           track = Map.merge(existing, track)
           track_delta = Map.to_list(track) -- Map.to_list(existing)
           track_delta = [{:asset_id, track.asset_id} | track_delta]
