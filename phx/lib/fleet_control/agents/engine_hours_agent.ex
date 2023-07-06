@@ -6,7 +6,6 @@ defmodule FleetControl.EngineHoursAgent do
   require Logger
   alias HpsData.Schemas.Dispatch.EngineHours
   alias HpsData.Repo
-  alias HpsData.Asset
 
   @cull_opts %{
     time_key: :timestamp,
