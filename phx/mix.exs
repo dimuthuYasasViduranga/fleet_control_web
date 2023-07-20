@@ -9,7 +9,7 @@ defmodule FleetControlWeb.MixProject do
       config_path: "config/config.exs",
       deps_path: "deps",
       lockfile: "mix.lock",
-      elixir: "~> 1.12",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -35,38 +35,45 @@ defmodule FleetControlWeb.MixProject do
   defp deps() do
     [
       # web
-      {:phoenix, "~> 1.7"},
+      {:phoenix, "~> 1.7.0"},
       {:phoenix_view, "~> 2.0"},
       {:phoenix_pubsub, "~> 2.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.3"},
-      {:plug_cowboy, "~> 2.0"},
+      {:plug_cowboy, "~> 2.3"},
       {:corsica, "~> 1.1"},
       {:guardian, "~> 2.3"},
-      {:appsignal_phoenix, "~> 2.0"},
+
+      # external
       {:decorator, "~> 1.2"},
       {:phoenix_live_dashboard, "~> 0.7"},
       {:ecto_psql_extras, "~> 0.6"},
+      {:appsignal_phoenix, "~> 2.1.0"},
+      {:httpoison, "~> 2.0", override: true},
 
       # dispatch
-      {:topo, "~> 0.4.0"},
-      {:geo, "~> 3.1"},
+      {:topo, "~> 0.5.0"},
+      {:geo, "~> 3.3"},
       {:distance, "~> 1.0"},
       {:joken, "~> 2.0"},
-      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
       {:eastar, "~> 0.5"},
-      {:azure_ad_openid, "~> 0.3.2"},
-      {:slack_logger_backend,
-       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.4", only: [:prod]},
-      {:hps_phx, git: "https://github.com/Haultrax/hps_phx.git", tag: "0.0.3"},
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.1", override: true},
       {:recon, "~> 2.5"},
 
+      # internal public
+      {:slack_logger_backend,
+       git: "https://github.com/whossname/slack_logger_backend.git", tag: "0.2.6", only: [:prod]},
+      {:azure_ad_openid, "~> 0.3.2"},
+
+      # internal private
+      {:hps_phx, git: "https://github.com/Haultrax/hps_phx.git", tag: "0.0.3"},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.9", override: true},
+      {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
+
       # test
-      {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
-      {:bureaucrat, "~> 0.2.7", only: :test},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
+      {:bureaucrat, "~> 0.2.7", only: :test}
     ]
   end
 
