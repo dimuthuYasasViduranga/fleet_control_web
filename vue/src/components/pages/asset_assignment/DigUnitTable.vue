@@ -66,7 +66,7 @@
           <DropDown
             v-model="row.materialTypeId"
             :options="materialTypeOptions"
-            label="commonName"
+            label="name"
             placeholder="None"
             :disabled="readonly"
             @change="setActivity(row)"
@@ -175,7 +175,7 @@ export default {
       return [{ id: null, name: 'None' }].concat(locations);
     },
     materialTypeOptions() {
-      return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
+      return [{ id: null, name: 'None' }].concat(this.materialTypes);
     },
     digUnits() {
       const activities = this.digUnitActivities;

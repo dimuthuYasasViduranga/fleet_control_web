@@ -37,7 +37,7 @@
             v-model="localActivity.materialTypeId"
             :options="materialTypeOptions"
             placeholder="None"
-            label="commonName"
+            label="name"
           />
           <Icon
             v-tooltip="'Clear'"
@@ -123,7 +123,7 @@ export default {
       return this.dimLocations.find(l => l.id === locationId);
     },
     materialTypeOptions() {
-      return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
+      return [{ id: null, name: 'None' }].concat(this.materialTypes);
     },
     loadStyleOptions() {
       return [{ id: null, style: 'None' }].concat(this.loadStyles);
@@ -186,7 +186,6 @@ export default {
 };
 </script>
 
-
 <style>
 .assign-dig-unit .activity .row .value {
   display: flex;
@@ -200,7 +199,6 @@ export default {
   max-width: calc(100% - 1rem);
   overflow: hidden;
 }
-
 
 .assign-dig-unit .row .v-select {
   width: 100%;
