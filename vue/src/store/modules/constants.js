@@ -264,7 +264,6 @@ function parseLoadStyle(style) {
 }
 
 function parseMaterialType(type) {
-  console.log(type);
   return {
     id: type.id,
     name: `${type.name} (${type.common_name})` || type.name,
