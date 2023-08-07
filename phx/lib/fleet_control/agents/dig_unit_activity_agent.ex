@@ -10,6 +10,7 @@ defmodule FleetControl.DigUnitActivityAgent do
   alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DigUnitActivity
+  alias HpsData.Schemas.Dispatch.MaterialType
   alias HpsData.{Asset, AssetType}
 
   import Ecto.Query, only: [from: 2, subquery: 1]
@@ -49,6 +50,28 @@ defmodule FleetControl.DigUnitActivityAgent do
         group_id: d.group_id,
         timestamp: d.timestamp,
         server_timestamp: d.server_timestamp
+      }
+    )
+    |> Repo.all()
+  end
+
+  def get_historic_activities_time_range(%{start_time: start_time, end_time: end_time}) do
+    from(d in DigUnitActivity,
+      left_join: a in Asset,
+      on: [id: d.asset_id],
+      left_join: at in AssetType,
+      on: [id: a.asset_type_id],
+      left_join: mt in MaterialType,
+      on: [id: d.material_type_id],
+      where: at.type in ^@dig_unit_types,
+      where: d.timestamp >= ^start_time and d.timestamp <= ^end_time,
+      select: %{
+        id: d.id,
+        asset_id: d.asset_id,
+        location_id: d.location_id,
+        material_type_id: d.material_type_id,
+        material_type: mt.name,
+        timestamp: d.timestamp
       }
     )
     |> Repo.all()

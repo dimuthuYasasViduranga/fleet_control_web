@@ -27,6 +27,10 @@
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
             <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <MaterialTypeToolTip
+              v-else-if="timeSpan.group === 'dig-unit-activity'"
+              :timeSpan="timeSpan"
+            />
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
@@ -37,7 +41,13 @@
       </TimeSpanChart>
     </div>
     <div class="action-wrapper">
-      <Icon v-if="!readonly" v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit" />
+      <Icon
+        v-if="!readonly"
+        v-tooltip="'Edit'"
+        class="edit-icon"
+        :icon="editIcon"
+        @click="onEdit"
+      />
 
       <Icon
         v-tooltip="isOpen ? 'Less' : 'More'"
@@ -57,6 +67,7 @@ import TimeSpanChart from './chart/TimeSpanChart.vue';
 import DefaultTooltip from './tooltips/DefaultTimeSpanTooltip.vue';
 import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
+import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
@@ -70,6 +81,7 @@ import {
   toDeviceAssignmentSpans,
   loginStyle,
 } from './timespan_formatters/deviceAssignmentTimeSpans';
+import { toDigUnitActivitySpans, materialStyle } from './timespan_formatters/digUnitActivitySpans';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -101,7 +113,7 @@ function isInRange(timeSpan, minDatetime) {
   return (timeSpan.endTime || timeSpan.activeEndTime).getTime() > minDatetime.getTime();
 }
 
-function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
+function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
   if (asset.type === 'Haul Truck' && isOpen) {
     return [
       {
@@ -132,6 +144,27 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
         group: 'allocation',
         label: 'Al',
         percent: 0.4,
+        subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+      },
+    ];
+  } else if (asset.type === 'Excavator' && isOpen) {
+    return [
+      {
+        group: 'device-assignment',
+        label: 'Op',
+        percent: 0.3,
+        subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'dig-unit-activity',
+        label: 'dua',
+        percent: 0.3,
+        subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'allocation',
+        label: 'Al',
+        percent: 0.7,
         subgroups: uniq(TASpans.map(ts => ts.level || 0)),
       },
     ];
@@ -170,6 +203,7 @@ export default {
     DefaultTooltip,
     AllocationTooltip,
     LoginTooltip,
+    MaterialTypeToolTip,
     TimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
@@ -178,6 +212,7 @@ export default {
     readonly: Boolean,
     asset: { type: Object, default: () => ({}) },
     timeAllocations: { type: Array, default: () => [] },
+    digUnitActivities: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     timeusage: { type: Array, default: () => [] },
@@ -284,6 +319,10 @@ export default {
         this.timeCodeGroups,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
+      const DUASpans = toDigUnitActivitySpans(this.digUnitActivities)
+        .map(ts => addActiveEndTime(ts, activeEndTime))
+        .filter(ts => isInRange(ts, this.minDatetime));
+
       const DASpans = toDeviceAssignmentSpans(
         this.smoothDeviceAssignments,
         this.devices,
@@ -306,11 +345,10 @@ export default {
         this.maxDatetime,
       ]);
 
-      return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
+      return [TASpans, DUASpans, DASpans, TUSpans, CSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
-
       return {
         groups,
         padding: this.isOpen ? 5 : 2,
@@ -366,6 +404,9 @@ export default {
       switch (timeSpan.group) {
         case 'allocation':
           return allocationStyle(timeSpan, region);
+
+        case 'dig-unit-activity':
+          return materialStyle(timeSpan, region);
 
         case 'device-assignment':
           return loginStyle(timeSpan, region);

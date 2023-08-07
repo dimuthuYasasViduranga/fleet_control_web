@@ -23,7 +23,7 @@ import haulTruck from './modules/haul_truck.js';
 import digUnit from './modules/dig_unit.js';
 import { attributeFromList } from '../code/helpers.js';
 
-const chime = new Audio( require('@/assets/audio/chime.mp3'));
+const chime = new Audio(require('@/assets/audio/chime.mp3'));
 
 function applyParser(data, key, parser) {
   if (data[key]) {
@@ -60,6 +60,17 @@ export function parseTimeAllocation(alloc) {
     endTime: toUtcDate(alloc.end_time),
     deleted: alloc.deleted || false,
     lockId: alloc.lock_id,
+  };
+}
+
+export function parseDigUnitActivities(digActivity) {
+  return {
+    id: digActivity.id,
+    assetId: digActivity.asset_id,
+    locationId: digActivity.location_id,
+    materialTypeId: digActivity.material_type_id,
+    materialType: digActivity.material_type,
+    timestamp: toUtcDate(digActivity.timestamp),
   };
 }
 
@@ -524,17 +535,17 @@ const getters = {
   },
   engineHours:
     ({ currentEngineHours, constants }) =>
-      assetType => {
-        const engineHours = currentEngineHours.map(eh =>
-          Transforms.toEngineHour(eh, constants.assets, constants.operators),
-        );
+    assetType => {
+      const engineHours = currentEngineHours.map(eh =>
+        Transforms.toEngineHour(eh, constants.assets, constants.operators),
+      );
 
-        if (!assetType) {
-          return engineHours;
-        }
+      if (!assetType) {
+        return engineHours;
+      }
 
-        return engineHours.filter(eh => eh.assetType === assetType);
-      },
+      return engineHours.filter(eh => eh.assetType === assetType);
+    },
 };
 
 const actions = {
@@ -559,14 +570,12 @@ const actions = {
     data.activities = formattedActivities;
     commit('setActivityLog', data);
   },
-  appendActivityLog({commit}, {data, channel}) {
-    if(state.activitySequenceNumber + 1 === data.sequence_number) {
+  appendActivityLog({ commit }, { data, channel }) {
+    if (state.activitySequenceNumber + 1 === data.sequence_number) {
       commit('appendActivityLog', data);
-    }
-    else {
+    } else {
       // syncronise
-      channel.push('activity-log:get-all')
-      .receive('ok', resp => {
+      channel.push('activity-log:get-all').receive('ok', resp => {
         commit('setActivityLog', resp);
       });
     }
@@ -589,14 +598,12 @@ const actions = {
     const tenMinutes = 600_000;
 
     if (!timeDiff || timeDiff > tenMinutes) {
-      axios
-        .get(`${hostname}/api/haul`)
-        .then(({data}) => {
-          const formattedCycles = data.cycles.map(parseCycle);
-          const formattedTimeUsage = data.timeusage.map(parseTimeusage);
+      axios.get(`${hostname}/api/haul`).then(({ data }) => {
+        const formattedCycles = data.cycles.map(parseCycle);
+        const formattedTimeUsage = data.timeusage.map(parseTimeusage);
 
-          commit('setFleetOps', [formattedCycles, formattedTimeUsage, now]);
-        });
+        commit('setFleetOps', [formattedCycles, formattedTimeUsage, now]);
+      });
     }
   },
   setCurrentPreStartSubmissions({ commit }, submissions = []) {
@@ -609,7 +616,7 @@ const actions = {
       return;
     }
 
-    const keysValid = keys.every(i => (typeof i === "string" || Number.isInteger(i)));
+    const keysValid = keys.every(i => typeof i === 'string' || Number.isInteger(i));
 
     if (!keysValid) {
       console.error(`setVuexState requires an array of valid keys: ${keys}`);
@@ -624,7 +631,7 @@ const actions = {
     }
 
     commit('setVuexData', { keys, value: parsedValue });
-  }
+  },
 };
 
 const mutations = {
@@ -652,7 +659,7 @@ const mutations = {
     state.activityLog = data.activities;
   },
   appendActivityLog(state, data) {
-    const activity = [data.activity].concat([...state.activityLog])
+    const activity = [data.activity].concat([...state.activityLog]);
     state.activityLog = activity;
     state.activitySequenceNumber = data.sequence_number;
   },
@@ -677,7 +684,7 @@ const mutations = {
   },
   setVuexData(state, { keys, value }) {
     setNestedState(state, keys, value);
-  }
+  },
 };
 
 Vue.use(Vuex);
