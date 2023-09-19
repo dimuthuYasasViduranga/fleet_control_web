@@ -43,12 +43,18 @@
     <div class="action-wrapper">
       <Icon
         v-if="!readonly"
-        v-tooltip="'Edit'"
+        v-tooltip="'Edit Allocation'"
         class="edit-icon"
         :icon="editIcon"
         @click="onEdit"
       />
-
+      <Icon
+        v-if="!readonly && showMaterialEditBtn"
+        v-tooltip="'Edit Material'"
+        class="edit-icon"
+        :icon="editIcon"
+        @click="onEditMaterial"
+      />
       <Icon
         v-tooltip="isOpen ? 'Less' : 'More'"
         class="chevron-icon"
@@ -75,8 +81,8 @@ import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 import ChevronRightIcon from '@/components/icons/ChevronRight.vue';
 
-import { attributeFromList, dedupByMany, uniq } from '@/code/helpers';
-import { formatSeconds } from '@/code/time';
+import { attributeFromList, dedupByMany, uniq, sortByTime, chunkEvery } from '@/code/helpers';
+import { formatSeconds, copyDate } from '@/code/time';
 import {
   toDeviceAssignmentSpans,
   loginStyle,
@@ -93,6 +99,7 @@ import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/time
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
 
 import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
+import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -157,7 +164,7 @@ function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, CSpans], ass
       },
       {
         group: 'dig-unit-activity',
-        label: 'dua',
+        label: 'Mt',
         percent: 0.3,
         subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
       },
@@ -195,6 +202,22 @@ function toShiftSpans(shifts, shiftTypes, timestamps) {
   return toShiftTimeSpans(relevantShifts, shiftTypes);
 }
 
+function toLocalDigUnitActivities(digUnitActivities = []) {
+  return chunkEvery(sortByTime(digUnitActivities, 'timestamp'), 2, 1).map(([cur, next]) => {
+    const startTime = cur.timestamp;
+    const endTime = (next || {}).timestamp;
+
+    return {
+      id: cur.id,
+      assetId: cur.assetId,
+      startTime: copyDate(startTime),
+      endTime: copyDate(endTime),
+      materialTypeId: cur.materialTypeId,
+      deleted: false,
+    };
+  });
+}
+
 export default {
   name: 'AssetTimeSpanInfo',
   components: {
@@ -210,6 +233,7 @@ export default {
   },
   props: {
     readonly: Boolean,
+    showMaterialEditBtn: Boolean,
     asset: { type: Object, default: () => ({}) },
     timeAllocations: { type: Array, default: () => [] },
     digUnitActivities: { type: Array, default: () => [] },
@@ -219,6 +243,7 @@ export default {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     fullTimeCodes: { type: Array, default: () => [] },
+    materialTypes: { type: Array, default: () => [] },
     devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: new Date() },
@@ -319,7 +344,10 @@ export default {
         this.timeCodeGroups,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
-      const DUASpans = toDigUnitActivitySpans(this.digUnitActivities)
+      const DUASpans = toDigUnitActivitySpans(
+        toLocalDigUnitActivities(this.digUnitActivities),
+        this.materialTypes,
+      )
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
@@ -397,6 +425,36 @@ export default {
         }
       });
     },
+    onEditMaterial() {
+      const range = this.range || {};
+      const minDatetime = this.minDatetime || range.min;
+      const maxDatetime = this.maxDatetime || range.max;
+
+      const opts = {
+        asset: this.asset,
+        allocations: this.filteredTimeAllocations,
+        digUnitActivities: this.digUnitActivities,
+        deviceAssignments: this.deviceAssignments,
+        devices: this.devices,
+        operators: this.operators,
+        timeCodes: this.timeCodes,
+        timeCodeGroups: this.timeCodeGroups,
+        allowedTimeCodeIds: this.allowedTimeCodeIds,
+        materialTypes: this.materialTypes,
+        minDatetime,
+        maxDatetime,
+        timezone: this.timezone,
+        shifts: this.shifts,
+        shiftTypes: this.shiftTypes,
+        shiftId: this.shiftId,
+      };
+
+      this.$modal.create(MaterialTypeEditorModal, opts).onClose(resp => {
+        if (['update'].includes(resp)) {
+          this.$emit(resp);
+        }
+      });
+    },
     toggleOpen() {
       this.isOpen = !this.isOpen;
     },
@@ -406,7 +464,7 @@ export default {
           return allocationStyle(timeSpan, region);
 
         case 'dig-unit-activity':
-          return materialStyle(timeSpan, region);
+          return materialStyle(timeSpan, region, this.materialTypes);
 
         case 'device-assignment':
           return loginStyle(timeSpan, region);

@@ -19,4 +19,23 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
         {:reply, to_error(error), socket}
     end
   end
+
+  @decorate authorized_channel("fleet_control_dispatch")
+  def handle_in("edit", activities, socket) do
+    DigUnitActivityAgent.update_all(activities)
+    |> case do
+      {:ok, _, _, _} ->
+        activities
+        |> Enum.map(& &1["asset_id"])
+        |> Enum.uniq()
+        |> Enum.each(&Broadcast.DigUnit.send_activity_to_asset(%{asset_id: &1}))
+
+        Broadcast.DigUnit.send_activities_to_all()
+
+        {:reply, :ok, socket}
+
+      {{:error, reason}, _} ->
+        {:reply, to_error(reason), socket}
+    end
+  end
 end

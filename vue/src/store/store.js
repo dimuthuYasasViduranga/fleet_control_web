@@ -69,7 +69,6 @@ export function parseDigUnitActivities(digActivity) {
     assetId: digActivity.asset_id,
     locationId: digActivity.location_id,
     materialTypeId: digActivity.material_type_id,
-    materialType: digActivity.material_type,
     timestamp: toUtcDate(digActivity.timestamp),
   };
 }

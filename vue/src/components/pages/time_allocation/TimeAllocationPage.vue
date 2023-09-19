@@ -90,6 +90,7 @@
         } in filteredAssetData"
         :key="asset.name"
         :readonly="!canEdit"
+        :showMaterialEditBtn="showMaterialEditBtn(asset)"
         :asset="asset"
         :timeAllocations="timeAllocations"
         :digUnitActivities="digUnitActivities"
@@ -101,6 +102,7 @@
         :timeCodes="timeCodes"
         :timeCodeGroups="timeCodeGroups"
         :fullTimeCodes="fullTimeCodes"
+        :materialTypes="materialTypes"
         :activeEndTime="now"
         :range="range"
         :minDatetime="range.min"
@@ -212,7 +214,6 @@ export default {
         width: liveTimeScale * HOURS_TO_MS,
       }),
       shiftAssetData: [],
-      digUnitActivities: [],
       liveTimeScale,
       liveTimeScaleValues,
       shift: null,
@@ -233,6 +234,7 @@ export default {
       shiftTypes: state => state.shiftTypes,
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
+      materialTypes: state => state.materialTypes,
     }),
     ...mapState('deviceStore', {
       devices: state => state.devices,
@@ -241,6 +243,9 @@ export default {
     ...mapState({
       fleetOpsCycles: state => state.fleetOps.cycles,
       fleetOpsTimeusage: state => state.fleetOps.timeusage,
+    }),
+    ...mapState('digUnit', {
+      liveDigUnitActivities: state => state.liveActivities,
     }),
     timezone() {
       return this.$timely.current.timezone;
@@ -258,7 +263,7 @@ export default {
       return groupByAsset(
         this.assets,
         this.liveTimeAllocations,
-        this.digUnitActivities,
+        this.liveDigUnitActivities,
         this.liveDeviceAssignments,
         this.fleetOpsTimeusage,
         this.fleetOpsCycles,
@@ -325,6 +330,9 @@ export default {
         this.$store.dispatch('updateFleetOpsData', this.$hostname);
       }
     },
+    showMaterialEditBtn(asset) {
+      return asset.type === 'Excavator' || asset.type === 'Loader';
+    },
     setTimeScaleValue(value) {
       this.liveTimeScale = value;
       this.range = getRange({ now: this.now, width: value * HOURS_TO_MS });
@@ -385,7 +393,7 @@ export default {
           };
 
           const allocations = (data.allocations || []).map(parseTimeAllocation);
-          this.digUnitActivities = (data.dig_unit_activities || []).map(parseDigUnitActivities);
+          const digUnitActivities = (data.dig_unit_activities || []).map(parseDigUnitActivities);
           const deviceAssignments = (data.device_assignments || []).map(parseDeviceAssignment);
           const timeusage = (data.timeusage || []).map(parseTimeusage);
           const cycles = (data.cycles || []).map(parseCycle);
@@ -393,7 +401,7 @@ export default {
           this.shiftAssetData = groupByAsset(
             this.assets,
             allocations,
-            this.digUnitActivities,
+            digUnitActivities,
             deviceAssignments,
             timeusage,
             cycles,

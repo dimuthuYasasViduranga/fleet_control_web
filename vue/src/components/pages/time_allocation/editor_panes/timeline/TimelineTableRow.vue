@@ -2,13 +2,26 @@
   <table class="timeline-table-row">
     <tr>
       <td class="selector-column" @click="onRowSelect"></td>
-      <td class="time-code-column">
+      <td v-if="!isMaterialTimeline" class="time-code-column">
         <TimeAllocationDropDown
           :value="timeSpan.data.timeCodeId"
           :allowedTimeCodeIds="allowedTimeCodeIds"
           :showAll="showAllTimeCodes"
           :disabled="readonly || !canEditTimeCode"
           @change="onTimeCodeChange"
+        />
+      </td>
+      <td v-else class="time-code-column">
+        <DropDown
+          class="tc-drop-down"
+          :value="timeSpan.data.materialTypeId"
+          :options="materialTypes"
+          label="name"
+          placeholder="Select Material Type"
+          direction="auto"
+          :disabled="false"
+          :holdOpen="false"
+          @change="onMaterialTypeChange"
         />
       </td>
       <td class="start-time-column">
@@ -68,7 +81,6 @@
   </table>
 </template>
 
-
 <script>
 import Icon from 'hx-layout/Icon.vue';
 import Dately from '@/components/dately/Dately.vue';
@@ -82,6 +94,8 @@ import SplitIcon from '@/components/icons/Split.vue';
 import { formatDate, copyDate } from '@//code/time.js';
 import { attributeFromList } from '@/code/helpers';
 import { coverage } from '../../timeSpan';
+import { DropDown } from 'hx-vue';
+import { mapState } from 'vuex';
 
 function copyTimeSpan(span) {
   return {
@@ -104,12 +118,14 @@ export default {
   name: 'TimelineTableRow',
   components: {
     Dately,
+    DropDown,
     LockableButton,
     TimeAllocationDropDown,
     Icon,
   },
   props: {
     readonly: Boolean,
+    isMaterialTimeline: { type: Boolean, default: false },
     timeSpan: { type: Object, required: true },
     prevTimeSpan: { type: Object, default: null },
     nextTimeSpan: { type: Object, default: null },
@@ -128,6 +144,9 @@ export default {
     };
   },
   computed: {
+    ...mapState('constants', {
+      materialTypes: state => state.materialTypes,
+    }),
     startTime: {
       get() {
         return this.timeSpan.startTime;
@@ -194,7 +213,10 @@ export default {
       }
     },
     canEditStart() {
-      const prevLocked = this.prevTimeSpan && !!this.prevTimeSpan.data.lockId;
+      const prevLocked = !this.isMaterialTimeline
+        ? this.prevTimeSpan && !!this.prevTimeSpan.data.lockId
+        : false;
+
       return (
         !this.isLocked &&
         !prevLocked &&
@@ -203,7 +225,10 @@ export default {
       );
     },
     canEditEnd() {
-      const nextLocked = this.nextTimeSpan && !!this.nextTimeSpan.data.lockId;
+      const nextLocked = !this.isMaterialTimeline
+        ? this.nextTimeSpan && !!this.nextTimeSpan.data.lockId
+        : false;
+
       return (
         !this.isLocked &&
         !nextLocked &&
@@ -216,7 +241,7 @@ export default {
       return this.canEditStart && !this.isLocked;
     },
     isLocked() {
-      return !!this.timeSpan.data.lockId;
+      return !this.isMaterialTimeline ? !!this.timeSpan.data.lockId : false;
     },
     canDelete() {
       const timeSpan = this.timeSpan;
@@ -256,6 +281,11 @@ export default {
     onTimeCodeChange(timeCodeId) {
       // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.timeCodeId = timeCodeId;
+      this.emitChanges([this.timeSpan]);
+    },
+    onMaterialTypeChange(materialTypeId) {
+      // eslint-disable-next-line vue/no-mutating-props
+      this.timeSpan.data.materialTypeId = materialTypeId;
       this.emitChanges([this.timeSpan]);
     },
     onRowSelect() {
@@ -336,5 +366,18 @@ export default {
 .timeline-table-row .dropdown-wrapper {
   width: 90%;
   height: 1.6rem;
+}
+
+.tc-drop-down.drop-down .dd-option {
+  padding-left: 1rem;
+}
+
+.tc-drop-down,
+.tc-drop-down .dd-option .tc {
+  border-left: 10px solid #425866;
+}
+
+.tc-drop-down .dd-option .tc .label {
+  padding: 0.2rem;
 }
 </style>

@@ -2,6 +2,7 @@
   <div class="error-pane">
     <ErrorTable
       v-if="!timeSpanToFix"
+      :isMaterialTimeline="isMaterialTimeline"
       :height="height"
       :maxShow="maxShown"
       :timeSpans="errorTimeSpans"
@@ -16,6 +17,7 @@
     />
     <FixPane
       v-else
+      :isMaterialTimeline="isMaterialTimeline"
       :refTimeSpan="timeSpanToFix"
       :timeSpans="timeSpans"
       :minDatetime="minDatetime"
@@ -38,6 +40,7 @@ export default {
     FixPane,
   },
   props: {
+    isMaterialTimeline: { type: Boolean, default: () => false },
     timeSpans: { type: Array, default: () => [] },
     errorTimeSpans: { type: Array, default: () => [] },
     selectedAllocationId: { type: Number, default: null },

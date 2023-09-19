@@ -15,27 +15,35 @@ function parseActivity(activity) {
 const state = {
   currentActivities: Array(),
   historicActivities: Array(),
+  liveActivities: Array(),
 };
 
 const getters = {};
 
 const actions = {
-  setCurrentActivities({ commit }, activities = []) {
+  setCurrentActivities({ commit }, { activities = [], action }) {
     const formattedActivities = activities.map(parseActivity);
-    commit('setCurrentActivities', formattedActivities);
+    commit('setCurrentActivities', { activities: formattedActivities, action });
   },
   setHistoricActivities({ commit }, activities = []) {
     const formattedActivities = activities.map(parseActivity);
     commit('setHistoricActivities', formattedActivities);
   },
+  setLiveActivities({ commit }, activities = []) {
+    const formattedActivities = activities.map(parseActivity);
+    commit('setLiveActivities', formattedActivities);
+  },
 };
 
 const mutations = {
-  setCurrentActivities(state, activities = []) {
+  setCurrentActivities(state, { activities = [] }) {
     state.currentActivities = activities;
   },
   setHistoricActivities(state, activities = []) {
     state.historicActivities = activities;
+  },
+  setLiveActivities(state, activities = []) {
+    state.liveActivities = activities;
   },
 };
 
