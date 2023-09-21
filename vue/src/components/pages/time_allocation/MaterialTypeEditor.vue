@@ -123,7 +123,6 @@
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
-import Loading from 'hx-layout/Loading.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
 
 import TimeSpanChart from './chart/TimeSpanChart.vue';
@@ -142,8 +141,7 @@ import NewPane from './editor_panes/new/NewPane.vue';
 import TimeIcon from '../../icons/Time.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import { copyDate, isDateEqual, toEpoch } from '@/code/time';
-import { uniq, chunkEvery, sortByTime } from '@/code/helpers';
+import { copyDate, toEpoch } from '@/code/time';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -154,186 +152,15 @@ import {
   toDeviceAssignmentSpans,
   loginStyle,
 } from './timespan_formatters/deviceAssignmentTimeSpans';
-import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
+import { shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
 import { addDynamicLevels, overrideAll, findOverlapping, copyTimeSpan } from './timeSpan';
-
-const LOCK_WARNING = `
-Are you sure you want lock the given allocations?
-
-You may not be able to unlock them
-`;
-
-const UNLOCK_WARNING = `
-Are you sure you want to unlock the given allocations?
-
-Users will be able to edit the given allocations
-`;
-
-let ID = -1;
-
-function getNextId() {
-  const id = ID;
-  ID -= 1;
-  return id;
-}
-
-function toLocalDigUnitActivities(digUnitActivities = [], maxDatetime) {
-  return chunkEvery(sortByTime(digUnitActivities, 'timestamp'), 2, 1)
-    .map(([cur, next]) => {
-      const startTime = cur.timestamp;
-      const endTime = (next || {}).timestamp;
-
-      return {
-        id: cur.id,
-        assetId: cur.assetId,
-        startTime: copyDate(startTime),
-        endTime: copyDate(endTime),
-        materialTypeId: cur.materialTypeId,
-        deleted: false,
-      };
-    })
-    .filter(a => a.startTime < maxDatetime);
-}
-
-function addActiveEndTime(timeSpan, activeEndTime) {
-  if (!timeSpan.endTime) {
-    timeSpan.activeEndTime = activeEndTime;
-  }
-
-  return timeSpan;
-}
-
-function updateArrayAt(arr, index, item) {
-  if (index > arr.length) {
-    return arr;
-  }
-
-  const newArr = arr.slice();
-  newArr[index] = item;
-  return newArr;
-}
-
-function getChartLayoutGroups([TASpans, DUASpans, DASpans, eventSpans]) {
-  const activity = {
-    group: 'dig-unit-activity',
-    label: 'Mt',
-    percent: 0.3,
-    subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
-  };
-
-  const otherGroups = [
-    {
-      group: 'shift',
-      label: 'S',
-      subgroups: [0],
-      canHide: true,
-    },
-
-    {
-      group: 'device-assignment',
-      label: 'Op',
-      subgroups: uniq(DASpans.map(ts => ts.level || 0)),
-    },
-
-    {
-      group: 'event',
-      label: 'Ev',
-      subgroups: uniq((eventSpans || []).map(ts => ts.level || 0)),
-      canHide: true,
-    },
-    {
-      group: 'allocation',
-      label: 'Al',
-      percent: 0.5,
-      subgroups: uniq(TASpans.map(ts => ts.level || 0)),
-    },
-  ].filter(g => !g.canHide || g.subgroups.length !== 0);
-
-  const nOtherGroups = otherGroups.length;
-  otherGroups.forEach(g => (g.percent = (1 - activity.percent) / nOtherGroups));
-
-  return otherGroups.concat([activity]);
-}
-
-function styleSelected(timeSpan, style, selectedAllocId) {
-  if (!selectedAllocId) {
-    return style;
-  }
-
-  if (timeSpan.group === 'dig-unit-activity' && timeSpan.data.id === selectedAllocId) {
-    return style;
-  }
-
-  return {
-    ...style,
-    opacity: 0.1,
-    strokeOpacity: 0.2,
-  };
-}
-
-function getActivityChanges(originalActivities, newActivities) {
-  const changes = [];
-  newActivities.forEach(na => {
-    // if no id or negative id (ie newly created)
-    if (!na || na.id < 0) {
-      changes.push(na);
-      return;
-    }
-
-    const originalActivity = originalActivities.find(a => a.id === na.id);
-    if (isDifferentAlloc(originalActivity, na)) {
-      changes.push(na);
-    }
-  });
-  return changes;
-}
-
-function isDifferentAlloc(a, b) {
-  return (
-    (a.deleted || false) !== (b.deleted || false) ||
-    a.materialTypeId !== b.materialTypeId ||
-    !isDateEqual(a.startTime, b.startTime) ||
-    !isDateEqual(a.endTime, b.endTime)
-  );
-}
-
-function nullifyDuplicateIds(timeSpans) {
-  const length = timeSpans.length;
-  chunkEvery(timeSpans, length, 1).map(list => {
-    const first = list.shift();
-    list.forEach(ts => {
-      if (ts.data.id === first.data.id) {
-        ts.data.id = null;
-      }
-    });
-  });
-  return timeSpans;
-}
-
-function defaultNewDigUnitActivity() {
-  return {
-    materialTypeId: null,
-    startTime: null,
-    endTime: null,
-  };
-}
-
-function toShiftSpans(shifts, shiftTypes, timestamps) {
-  const uniqTimestamps = uniq(timestamps.filter(ts => ts).map(ts => ts.getTime()));
-
-  const relevantShifts = uniqTimestamps
-    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
-    .filter(s => s);
-
-  return toShiftTimeSpans(relevantShifts, shiftTypes);
-}
+import * as ActivityEdit from './MaterialTypeEditor';
 
 export default {
   name: 'TimeSpanEditor',
   components: {
     hxCard,
-    Loading,
     TimeSpanChart,
     DefaultTooltip,
     AllocationTooltip,
@@ -382,8 +209,6 @@ export default {
       contextHeight: 80,
       paneHeight: 250,
       paneMaxItems: 5,
-      lockWarning: LOCK_WARNING,
-      unlockWarning: UNLOCK_WARNING,
       margins: {
         focus: {
           top: 0,
@@ -398,7 +223,7 @@ export default {
           bottom: 30,
         },
       },
-      newDigUnitActivity: defaultNewDigUnitActivity(),
+      newDigUnitActivity: ActivityEdit.defaultNewDigUnitActivity(),
       errorCount: 0,
       events: null,
       reportInTransit: false,
@@ -419,7 +244,7 @@ export default {
         timeAllocations,
         this.timeCodes,
         this.timeCodeGroups,
-      ).map(ts => addActiveEndTime(ts, activeEndTime));
+      ).map(ts => ActivityEdit.addActiveEndTime(ts, activeEndTime));
 
       const digUnitActivities = this.localDigUnitActivities.filter(lda => lda.deleted !== true);
       const transientActivity = this.newDigUnitActivity;
@@ -429,20 +254,20 @@ export default {
       }
 
       const DUASpans = toDigUnitActivitySpans(digUnitActivities, this.materialTypes).map(ts =>
-        addActiveEndTime(ts, activeEndTime),
+        ActivityEdit.addActiveEndTime(ts, activeEndTime),
       );
 
       const DASpans = toDeviceAssignmentSpans(
         this.deviceAssignments,
         this.devices,
         this.operators,
-      ).map(ts => addActiveEndTime(ts, activeEndTime));
+      ).map(ts => ActivityEdit.addActiveEndTime(ts, activeEndTime));
 
       const eventSpans = toEventTimeSpans(this.events || []).map(ts =>
-        addActiveEndTime(ts, activeEndTime),
+        ActivityEdit.addActiveEndTime(ts, activeEndTime),
       );
 
-      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+      const ShiftSpans = ActivityEdit.toShiftSpans(this.shifts, this.shiftTypes, [
         this.minDatetime,
         this.maxDatetime,
       ]);
@@ -452,7 +277,7 @@ export default {
       return [TASpans, DUASpans, DASpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
-      const groups = getChartLayoutGroups(this.timeSpans);
+      const groups = ActivityEdit.getChartLayoutGroups(this.timeSpans);
 
       return {
         groups,
@@ -494,7 +319,10 @@ export default {
       this.setLocalDigUnitActivities(this.digUnitActivities);
     },
     setLocalDigUnitActivities(digUnitActivities = []) {
-      this.localDigUnitActivities = toLocalDigUnitActivities(digUnitActivities, this.maxDatetime);
+      this.localDigUnitActivities = ActivityEdit.toLocalDigUnitActivities(
+        digUnitActivities,
+        this.maxDatetime,
+      );
     },
     setPane(pane) {
       const timeSpan = this.nonDeletedActivityTimeSpans.find(
@@ -513,7 +341,7 @@ export default {
         this.setSelect(null);
       }
 
-      this.newDigUnitActivity = defaultNewDigUnitActivity();
+      this.newDigUnitActivity = ActivityEdit.defaultNewDigUnitActivity();
 
       this.pane = pane;
     },
@@ -570,7 +398,7 @@ export default {
           style = shiftStyle(timeSpan, region);
       }
 
-      return styleSelected(timeSpan, style, this.selectedActivityId);
+      return ActivityEdit.styleSelected(timeSpan, style, this.selectedActivityId);
     },
     onRowSelect(timeSpan) {
       this.setSelect(timeSpan);
@@ -593,10 +421,10 @@ export default {
     onRowChanges(timeSpans) {
       this.setSelect(null);
       let localDigUnitActivities = this.localDigUnitActivities;
-      nullifyDuplicateIds(timeSpans).forEach(ts => {
+      ActivityEdit.nullifyDuplicateIds(timeSpans).forEach(ts => {
         const newActivity = {
           ...ts.data,
-          id: ts.data.id || getNextId(),
+          id: ts.data.id || ActivityEdit.getNextId(),
           startTime: copyDate(ts.startTime),
           endTime: copyDate(ts.endTime),
           deleted: ts.deleted || ts.data.deleted || false,
@@ -605,7 +433,7 @@ export default {
         const originalIndex = localDigUnitActivities.findIndex(a => a.id === ts.data.id);
 
         if (originalIndex !== -1) {
-          localDigUnitActivities = updateArrayAt(
+          localDigUnitActivities = ActivityEdit.updateArrayAt(
             localDigUnitActivities,
             originalIndex,
             newActivity,
@@ -625,7 +453,7 @@ export default {
         return;
       }
       const newActivity = {
-        id: getNextId(),
+        id: ActivityEdit.getNextId(),
         assetId: this.asset.id,
         startTime: copyDate(activity.startTime),
         endTime: copyDate(activity.endTime),
@@ -642,7 +470,7 @@ export default {
       }
 
       const newActivity = {
-        id: getNextId(),
+        id: ActivityEdit.getNextId(),
         assetId: this.asset.id,
         startTime: copyDate(activity.startTime),
         endTime: copyDate(activity.endTime),
@@ -679,7 +507,7 @@ export default {
       updatedActivity.endTime = copyDate(timeSpan.activeEndTime);
       // updatedActivity.activeEndTime = null;
 
-      const updatedActivities = updateArrayAt(
+      const updatedActivities = ActivityEdit.updateArrayAt(
         this.localDigUnitActivities,
         updateIndex,
         updatedActivity,
@@ -688,7 +516,7 @@ export default {
       // create a new activity the same as the ended one, with different start and ent time
       const newActivity = {
         data: timeSpan.data,
-        id: getNextId(),
+        id: ActivityEdit.getNextId(),
         assetId: timeSpan.data.assetId,
         materialTypeId: timeSpan.data.materialTypeId,
         startTime: copyDate(timeSpan.activeEndTime),
@@ -717,7 +545,10 @@ export default {
       }
 
       // calculate the changes
-      const changes = getActivityChanges(this.digUnitActivities, this.localDigUnitActivities);
+      const changes = ActivityEdit.getActivityChanges(
+        this.digUnitActivities,
+        this.localDigUnitActivities,
+      );
       this.submitChanges(changes);
     },
     onCancel() {

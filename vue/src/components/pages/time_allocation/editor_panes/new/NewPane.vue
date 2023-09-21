@@ -23,16 +23,7 @@
         <td class="key">Material Type</td>
         <td class="value">
           <div class="time-code-wrapper">
-            <DropDown
-              class="tc-drop-down"
-              v-model="materialTypeId"
-              :options="materialTypes"
-              label="name"
-              placeholder="select Material Type"
-              direction="auto"
-              :disabled="false"
-              :holdOpen="false"
-            />
+            <MaterialTypeDropDown v-model="materialTypeId" direction="down" />
           </div>
         </td>
       </tr>
@@ -71,8 +62,8 @@
 <script>
 import Dately from '@/components/dately/Dately.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
+import MaterialTypeDropDown from '@/components/MaterialTypeDropDown.vue';
 import { copyDate } from '@/code/time';
-import { DropDown } from 'hx-vue';
 import { mapState } from 'vuex';
 
 function getError(newTimeLine, isMaterialTimeline) {
@@ -105,7 +96,7 @@ export default {
   components: {
     Dately,
     TimeAllocationDropDown,
-    DropDown,
+    MaterialTypeDropDown,
   },
   props: {
     value: { type: Object, default: () => ({}) },

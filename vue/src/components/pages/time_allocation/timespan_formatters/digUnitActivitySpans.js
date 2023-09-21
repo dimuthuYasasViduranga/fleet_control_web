@@ -14,7 +14,7 @@ const COLORS = {
 
 const MISSING_COLOR = 'magenta';
 
-function getFill(materialTypeCode) {
+export function getFill(materialTypeCode) {
   const color = COLORS[materialTypeCode] || MISSING_COLOR;
   return color;
 }

@@ -12,15 +12,9 @@
         />
       </td>
       <td v-else class="time-code-column">
-        <DropDown
-          class="tc-drop-down"
+        <MaterialTypeDropDown
           :value="timeSpan.data.materialTypeId"
-          :options="materialTypes"
-          label="name"
-          placeholder="Select Material Type"
-          direction="auto"
-          :disabled="false"
-          :holdOpen="false"
+          direction="down"
           @change="onMaterialTypeChange"
         />
       </td>
@@ -86,6 +80,7 @@ import Icon from 'hx-layout/Icon.vue';
 import Dately from '@/components/dately/Dately.vue';
 import LockableButton from '@/components/LockableButton.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
+import MaterialTypeDropDown from '@/components/MaterialTypeDropDown.vue';
 
 import ExpandIcon from '@/components/icons/Expand.vue';
 import TrashIcon from '@/components/icons/Trash.vue';
@@ -94,7 +89,6 @@ import SplitIcon from '@/components/icons/Split.vue';
 import { formatDate, copyDate } from '@//code/time.js';
 import { attributeFromList } from '@/code/helpers';
 import { coverage } from '../../timeSpan';
-import { DropDown } from 'hx-vue';
 import { mapState } from 'vuex';
 
 function copyTimeSpan(span) {
@@ -118,9 +112,9 @@ export default {
   name: 'TimelineTableRow',
   components: {
     Dately,
-    DropDown,
     LockableButton,
     TimeAllocationDropDown,
+    MaterialTypeDropDown,
     Icon,
   },
   props: {

@@ -1,6 +1,4 @@
 defmodule FleetControlWeb.DispatcherChannel.Setup do
-  @max_age 12 * 60 * 60
-
   alias FleetControl.EngineHoursAgent
   alias FleetControl.DispatcherMessageAgent
   alias FleetControl.DigUnitActivityAgent

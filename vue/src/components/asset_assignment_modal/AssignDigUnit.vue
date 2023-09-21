@@ -33,12 +33,9 @@
       <tr class="row material-type">
         <td class="key">Material</td>
         <td class="value">
-          <DropDown
-            v-model="localActivity.materialTypeId"
-            :options="materialTypeOptions"
-            placeholder="None"
-            label="name"
-          />
+          <div class="material-type-wrapper">
+            <MaterialTypeDropDown v-model="localActivity.materialTypeId" direction="down" />
+          </div>
           <Icon
             v-tooltip="'Clear'"
             :icon="crossIcon"
@@ -62,6 +59,7 @@ import InfoHeader from './InfoHeader.vue';
 import AssignTimeAllocation from './AssignTimeAllocation.vue';
 import Separator from './Separator.vue';
 import ActionButtons from './ActionButtons.vue';
+import MaterialTypeDropDown from '@/components/MaterialTypeDropDown.vue';
 
 function toLocalActivity(activity) {
   return {
@@ -81,6 +79,7 @@ export default {
     AssignTimeAllocation,
     ActionButtons,
     DropDown,
+    MaterialTypeDropDown,
   },
   props: {
     asset: { type: Object, default: () => ({}) },
@@ -121,9 +120,6 @@ export default {
       }
 
       return this.dimLocations.find(l => l.id === locationId);
-    },
-    materialTypeOptions() {
-      return [{ id: null, name: 'None' }].concat(this.materialTypes);
     },
     loadStyleOptions() {
       return [{ id: null, style: 'None' }].concat(this.loadStyles);
@@ -193,7 +189,8 @@ export default {
   text-align: center;
 }
 
-.assign-dig-unit .activity .row .drop-down {
+.assign-dig-unit .activity .row .drop-down,
+.material-type-wrapper {
   width: 100%;
   height: 2.5rem;
   max-width: calc(100% - 1rem);
