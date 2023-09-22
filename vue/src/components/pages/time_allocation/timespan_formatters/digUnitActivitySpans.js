@@ -32,6 +32,7 @@ export function toDigUnitActivitySpans(digUnitActivities, materialTypes) {
       materialType: materialType || null,
       assetId: activity.assetId,
       materialTypeId,
+      locationId: activity.locationId,
     };
     return toTimeSpan(startTime, endTime, activeEndTime, 'dig-unit-activity', null, data);
   });

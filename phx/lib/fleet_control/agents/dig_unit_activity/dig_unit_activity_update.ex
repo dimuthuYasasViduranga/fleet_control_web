@@ -122,6 +122,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
         %{
           asset_id: update.asset_id,
           material_type_id: update.material_type_id || nil,
+          location_id: update[:location_id],
           timestamp: update.start_time
         }
       end)
@@ -151,6 +152,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
           fallback_active = %{
             asset_id: active.asset_id,
             material_type_id: nil,
+            location_id: active[:location_id],
             start_time: changes_to_active.end_time || NaiveDateTime.utc_now(),
             end_time: nil
           }
@@ -205,6 +207,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
         id: dua.id,
         asset_id: dua.asset_id,
         material_type_id: dua.material_type_id,
+        location_id: dua.location_id,
         timestamp: dua.timestamp,
         server_timestamp: dua.server_timestamp
       }
@@ -220,6 +223,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
         id: dua.id,
         asset_id: dua.asset_id,
         material_type_id: dua.material_type_id,
+        location_id: dua.location_id,
         timestamp: dua.timestamp,
         server_timestamp: dua.server_timestamp
       }

@@ -425,6 +425,7 @@ export default {
         const newActivity = {
           ...ts.data,
           id: ts.data.id || ActivityEdit.getNextId(),
+          locationId: ts.data.locationId,
           startTime: copyDate(ts.startTime),
           endTime: copyDate(ts.endTime),
           deleted: ts.deleted || ts.data.deleted || false,
@@ -519,6 +520,7 @@ export default {
         id: ActivityEdit.getNextId(),
         assetId: timeSpan.data.assetId,
         materialTypeId: timeSpan.data.materialTypeId,
+        locationId: timeSpan.data.locationId,
         startTime: copyDate(timeSpan.activeEndTime),
         endTime: null,
       };
@@ -576,6 +578,7 @@ export default {
           id,
           asset_id: c.assetId,
           material_type_id: c.materialTypeId,
+          location_id: c.locationId,
           start_time: c.startTime,
           end_time: c.endTime,
           deleted: c.deleted || false,

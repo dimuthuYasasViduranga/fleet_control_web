@@ -213,6 +213,7 @@ function toLocalDigUnitActivities(digUnitActivities = []) {
       startTime: copyDate(startTime),
       endTime: copyDate(endTime),
       materialTypeId: cur.materialTypeId,
+      locationId: cur.locationId,
       deleted: false,
     };
   });
