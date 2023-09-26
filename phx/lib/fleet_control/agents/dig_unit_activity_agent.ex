@@ -307,8 +307,12 @@ defmodule FleetControl.DigUnitActivityAgent do
     |> Enum.find(&(&1.asset_id == proposed.asset_id))
     |> Access.get(:timestamp)
     |> case do
-      nil -> true
-      old_timestamp -> NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :lt
+      nil ->
+        true
+
+      old_timestamp ->
+        NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :lt ||
+          NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :eq
     end
   end
 
