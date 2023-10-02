@@ -130,7 +130,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
     {new_activities, ids_to_delete}
   end
 
-  defp separate_updates(updates, nil, _) do
+  defp separate_updates(updates, nil) do
     new_active = Enum.find(updates, &(&1[:id] == nil && &1.end_time == nil))
     updates = Enum.reject(updates, &(&1 == new_active))
 

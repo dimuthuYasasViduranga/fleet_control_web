@@ -96,6 +96,7 @@ defmodule FleetControlWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/simple.exs",
+        "run ./deps/hps_data/priv/repo/seeds/dispatch/dis_material_type.exs",
         "run ./priv/test_data_seeds.exs",
         # auth code
         "run ./deps/hps_data/priv/repo/seeds/authorisation.exs"

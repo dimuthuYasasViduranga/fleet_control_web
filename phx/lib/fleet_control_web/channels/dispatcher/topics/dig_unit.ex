@@ -24,7 +24,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.DigUnit do
   def handle_in("edit", activities, socket) do
     DigUnitActivityAgent.update_all(activities)
     |> case do
-      {:ok, _, _, _} ->
+      {:ok, _, _} ->
         activities
         |> Enum.map(& &1["asset_id"])
         |> Enum.uniq()

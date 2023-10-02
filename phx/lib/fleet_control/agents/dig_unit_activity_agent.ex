@@ -161,13 +161,9 @@ defmodule FleetControl.DigUnitActivityAgent do
           {_, commits_new} = commits.new
 
           {deleted, state} = update_agent(commits_deleted, state)
-          {allocs, state} = update_agent(commits_new, state)
+          {activities, state} = update_agent(commits_new, state)
 
-          completed_allocs = Enum.reject(allocs, &is_nil(&1.timestamp))
-          active_alloc = Enum.find(allocs, &is_nil(&1.timestamp))
-
-          resp = {:ok, deleted, completed_allocs, active_alloc}
-
+          resp = {:ok, deleted, activities}
           {resp, state}
 
         error ->
