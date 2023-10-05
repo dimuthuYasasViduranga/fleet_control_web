@@ -404,6 +404,7 @@ export default {
       const opts = {
         asset: this.asset,
         allocations: this.filteredTimeAllocations,
+        digUnitActivities: this.digUnitActivities,
         deviceAssignments: this.deviceAssignments,
         timeusage: this.timeusage,
         cycles: this.cycles,
@@ -412,6 +413,7 @@ export default {
         timeCodes: this.timeCodes,
         timeCodeGroups: this.timeCodeGroups,
         allowedTimeCodeIds: this.allowedTimeCodeIds,
+        materialTypes: this.materialTypes,
         minDatetime,
         maxDatetime,
         timezone: this.timezone,

@@ -17,6 +17,10 @@
           <template slot-scope="timeSpan">
             <div class="__tooltip-boundary">
               <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+              <MaterialTypeToolTip
+                v-else-if="timeSpan.group === 'dig-unit-activity'"
+                :timeSpan="timeSpan"
+              />
               <LoginTooltip
                 v-else-if="timeSpan.group === 'device-assignment'"
                 :timeSpan="timeSpan"
@@ -140,6 +144,7 @@ import TimeSpanChart from './chart/TimeSpanChart.vue';
 
 import DefaultTooltip from './tooltips/DefaultTimeSpanTooltip.vue';
 import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
+import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
@@ -160,6 +165,7 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
+import { toDigUnitActivitySpans, materialStyle } from './timespan_formatters/digUnitActivitySpans';
 import {
   toDeviceAssignmentSpans,
   loginStyle,
@@ -169,6 +175,7 @@ import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpa
 import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
 import { addDynamicLevels, overrideAll, findOverlapping, copyTimeSpan } from './timeSpan';
+import * as ActivityEdit from './MaterialTypeEditor';
 
 const LOCK_WARNING = `
 Are you sure you want lock the given allocations?
@@ -220,7 +227,7 @@ function updateArrayAt(arr, index, item) {
   return newArr;
 }
 
-function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans]) {
+function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, cycleSpans, eventSpans]) {
   const allocation = {
     group: 'allocation',
     label: 'Al',
@@ -234,6 +241,12 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, cycleSpans, eventSpans
       label: 'S',
       subgroups: [0],
       canHide: true,
+    },
+    {
+      group: 'dig-unit-activity',
+      label: 'Mt',
+      subgroups: [0],
+      subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
     },
     {
       group: 'device-assignment',
@@ -358,6 +371,7 @@ export default {
     TimeSpanChart,
     DefaultTooltip,
     AllocationTooltip,
+    MaterialTypeToolTip,
     LoginTooltip,
     TimeusageTooltip,
     CycleTooltip,
@@ -371,6 +385,7 @@ export default {
     show: { type: Boolean, default: false },
     asset: { type: Object, required: true },
     timeAllocations: { type: Array, default: () => [] },
+    digUnitActivities: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: () => new Date() },
     timeusage: { type: Array, default: () => [] },
@@ -380,6 +395,7 @@ export default {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },
+    materialTypes: { type: Array, default: () => [] },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
@@ -444,6 +460,15 @@ export default {
         this.timeCodeGroups,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
+      const digUnitActivities = ActivityEdit.toLocalDigUnitActivities(
+        this.digUnitActivities,
+        this.maxDatetime,
+      );
+
+      const DUASpans = toDigUnitActivitySpans(digUnitActivities, this.materialTypes).map(ts =>
+        ActivityEdit.addActiveEndTime(ts, activeEndTime),
+      );
+
       const DASpans = toDeviceAssignmentSpans(
         this.deviceAssignments,
         this.devices,
@@ -468,7 +493,7 @@ export default {
         this.maxDatetime,
       ]);
 
-      return [TASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
+      return [TASpans, DUASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans);
@@ -571,6 +596,10 @@ export default {
       switch (timeSpan.group) {
         case 'allocation':
           style = allocationStyle(timeSpan, region);
+          break;
+
+        case 'dig-unit-activity':
+          style = materialStyle(timeSpan, region, this.materialTypes);
           break;
 
         case 'device-assignment':

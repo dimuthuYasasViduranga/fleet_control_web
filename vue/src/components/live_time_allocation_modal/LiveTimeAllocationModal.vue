@@ -9,6 +9,7 @@
       v-if="asset"
       :asset="asset"
       :timeAllocations="allocations"
+      :digUnitActivities="digUnitActivities"
       :deviceAssignments="deviceAssignments"
       :timeusage="timeusage"
       :cycles="cycles"
@@ -17,6 +18,7 @@
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
       :allowedTimeCodeIds="allowedTimeCodeIds"
+      :materialTypes="materialTypes"
       :minDatetime="minDatetime"
       :maxDatetime="maxDatetime"
       :timezone="timezone"
@@ -61,6 +63,9 @@ export default {
       allCycles: state => state.fleetOps.cycles,
       devices: state => state.deviceStore.devices,
     }),
+    ...mapState('digUnit', {
+      liveActivities: state => state.liveActivities,
+    }),
     ...mapState('deviceStore', {
       devices: state => state.devices,
       allDeviceAssignments: state =>
@@ -73,6 +78,7 @@ export default {
       timeCodeGroups: state => state.timeCodeGroups,
       shifts: state => state.shifts,
       shiftTypes: state => state.shiftTypes,
+      materialTypes: state => state.materialTypes,
     }),
     timezone() {
       return this.$timely.current.timestamp;
@@ -86,6 +92,9 @@ export default {
         ta =>
           ta.assetId === this.selectedAssetId && (!ta.endTime || ta.endTime.getTime() > minEpoch),
       );
+    },
+    digUnitActivities() {
+      return this.liveActivities.filter(dua => dua.assetId === this.selectedAssetId);
     },
     deviceAssignments() {
       return this.allDeviceAssignments.filter(da => da.assetId === this.selectedAssetId);

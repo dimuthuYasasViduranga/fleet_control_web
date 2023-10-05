@@ -3,6 +3,7 @@
     <TimeSpanEditor
       :asset="asset"
       :timeAllocations="allocations"
+      :digUnitActivities="digUnitActivities"
       :deviceAssignments="deviceAssignments"
       :timeusage="timeusage"
       :cycles="cycles"
@@ -11,6 +12,7 @@
       :timeCodes="timeCodes"
       :timeCodeGroups="timeCodeGroups"
       :allowedTimeCodeIds="allowedTimeCodeIds"
+      :materialTypes="materialTypes"
       :minDatetime="minDatetime"
       :maxDatetime="maxDatetime"
       :timezone="timezone"
@@ -40,6 +42,7 @@ export default {
   props: {
     asset: { type: Object, required: true },
     allocations: { type: Array, default: () => [] },
+    digUnitActivities: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },
     timeusage: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
@@ -48,6 +51,7 @@ export default {
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },
+    materialTypes: { type: Array, default: () => [] },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
