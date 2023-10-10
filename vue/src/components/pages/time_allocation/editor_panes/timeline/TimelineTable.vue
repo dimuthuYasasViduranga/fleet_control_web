@@ -34,7 +34,7 @@
         @end="ontimeSpanEnd"
       />
     </scrollable>
-    <div v-if="!readonly" class="show-time-codes-check">
+    <div v-if="!readonly && !isMaterialTimeline" class="show-time-codes-check">
       <input v-model="showAllTimeCodes" type="checkbox" />All time codes
     </div>
   </div>
