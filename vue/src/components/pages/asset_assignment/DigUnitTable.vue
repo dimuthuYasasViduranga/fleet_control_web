@@ -63,7 +63,11 @@
 
       <table-column label="Material Type" cell-class="table-cel">
         <template slot-scope="row">
-          <MaterialTypeDropDown v-model="row.materialTypeId" direction="down" />
+          <MaterialTypeDropDown
+            v-model="row.materialTypeId"
+            direction="down"
+            @change="setActivity(row)"
+          />
         </template>
       </table-column>
 
