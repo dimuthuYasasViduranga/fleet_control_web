@@ -13,7 +13,7 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
-import { customValidator } from '@/components/form/validators';
+import { customValidator, positive } from '@/components/form/validators';
 import Form from '@/components/form/Form.vue';
 
 export default {
@@ -36,6 +36,7 @@ export default {
       errorParser: {
         required: 'This field is required',
         unique: data => `'${data.v.$model}' already taken`,
+        positive: 'Employeee ID must contain only numbers',
       },
     };
   },
@@ -48,6 +49,7 @@ export default {
         unique: customValidator('unique', function (value) {
           return !this.employeeIds.includes(value);
         }),
+        positive: positive,
       },
     },
   },
