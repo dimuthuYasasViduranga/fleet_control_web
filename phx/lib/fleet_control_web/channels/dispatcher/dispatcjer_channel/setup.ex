@@ -81,7 +81,8 @@ defmodule FleetControlWeb.DispatcherChannel.Setup do
       dig_unit: %{
         activities: %{
           current: DigUnitActivityAgent.current(),
-          historic: DigUnitActivityAgent.historic()
+          historic: DigUnitActivityAgent.historic(),
+          live: DigUnitActivityAgent.fetch_dig_unit_activities(nil, nil)
         }
       }
     }

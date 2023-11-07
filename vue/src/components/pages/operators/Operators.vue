@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script >
+<script>
 import { mapState } from 'vuex';
 import hxCard from 'hx-layout/Card.vue';
 

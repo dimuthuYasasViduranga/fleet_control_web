@@ -137,7 +137,7 @@ export default {
     },
     materialType() {
       const materialTypeId = this.asset?.activity?.materialTypeId;
-      return attributeFromList(this.materialTypes, 'id', materialTypeId, 'commonName');
+      return attributeFromList(this.materialTypes, 'id', materialTypeId, 'name');
     },
     hasDevice() {
       if (this.asset.hasDevice !== undefined) {

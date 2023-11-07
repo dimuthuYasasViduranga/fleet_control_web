@@ -1,6 +1,6 @@
 <template>
   <div class="time-span-editor-modal">
-    <TimeSpanEditor
+    <MaterialTypeEditor
       :asset="asset"
       :timeAllocations="allocations"
       :digUnitActivities="digUnitActivities"
@@ -32,12 +32,12 @@
 
 <script>
 import { mapState } from 'vuex';
-import TimeSpanEditor from '@/components/pages/time_allocation/TimeSpanEditor.vue';
+import MaterialTypeEditor from '@/components/pages/time_allocation/MaterialTypeEditor.vue';
 
 export default {
-  name: 'TimeSpanEditorModal',
+  name: 'MaterialTypeEditorModal',
   components: {
-    TimeSpanEditor,
+    MaterialTypeEditor,
   },
   props: {
     asset: { type: Object, required: true },

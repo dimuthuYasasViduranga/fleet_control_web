@@ -27,6 +27,10 @@
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
             <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <MaterialTypeToolTip
+              v-else-if="timeSpan.group === 'dig-unit-activity'"
+              :timeSpan="timeSpan"
+            />
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
@@ -37,8 +41,20 @@
       </TimeSpanChart>
     </div>
     <div class="action-wrapper">
-      <Icon v-if="!readonly" v-tooltip="'Edit'" class="edit-icon" :icon="editIcon" @click="onEdit" />
-
+      <Icon
+        v-if="!readonly"
+        v-tooltip="'Edit Allocation'"
+        class="edit-icon"
+        :icon="editIcon"
+        @click="onEdit"
+      />
+      <Icon
+        v-if="!readonly && showMaterialEditBtn"
+        v-tooltip="'Edit Material'"
+        class="edit-icon"
+        :icon="editIcon"
+        @click="onEditMaterial"
+      />
       <Icon
         v-tooltip="isOpen ? 'Less' : 'More'"
         class="chevron-icon"
@@ -57,6 +73,7 @@ import TimeSpanChart from './chart/TimeSpanChart.vue';
 import DefaultTooltip from './tooltips/DefaultTimeSpanTooltip.vue';
 import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
+import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
@@ -64,12 +81,13 @@ import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 import EditIcon from '@/components/icons/Edit.vue';
 import ChevronRightIcon from '@/components/icons/ChevronRight.vue';
 
-import { attributeFromList, dedupByMany, uniq } from '@/code/helpers';
-import { formatSeconds } from '@/code/time';
+import { attributeFromList, dedupByMany, uniq, sortByTime, chunkEvery } from '@/code/helpers';
+import { formatSeconds, copyDate } from '@/code/time';
 import {
   toDeviceAssignmentSpans,
   loginStyle,
 } from './timespan_formatters/deviceAssignmentTimeSpans';
+import { toDigUnitActivitySpans, materialStyle } from './timespan_formatters/digUnitActivitySpans';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -81,6 +99,7 @@ import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/time
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
 
 import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
+import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -101,7 +120,7 @@ function isInRange(timeSpan, minDatetime) {
   return (timeSpan.endTime || timeSpan.activeEndTime).getTime() > minDatetime.getTime();
 }
 
-function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
+function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
   if (asset.type === 'Haul Truck' && isOpen) {
     return [
       {
@@ -135,6 +154,27 @@ function getChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans], asset, isOpen
         subgroups: uniq(TASpans.map(ts => ts.level || 0)),
       },
     ];
+  } else if (asset.type === 'Excavator' && isOpen) {
+    return [
+      {
+        group: 'device-assignment',
+        label: 'Op',
+        percent: 0.3,
+        subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'dig-unit-activity',
+        label: 'Mt',
+        percent: 0.3,
+        subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
+      },
+      {
+        group: 'allocation',
+        label: 'Al',
+        percent: 0.7,
+        subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+      },
+    ];
   }
   return [
     {
@@ -162,6 +202,23 @@ function toShiftSpans(shifts, shiftTypes, timestamps) {
   return toShiftTimeSpans(relevantShifts, shiftTypes);
 }
 
+function toLocalDigUnitActivities(digUnitActivities = []) {
+  return chunkEvery(sortByTime(digUnitActivities, 'timestamp'), 2, 1).map(([cur, next]) => {
+    const startTime = cur.timestamp;
+    const endTime = (next || {}).timestamp;
+
+    return {
+      id: cur.id,
+      assetId: cur.assetId,
+      startTime: copyDate(startTime),
+      endTime: copyDate(endTime),
+      materialTypeId: cur.materialTypeId,
+      locationId: cur.locationId,
+      deleted: false,
+    };
+  });
+}
+
 export default {
   name: 'AssetTimeSpanInfo',
   components: {
@@ -170,20 +227,24 @@ export default {
     DefaultTooltip,
     AllocationTooltip,
     LoginTooltip,
+    MaterialTypeToolTip,
     TimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
   },
   props: {
     readonly: Boolean,
+    showMaterialEditBtn: Boolean,
     asset: { type: Object, default: () => ({}) },
     timeAllocations: { type: Array, default: () => [] },
+    digUnitActivities: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     timeusage: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     fullTimeCodes: { type: Array, default: () => [] },
+    materialTypes: { type: Array, default: () => [] },
     devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: new Date() },
@@ -284,6 +345,13 @@ export default {
         this.timeCodeGroups,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
+      const DUASpans = toDigUnitActivitySpans(
+        toLocalDigUnitActivities(this.digUnitActivities),
+        this.materialTypes,
+      )
+        .map(ts => addActiveEndTime(ts, activeEndTime))
+        .filter(ts => isInRange(ts, this.minDatetime));
+
       const DASpans = toDeviceAssignmentSpans(
         this.smoothDeviceAssignments,
         this.devices,
@@ -306,11 +374,10 @@ export default {
         this.maxDatetime,
       ]);
 
-      return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
+      return [TASpans, DUASpans, DASpans, TUSpans, CSpans, ShiftSpans];
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
-
       return {
         groups,
         padding: this.isOpen ? 5 : 2,
@@ -337,6 +404,7 @@ export default {
       const opts = {
         asset: this.asset,
         allocations: this.filteredTimeAllocations,
+        digUnitActivities: this.digUnitActivities,
         deviceAssignments: this.deviceAssignments,
         timeusage: this.timeusage,
         cycles: this.cycles,
@@ -345,6 +413,7 @@ export default {
         timeCodes: this.timeCodes,
         timeCodeGroups: this.timeCodeGroups,
         allowedTimeCodeIds: this.allowedTimeCodeIds,
+        materialTypes: this.materialTypes,
         minDatetime,
         maxDatetime,
         timezone: this.timezone,
@@ -359,6 +428,36 @@ export default {
         }
       });
     },
+    onEditMaterial() {
+      const range = this.range || {};
+      const minDatetime = this.minDatetime || range.min;
+      const maxDatetime = this.maxDatetime || range.max;
+
+      const opts = {
+        asset: this.asset,
+        allocations: this.filteredTimeAllocations,
+        digUnitActivities: this.digUnitActivities,
+        deviceAssignments: this.deviceAssignments,
+        devices: this.devices,
+        operators: this.operators,
+        timeCodes: this.timeCodes,
+        timeCodeGroups: this.timeCodeGroups,
+        allowedTimeCodeIds: this.allowedTimeCodeIds,
+        materialTypes: this.materialTypes,
+        minDatetime,
+        maxDatetime,
+        timezone: this.timezone,
+        shifts: this.shifts,
+        shiftTypes: this.shiftTypes,
+        shiftId: this.shiftId,
+      };
+
+      this.$modal.create(MaterialTypeEditorModal, opts).onClose(resp => {
+        if (['update'].includes(resp)) {
+          this.$emit(resp);
+        }
+      });
+    },
     toggleOpen() {
       this.isOpen = !this.isOpen;
     },
@@ -366,6 +465,9 @@ export default {
       switch (timeSpan.group) {
         case 'allocation':
           return allocationStyle(timeSpan, region);
+
+        case 'dig-unit-activity':
+          return materialStyle(timeSpan, region, this.materialTypes);
 
         case 'device-assignment':
           return loginStyle(timeSpan, region);

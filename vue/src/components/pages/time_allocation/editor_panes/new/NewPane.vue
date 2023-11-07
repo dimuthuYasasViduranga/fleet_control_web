@@ -3,7 +3,7 @@
     <div class="error">{{ error }}</div>
 
     <table class="new-pane-table">
-      <tr class="row time-code">
+      <tr v-if="!isMaterialTimeline" class="row time-code">
         <td class="key">Time Code</td>
         <td class="value">
           <div class="time-code-wrapper">
@@ -16,6 +16,14 @@
             <div class="show-all-checked">
               <input v-model="showAllTimeCodes" type="checkbox" /> All
             </div>
+          </div>
+        </td>
+      </tr>
+      <tr v-else class="row time-code">
+        <td class="key">Material Type</td>
+        <td class="value">
+          <div class="time-code-wrapper">
+            <MaterialTypeDropDown v-model="materialTypeId" direction="down" />
           </div>
         </td>
       </tr>
@@ -54,19 +62,25 @@
 <script>
 import Dately from '@/components/dately/Dately.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
+import MaterialTypeDropDown from '@/components/MaterialTypeDropDown.vue';
 import { copyDate } from '@/code/time';
+import { mapState } from 'vuex';
 
-function getError({ timeCodeId, startTime, endTime }) {
+function getError(newTimeLine, isMaterialTimeline) {
   const errors = [];
-  if (!timeCodeId) {
+  if (!isMaterialTimeline && !newTimeLine.timeCodeId) {
     errors.push('Time Code');
   }
 
-  if (!startTime) {
+  if (isMaterialTimeline && !newTimeLine.materialTypeId) {
+    errors.push('Material Type Code');
+  }
+
+  if (!newTimeLine.startTime) {
     errors.push('Start Time');
   }
 
-  if (!endTime) {
+  if (!newTimeLine.endTime) {
     errors.push('End Time');
   }
 
@@ -82,6 +96,7 @@ export default {
   components: {
     Dately,
     TimeAllocationDropDown,
+    MaterialTypeDropDown,
   },
   props: {
     value: { type: Object, default: () => ({}) },
@@ -90,6 +105,7 @@ export default {
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
     timezone: { type: String, default: 'local' },
+    isMaterialTimeline: { type: Boolean, default: false },
   },
   data: () => {
     return {
@@ -98,12 +114,23 @@ export default {
     };
   },
   computed: {
+    ...mapState('constants', {
+      materialTypes: state => state.materialTypes,
+    }),
     timeCodeId: {
       get() {
         return this.value.timeCodeId;
       },
       set(value) {
         this.emitValue({ timeCodeId: value });
+      },
+    },
+    materialTypeId: {
+      get() {
+        return this.value.materialTypeId;
+      },
+      set(value) {
+        this.emitValue({ materialTypeId: value });
       },
     },
     startTime: {
@@ -150,12 +177,17 @@ export default {
     },
     onCreate() {
       this.clearError();
-      const error = getError(this.value);
+      const error = getError(this.value, this.isMaterialTimeline);
       this.setError(error);
+
+      let codeID = { timeCodeId: this.timeCodeId };
+      if (this.isMaterialTimeline) {
+        codeID = { materialTypeId: this.materialTypeId };
+      }
 
       if (!error) {
         const payload = {
-          timeCodeId: this.timeCodeId,
+          ...codeID,
           startTime: copyDate(this.startTime),
           endTime: copyDate(this.endTime),
         };
@@ -166,12 +198,17 @@ export default {
     },
     onCreateOverride() {
       this.clearError();
-      const error = getError(this.value);
+      const error = getError(this.value, this.isMaterialTimeline);
       this.setError(error);
+
+      let codeID = { timeCodeId: this.timeCodeId };
+      if (this.isMaterialTimeline) {
+        codeID = { materialTypeId: this.materialTypeId };
+      }
 
       if (!error) {
         const payload = {
-          timeCodeId: this.timeCodeId,
+          ...codeID,
           startTime: copyDate(this.startTime),
           endTime: copyDate(this.endTime),
         };
@@ -182,8 +219,14 @@ export default {
     },
     onClear() {
       this.clearError();
+
+      let codeID = { timeCodeId: null };
+      if (this.isMaterialTimeline) {
+        codeID = { materialTypeId: null };
+      }
+
       this.emitValue({
-        timeCodeId: null,
+        ...codeID,
         startTime: null,
         endTime: null,
       });

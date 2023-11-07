@@ -266,10 +266,9 @@ function parseLoadStyle(style) {
 function parseMaterialType(type) {
   return {
     id: type.id,
-    name: type.name,
-    alias: type.alias,
-    commonName: type.alias || type.name,
-    tonnesToBCMFactor: type.tonnes_to_bcm_factor,
+    materialTypeCode: type.dis_material_type_code,
+    type: type.name,
+    name: `${type.name} (${type.common_name})` || type.name,
   };
 }
 

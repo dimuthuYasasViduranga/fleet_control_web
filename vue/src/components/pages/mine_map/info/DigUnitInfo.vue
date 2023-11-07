@@ -51,12 +51,7 @@ export default {
       return attributeFromList(this.activities, 'assetId', this.asset.id) || {};
     },
     materialType() {
-      return attributeFromList(
-        this.materialTypes,
-        'id',
-        this.activity.materialTypeId,
-        'commonName',
-      );
+      return attributeFromList(this.materialTypes, 'id', this.activity.materialTypeId, 'name');
     },
     loadStyle() {
       return attributeFromList(this.loadStyles, 'id', this.activity.loadStyleId, 'style');

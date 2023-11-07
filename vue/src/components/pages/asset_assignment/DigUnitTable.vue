@@ -63,12 +63,9 @@
 
       <table-column label="Material Type" cell-class="table-cel">
         <template slot-scope="row">
-          <DropDown
+          <MaterialTypeDropDown
             v-model="row.materialTypeId"
-            :options="materialTypeOptions"
-            label="commonName"
-            placeholder="None"
-            :disabled="readonly"
+            direction="down"
             @change="setActivity(row)"
           />
         </template>
@@ -96,6 +93,7 @@ import NIcon from '@/components/NIcon.vue';
 import Icon from 'hx-layout/Icon.vue';
 import { DropDown } from 'hx-vue';
 import TimeAllocationDropDown from '../../TimeAllocationDropDown.vue';
+import MaterialTypeDropDown from '@/components/MaterialTypeDropDown.vue';
 import { TableComponent, TableColumn } from 'vue-table-component';
 
 import { attributeFromList } from '@/code/helpers';
@@ -149,6 +147,7 @@ export default {
     Icon,
     DropDown,
     TimeAllocationDropDown,
+    MaterialTypeDropDown,
     TableComponent,
     TableColumn,
   },
@@ -173,9 +172,6 @@ export default {
     locationOptions() {
       const locations = this.locations.map(l => ({ id: l.id, name: l.name }));
       return [{ id: null, name: 'None' }].concat(locations);
-    },
-    materialTypeOptions() {
-      return [{ id: null, commonName: 'None' }].concat(this.materialTypes);
     },
     digUnits() {
       const activities = this.digUnitActivities;

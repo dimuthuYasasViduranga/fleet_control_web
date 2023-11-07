@@ -66,7 +66,7 @@ defmodule FleetControlWeb.MixProject do
 
       # internal private
       {:hps_phx, git: "https://github.com/Haultrax/hps_phx.git", tag: "0.0.3"},
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.2.9", override: true},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.3.4", override: true},
       {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
 
       # test
@@ -96,6 +96,7 @@ defmodule FleetControlWeb.MixProject do
         "run ./deps/hps_data/priv/repo/seeds/dispatch/operator_message_types/default.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_code_groups.exs",
         "run ./deps/hps_data/priv/repo/seeds/dispatch/time_codes/simple.exs",
+        "run ./deps/hps_data/priv/repo/seeds/dispatch/dis_material_type.exs",
         "run ./priv/test_data_seeds.exs",
         # auth code
         "run ./deps/hps_data/priv/repo/seeds/authorisation.exs"

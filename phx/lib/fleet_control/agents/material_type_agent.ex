@@ -8,7 +8,7 @@ defmodule FleetControl.MaterialTypeAgent do
   use Agent
 
   alias HpsData.Repo
-  alias HpsData.Dim.MaterialType
+  alias HpsData.Schemas.Dispatch.MaterialType
 
   @type material_type :: map
 
@@ -23,7 +23,6 @@ defmodule FleetControl.MaterialTypeAgent do
   defp pull_material_types() do
     MaterialType
     |> Repo.all()
-    |> Enum.map(&MaterialType.to_map/1)
   end
 
   @spec get() :: list(material_type)

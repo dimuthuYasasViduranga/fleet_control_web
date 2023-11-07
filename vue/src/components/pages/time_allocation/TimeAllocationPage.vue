@@ -83,14 +83,17 @@
         v-for="{
           asset,
           timeAllocations,
+          digUnitActivities,
           deviceAssignments,
           timeusage,
           cycles,
         } in filteredAssetData"
         :key="asset.name"
         :readonly="!canEdit"
+        :showMaterialEditBtn="showMaterialEditBtn(asset)"
         :asset="asset"
         :timeAllocations="timeAllocations"
+        :digUnitActivities="digUnitActivities"
         :deviceAssignments="deviceAssignments"
         :timeusage="timeusage"
         :cycles="cycles"
@@ -99,6 +102,7 @@
         :timeCodes="timeCodes"
         :timeCodeGroups="timeCodeGroups"
         :fullTimeCodes="fullTimeCodes"
+        :materialTypes="materialTypes"
         :activeEndTime="now"
         :range="range"
         :minDatetime="range.min"
@@ -128,7 +132,12 @@ import AssetTimeSpanInfo from './AssetTimeSpanInfo.vue';
 
 import TimeIcon from '../../icons/Time.vue';
 import { isInText } from '../../../code/helpers';
-import { parseTimeAllocation, parseTimeusage, parseCycle } from '../../../store/store.js';
+import {
+  parseTimeAllocation,
+  parseDigUnitActivities,
+  parseTimeusage,
+  parseCycle,
+} from '../../../store/store.js';
 import { parseDeviceAssignment } from '../../../store/modules/device_store.js';
 import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
@@ -154,10 +163,18 @@ function getRange({ now, width = 0, offset = 0 }) {
   };
 }
 
-function groupByAsset(assets, timeAllocations, deviceAssignments, timeusage, allCycles) {
+function groupByAsset(
+  assets,
+  timeAllocations,
+  digUnitActivities,
+  deviceAssignments,
+  timeusage,
+  allCycles,
+) {
   return assets.map(asset => {
     const assetId = asset.id;
     const allocations = timeAllocations.filter(ta => ta.assetId === assetId);
+    const activities = digUnitActivities.filter(dua => dua.assetId === assetId);
     const assignments = deviceAssignments.filter(da => da.assetId === assetId);
     const tus = timeusage.filter(tu => tu.assetId === assetId);
     const cycles = allCycles.filter(c => c.assetId === assetId);
@@ -165,6 +182,7 @@ function groupByAsset(assets, timeAllocations, deviceAssignments, timeusage, all
     return {
       asset,
       timeAllocations: allocations,
+      digUnitActivities: activities,
       deviceAssignments: assignments,
       timeusage: tus,
       cycles,
@@ -216,6 +234,7 @@ export default {
       shiftTypes: state => state.shiftTypes,
       timeCodes: state => state.timeCodes,
       timeCodeGroups: state => state.timeCodeGroups,
+      materialTypes: state => state.materialTypes,
     }),
     ...mapState('deviceStore', {
       devices: state => state.devices,
@@ -224,6 +243,9 @@ export default {
     ...mapState({
       fleetOpsCycles: state => state.fleetOps.cycles,
       fleetOpsTimeusage: state => state.fleetOps.timeusage,
+    }),
+    ...mapState('digUnit', {
+      liveDigUnitActivities: state => state.liveActivities,
     }),
     timezone() {
       return this.$timely.current.timezone;
@@ -241,6 +263,7 @@ export default {
       return groupByAsset(
         this.assets,
         this.liveTimeAllocations,
+        this.liveDigUnitActivities,
         this.liveDeviceAssignments,
         this.fleetOpsTimeusage,
         this.fleetOpsCycles,
@@ -307,6 +330,9 @@ export default {
         this.$store.dispatch('updateFleetOpsData', this.$hostname);
       }
     },
+    showMaterialEditBtn(asset) {
+      return asset.type === 'Excavator' || asset.type === 'Loader';
+    },
     setTimeScaleValue(value) {
       this.liveTimeScale = value;
       this.range = getRange({ now: this.now, width: value * HOURS_TO_MS });
@@ -367,6 +393,7 @@ export default {
           };
 
           const allocations = (data.allocations || []).map(parseTimeAllocation);
+          const digUnitActivities = (data.dig_unit_activities || []).map(parseDigUnitActivities);
           const deviceAssignments = (data.device_assignments || []).map(parseDeviceAssignment);
           const timeusage = (data.timeusage || []).map(parseTimeusage);
           const cycles = (data.cycles || []).map(parseCycle);
@@ -374,6 +401,7 @@ export default {
           this.shiftAssetData = groupByAsset(
             this.assets,
             allocations,
+            digUnitActivities,
             deviceAssignments,
             timeusage,
             cycles,

@@ -10,12 +10,19 @@ defmodule FleetControl.DigUnitActivityAgent do
   alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DigUnitActivity
+  alias HpsData.Schemas.Dispatch.MaterialType
+  alias FleetControl.DigUnitActivityAgent.Update
   alias HpsData.{Asset, AssetType}
 
   import Ecto.Query, only: [from: 2, subquery: 1]
   alias Ecto.Multi
 
   @type activity :: map
+
+  @keys [
+    :id,
+    :material_type_Id
+  ]
 
   @cull_opts %{
     time_key: :timestamp,
@@ -79,6 +86,35 @@ defmodule FleetControl.DigUnitActivityAgent do
     |> Repo.all()
   end
 
+  def fetch_dig_unit_activities(nil, nil) do
+    now = Helper.naive_timestamp()
+    shift_start = NaiveDateTime.add(now, -@cull_opts.max_age, :second)
+    fetch_by_range!(shift_start, now)
+  end
+
+  def fetch_dig_unit_activities(start_time, end_time), do: fetch_by_range!(start_time, end_time)
+
+  def fetch_by_range!(start_time, end_time) do
+    first_elements = get_first_rows_by(start_time, "<")
+    end_elements = get_first_rows_by(end_time, ">")
+
+    activities =
+      from(da in DigUnitActivity,
+        where: da.timestamp >= ^start_time and da.timestamp <= ^end_time,
+        select: %{
+          id: da.id,
+          asset_id: da.asset_id,
+          location_id: da.location_id,
+          material_type_id: da.material_type_id,
+          timestamp: da.timestamp,
+          server_timestamp: da.server_timestamp
+        }
+      )
+      |> Repo.all()
+
+    first_elements ++ activities ++ end_elements
+  end
+
   @spec historic() :: list(activity)
   def historic(), do: Agent.get(__MODULE__, & &1.historic)
 
@@ -114,6 +150,26 @@ defmodule FleetControl.DigUnitActivityAgent do
     |> DigUnitActivity.new()
     |> Repo.insert()
     |> update_agent(state)
+  end
+
+  def update_all(updates) do
+    Agent.get_and_update(__MODULE__, fn state ->
+      Update.update_all(updates, state)
+      |> case do
+        {:ok, commits} ->
+          {_, commits_deleted} = commits.deleted
+          {_, commits_new} = commits.new
+
+          {deleted, state} = update_agent(commits_deleted, state)
+          {activities, state} = update_agent(commits_new, state)
+
+          resp = {:ok, deleted, activities}
+          {resp, state}
+
+        error ->
+          {error, state}
+      end
+    end)
   end
 
   @spec clear(integer) :: {:ok, activity} | {:error, :no_asset | term}
@@ -247,8 +303,12 @@ defmodule FleetControl.DigUnitActivityAgent do
     |> Enum.find(&(&1.asset_id == proposed.asset_id))
     |> Access.get(:timestamp)
     |> case do
-      nil -> true
-      old_timestamp -> NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :lt
+      nil ->
+        true
+
+      old_timestamp ->
+        NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :lt ||
+          NaiveDateTime.compare(old_timestamp, proposed.timestamp) == :eq
     end
   end
 
@@ -258,6 +318,46 @@ defmodule FleetControl.DigUnitActivityAgent do
       select: %{
         asset_id: d.asset_id,
         timestamp: max(d.timestamp)
+      }
+    )
+  end
+
+  defp get_first_rows_by(timestamp, comparitor) do
+    search_query = get_search_query(timestamp, comparitor)
+
+    from(a in subquery(search_query),
+      join: da in DigUnitActivity,
+      on: da.asset_id == a.asset_id and da.timestamp == a.timestamp,
+      select: %{
+        id: da.id,
+        asset_id: da.asset_id,
+        location_id: da.location_id,
+        material_type_id: da.material_type_id,
+        timestamp: da.timestamp,
+        server_timestamp: da.server_timestamp
+      }
+    )
+    |> Repo.all()
+  end
+
+  defp get_search_query(timestamp, ">") do
+    from(da in DigUnitActivity,
+      where: da.timestamp > ^timestamp,
+      group_by: da.asset_id,
+      select: %{
+        asset_id: da.asset_id,
+        timestamp: min(da.timestamp)
+      }
+    )
+  end
+
+  defp get_search_query(timestamp, "<") do
+    from(da in DigUnitActivity,
+      where: da.timestamp < ^timestamp,
+      group_by: da.asset_id,
+      select: %{
+        asset_id: da.asset_id,
+        timestamp: max(da.timestamp)
       }
     )
   end

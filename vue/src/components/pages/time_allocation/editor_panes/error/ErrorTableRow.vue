@@ -2,11 +2,24 @@
   <table class="error-table-row">
     <tr>
       <td class="selector-column" @click="onRowSelect"></td>
-      <td class="time-code-column">
+      <td v-if="!isMaterialTimeline" class="time-code-column">
         <TimeAllocationDropDown
           :value="timeSpan.data.timeCodeId"
           :allowedTimeCodeIds="allowedTimeCodeIds"
           @change="onTimeCodeChange"
+        />
+      </td>
+      <td v-else class="time-code-column">
+        <DropDown
+          class="tc-drop-down"
+          :value="timeSpan.data.materialTypeId"
+          :options="materialTypes"
+          label="name"
+          placeholder="select Material Type"
+          direction="auto"
+          :disabled="false"
+          :holdOpen="false"
+          @change="onMaterialTypeChange"
         />
       </td>
       <td class="start-time-column">
@@ -37,6 +50,8 @@
 import LockableButton from '@/components/LockableButton.vue';
 import Dately from '@/components/dately/Dately.vue';
 import TimeAllocationDropDown from '@/components/TimeAllocationDropDown.vue';
+import { DropDown } from 'hx-vue';
+import { mapState } from 'vuex';
 
 const MISSING_COLOR = 'magenta';
 
@@ -46,8 +61,10 @@ export default {
     LockableButton,
     Dately,
     TimeAllocationDropDown,
+    DropDown,
   },
   props: {
+    isMaterialTimeline: { type: Boolean, default: () => false },
     timeSpan: { type: Object, required: true },
     allowedTimeCodeIds: { type: Array, default: () => [] },
     minDatetime: { type: Date, default: null },
@@ -55,6 +72,9 @@ export default {
     timezone: { type: String, default: 'local' },
   },
   computed: {
+    ...mapState('constants', {
+      materialTypes: state => state.materialTypes,
+    }),
     startTime: {
       get() {
         return this.timeSpan.startTime;
@@ -79,6 +99,11 @@ export default {
     onTimeCodeChange(timeCodeId) {
       // eslint-disable-next-line vue/no-mutating-props
       this.timeSpan.data.timeCodeId = timeCodeId || null;
+      this.emitChange(this.timeSpan);
+    },
+    onMaterialTypeChange(materialTypeId) {
+      // eslint-disable-next-line vue/no-mutating-props
+      this.timeSpan.data.materialTypeId = materialTypeId || null;
       this.emitChange(this.timeSpan);
     },
     onRowSelect() {

@@ -3,7 +3,9 @@
     <table class="table-heading">
       <tr>
         <td class="selector-column"></td>
-        <td class="time-code-column">Time Code</td>
+
+        <td v-if="isMaterialTimeline" class="time-code-column">Material Type</td>
+        <td v-if="!isMaterialTimeline" class="time-code-column">Time Code</td>
         <td class="start-time-column">Start Time</td>
         <td class="end-time-column">End Time</td>
         <td v-if="!readonly" class="action-column"></td>
@@ -17,6 +19,7 @@
         :class="getRowClass(timeSpan)"
         :style="rowStyle"
         :readonly="readonly"
+        :isMaterialTimeline="isMaterialTimeline"
         :prevTimeSpan="prevTimeSpan"
         :timeSpan="timeSpan"
         :nextTimeSpan="nextTimeSpan"
@@ -31,7 +34,7 @@
         @end="ontimeSpanEnd"
       />
     </scrollable>
-    <div v-if="!readonly" class="show-time-codes-check">
+    <div v-if="!readonly && !isMaterialTimeline" class="show-time-codes-check">
       <input v-model="showAllTimeCodes" type="checkbox" />All time codes
     </div>
   </div>
@@ -62,6 +65,7 @@ export default {
   },
   props: {
     readonly: Boolean,
+    isMaterialTimeline: { type: Boolean, default: false },
     timeSpans: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },
@@ -166,7 +170,6 @@ export default {
   },
 };
 </script>
-
 
 <style>
 .timeline-table .table-heading {

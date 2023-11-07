@@ -4,6 +4,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
   alias FleetControl.Haul
   alias FleetControl.DeviceAssignmentAgent
   alias FleetControl.CalendarAgent
+  alias FleetControl.DigUnitActivityAgent
 
   alias FleetControlWeb.Broadcast
 
@@ -119,6 +120,9 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
             range = %{start_time: shift.shift_start, end_time: shift.shift_end}
             allocations = FleetControl.TimeAllocation.EctoQueries.fetch_by_range!(range)
 
+            dig_unit_activities =
+              DigUnitActivityAgent.fetch_dig_unit_activities(range.start_time, range.end_time)
+
             device_assignments = DeviceAssignmentAgent.fetch_by_range!(range)
 
             timeusage = Haul.fetch_timeusage_by_range!(%{calendar_id: calendar_id})
@@ -127,6 +131,7 @@ defmodule FleetControlWeb.DispatcherChannel.Topics.TimeAllocation do
             payload = %{
               shift: shift,
               allocations: allocations,
+              dig_unit_activities: dig_unit_activities,
               device_assignments: device_assignments,
               timeusage: timeusage,
               cycles: cycles
