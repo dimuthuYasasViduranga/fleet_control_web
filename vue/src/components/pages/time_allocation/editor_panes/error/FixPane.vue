@@ -13,6 +13,10 @@
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
             <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <MaterialTypeToolTip
+              v-else-if="timeSpan.group === 'dig-unit-activity'"
+              :timeSpan="timeSpan"
+            />
           </div>
         </template>
       </TimeSpanChart>
@@ -33,6 +37,10 @@
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
             <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <MaterialTypeToolTip
+              v-else-if="timeSpan.group === 'dig-unit-activity'"
+              :timeSpan="timeSpan"
+            />
           </div>
         </template>
       </TimeSpanChart>
@@ -53,6 +61,10 @@
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
             <AllocationTooltip v-if="timeSpan.group === 'allocation'" :timeSpan="timeSpan" />
+            <MaterialTypeToolTip
+              v-else-if="timeSpan.group === 'dig-unit-activity'"
+              :timeSpan="timeSpan"
+            />
           </div>
         </template>
       </TimeSpanChart>
@@ -69,10 +81,13 @@
 <script>
 import TimeSpanChart from '../../chart/TimeSpanChart.vue';
 import AllocationTooltip from '../../tooltips/AllocationTimeSpanTooltip.vue';
+import MaterialTypeToolTip from '../../tooltips/MaterialTypeToolTip.vue';
 import { allocationStyle } from '../../timespan_formatters/timeAllocationTimeSpans';
+import { materialStyle } from '../../timespan_formatters/digUnitActivitySpans';
 import { uniq } from '../../../../../code/helpers';
 import { findOverlapping, addDynamicLevels, overrideAll, mergeAll } from '../../timeSpan';
 import { copyDate } from '../../../../../code/time';
+import { mapState } from 'vuex';
 
 function copyTimeSpan(timeSpan) {
   if (!timeSpan) {
@@ -85,14 +100,6 @@ function copyTimeSpan(timeSpan) {
     activeEndTime: copyDate(timeSpan.activeEndTime),
     data: { ...timeSpan.data },
   };
-}
-
-function mergerCallback(merger, mergee) {
-  // merger "Ready" can only override a mergee of "Ready"
-  if (merger.data.timeCodeGroup === 'Ready' && mergee.data.timeCodeGroup !== 'Ready') {
-    return [mergee, merger];
-  }
-  return [merger, mergee];
 }
 
 function timeSpansEqual(a, b) {
@@ -131,7 +138,10 @@ function splitSpanForRange(timeSpan, minDatetime, maxDatetime) {
     ref.startTime = copyDate(minDatetime);
   }
 
-  if (maxDatetime && (timeSpan.endTime || timeSpan.activeEndTime).getTime() > maxDatetime.getTime()) {
+  if (
+    maxDatetime &&
+    (timeSpan.endTime || timeSpan.activeEndTime).getTime() > maxDatetime.getTime()
+  ) {
     rightSpan = copyTimeSpan(ref);
     rightSpan.startTime = copyDate(maxDatetime);
     rightSpan.data.id = null;
@@ -155,8 +165,11 @@ export default {
   components: {
     TimeSpanChart,
     AllocationTooltip,
+    MaterialTypeToolTip,
   },
   props: {
+    isMaterialTimeline: { type: Boolean, default: () => false },
+
     refTimeSpan: { type: Object, required: true },
     timeSpans: { type: Array, default: () => [] },
     minDatetime: { type: Date, default: null },
@@ -175,6 +188,9 @@ export default {
     };
   },
   computed: {
+    ...mapState('constants', {
+      materialTypes: state => state.materialTypes,
+    }),
     deletedTimeSpans() {
       const [ref, outerRefs, overlappedSpans] = this.affectedTimeSpans();
       ref.deleted = true;
@@ -212,7 +228,7 @@ export default {
         this.minDatetime,
         this.maxDatetime,
       );
-      return mergeAll(ref, splitOverlapped, mergerCallback).concat(outerRefs);
+      return mergeAll(ref, splitOverlapped, this.mergerCallback).concat(outerRefs);
     },
     mergeTimeSpanBlueprint() {
       const timeSpans = this.mergeTimeSpans.map(copyTimeSpan);
@@ -224,16 +240,20 @@ export default {
   },
   methods: {
     timeSpanStyler(timeSpan, region) {
-      const style = allocationStyle(timeSpan, region);
+      const style = !this.isMaterialTimeline
+        ? allocationStyle(timeSpan, region)
+        : materialStyle(timeSpan, region, this.materialTypes);
+
       if (timeSpan.deleted === true) {
         return { ...style, fill: 'hatch' };
       }
       return style;
     },
     chartLayout(timeSpans) {
+      const group = !this.isMaterialTimeline ? 'allocation' : 'dig-unit-activity';
       const groups = [
         {
-          group: 'allocation',
+          group: group,
           subgroups: uniq(timeSpans.filter(ts => ts.deleted !== false).map(ts => ts.level || 0)),
         },
       ];
@@ -259,6 +279,17 @@ export default {
       const overlappedSpans = findOverlapping(inRangeRef, timeSpansBelow);
 
       return [inRangeRef, outerRefs, overlappedSpans];
+    },
+    mergerCallback(merger, mergee) {
+      // merger "Ready" can only override a mergee of "Ready"
+      if (
+        !this.isMaterialTimeline &&
+        merger.data.timeCodeGroup === 'Ready' &&
+        mergee.data.timeCodeGroup !== 'Ready'
+      ) {
+        return [mergee, merger];
+      }
+      return [merger, mergee];
     },
     onCancel() {
       this.$emit('cancel');

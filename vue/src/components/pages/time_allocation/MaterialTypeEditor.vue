@@ -25,8 +25,6 @@
                 v-else-if="timeSpan.group === 'device-assignment'"
                 :timeSpan="timeSpan"
               />
-              <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
-              <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
               <EventTooltip v-else-if="timeSpan.group === 'event'" :timeSpan="timeSpan" />
               <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
               <DefaultTooltip v-else :timeSpan="timeSpan" />
@@ -36,16 +34,6 @@
       </div>
     </hxCard>
     <hxCard class="pane-card" :hideTitle="true">
-      <button
-        v-if="!events"
-        class="hx-btn add-report"
-        :disabled="reportInTransit"
-        @click="onGenerateReport"
-      >
-        <div class="text">Add report</div>
-        <Loading :isLoading="reportInTransit" />
-      </button>
-      <button v-else class="hx-btn remove-report" @click="onRemoveReport">Remove Report</button>
       <div class="pane-wrapper">
         <div class="pane-selector">
           <button
@@ -79,9 +67,10 @@
             v-if="pane === 'errors'"
             :height="paneHeight"
             :maxShown="paneMaxItems"
-            :timeSpans="nonDeletedAllocationTimeSpans"
+            :isMaterialTimeline="isMaterialTimeline"
+            :timeSpans="nonDeletedActivityTimeSpans"
             :errorTimeSpans="errorAllocationTimeSpans"
-            :selectedAllocationId="selectedAllocationId"
+            :selectedAllocationId="selectedActivityId"
             :allowedTimeCodeIds="allowedTimeCodeIds"
             :minDatetime="minDatetime"
             :maxDatetime="maxDatetime"
@@ -93,24 +82,26 @@
 
           <NewPane
             v-else-if="pane === 'new'"
-            v-model="newTimeAllocation"
+            v-model="newDigUnitActivity"
+            :isMaterialTimeline="isMaterialTimeline"
             :allowedTimeCodeIds="allowedTimeCodeIds"
             :minDatetime="minDatetime"
             :maxDatetime="maxDatetime"
             :timezone="timezone"
-            @create="onNewTimeAllocation"
-            @override="onNewTimeAllocationOverride"
+            @create="onNewDigActivity"
+            @override="onNewDigActivityOverride"
           />
 
           <TimelinePane
             v-else
             :readonly="!canEdit"
+            :isMaterialTimeline="isMaterialTimeline"
             :height="paneHeight"
             :maxShown="paneMaxItems"
             :timeSpans="level0AllocationTimeSpans"
             :timeCodes="timeCodes"
             :allowedTimeCodeIds="allowedTimeCodeIds"
-            :selectedAllocationId="selectedAllocationId"
+            :selectedAllocationId="selectedActivityId"
             :minDatetime="localMinDatetime"
             :maxDatetime="localMaxDatetime"
             :timezone="timezone"
@@ -120,10 +111,6 @@
           />
         </div>
         <div class="gap"></div>
-        <div v-if="canLock && shiftId" class="buttons">
-          <button class="hx-btn lock" @click="onConfirmLock">Lock All</button>
-          <button class="hx-btn unlock" @click="onConfirmUnlock">Unlock All</button>
-        </div>
         <div v-if="canEdit || canLock" class="buttons">
           <button class="hx-btn update" @click="onUpdate">Submit Changes</button>
           <button class="hx-btn cancel" @click="onCancel">Cancel</button>
@@ -136,9 +123,7 @@
 
 <script>
 import hxCard from 'hx-layout/Card.vue';
-import Loading from 'hx-layout/Loading.vue';
 import LoadingModal from '@/components/modals/LoadingModal.vue';
-import ConfirmModal from '@/components/modals/ConfirmModal.vue';
 
 import TimeSpanChart from './chart/TimeSpanChart.vue';
 
@@ -146,8 +131,6 @@ import DefaultTooltip from './tooltips/DefaultTimeSpanTooltip.vue';
 import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
-import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
-import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import EventTooltip from './tooltips/EventTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
@@ -158,8 +141,7 @@ import NewPane from './editor_panes/new/NewPane.vue';
 import TimeIcon from '../../icons/Time.vue';
 import AddIcon from '../../icons/Add.vue';
 
-import { copyDate, isDateEqual, toEpoch, toUtcDate } from '@/code/time';
-import { uniq, chunkEvery } from '@/code/helpers';
+import { copyDate, toEpoch } from '@/code/time';
 import {
   toAllocationTimeSpans,
   allocationStyle,
@@ -170,213 +152,22 @@ import {
   toDeviceAssignmentSpans,
   loginStyle,
 } from './timespan_formatters/deviceAssignmentTimeSpans';
-import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
-import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
-import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
+import { shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toEventTimeSpans, eventStyle } from './timespan_formatters/eventTimeSpans';
 import { addDynamicLevels, overrideAll, findOverlapping, copyTimeSpan } from './timeSpan';
 import * as ActivityEdit from './MaterialTypeEditor';
-
-const LOCK_WARNING = `
-Are you sure you want lock the given allocations?
-
-You may not be able to unlock them
-`;
-
-const UNLOCK_WARNING = `
-Are you sure you want to unlock the given allocations?
-
-Users will be able to edit the given allocations
-`;
-
-let ID = -1;
-
-function getNextId() {
-  const id = ID;
-  ID -= 1;
-  return id;
-}
-
-function toLocalAllocation(allocation) {
-  return {
-    id: allocation.id,
-    assetId: allocation.assetId,
-    startTime: copyDate(allocation.startTime),
-    endTime: copyDate(allocation.endTime),
-    timeCodeId: allocation.timeCodeId,
-    lockId: allocation.lockId,
-  };
-  return allocation;
-}
-
-function addActiveEndTime(timeSpan, activeEndTime) {
-  if (!timeSpan.endTime) {
-    timeSpan.activeEndTime = activeEndTime;
-  }
-
-  return timeSpan;
-}
-
-function updateArrayAt(arr, index, item) {
-  if (index > arr.length) {
-    return arr;
-  }
-
-  const newArr = arr.slice();
-  newArr[index] = item;
-  return newArr;
-}
-
-function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, cycleSpans, eventSpans]) {
-  const allocation = {
-    group: 'allocation',
-    label: 'Al',
-    percent: 0.5,
-    subgroups: uniq(TASpans.map(ts => ts.level || 0)),
-  };
-
-  const otherGroups = [
-    {
-      group: 'shift',
-      label: 'S',
-      subgroups: [0],
-      canHide: true,
-    },
-    {
-      group: 'dig-unit-activity',
-      label: 'Mt',
-      subgroups: [0],
-      subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
-    },
-    {
-      group: 'device-assignment',
-      label: 'Op',
-      subgroups: uniq(DASpans.map(ts => ts.level || 0)),
-    },
-    {
-      group: 'timeusage',
-      label: 'TU',
-      subgroups: uniq((TUSpans || []).map(ts => ts.level || 0)),
-      canHide: true,
-    },
-    {
-      group: 'cycle',
-      label: 'C',
-      subgroups: uniq((cycleSpans || []).map(ts => ts.level || 0)),
-      canHide: true,
-    },
-    {
-      group: 'event',
-      label: 'Ev',
-      subgroups: uniq((eventSpans || []).map(ts => ts.level || 0)),
-      canHide: true,
-    },
-  ].filter(g => !g.canHide || g.subgroups.length !== 0);
-
-  const nOtherGroups = otherGroups.length;
-  otherGroups.forEach(g => (g.percent = (1 - allocation.percent) / nOtherGroups));
-
-  return otherGroups.concat([allocation]);
-}
-
-function styleSelected(timeSpan, style, selectedAllocId) {
-  if (!selectedAllocId) {
-    return style;
-  }
-
-  if (timeSpan.group === 'allocation' && timeSpan.data.id === selectedAllocId) {
-    return style;
-  }
-
-  return {
-    ...style,
-    opacity: 0.1,
-    strokeOpacity: 0.2,
-  };
-}
-
-function getAllocChanges(originalAllocs, newAllocs) {
-  const changes = [];
-  newAllocs.forEach(na => {
-    // if no id or negative id (ie newly created)
-    if (!na || na.id < 0) {
-      changes.push(na);
-      return;
-    }
-
-    const originalAlloc = originalAllocs.find(a => a.id === na.id);
-    if (isDifferentAlloc(originalAlloc, na)) {
-      changes.push(na);
-    }
-  });
-  return changes;
-}
-
-function isDifferentAlloc(a, b) {
-  return (
-    (a.deleted || false) !== (b.deleted || false) ||
-    a.timeCodeId !== b.timeCodeId ||
-    !isDateEqual(a.startTime, b.startTime) ||
-    !isDateEqual(a.endTime, b.endTime)
-  );
-}
-
-function nullifyDuplicateIds(timeSpans) {
-  const length = timeSpans.length;
-  chunkEvery(timeSpans, length, 1).map(list => {
-    const first = list.shift();
-    list.forEach(ts => {
-      if (ts.data.id === first.data.id) {
-        ts.data.id = null;
-      }
-    });
-  });
-  return timeSpans;
-}
-
-function defaultNewTimeAllocation() {
-  return {
-    timeCodeId: null,
-    startTime: null,
-    endTime: null,
-  };
-}
-
-function parseEvent(event) {
-  return {
-    event: event.event,
-    startTime: toUtcDate(event.start_time),
-    endTime: toUtcDate(event.end_time),
-    spans: event.spans,
-    compliance: event.compliance,
-    details: event.details,
-  };
-}
-
-function toShiftSpans(shifts, shiftTypes, timestamps) {
-  const uniqTimestamps = uniq(timestamps.filter(ts => ts).map(ts => ts.getTime()));
-
-  const relevantShifts = uniqTimestamps
-    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
-    .filter(s => s);
-
-  return toShiftTimeSpans(relevantShifts, shiftTypes);
-}
 
 export default {
   name: 'TimeSpanEditor',
   components: {
     hxCard,
-    Loading,
     TimeSpanChart,
     DefaultTooltip,
     AllocationTooltip,
-    MaterialTypeToolTip,
     LoginTooltip,
-    TimeusageTooltip,
-    CycleTooltip,
     EventTooltip,
     ShiftTooltip,
+    MaterialTypeToolTip,
     TimelinePane,
     ErrorPane,
     NewPane,
@@ -388,10 +179,8 @@ export default {
     digUnitActivities: { type: Array, default: () => [] },
     deviceAssignments: { type: Array, default: () => [] },
     activeEndTime: { type: Date, default: () => new Date() },
-    timeusage: { type: Array, default: () => [] },
-    cycles: { type: Array, default: () => [] },
-    devices: { type: Array, default: () => [] },
     operators: { type: Array, default: () => [] },
+    devices: { type: Array, default: () => [] },
     timeCodes: { type: Array, default: () => [] },
     timeCodeGroups: { type: Array, default: () => [] },
     allowedTimeCodeIds: { type: Array, default: () => [] },
@@ -411,15 +200,15 @@ export default {
       timeIcon: TimeIcon,
       addIcon: AddIcon,
       pane: 'timeline',
-      selectedAllocationId: null,
+      isMaterialTimeline: true,
+      selectedActivityId: null,
       localTimeAllocations: [],
+      localDigUnitActivities: [],
       localMinDatetime: null,
       localMaxDatetime: null,
       contextHeight: 80,
       paneHeight: 250,
       paneMaxItems: 5,
-      lockWarning: LOCK_WARNING,
-      unlockWarning: UNLOCK_WARNING,
       margins: {
         focus: {
           top: 0,
@@ -434,7 +223,7 @@ export default {
           bottom: 30,
         },
       },
-      newTimeAllocation: defaultNewTimeAllocation(),
+      newDigUnitActivity: ActivityEdit.defaultNewDigUnitActivity(),
       errorCount: 0,
       events: null,
       reportInTransit: false,
@@ -442,28 +231,27 @@ export default {
   },
   computed: {
     title() {
-      return `Time Span Editor - ${this.asset.name}`;
+      return `Material Time Span Editor - ${this.asset.name}`;
     },
     timeSpanColors() {
       return allocationColors();
     },
     timeSpans() {
       const activeEndTime = this.activeEndTime;
-      const timeAllocations = this.localTimeAllocations.filter(lta => lta.deleted !== true);
-      const transientAllocation = this.newTimeAllocation;
-      if (transientAllocation.startTime && transientAllocation.endTime) {
-        timeAllocations.push(transientAllocation);
-      }
+
+      const timeAllocations = this.timeAllocations.filter(lta => lta.deleted !== true);
       const TASpans = toAllocationTimeSpans(
         timeAllocations,
         this.timeCodes,
         this.timeCodeGroups,
-      ).map(ts => addActiveEndTime(ts, activeEndTime));
+      ).map(ts => ActivityEdit.addActiveEndTime(ts, activeEndTime));
 
-      const digUnitActivities = ActivityEdit.toLocalDigUnitActivities(
-        this.digUnitActivities,
-        this.maxDatetime,
-      );
+      const digUnitActivities = this.localDigUnitActivities.filter(lda => lda.deleted !== true);
+      const transientActivity = this.newDigUnitActivity;
+
+      if (transientActivity.startTime && transientActivity.endTime) {
+        digUnitActivities.push(transientActivity);
+      }
 
       const DUASpans = toDigUnitActivitySpans(digUnitActivities, this.materialTypes).map(ts =>
         ActivityEdit.addActiveEndTime(ts, activeEndTime),
@@ -473,48 +261,41 @@ export default {
         this.deviceAssignments,
         this.devices,
         this.operators,
-      ).map(ts => addActiveEndTime(ts, activeEndTime));
-
-      const TUSpans = toTimeusageTimeSpans(this.timeusage)
-        .map(ts => addActiveEndTime(ts, activeEndTime))
-        .reverse();
-
-      const CycleSpans = toCycleTimeSpans(this.cycles).map(ts =>
-        addActiveEndTime(ts, activeEndTime),
-      );
+      ).map(ts => ActivityEdit.addActiveEndTime(ts, activeEndTime));
 
       const eventSpans = toEventTimeSpans(this.events || []).map(ts =>
-        addActiveEndTime(ts, activeEndTime),
+        ActivityEdit.addActiveEndTime(ts, activeEndTime),
       );
-      const [validEventSpans] = addDynamicLevels(eventSpans);
 
-      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+      const ShiftSpans = ActivityEdit.toShiftSpans(this.shifts, this.shiftTypes, [
         this.minDatetime,
         this.maxDatetime,
       ]);
 
-      return [TASpans, DUASpans, DASpans, TUSpans, CycleSpans, validEventSpans, ShiftSpans];
+      const [validEventSpans] = addDynamicLevels(eventSpans);
+
+      return [TASpans, DUASpans, DASpans, validEventSpans, ShiftSpans];
     },
     chartLayout() {
-      const groups = getChartLayoutGroups(this.timeSpans);
+      const groups = ActivityEdit.getChartLayoutGroups(this.timeSpans);
 
       return {
         groups,
         padding: 2,
       };
     },
-    nonDeletedAllocationTimeSpans() {
-      return toAllocationTimeSpans(
-        this.localTimeAllocations.filter(a => a.deleted !== true),
-        this.timeCodes,
-        this.timeCodeGroups,
+    nonDeletedActivityTimeSpans() {
+      return toDigUnitActivitySpans(
+        this.localDigUnitActivities.filter(a => a.deleted !== true),
+        this.materialTypes,
       );
     },
+
     level0AllocationTimeSpans() {
-      return this.nonDeletedAllocationTimeSpans.filter(a => a.level === 0);
+      return this.nonDeletedActivityTimeSpans.filter(a => a.level === 0);
     },
     errorAllocationTimeSpans() {
-      return this.nonDeletedAllocationTimeSpans.filter(a => a.level !== 0);
+      return this.nonDeletedActivityTimeSpans.filter(a => a.level !== 0);
     },
   },
   watch: {
@@ -529,20 +310,23 @@ export default {
     this.events = null;
     this.pane = 'timeline';
     this.setSelect(null);
-    this.setLocalTimeAllocations(this.timeAllocations);
+    this.setLocalDigUnitActivities(this.digUnitActivities);
     this.localMinDatetime = copyDate(this.minDatetime);
     this.localMaxDatetime = copyDate(this.maxDatetime);
   },
   methods: {
-    syncLocalTimeAllocations() {
-      this.setLocalTimeAllocations(this.timeAllocations);
+    syncLocalDigUnitActivities() {
+      this.setLocalDigUnitActivities(this.digUnitActivities);
     },
-    setLocalTimeAllocations(allocations = []) {
-      this.localTimeAllocations = allocations.map(toLocalAllocation);
+    setLocalDigUnitActivities(digUnitActivities = []) {
+      this.localDigUnitActivities = ActivityEdit.toLocalDigUnitActivities(
+        digUnitActivities,
+        this.maxDatetime,
+      );
     },
     setPane(pane) {
-      const timeSpan = this.nonDeletedAllocationTimeSpans.find(
-        ts => ts.data.id === this.selectedAllocationId,
+      const timeSpan = this.nonDeletedActivityTimeSpans.find(
+        ts => ts.data.id === this.selectedActivityId,
       );
 
       if (timeSpan && timeSpan.level === 0 && pane !== 'timeline') {
@@ -557,7 +341,7 @@ export default {
         this.setSelect(null);
       }
 
-      this.newTimeAllocation = defaultNewTimeAllocation();
+      this.newDigUnitActivity = ActivityEdit.defaultNewDigUnitActivity();
 
       this.pane = pane;
     },
@@ -570,22 +354,22 @@ export default {
     },
     setSelect(timeSpan) {
       if (!timeSpan) {
-        this.selectedAllocationId = null;
+        this.selectedActivityId = null;
         return;
       }
 
-      if (timeSpan.group !== 'allocation') {
+      if (timeSpan.group !== 'dig-unit-activity') {
         return;
       }
 
       const id = timeSpan.data.id;
 
-      if (id === this.selectedAllocationId) {
-        this.selectedAllocationId = null;
+      if (id === this.selectedActivityId) {
+        this.selectedActivityId = null;
         return;
       }
 
-      this.selectedAllocationId = id;
+      this.selectedActivityId = id;
 
       // change views to show where the element is located
       const pane = timeSpan.level === 0 ? 'timeline' : 'errors';
@@ -606,14 +390,6 @@ export default {
           style = loginStyle(timeSpan, region);
           break;
 
-        case 'timeusage':
-          style = timeusageStyle(timeSpan, region);
-          break;
-
-        case 'cycle':
-          style = cycleStyle(timeSpan, region);
-          break;
-
         case 'event':
           style = eventStyle(timeSpan, region);
           break;
@@ -622,21 +398,21 @@ export default {
           style = shiftStyle(timeSpan, region);
       }
 
-      return styleSelected(timeSpan, style, this.selectedAllocationId);
+      return ActivityEdit.styleSelected(timeSpan, style, this.selectedActivityId);
     },
     onRowSelect(timeSpan) {
       this.setSelect(timeSpan);
 
       // create a new timespan from the selection
-      if (this.pane === 'new' && timeSpan.group !== 'allocation') {
+      if (this.pane === 'new' && timeSpan.group !== 'dig-unit-activity') {
         const startTime = copyDate(
           Math.max(toEpoch(timeSpan.startTime), toEpoch(this.minDatetime)),
         );
         const endTime = copyDate(
           Math.min(toEpoch(timeSpan.endTime || timeSpan.activeEndTime), toEpoch(this.maxDatetime)),
         );
-        this.newTimeAllocation = {
-          ...this.newTimeAllocation,
+        this.newDigUnitActivity = {
+          ...this.newDigUnitActivity,
           startTime,
           endTime,
         };
@@ -644,62 +420,67 @@ export default {
     },
     onRowChanges(timeSpans) {
       this.setSelect(null);
-      let localAllocations = this.localTimeAllocations;
-      nullifyDuplicateIds(timeSpans).forEach(ts => {
-        const newAllocation = {
+      let localDigUnitActivities = this.localDigUnitActivities;
+      ActivityEdit.nullifyDuplicateIds(timeSpans).forEach(ts => {
+        const newActivity = {
           ...ts.data,
-          id: ts.data.id || getNextId(),
+          id: ts.data.id || ActivityEdit.getNextId(),
+          locationId: ts.data.locationId,
           startTime: copyDate(ts.startTime),
           endTime: copyDate(ts.endTime),
           deleted: ts.deleted || ts.data.deleted || false,
         };
 
-        const originalIndex = localAllocations.findIndex(a => a.id === ts.data.id);
+        const originalIndex = localDigUnitActivities.findIndex(a => a.id === ts.data.id);
 
         if (originalIndex !== -1) {
-          localAllocations = updateArrayAt(localAllocations, originalIndex, newAllocation);
+          localDigUnitActivities = ActivityEdit.updateArrayAt(
+            localDigUnitActivities,
+            originalIndex,
+            newActivity,
+          );
         } else {
           // insert a new element
-          localAllocations.push(newAllocation);
+          localDigUnitActivities.push(newActivity);
         }
       });
 
-      this.localTimeAllocations = localAllocations;
+      this.localDigUnitActivities = localDigUnitActivities;
     },
-    onNewTimeAllocation(allocation) {
-      this.newTimeAllocation = {};
+    onNewDigActivity(activity) {
+      this.newDigUnitActivity = {};
       if (!this.asset.id) {
-        console.error('[TimeAllocEditor] Cannot create new allocation without an asset');
+        console.error('[DigUnitActivityEditor] Cannot create new activity without an asset');
         return;
       }
-      const newAlloc = {
-        id: getNextId(),
+      const newActivity = {
+        id: ActivityEdit.getNextId(),
         assetId: this.asset.id,
-        startTime: copyDate(allocation.startTime),
-        endTime: copyDate(allocation.endTime),
-        timeCodeId: allocation.timeCodeId,
+        startTime: copyDate(activity.startTime),
+        endTime: copyDate(activity.endTime),
+        materialTypeId: activity.materialTypeId,
       };
 
-      this.localTimeAllocations.push(newAlloc);
+      this.localDigUnitActivities.push(newActivity);
     },
-    onNewTimeAllocationOverride(allocation) {
-      this.newTimeAllocation = {};
+    onNewDigActivityOverride(activity) {
+      this.newDigUnitActivity = {};
       if (!this.asset.id) {
-        console.error('[TimeAllocEditor] Cannot override new allocation without an asset');
+        console.error('[DigUnitActivityEditor] Cannot override new activity without an asset');
         return;
       }
 
-      const newAlloc = {
-        id: getNextId(),
+      const newActivity = {
+        id: ActivityEdit.getNextId(),
         assetId: this.asset.id,
-        startTime: copyDate(allocation.startTime),
-        endTime: copyDate(allocation.endTime),
-        timeCodeId: allocation.timeCodeId,
+        startTime: copyDate(activity.startTime),
+        endTime: copyDate(activity.endTime),
+        materialTypeId: activity.materialTypeId,
       };
 
-      const newTimeSpan = toAllocationTimeSpans([newAlloc], this.timeCodes, this.timeCodeGroups)[0];
+      const newTimeSpan = toDigUnitActivitySpans([newActivity], this.materialTypes)[0];
 
-      const overlapping = findOverlapping(newTimeSpan, this.nonDeletedAllocationTimeSpans);
+      const overlapping = findOverlapping(newTimeSpan, this.nonDeletedActivityTimeSpans);
       const highestLevel = Math.max(...overlapping.map(ts => ts.level || 0));
       const timeSpansToOverride = overlapping
         .filter(ts => (ts.level || 0) === highestLevel)
@@ -711,56 +492,65 @@ export default {
     },
     onTimeSpanEnd(timeSpan) {
       if (timeSpan.endTime) {
-        console.error('[TimeAllocEditor] Cannot end timespan when end time exists');
+        console.error('[DigUnitActivityEditor] Cannot end timespan when end time exists');
         return;
       }
+
       // find the element for the given time span and update its end times
-      const updateIndex = this.localTimeAllocations.findIndex(lta => lta.id === timeSpan.data.id);
+      const updateIndex = this.localDigUnitActivities.findIndex(lta => lta.id === timeSpan.data.id);
 
       if (updateIndex < 0) {
-        console.error('[TimeAllocEditor] Cannot end time allocation that does not exist');
+        console.error('[DigUnitActivityEditor] Cannot end time activity that does not exist');
         return;
       }
 
-      const updatedAlloc = this.localTimeAllocations[updateIndex];
-      updatedAlloc.endTime = copyDate(timeSpan.activeEndTime);
-      updatedAlloc.activeEndTime = null;
-      const updatedAllocations = updateArrayAt(
-        this.localTimeAllocations,
+      const updatedActivity = this.localDigUnitActivities[updateIndex];
+      updatedActivity.endTime = copyDate(timeSpan.activeEndTime);
+      // updatedActivity.activeEndTime = null;
+
+      const updatedActivities = ActivityEdit.updateArrayAt(
+        this.localDigUnitActivities,
         updateIndex,
-        updatedAlloc,
+        updatedActivity,
       );
 
-      // create a new allocation the same as the ended one, with different start and ent time
-      const newAllocation = {
-        ...timeSpan.data,
-        id: getNextId(),
+      // create a new activity the same as the ended one, with different start and ent time
+      const newActivity = {
+        data: timeSpan.data,
+        id: ActivityEdit.getNextId(),
+        assetId: timeSpan.data.assetId,
+        materialTypeId: timeSpan.data.materialTypeId,
+        locationId: timeSpan.data.locationId,
         startTime: copyDate(timeSpan.activeEndTime),
         endTime: null,
       };
-      updatedAllocations.push(newAllocation);
 
-      this.localTimeAllocations = updatedAllocations;
+      updatedActivities.push(newActivity);
+
+      this.localDigUnitActivities = updatedActivities;
     },
     onUpdate() {
       // remove selection
       this.setSelect(null);
 
       // get a list of all the original ids
-      const originalIds = this.timeAllocations.map(ta => ta.id);
+      const originalIds = this.digUnitActivities.map(ta => ta.id);
 
-      const allIdsPresent = this.localTimeAllocations
+      const allIdsPresent = this.localDigUnitActivities
         .map(a => a.id)
         .filter(id => id && id > 0)
         .every(id => originalIds.some(oId => oId === id));
 
       if (!allIdsPresent) {
-        console.error('[TimeAllocEditor] There are missing ids when trying to update');
+        console.error('[DigUnitActivityEditor] There are missing ids when trying to update');
         return;
       }
 
       // calculate the changes
-      const changes = getAllocChanges(this.timeAllocations, this.localTimeAllocations);
+      const changes = ActivityEdit.getActivityChanges(
+        this.digUnitActivities,
+        this.localDigUnitActivities,
+      );
       this.submitChanges(changes);
     },
     onCancel() {
@@ -768,17 +558,17 @@ export default {
     },
     onReset() {
       this.setSelect(null);
-      this.syncLocalTimeAllocations();
+      this.syncLocalDigUnitActivities();
     },
     submitChanges(changes = []) {
       if (changes.length === 0) {
-        console.log('[TimeAllocEditor] No changes to submit');
+        console.log('[DigUnitActivityEditor] No changes to submit');
         this.onCancel();
         return;
       }
 
       if (this.updateInTransit) {
-        console.error('[TimeAllocEditor] Changes already in transit');
+        console.error('[DigUnitActivityEditor] Changes already in transit');
         return;
       }
 
@@ -787,7 +577,8 @@ export default {
         return {
           id,
           asset_id: c.assetId,
-          time_code_id: c.timeCodeId,
+          material_type_id: c.materialTypeId,
+          location_id: c.locationId,
           start_time: c.startTime,
           end_time: c.endTime,
           deleted: c.deleted || false,
@@ -795,11 +586,11 @@ export default {
       });
 
       this.pushTopic(
-        'time-allocation:edit',
+        'dig:edit',
         payload,
-        'Editing Time Allocations',
+        'Editing Dig Unit Activities',
         'update',
-        'Time Allocations Updated',
+        'Dig Unit Activities Updated',
       );
     },
     pushTopic(topic, payload, loadingMsg, emitEvent, toast) {
@@ -829,108 +620,6 @@ export default {
           loading.close();
           this.$toaster.error('Request time out');
         });
-    },
-    onConfirmLock() {
-      this.$modal
-        .create(ConfirmModal, { title: 'Lock Time Allocations', body: LOCK_WARNING })
-        .onClose(answer => {
-          if (answer !== 'ok') {
-            return;
-          }
-
-          if (this.updateInTransit) {
-            console.error('[TimeAllocEditor] Changes already in transit');
-            return;
-          }
-
-          if (!this.shiftId) {
-            console.error('[TimeAllocEditor] Cannot lock elements without a given shift');
-            return;
-          }
-
-          const ids = this.timeAllocations.filter(a => a.id > 0 && !a.lockId).map(a => a.id);
-
-          if (ids.length === 0) {
-            console.error('[TimeAllocEditor] No ids to lock');
-            return;
-          }
-
-          const payload = {
-            ids,
-            calendar_id: this.shiftId,
-          };
-
-          this.pushTopic(
-            'time-allocation:lock',
-            payload,
-            'Locking Time Allocations',
-            'lock',
-            'Time Allocations Locked',
-          );
-        });
-    },
-    onConfirmUnlock() {
-      this.$modal
-        .create(ConfirmModal, { title: 'Unlock Time Allocations', body: UNLOCK_WARNING })
-        .onClose(answer => {
-          if (answer !== 'ok') {
-            return;
-          }
-
-          if (this.updateInTransit) {
-            console.error('[TimeAllocEditor] Changes already in transit');
-            return;
-          }
-
-          const ids = this.timeAllocations.filter(a => a.lockId).map(a => a.id);
-
-          if (ids.length === 0) {
-            console.error('[TimeAllocEditor] No ids to lock');
-            return;
-          }
-
-          this.pushTopic(
-            'time-allocation:unlock',
-            ids,
-            'Unlocking Time Allocations',
-            'unlock',
-            'Time Allocations Unlocked',
-          );
-        });
-    },
-    onGenerateReport() {
-      const payload = {
-        start_time: this.minDatetime,
-        end_time: this.maxDatetime,
-        asset_ids: [this.asset.id],
-      };
-
-      this.reportInTransit = true;
-
-      this.$channel
-        .push('report:time allocation', payload)
-        .receive('ok', reports => {
-          this.reportInTransit = false;
-
-          if (!reports) {
-            this.events = null;
-          } else {
-            this.events = (reports || []).map(r => r.events.map(parseEvent)).flat();
-          }
-        })
-        .receive('error', () => {
-          console.error('[TimeAllocEditor] Could not get report');
-          this.$toaster.error('Could not fetch report');
-          this.reportInTransit = false;
-        })
-        .receive('timeout', () => {
-          console.error('[TimeAllocEditor] Could not get report. Timed out');
-          this.$toaster.noComms('Unable to fetch report');
-          this.reportInTransit = false;
-        });
-    },
-    onRemoveReport() {
-      this.events = null;
     },
   },
 };

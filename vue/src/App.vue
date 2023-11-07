@@ -220,8 +220,12 @@ export default {
         [
           'dig:set activities',
           data => {
-            dispatch('digUnit/setCurrentActivities', data.current);
+            dispatch('digUnit/setCurrentActivities', {
+              activities: data.current,
+              action: data.action,
+            });
             dispatch('digUnit/setHistoricActivities', data.historic);
+            dispatch('digUnit/setLiveActivities', data.live);
           },
         ],
       ]);
@@ -272,8 +276,12 @@ export default {
         ['haulTruck/setHistoricDispatches', resp.haul_truck.dispatches.historic],
 
         // dig unit specific
-        ['digUnit/setCurrentActivities', resp.dig_unit.activities.current],
+        [
+          'digUnit/setCurrentActivities',
+          { activities: resp.dig_unit.activities.current, action: resp.action },
+        ],
         ['digUnit/setHistoricActivities', resp.dig_unit.activities.historic],
+        ['digUnit/setLiveActivities', resp.dig_unit.activities.live],
       ].map(([path, data]) => dispatch(path, data));
     },
     onOpenGlobalActions() {

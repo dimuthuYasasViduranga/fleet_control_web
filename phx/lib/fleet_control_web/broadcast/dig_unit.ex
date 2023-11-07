@@ -6,10 +6,12 @@ defmodule FleetControlWeb.Broadcast.DigUnit do
 
   alias FleetControl.{DigUnitActivityAgent, HaulTruckDispatchAgent}
 
-  def send_activities_to_all() do
+  def send_activities_to_all(action \\ :alert) do
     payload = %{
       current: DigUnitActivityAgent.current(),
-      historic: DigUnitActivityAgent.historic()
+      historic: DigUnitActivityAgent.historic(),
+      live: DigUnitActivityAgent.fetch_dig_unit_activities(nil, nil),
+      action: action
     }
 
     Broadcast.broadcast_all_operators("dig:set activities", %{activities: payload.current})

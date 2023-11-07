@@ -23,7 +23,7 @@ defmodule FleetControlWeb.Timers do
       get_interval(:location_interval, @default_location_interval)
     )
 
-    start_live_queue_interval!(get_interval(:live_queue_interval, @default_live_queue_interval))
+    # start_live_queue_interval!(get_interval(:live_queue_interval, @default_live_queue_interval))
 
     start_track_interval!(get_interval(:track_interval, @default_track_interval))
 

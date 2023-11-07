@@ -76,6 +76,7 @@ defmodule FleetControl.LocationAgent do
       }
     )
     |> Repo.all()
+    |> Enum.filter(&Location.filter_location_by_timestamp(&1, now))
   end
 
   @spec parse_geofence(location) :: location
@@ -120,7 +121,7 @@ defmodule FleetControl.LocationAgent do
 
   @spec active_locations() :: list(location)
   def active_locations() do
-    Enum.filter(all(), &Location.filter_location_by_timestamp(&1, NaiveDateTime.utc_now()))
+    all()
   end
 
   @spec active_locations(NaiveDateTime.t()) :: list(location)

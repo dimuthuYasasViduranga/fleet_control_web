@@ -63,7 +63,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_activity(%{device_id: device_id}, "operator", "operator login")
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:ok, socket}
   end
@@ -88,7 +88,7 @@ defmodule FleetControlWeb.OperatorChannel do
         {:ok, _} = Presence.track(socket.channel_pid, "dispatchers:all", device_uuid, info)
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:noreply, socket}
   end
@@ -150,7 +150,7 @@ defmodule FleetControlWeb.OperatorChannel do
 
   def handle_in("get device state", params, socket) do
     task = Task.async(fn -> do_handle_in_get_state(socket, params) end)
-    Task.await(task)
+    Task.await(task, 60_000)
     send(self(), :gc)
     {:noreply, socket}
   end
@@ -181,7 +181,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Presence.untrack(socket, device_uuid)
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:reply, :ok, socket}
   end
@@ -311,7 +311,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_dispatcher_messages_to(%{device_id: device_id})
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:reply, :ok, socket}
   end
@@ -343,7 +343,7 @@ defmodule FleetControlWeb.OperatorChannel do
         |> Enum.each(&Broadcast.send_unread_operator_messages_to_operator/1)
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:reply, :ok, socket}
   end
@@ -377,7 +377,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_engine_hours_to_dispatcher()
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:reply, :ok, socket}
   end
@@ -399,7 +399,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_allocations_to_dispatcher()
       end)
 
-    Task.await(task)
+    Task.await(task, 600_000)
 
     {:reply, :ok, socket}
   end
@@ -416,7 +416,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_allocations_to_dispatcher()
       end)
 
-    Task.await(task)
+    Task.await(task, 600_000)
 
     {:reply, :ok, socket}
   end
@@ -428,7 +428,7 @@ defmodule FleetControlWeb.OperatorChannel do
         Broadcast.send_pre_start_submissions_to_all()
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:reply, :ok, socket}
   end
@@ -445,19 +445,19 @@ defmodule FleetControlWeb.OperatorChannel do
         end
       end)
 
-    Task.await(task)
+    Task.await(task, 60_000)
 
     {:noreply, socket}
   end
 
   def handle_in("haul:" <> _ = topic, payload, socket) do
     task = Task.async(fn -> HaulTruckTopics.handle_in(topic, payload, socket) end)
-    Task.await(task)
+    Task.await(task, 60_000)
   end
 
   def handle_in("dig:" <> _ = topic, payload, socket) do
     task = Task.async(fn -> DigUnitTopics.handle_in(topic, payload, socket) end)
-    Task.await(task)
+    Task.await(task, 60_000)
   end
 
   defp get_connect_type(params) do

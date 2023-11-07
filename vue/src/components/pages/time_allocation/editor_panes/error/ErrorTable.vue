@@ -14,6 +14,7 @@
       <ErrorTableRow
         v-for="(timeSpan, index) in timeSpans"
         :key="index"
+        :isMaterialTimeline="isMaterialTimeline"
         :class="getRowClass(timeSpan)"
         :style="rowStyle"
         :timeSpan="timeSpan"
@@ -52,6 +53,7 @@ export default {
     ErrorTableRow,
   },
   props: {
+    isMaterialTimeline: { type: Boolean, default: () => false },
     timeSpans: { type: Array, default: () => [] },
     height: { type: Number, default: 250 },
     maxShown: { type: Number, default: 10 },
