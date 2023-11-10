@@ -182,6 +182,7 @@ export default {
     contextHeight: { type: Number, default: 0 },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
+    isOpen: { type: Boolean, default: false },
   },
   data: () => {
     return {
@@ -227,12 +228,20 @@ export default {
     timezone() {
       return this.$timely.current.timezone;
     },
+    filteredTimeSpans() {
+      if (this.isOpen) {
+        return this.timeSpans;
+      }
+      return this.timeSpans.filter(
+        ts => ts.group === 'allocation' || ts.group === 'device-assignment',
+      );
+    },
   },
   watch: {
     margin() {
       this.updateChart();
     },
-    timeSpans: {
+    filteredTimeSpans: {
       deep: true,
       handler() {
         this.updateChart();
@@ -327,7 +336,7 @@ export default {
         this.canvas,
         this.chartId,
         this.dimensions,
-        this.timeSpans,
+        this.filteredTimeSpans,
         this.colors,
         range,
         this.chartLayout,
@@ -354,7 +363,7 @@ export default {
         this.chartId,
         'focus',
         this.chart.focus,
-        this.timeSpans,
+        this.filteredTimeSpans,
         this.chartLayout,
         this.styler,
       );
@@ -391,7 +400,14 @@ export default {
       }
 
       const context = this.chart.context;
-      drawTimeline(this.chartId, 'context', context, this.timeSpans, this.chartLayout, this.styler);
+      drawTimeline(
+        this.chartId,
+        'context',
+        context,
+        this.filteredTimeSpans,
+        this.chartLayout,
+        this.styler,
+      );
 
       // brush always drawn last so that it is over the top of context
       const brushRange = this.getCurrentBrushRange();
