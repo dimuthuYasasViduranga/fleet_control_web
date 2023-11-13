@@ -34,6 +34,14 @@
             />
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
+            <ExcavatorTimeusageTooltip
+              v-else-if="timeSpan.group === 'excavator-queue'"
+              :timeSpan="timeSpan"
+            />
+            <ExcavatorTimeusageTooltip
+              v-else-if="timeSpan.group === 'excavator-cycles'"
+              :timeSpan="timeSpan"
+            />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
             <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
             <DefaultTooltip v-else :timeSpan="timeSpan" />
@@ -76,6 +84,7 @@ import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
+import ExcavatorTimeusageTooltip from './tooltips/ExcavatorTimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
@@ -94,10 +103,11 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
-import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
+import { shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+import { toTimeSpan } from './timeSpan';
 
 import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
@@ -158,24 +168,36 @@ function haulChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans]) {
   ];
 }
 
-function excavatorChartLayoutGroups([TASpans, DASpans, DUASpans]) {
+function excavatorChartLayoutGroups([TASpans, DASpans, DUASpans, cycleSpans, queueSpans]) {
   return [
     {
       group: 'device-assignment',
       label: 'Op',
-      percent: 0.3,
+      percent: 0.2,
       subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'excavator-queue',
+      label: 'Q',
+      percent: 0.2,
+      subgroups: uniq(queueSpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'excavator-cycles',
+      label: 'C',
+      percent: 0.2,
+      subgroups: uniq(cycleSpans.map(ts => ts.level || 0)),
     },
     {
       group: 'dig-unit-activity',
       label: 'Mt',
-      percent: 0.3,
+      percent: 0.2,
       subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
     },
     {
       group: 'allocation',
       label: 'Al',
-      percent: 0.7,
+      percent: 0.2,
       subgroups: uniq(TASpans.map(ts => ts.level || 0)),
     },
   ];
@@ -206,16 +228,6 @@ function getChartLayoutGroups(spans, asset, isOpen) {
   ];
 }
 
-function toShiftSpans(shifts, shiftTypes, timestamps) {
-  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
-
-  const relevantShifts = uniqTimestamps
-    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
-    .filter(s => s);
-
-  return toShiftTimeSpans(relevantShifts, shiftTypes);
-}
-
 function toLocalDigUnitActivities(digUnitActivities = []) {
   return chunkEvery(sortByTime(digUnitActivities, 'timestamp'), 2, 1).map(([cur, next]) => {
     const startTime = cur.timestamp;
@@ -243,6 +255,7 @@ export default {
     LoginTooltip,
     MaterialTypeToolTip,
     TimeusageTooltip,
+    ExcavatorTimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
   },
@@ -431,17 +444,19 @@ export default {
         };
 
         // excavator cycles
-        let url = `${this.hostname}/api/excavator-cycles`;
+        let url = `${hostname}/api/excavator-cycles`;
         axios.get(url, { params }).then(resp => {
-          // TODO turn excavator cycles into spans
-          this.excavatorCycleSpans = resp;
+          this.excavatorCycleSpans = resp.data.map(cTU =>
+            toTimeSpan(cTU.start_time, cTU.end_time, null, 'excavator-cycles', null, cTU),
+          );
         });
 
         // excavator queue
-        url = `${this.hostname}/api/excavator-cycles`;
+        url = `${hostname}/api/excavator-queue`;
         axios.get(url, { params }).then(resp => {
-          // TODO turn queue into spans
-          this.queueSpans = resp;
+          this.queueSpans = resp.data.map(qTU =>
+            toTimeSpan(qTU.start_time, qTU.end_time, null, 'excavator-queue', null, qTU),
+          );
         });
       }
     },
@@ -524,6 +539,8 @@ export default {
           return loginStyle(timeSpan, region);
 
         case 'timeusage':
+        case 'excavator-cycles':
+        case 'excavator-queue':
           return timeusageStyle(timeSpan, region);
 
         case 'cycle':

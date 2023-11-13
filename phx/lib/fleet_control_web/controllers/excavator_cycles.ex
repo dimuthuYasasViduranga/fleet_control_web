@@ -5,23 +5,40 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
 
   import Ecto.Query, only: [from: 2]
 
+  alias HpsData.Dim
+  alias HpsData.Haul
+  alias HpsData.Asset
+  alias HpsData.Schemas.Loader
+  alias HpsData.Fleet.ManualLoader
+  alias HpsData.Repo
+
   def fetch_cycles(
         conn,
         %{"asset_id" => asset_id, "start_time" => start_time, "end_time" => end_time}
       ) do
-    query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
-    |> combine_overlapping()
+    data =
+      query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
+      |> combine_overlapping()
+
+    json(conn, data)
   end
 
   def fetch_queue(
         conn,
         %{"asset_id" => asset_id, "start_time" => start_time, "end_time" => end_time}
       ) do
-    query_excavator_events(asset_id, start_time, end_time, ["QueueAtLoad"])
-    |> combine_overlapping()
+    data =
+      query_excavator_events(asset_id, start_time, end_time, ["QueueAtLoad"])
+      |> combine_overlapping()
+
+    json(conn, data)
   end
 
-  defp combine_overlapping([prev, next | tail], acc \\ []) do
+  defp combine_overlapping(input, acc \\ [])
+  defp combine_overlapping([], []), do: []
+  defp combine_overlapping([next], acc), do: [next | acc]
+
+  defp combine_overlapping([prev, next | tail], acc) do
     prev_end = prev.end_time
     next_start = next.start_time
     latest = Enum.max([prev_end, next_start], NaiveDateTime)
@@ -32,6 +49,16 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       prev_duration <= 0 ->
         # skip invalid prev (negative duration)
         combine_overlapping([next | tail], acc)
+
+      # combine sequential time usage of the same cycle and type
+      # uses next because it should be closer to the load
+      Map.has_key?(next, :cycle_id) and
+        Map.has_key?(prev, :cycle_id) and
+        prev.cycle_id == next.cycle_id and
+        prev.time_usage_type == next.time_usage_type and
+          prev_end == next_start ->
+        combined = Map.put(next, :start_time, prev.start_time)
+        combine_overlapping([combined | tail], acc)
 
       latest == next_start ->
         # no overlap, emit prev and continue
@@ -49,7 +76,10 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
           end_time: next_start
         }
 
-        combine_overlapping([prev | tail], acc)
+        [prev, overlap, next | tail]
+        # needs to be sorted in case next's new start time is after the next next start time
+        |> Enum.sort_by(& &1.start_time, NaiveDateTime)
+        |> combine_overlapping(acc)
     end
   end
 
@@ -61,6 +91,8 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
   end
 
   defp query_excavator_events(asset_id, start_time, end_time, time_usage_types) do
+    {asset_id, ""} = Integer.parse(asset_id)
+
     base_query =
       from(tu in Haul.TimeUsage,
         join: tut in Dim.TimeUsage,
@@ -84,6 +116,8 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       # join distance excavator
       left_join: lca in Loader.CycleAssoc,
       on: [cycle_id: c.id],
+      left_join: lh in Dim.LocationHistory,
+      on: [id: tu.location_history_id],
       left_join: distance_excavator in Asset,
       on: [id: lca.loader_id],
       # join manual excavator
@@ -101,9 +135,12 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       select: %{
         haul_truck: ht.asset_name,
         time_usage_type: tut.secondary,
+        cycle_id: tu.cycle_id,
+        location: lh.name,
         start_time: tu.start_time,
         end_time: tu.end_time
       }
     )
+    |> Repo.all()
   end
 end
