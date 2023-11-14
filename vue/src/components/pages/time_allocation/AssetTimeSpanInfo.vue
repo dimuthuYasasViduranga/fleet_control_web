@@ -12,6 +12,15 @@
     </div>
 
     <div class="chart-wrapper" :class="{ open: isOpen }">
+      <div
+        v-if="
+          isOpen &&
+          asset.type === 'Excavator' &&
+          (excavatorCycleSpans.isLoading || queueSpans.isLoading)
+        "
+      >
+        <loading :isLoading="true" />
+      </div>
       <TimeSpanChart
         ref="chart"
         :name="asset.name"
@@ -24,6 +33,7 @@
         :maxDatetime="maxDatetime"
         :contextHeight="contextHeight"
         :isOpen="isOpen"
+        v-else
       >
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
@@ -113,6 +123,8 @@ import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
 
 import axios from 'axios';
+
+import loading from 'hx-layout/Loading.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -258,6 +270,7 @@ export default {
     ExcavatorTimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
+    loading,
   },
   props: {
     readonly: Boolean,
@@ -289,8 +302,8 @@ export default {
       isOpen: false,
       editIcon: EditIcon,
       chevronRightIcon: ChevronRightIcon,
-      queueSpans: [],
-      excavatorCycleSpans: [],
+      queueSpans: { isLoading: true, spans: [] },
+      excavatorCycleSpans: { isLoading: true, spans: [] },
       margins: {
         focus: {
           top: 15,
@@ -395,7 +408,13 @@ export default {
             .map(ts => addActiveEndTime(ts, activeEndTime))
             .filter(ts => isInRange(ts, this.minDatetime));
 
-          return [TASpans, DASpans, DUASpans, this.excavatorCycleSpans, this.queueSpans];
+          return [
+            TASpans,
+            DASpans,
+            DUASpans,
+            this.excavatorCycleSpans.spans,
+            this.queueSpans.spans,
+          ];
 
         case 'Haul Truck':
           const TUSpans = toTimeusageTimeSpans(this.timeusage)
@@ -446,17 +465,19 @@ export default {
         // excavator cycles
         let url = `${hostname}/api/excavator-cycles`;
         axios.get(url, { params }).then(resp => {
-          this.excavatorCycleSpans = resp.data.map(cTU =>
+          this.excavatorCycleSpans.spans = resp.data.map(cTU =>
             toTimeSpan(cTU.start_time, cTU.end_time, null, 'excavator-cycles', null, cTU),
           );
+          this.excavatorCycleSpans.isLoading = false;
         });
 
         // excavator queue
         url = `${hostname}/api/excavator-queue`;
         axios.get(url, { params }).then(resp => {
-          this.queueSpans = resp.data.map(qTU =>
+          this.queueSpans.spans = resp.data.map(qTU =>
             toTimeSpan(qTU.start_time, qTU.end_time, null, 'excavator-queue', null, qTU),
           );
+          this.queueSpans.isLoading = false;
         });
       }
     },
