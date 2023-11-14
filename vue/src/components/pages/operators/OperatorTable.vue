@@ -1,6 +1,11 @@
 <template>
   <div class="operator-table">
     <SearchBar placeholder="Filter table" v-model="search" :showClear="true" />
+
+    <div style="height: 1em;"></div>
+    <span class="label"> Filter Enabled </span>
+    <input type="checkbox" v-model="filterEnabled" />
+
     <table-component
       table-wrapper="#content"
       table-class="table"
@@ -107,15 +112,20 @@ export default {
       name: null,
       nickname: null,
       search: '',
+      filterEnabled: false,
     };
   },
   computed: {
     filteredOperators() {
-      return filterByText(this.operators.slice(), this.search, [
-        'name',
-        'nickname',
-        'employeeId',
-      ]).sort((a, b) => a.name.localeCompare(b.name));
+      let operators = this.operators.slice();
+
+      if (this.filterEnabled) {
+        operators = operators.filter(o => !o.deleted);
+      }
+
+      return filterByText(operators, this.search, ['name', 'nickname', 'employeeId']).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
     },
   },
   methods: {
