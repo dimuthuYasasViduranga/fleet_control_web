@@ -6,7 +6,6 @@ defmodule FleetControl.EngineHoursAgent do
   require Logger
   alias HpsData.Schemas.Dispatch.EngineHours
   alias HpsData.Repo
-  alias HpsData.Asset
 
   @cull_opts %{
     time_key: :timestamp,
@@ -168,52 +167,34 @@ defmodule FleetControl.EngineHoursAgent do
   end
 
   defp get_latest_query() do
-    from(a in Asset,
+    from(eh in EngineHours,
+      group_by: eh.asset_id,
+      where: eh.deleted != true,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-              MAX(timestamp)
-            FROM dis_engine_hours
-            WHERE asset_id = ? and deleted != true",
-            a.id
-          )
+        asset_id: eh.asset_id,
+        timestamp: max(eh.timestamp)
       }
     )
   end
 
-  # though string interpolation would be nicer, this is the NON-sql injection way of doing it
   defp get_search_query(timestamp, ">") do
-    from(a in Asset,
+    from(eh in EngineHours,
+      group_by: eh.asset_id,
+      where: eh.timestamp > ^timestamp and eh.deleted != true,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-              MIN(timestamp)
-            FROM dis_engine_hours
-            WHERE asset_id = ? and timestamp > ? and deleted != true",
-            a.id,
-            ^timestamp
-          )
+        asset_id: eh.asset_id,
+        timestamp: min(eh.timestamp)
       }
     )
   end
 
   defp get_search_query(timestamp, "<") do
-    from(a in Asset,
+    from(eh in EngineHours,
+      group_by: eh.asset_id,
+      where: eh.timestamp < ^timestamp and eh.deleted != true,
       select: %{
-        asset_id: a.id,
-        timestamp:
-          fragment(
-            "SELECT
-              MAX(timestamp)
-            FROM dis_engine_hours
-            WHERE asset_id = ? and timestamp < ? and deleted != true",
-            a.id,
-            ^timestamp
-          )
+        asset_id: eh.asset_id,
+        timestamp: max(eh.timestamp)
       }
     )
   end
