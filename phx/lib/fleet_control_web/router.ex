@@ -28,6 +28,8 @@ defmodule FleetControlWeb.Router do
 
     get "/api/static_data", PageController, :static_data
     get "/api/haul", HaulController, :recent
+    get "/api/excavator-cycles", ExcavatorCyclesController, :fetch_cycles
+    get "/api/excavator-queue", ExcavatorCyclesController, :fetch_queue
   end
 
   scope "/fleet-control", FleetControlWeb do

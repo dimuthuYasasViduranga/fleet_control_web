@@ -98,7 +98,6 @@ spec:
                     "/time_code_editor",
                     "/message_editor",
                     "/engine_hours",
-                    "/route_map",
                     "/pre_start_editor",
                     "/pre_start_submissions",
                     "/asset_overview",

@@ -51,7 +51,8 @@ export function toTimeusageTimeSpans(timeusage) {
 }
 
 export function timeusageStyle(timeSpan, region) {
-  const fill = TU_COLORS[timeSpan.data.type] || MISSING_COLOR;
+  const tut = timeSpan.data.type || timeSpan.data.time_usage_type;
+  const fill = TU_COLORS[tut] || MISSING_COLOR;
   const strokeWidth = 0;
   const opacity = region === 'focus' ? 0.75 : 0.25;
 

@@ -12,6 +12,15 @@
     </div>
 
     <div class="chart-wrapper" :class="{ open: isOpen }">
+      <div
+        v-if="
+          isOpen &&
+          asset.type === 'Excavator' &&
+          (excavatorCycleSpans.isLoading || queueSpans.isLoading)
+        "
+      >
+        <loading :isLoading="true" />
+      </div>
       <TimeSpanChart
         ref="chart"
         :name="asset.name"
@@ -23,6 +32,8 @@
         :minDatetime="minDatetime"
         :maxDatetime="maxDatetime"
         :contextHeight="contextHeight"
+        :isOpen="isOpen"
+        v-else
       >
         <template slot-scope="timeSpan">
           <div class="__tooltip-boundary">
@@ -33,6 +44,14 @@
             />
             <LoginTooltip v-else-if="timeSpan.group === 'device-assignment'" :timeSpan="timeSpan" />
             <TimeusageTooltip v-else-if="timeSpan.group === 'timeusage'" :timeSpan="timeSpan" />
+            <ExcavatorTimeusageTooltip
+              v-else-if="timeSpan.group === 'excavator-queue'"
+              :timeSpan="timeSpan"
+            />
+            <ExcavatorTimeusageTooltip
+              v-else-if="timeSpan.group === 'excavator-cycles'"
+              :timeSpan="timeSpan"
+            />
             <CycleTooltip v-else-if="timeSpan.group === 'cycle'" :timeSpan="timeSpan" />
             <ShiftTooltip v-else-if="timeSpan.group === 'shift'" :timeSpan="timeSpan" />
             <DefaultTooltip v-else :timeSpan="timeSpan" />
@@ -75,6 +94,7 @@ import AllocationTooltip from './tooltips/AllocationTimeSpanTooltip.vue';
 import LoginTooltip from './tooltips/LoginTimeSpanTooltip.vue';
 import MaterialTypeToolTip from './tooltips/MaterialTypeToolTip.vue';
 import TimeusageTooltip from './tooltips/TimeusageTimeSpanTooltip.vue';
+import ExcavatorTimeusageTooltip from './tooltips/ExcavatorTimeusageTimeSpanTooltip.vue';
 import CycleTooltip from './tooltips/CycleTimeSpanTooltip.vue';
 import ShiftTooltip from './tooltips/ShiftTimeSpanTooltip.vue';
 
@@ -93,13 +113,18 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
-import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
+import { shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
+import { toTimeSpan } from './timeSpan';
 
 import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
+
+import axios from 'axios';
+
+import loading from 'hx-layout/Loading.vue';
 
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_DAY = 24 * 60 * 60;
@@ -120,62 +145,85 @@ function isInRange(timeSpan, minDatetime) {
   return (timeSpan.endTime || timeSpan.activeEndTime).getTime() > minDatetime.getTime();
 }
 
-function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, CSpans], asset, isOpen) {
+function haulChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans]) {
+  return [
+    {
+      group: 'shift',
+      label: 'S',
+      percent: 0.15,
+      subgroups: [0],
+    },
+    {
+      group: 'device-assignment',
+      label: 'Op',
+      percent: 0.15,
+      subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'timeusage',
+      label: 'TU',
+      percent: 0.15,
+      subgroups: uniq(TUSpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'cycle',
+      label: 'C',
+      percent: 0.15,
+      subgroups: uniq(CSpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'allocation',
+      label: 'Al',
+      percent: 0.4,
+      subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+    },
+  ];
+}
+
+function excavatorChartLayoutGroups([TASpans, DASpans, DUASpans, cycleSpans, queueSpans]) {
+  return [
+    {
+      group: 'device-assignment',
+      label: 'Op',
+      percent: 0.2,
+      subgroups: uniq(DASpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'excavator-queue',
+      label: 'Q',
+      percent: 0.2,
+      subgroups: uniq(queueSpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'excavator-cycles',
+      label: 'C',
+      percent: 0.2,
+      subgroups: uniq(cycleSpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'dig-unit-activity',
+      label: 'Mt',
+      percent: 0.2,
+      subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
+    },
+    {
+      group: 'allocation',
+      label: 'Al',
+      percent: 0.2,
+      subgroups: uniq(TASpans.map(ts => ts.level || 0)),
+    },
+  ];
+}
+
+function getChartLayoutGroups(spans, asset, isOpen) {
   if (asset.type === 'Haul Truck' && isOpen) {
-    return [
-      {
-        group: 'shift',
-        label: 'S',
-        percent: 0.15,
-        subgroups: [0],
-      },
-      {
-        group: 'device-assignment',
-        label: 'Op',
-        percent: 0.15,
-        subgroups: uniq(DASpans.map(ts => ts.level || 0)),
-      },
-      {
-        group: 'timeusage',
-        label: 'TU',
-        percent: 0.15,
-        subgroups: uniq(TUSpans.map(ts => ts.level || 0)),
-      },
-      {
-        group: 'cycle',
-        label: 'C',
-        percent: 0.15,
-        subgroups: uniq(CSpans.map(ts => ts.level || 0)),
-      },
-      {
-        group: 'allocation',
-        label: 'Al',
-        percent: 0.4,
-        subgroups: uniq(TASpans.map(ts => ts.level || 0)),
-      },
-    ];
+    return haulChartLayoutGroups(spans);
   } else if (asset.type === 'Excavator' && isOpen) {
-    return [
-      {
-        group: 'device-assignment',
-        label: 'Op',
-        percent: 0.3,
-        subgroups: uniq(DASpans.map(ts => ts.level || 0)),
-      },
-      {
-        group: 'dig-unit-activity',
-        label: 'Mt',
-        percent: 0.3,
-        subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
-      },
-      {
-        group: 'allocation',
-        label: 'Al',
-        percent: 0.7,
-        subgroups: uniq(TASpans.map(ts => ts.level || 0)),
-      },
-    ];
+    return excavatorChartLayoutGroups(spans);
   }
+
+  const [TASpans, DASpans] = spans;
+
   return [
     {
       group: 'device-assignment',
@@ -190,16 +238,6 @@ function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, CSpans], ass
       subgroups: uniq(TASpans.map(ts => ts.level || 0)),
     },
   ];
-}
-
-function toShiftSpans(shifts, shiftTypes, timestamps) {
-  const uniqTimestamps = uniq(timestamps.map(ts => ts.getTime()));
-
-  const relevantShifts = uniqTimestamps
-    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
-    .filter(s => s);
-
-  return toShiftTimeSpans(relevantShifts, shiftTypes);
 }
 
 function toLocalDigUnitActivities(digUnitActivities = []) {
@@ -229,8 +267,10 @@ export default {
     LoginTooltip,
     MaterialTypeToolTip,
     TimeusageTooltip,
+    ExcavatorTimeusageTooltip,
     CycleTooltip,
     ShiftTooltip,
+    loading,
   },
   props: {
     readonly: Boolean,
@@ -262,6 +302,8 @@ export default {
       isOpen: false,
       editIcon: EditIcon,
       chevronRightIcon: ChevronRightIcon,
+      queueSpans: { isLoading: true, spans: [] },
+      excavatorCycleSpans: { isLoading: true, spans: [] },
       margins: {
         focus: {
           top: 15,
@@ -345,13 +387,6 @@ export default {
         this.timeCodeGroups,
       ).map(ts => addActiveEndTime(ts, activeEndTime));
 
-      const DUASpans = toDigUnitActivitySpans(
-        toLocalDigUnitActivities(this.digUnitActivities),
-        this.materialTypes,
-      )
-        .map(ts => addActiveEndTime(ts, activeEndTime))
-        .filter(ts => isInRange(ts, this.minDatetime));
-
       const DASpans = toDeviceAssignmentSpans(
         this.smoothDeviceAssignments,
         this.devices,
@@ -360,21 +395,42 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
-      const TUSpans = toTimeusageTimeSpans(this.timeusage)
-        .map(ts => addActiveEndTime(ts, activeEndTime))
-        .filter(ts => isInRange(ts, this.minDatetime))
-        .reverse();
+      if (!this.isOpen) {
+        return [TASpans, DASpans];
+      }
 
-      const CSpans = toCycleTimeSpans(this.cycles)
-        .map(ts => addActiveEndTime(ts, activeEndTime))
-        .filter(ts => isInRange(ts, this.minDatetime));
+      switch (this.asset.type) {
+        case 'Excavator':
+          const DUASpans = toDigUnitActivitySpans(
+            toLocalDigUnitActivities(this.digUnitActivities),
+            this.materialTypes,
+          )
+            .map(ts => addActiveEndTime(ts, activeEndTime))
+            .filter(ts => isInRange(ts, this.minDatetime));
 
-      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
-        this.minDatetime,
-        this.maxDatetime,
-      ]);
+          return [
+            TASpans,
+            DASpans,
+            DUASpans,
+            this.excavatorCycleSpans.spans,
+            this.queueSpans.spans,
+          ];
 
-      return [TASpans, DUASpans, DASpans, TUSpans, CSpans, ShiftSpans];
+        case 'Haul Truck':
+          const TUSpans = toTimeusageTimeSpans(this.timeusage)
+            .map(ts => addActiveEndTime(ts, activeEndTime))
+            .filter(ts => isInRange(ts, this.minDatetime))
+            .reverse();
+
+          const CSpans = toCycleTimeSpans(this.cycles)
+            .map(ts => addActiveEndTime(ts, activeEndTime))
+            .filter(ts => isInRange(ts, this.minDatetime));
+
+          return [TASpans, DASpans, TUSpans, CSpans];
+
+        default:
+          return [TASpans, DASpans];
+      }
     },
     chartLayout() {
       const groups = getChartLayoutGroups(this.timeSpans, this.asset, this.isOpen);
@@ -393,6 +449,37 @@ export default {
       return this.fullTimeCodes
         .filter(tc => tc.assetTypeIds.includes(this.asset.typeId))
         .map(tc => tc.id);
+    },
+  },
+  watch: {
+    isOpen(isOpen) {
+      if (isOpen && this.asset.type === 'Excavator') {
+        const hostname = this.$hostname;
+
+        const params = {
+          asset_id: this.asset.id,
+          start_time: this.minDatetime,
+          end_time: this.maxDatetime,
+        };
+
+        // excavator cycles
+        let url = `${hostname}/api/excavator-cycles`;
+        axios.get(url, { params }).then(resp => {
+          this.excavatorCycleSpans.spans = resp.data.map(cTU =>
+            toTimeSpan(cTU.start_time + 'Z', cTU.end_time + 'Z', null, 'excavator-cycles', null, cTU),
+          );
+          this.excavatorCycleSpans.isLoading = false;
+        });
+
+        // excavator queue
+        url = `${hostname}/api/excavator-queue`;
+        axios.get(url, { params }).then(resp => {
+          this.queueSpans.spans = resp.data.map(qTU =>
+            toTimeSpan(qTU.start_time + 'Z', qTU.end_time + 'Z', null, 'excavator-queue', null, qTU),
+          );
+          this.queueSpans.isLoading = false;
+        });
+      }
     },
   },
   methods: {
@@ -473,6 +560,8 @@ export default {
           return loginStyle(timeSpan, region);
 
         case 'timeusage':
+        case 'excavator-cycles':
+        case 'excavator-queue':
           return timeusageStyle(timeSpan, region);
 
         case 'cycle':

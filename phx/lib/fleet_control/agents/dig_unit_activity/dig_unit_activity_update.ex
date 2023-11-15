@@ -1,6 +1,5 @@
 defmodule FleetControl.DigUnitActivityAgent.Update do
   alias FleetControl.Helper, as: DHelper
-  alias FleetControl.AgentHelper
   alias HpsData.Schemas.Dispatch.DigUnitActivity
   alias FleetControl.TimeAllocation.Helper
   alias Ecto.Multi
@@ -8,7 +7,7 @@ defmodule FleetControl.DigUnitActivityAgent.Update do
   alias HpsData.Schemas.Dispatch.TimeAllocation
   alias HpsData.Repo
 
-  import Ecto.Query, only: [from: 2, subquery: 1]
+  import Ecto.Query, only: [from: 2]
 
   require Logger
 
