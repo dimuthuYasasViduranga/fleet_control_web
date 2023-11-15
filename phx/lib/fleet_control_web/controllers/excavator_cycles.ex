@@ -1,6 +1,7 @@
 defmodule FleetControlWeb.ExcavatorCyclesController do
   @moduledoc nil
 
+  require Logger
   use FleetControlWeb, :controller
 
   import Ecto.Query, only: [from: 2]
@@ -29,9 +30,17 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       ) do
     data =
       query_excavator_events(asset_id, start_time, end_time, ["QueueAtLoad"])
+      # running this twice combines some sqeuential TU elements
+      # not really sure why they aren't combined the first time through
+      |> combine_overlapping()
+      |> Enum.reverse()
       |> combine_overlapping()
 
     json(conn, data)
+  end
+
+  defp duration(tu) do
+    NaiveDateTime.diff(tu.end_time, tu.start_time, :microsecond)
   end
 
   defp combine_overlapping(input, acc \\ [])
@@ -42,45 +51,101 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
     prev_end = prev.end_time
     next_start = next.start_time
     latest = Enum.max([prev_end, next_start], NaiveDateTime)
-
-    prev_duration = NaiveDateTime.diff(prev_end, prev.start_time)
+    prev_duration = duration(prev)
 
     cond do
-      prev_duration <= 0 ->
-        # skip invalid prev (negative duration)
+      # skip zero duration
+      prev_duration == 0 ->
+        combine_overlapping([next | tail], acc)
+
+      # skip invalid prev (negative duration)
+      prev_duration < 0 ->
+        Logger.error("Negative duration should not be possible: #{inspect(prev)}")
         combine_overlapping([next | tail], acc)
 
       # combine sequential time usage of the same cycle and type
       # uses next because it should be closer to the load
-      Map.has_key?(next, :cycle_id) and
-        Map.has_key?(prev, :cycle_id) and
-        prev.cycle_id == next.cycle_id and
+      prev.haul_truck == next.haul_truck and
         prev.time_usage_type == next.time_usage_type and
           prev_end == next_start ->
         combined = Map.put(next, :start_time, prev.start_time)
-        combine_overlapping([combined | tail], acc)
 
+        [combined | tail]
+        |> combine_overlapping(acc)
+
+      # no overlap, emit prev and continue
       latest == next_start ->
-        # no overlap, emit prev and continue
+        prev =
+          if is_map(prev.haul_truck) do
+            haul_trucks =
+              prev.haul_truck
+              |> MapSet.to_list()
+              |> Enum.join(" | ")
+
+            %{prev | haul_truck: haul_trucks}
+          else
+            prev
+          end
+
         combine_overlapping([next | tail], [prev | acc])
 
-      # overlap, combine prev and next into one element, sort remaining elements
+      # handle overlap
       latest == prev_end ->
-        prev = Map.put(prev, :end_time, next_start)
-        next = Map.put(next, :start_time, prev_end)
+        overlap = build_overlap(prev, next)
+        new_prev = Map.put(prev, :end_time, next_start)
+        new_next = Map.put(next, :start_time, prev_end)
 
-        overlap = %{
-          haul_truck: prev.haul_truck <> " | " <> next.haul_truck,
-          time_usage_type: "overlap",
-          start_time: prev_end,
-          end_time: next_start
-        }
+        new_next =
+          if duration(new_next) < 0 do
+            %{prev | start_time: next.end_time, end_time: prev.end_time}
+          else
+            new_next
+          end
 
-        [prev, overlap, next | tail]
+        if duration(new_prev) < 0 || duration(new_next) < 0 || duration(overlap) < 0 do
+          throw("""
+          negative duration in overlap calculation
+          time usages: #{inspect([new_prev, overlap, new_next])})
+          """)
+        end
+
+        if duration(new_next) == 0 do
+          [new_prev, overlap | tail]
+        else
+          [new_prev, overlap, new_next | tail]
+        end
+
         # needs to be sorted in case next's new start time is after the next next start time
         |> Enum.sort_by(& &1.start_time, NaiveDateTime)
         |> combine_overlapping(acc)
     end
+  end
+
+  defp build_overlap(prev, next) do
+    time_usage_type =
+      if prev.time_usage_type == "QueueAtLoad" ||
+           prev.time_usage_type == "Multiple QueueAtLoad" do
+        "Multiple QueueAtLoad"
+      else
+        "Overlapping Cycles"
+      end
+
+    overlap_haul_truck =
+      case {prev.haul_truck, next.haul_truck} do
+        {%MapSet{}, %MapSet{}} -> MapSet.union(prev.haul_truck, next.haul_truck)
+        {%MapSet{}, _} -> MapSet.put(prev.haul_truck, next.haul_truck)
+        {_, %MapSet{}} -> MapSet.put(next.haul_truck, prev.haul_truck)
+        _ -> MapSet.new([prev.haul_truck, next.haul_truck])
+      end
+
+    %{
+      tu_id: List.flatten([next.tu_id, prev.tu_id]),
+      haul_truck: overlap_haul_truck,
+      time_usage_type: time_usage_type,
+      start_time: next.start_time,
+      end_time: prev.end_time,
+      location: next.location
+    }
   end
 
   # queries
@@ -133,6 +198,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       where: ^asset_id == coalesce_loader_id(distance_excavator, manual_excavator),
       order_by: [tu.start_time],
       select: %{
+        tu_id: tu.id,
         haul_truck: ht.asset_name,
         time_usage_type: tut.secondary,
         cycle_id: tu.cycle_id,

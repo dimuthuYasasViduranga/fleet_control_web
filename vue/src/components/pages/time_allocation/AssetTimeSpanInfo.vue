@@ -466,7 +466,7 @@ export default {
         let url = `${hostname}/api/excavator-cycles`;
         axios.get(url, { params }).then(resp => {
           this.excavatorCycleSpans.spans = resp.data.map(cTU =>
-            toTimeSpan(cTU.start_time, cTU.end_time, null, 'excavator-cycles', null, cTU),
+            toTimeSpan(cTU.start_time + 'Z', cTU.end_time + 'Z', null, 'excavator-cycles', null, cTU),
           );
           this.excavatorCycleSpans.isLoading = false;
         });
@@ -475,7 +475,7 @@ export default {
         url = `${hostname}/api/excavator-queue`;
         axios.get(url, { params }).then(resp => {
           this.queueSpans.spans = resp.data.map(qTU =>
-            toTimeSpan(qTU.start_time, qTU.end_time, null, 'excavator-queue', null, qTU),
+            toTimeSpan(qTU.start_time + 'Z', qTU.end_time + 'Z', null, 'excavator-queue', null, qTU),
           );
           this.queueSpans.isLoading = false;
         });
