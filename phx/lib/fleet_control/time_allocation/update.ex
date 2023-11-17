@@ -151,7 +151,9 @@ defmodule FleetControl.TimeAllocation.Update do
           time_code_id: update.time_code_id || no_task_id,
           start_time: update.start_time,
           end_time: update.end_time,
-          deleted: false
+          deleted: false,
+          updated_by_dispatcher: update[:updated_by_dispatcher] || false,
+          created_by_operator: update[:created_by_operator] || false
         }
       end)
 
