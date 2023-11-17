@@ -43,9 +43,33 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
     NaiveDateTime.diff(tu.end_time, tu.start_time, :microsecond)
   end
 
+  defp format_output(prev) do
+    locations =
+      if is_list(prev.location) do
+        prev.location
+        |> Enum.sort()
+        |> Stream.reject(&is_nil(&1))
+        |> Stream.dedup()
+        |> Enum.join(" | ")
+      else
+        prev.location
+      end
+
+    haul_trucks =
+      if is_map(prev.haul_truck) do
+        prev.haul_truck
+        |> MapSet.to_list()
+        |> Enum.join(" | ")
+      else
+        prev.haul_truck
+      end
+
+    %{prev | haul_truck: haul_trucks, location: locations}
+  end
+
   defp combine_overlapping(input, acc \\ [])
   defp combine_overlapping([], []), do: []
-  defp combine_overlapping([next], acc), do: [next | acc]
+  defp combine_overlapping([next], acc), do: [format_output(next) | acc]
 
   defp combine_overlapping([prev, next | tail], acc) do
     prev_end = prev.end_time
@@ -75,18 +99,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
 
       # no overlap, emit prev and continue
       latest == next_start ->
-        prev =
-          if is_map(prev.haul_truck) do
-            haul_trucks =
-              prev.haul_truck
-              |> MapSet.to_list()
-              |> Enum.join(" | ")
-
-            %{prev | haul_truck: haul_trucks}
-          else
-            prev
-          end
-
+        prev = format_output(prev)
         combine_overlapping([next | tail], [prev | acc])
 
       # handle overlap
@@ -138,13 +151,14 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
         _ -> MapSet.new([prev.haul_truck, next.haul_truck])
       end
 
+    overlap_location = prev.location ++ next.location
+
     %{
-      tu_id: List.flatten([next.tu_id, prev.tu_id]),
       haul_truck: overlap_haul_truck,
       time_usage_type: time_usage_type,
       start_time: next.start_time,
       end_time: prev.end_time,
-      location: next.location
+      location: overlap_location
     }
   end
 
@@ -158,31 +172,21 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
   defp query_excavator_events(asset_id, start_time, end_time, time_usage_types) do
     {asset_id, ""} = Integer.parse(asset_id)
 
-    base_query =
-      from(tu in Haul.TimeUsage,
-        join: tut in Dim.TimeUsage,
-        on: [id: tu.time_usage_type_id],
-        join: c in Haul.Cycle,
-        on: [id: tu.cycle_id],
-        join: ll in Dim.LocationHistory,
-        on: [id: c.location_history_load_id],
-        join: ld in Dim.LocationHistory,
-        on: [id: c.location_history_dump_id],
-        join: l in Dim.Location,
-        on: [id: ll.location_id],
-        join: ht in Dim.HaulTruck,
-        on: c.haul_truck_id == ht.id,
-        where: tu.end_time >= ^start_time,
-        where: tu.start_time <= ^end_time,
-        where: tut.secondary in ^time_usage_types
-      )
+    from(c in Haul.Cycle,
+      join: ll in Dim.LocationHistory,
+      on: [id: c.location_history_load_id],
+      join: ld in Dim.LocationHistory,
+      on: [id: c.location_history_dump_id],
+      join: l in Dim.Location,
+      on: [id: ll.location_id],
+      join: ht in Dim.HaulTruck,
+      on: c.haul_truck_id == ht.id,
+      where: c.end_time >= ^start_time,
+      where: c.start_time <= ^end_time,
 
-    from([tu, tut, c, ll, ld, _l, ht] in base_query,
       # join distance excavator
       left_join: lca in Loader.CycleAssoc,
       on: [cycle_id: c.id],
-      left_join: lh in Dim.LocationHistory,
-      on: [id: tu.location_history_id],
       left_join: distance_excavator in Asset,
       on: [id: lca.loader_id],
       # join manual excavator
@@ -196,15 +200,26 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       on: [id: ml.loader_id],
       # where has loader id
       where: ^asset_id == coalesce_loader_id(distance_excavator, manual_excavator),
-      order_by: [tu.start_time],
+
+      # tu
+      join: tu in Haul.TimeUsage,
+      on: [cycle_id: c.id],
+      join: tut in Dim.TimeUsage,
+      on: [id: tu.time_usage_type_id],
+      left_join: lh in Dim.LocationHistory,
+      on: [id: tu.location_history_id],
+      where: tut.secondary in ^time_usage_types,
+
+      # aggregation
+      order_by: [min(tu.start_time)],
+      group_by: [ht.asset_name, tut.secondary, tu.cycle_id],
       select: %{
-        tu_id: tu.id,
         haul_truck: ht.asset_name,
         time_usage_type: tut.secondary,
         cycle_id: tu.cycle_id,
-        location: lh.name,
-        start_time: tu.start_time,
-        end_time: tu.end_time
+        location: fragment("ARRAY_AGG(?)", lh.name),
+        start_time: min(tu.start_time),
+        end_time: max(tu.end_time)
       }
     )
     |> Repo.all()
