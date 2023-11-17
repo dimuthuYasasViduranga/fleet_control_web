@@ -172,31 +172,21 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
   defp query_excavator_events(asset_id, start_time, end_time, time_usage_types) do
     {asset_id, ""} = Integer.parse(asset_id)
 
-    base_query =
-      from(tu in Haul.TimeUsage,
-        join: tut in Dim.TimeUsage,
-        on: [id: tu.time_usage_type_id],
-        join: c in Haul.Cycle,
-        on: [id: tu.cycle_id],
-        join: ll in Dim.LocationHistory,
-        on: [id: c.location_history_load_id],
-        join: ld in Dim.LocationHistory,
-        on: [id: c.location_history_dump_id],
-        join: l in Dim.Location,
-        on: [id: ll.location_id],
-        join: ht in Dim.HaulTruck,
-        on: c.haul_truck_id == ht.id,
-        where: tu.end_time >= ^start_time,
-        where: tu.start_time <= ^end_time,
-        where: tut.secondary in ^time_usage_types
-      )
+    from(c in Haul.Cycle,
+      join: ll in Dim.LocationHistory,
+      on: [id: c.location_history_load_id],
+      join: ld in Dim.LocationHistory,
+      on: [id: c.location_history_dump_id],
+      join: l in Dim.Location,
+      on: [id: ll.location_id],
+      join: ht in Dim.HaulTruck,
+      on: c.haul_truck_id == ht.id,
+      where: c.end_time >= ^start_time,
+      where: c.start_time <= ^end_time,
 
-    from([tu, tut, c, ll, ld, _l, ht] in base_query,
       # join distance excavator
       left_join: lca in Loader.CycleAssoc,
       on: [cycle_id: c.id],
-      left_join: lh in Dim.LocationHistory,
-      on: [id: tu.location_history_id],
       left_join: distance_excavator in Asset,
       on: [id: lca.loader_id],
       # join manual excavator
@@ -210,13 +200,23 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       on: [id: ml.loader_id],
       # where has loader id
       where: ^asset_id == coalesce_loader_id(distance_excavator, manual_excavator),
+
+      # tu
+      join: tu in Haul.TimeUsage,
+      on: [cycle_id: c.id],
+      join: tut in Dim.TimeUsage,
+      on: [id: tu.time_usage_type_id],
+      left_join: lh in Dim.LocationHistory,
+      on: [id: tu.location_history_id],
+      where: tut.secondary in ^time_usage_types,
+
+      # aggregation
       order_by: [min(tu.start_time)],
       group_by: [ht.asset_name, tut.secondary, tu.cycle_id],
       select: %{
         haul_truck: ht.asset_name,
         time_usage_type: tut.secondary,
         cycle_id: tu.cycle_id,
-        # aggregated
         location: fragment("ARRAY_AGG(?)", lh.name),
         start_time: min(tu.start_time),
         end_time: max(tu.end_time)
