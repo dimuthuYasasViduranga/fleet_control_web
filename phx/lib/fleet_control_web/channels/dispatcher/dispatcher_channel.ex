@@ -147,8 +147,8 @@ defmodule FleetControlWeb.DispatcherChannel do
         nil
 
       page ->
-        user_name = socket.assigns[:current_user][:name]
-        Appsignal.increment_counter("page_count", 1, %{page: page, user_name: user_name})
+        user_id = socket.assigns[:current_user][:user_id]
+        Appsignal.increment_counter("page_count", 1, %{page: page, user_id: user_id})
     end
 
     {:noreply, socket}

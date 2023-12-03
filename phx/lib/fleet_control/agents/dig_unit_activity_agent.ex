@@ -10,7 +10,6 @@ defmodule FleetControl.DigUnitActivityAgent do
   alias FleetControl.{Helper, AgentHelper}
   alias HpsData.Repo
   alias HpsData.Schemas.Dispatch.DigUnitActivity
-  alias HpsData.Schemas.Dispatch.MaterialType
   alias FleetControl.DigUnitActivityAgent.Update
   alias HpsData.{Asset, AssetType}
 
@@ -18,11 +17,6 @@ defmodule FleetControl.DigUnitActivityAgent do
   alias Ecto.Multi
 
   @type activity :: map
-
-  @keys [
-    :id,
-    :material_type_Id
-  ]
 
   @cull_opts %{
     time_key: :timestamp,
