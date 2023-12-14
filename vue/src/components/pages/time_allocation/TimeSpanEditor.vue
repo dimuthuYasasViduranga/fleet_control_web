@@ -13,6 +13,7 @@
           :minDatetime="localMinDatetime"
           :maxDatetime="localMaxDatetime"
           @select="onRowSelect"
+          :isOpen="true"
         >
           <template slot-scope="timeSpan">
             <div class="__tooltip-boundary">
@@ -245,7 +246,7 @@ function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, cycleSpans, 
     {
       group: 'dig-unit-activity',
       label: 'Mt',
-      subgroups: [0],
+      canHide: true,
       subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
     },
     {
