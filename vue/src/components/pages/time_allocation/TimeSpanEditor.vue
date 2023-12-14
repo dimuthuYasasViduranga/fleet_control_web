@@ -13,7 +13,6 @@
           :minDatetime="localMinDatetime"
           :maxDatetime="localMaxDatetime"
           @select="onRowSelect"
-          :isOpen="true"
         >
           <template slot-scope="timeSpan">
             <div class="__tooltip-boundary">

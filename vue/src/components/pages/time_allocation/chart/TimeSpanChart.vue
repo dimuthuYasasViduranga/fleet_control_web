@@ -182,7 +182,7 @@ export default {
     contextHeight: { type: Number, default: 0 },
     minDatetime: { type: Date, default: null },
     maxDatetime: { type: Date, default: null },
-    isOpen: { type: Boolean, default: false },
+    isOpen: { type: Boolean, default: true },
   },
   data: () => {
     return {
