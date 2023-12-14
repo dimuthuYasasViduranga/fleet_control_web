@@ -409,7 +409,7 @@ export default {
         this.minDatetime,
         this.maxDatetime,
       ]);
-      console.log(JSON.stringify(ShiftSpans));
+
       if (!this.isOpen) {
         return [TASpans, DASpans];
       }
