@@ -183,6 +183,12 @@ function haulChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans]) {
 function excavatorChartLayoutGroups([TASpans, DASpans, DUASpans, cycleSpans, queueSpans]) {
   return [
     {
+      group: 'shift',
+      label: 'S',
+      percent: 0.15,
+      subgroups: [0],
+    },
+    {
       group: 'device-assignment',
       label: 'Op',
       percent: 0.2,
@@ -225,6 +231,12 @@ function getChartLayoutGroups(spans, asset, isOpen) {
   const [TASpans, DASpans] = spans;
 
   return [
+    {
+      group: 'shift',
+      label: 'S',
+      percent: 0.15,
+      subgroups: [0],
+    },
     {
       group: 'device-assignment',
       label: 'Op',
@@ -445,7 +457,7 @@ export default {
           return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
 
         default:
-          return [TASpans, DASpans];
+          return [TASpans, DASpans, ShiftSpans];
       }
     },
     chartLayout() {
