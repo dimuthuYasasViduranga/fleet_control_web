@@ -113,7 +113,6 @@ import {
   allocationStyle,
   allocationColors,
 } from './timespan_formatters/timeAllocationTimeSpans';
-import { shiftStyle } from './timespan_formatters/shiftTimeSpans';
 import { toTimeusageTimeSpans, timeusageStyle } from './timespan_formatters/timeusageTimeSpans';
 
 import { toCycleTimeSpans, cycleStyle } from './timespan_formatters/cycleTimeSpans';
@@ -121,6 +120,7 @@ import { toTimeSpan } from './timeSpan';
 
 import TimeSpanEditorModal from '@/components/modals/TimeSpanEditorModal.vue';
 import MaterialTypeEditorModal from '@/components/modals/MaterialTypeEditorModal.vue';
+import { toShiftTimeSpans, shiftStyle } from './timespan_formatters/shiftTimeSpans';
 
 import axios from 'axios';
 
@@ -183,6 +183,12 @@ function haulChartLayoutGroups([TASpans, DASpans, TUSpans, CSpans]) {
 function excavatorChartLayoutGroups([TASpans, DASpans, DUASpans, cycleSpans, queueSpans]) {
   return [
     {
+      group: 'shift',
+      label: 'S',
+      percent: 0.15,
+      subgroups: [0],
+    },
+    {
       group: 'device-assignment',
       label: 'Op',
       percent: 0.2,
@@ -226,6 +232,12 @@ function getChartLayoutGroups(spans, asset, isOpen) {
 
   return [
     {
+      group: 'shift',
+      label: 'S',
+      percent: 0.15,
+      subgroups: [0],
+    },
+    {
       group: 'device-assignment',
       label: 'Op',
       percent: 0.3,
@@ -255,6 +267,16 @@ function toLocalDigUnitActivities(digUnitActivities = []) {
       deleted: false,
     };
   });
+}
+
+function toShiftSpans(shifts, shiftTypes, timestamps) {
+  const uniqTimestamps = uniq(timestamps.filter(ts => ts).map(ts => ts.getTime()));
+
+  const relevantShifts = uniqTimestamps
+    .map(ts => shifts.find(s => s.startTime.getTime() <= ts && ts < s.endTime.getTime()))
+    .filter(s => s);
+
+  return toShiftTimeSpans(relevantShifts, shiftTypes);
 }
 
 export default {
@@ -395,6 +417,11 @@ export default {
         .map(ts => addActiveEndTime(ts, activeEndTime))
         .filter(ts => isInRange(ts, this.minDatetime));
 
+      const ShiftSpans = toShiftSpans(this.shifts, this.shiftTypes, [
+        this.minDatetime,
+        this.maxDatetime,
+      ]);
+
       if (!this.isOpen) {
         return [TASpans, DASpans];
       }
@@ -414,6 +441,7 @@ export default {
             DUASpans,
             this.excavatorCycleSpans.spans,
             this.queueSpans.spans,
+            ShiftSpans,
           ];
 
         case 'Haul Truck':
@@ -426,10 +454,10 @@ export default {
             .map(ts => addActiveEndTime(ts, activeEndTime))
             .filter(ts => isInRange(ts, this.minDatetime));
 
-          return [TASpans, DASpans, TUSpans, CSpans];
+          return [TASpans, DASpans, TUSpans, CSpans, ShiftSpans];
 
         default:
-          return [TASpans, DASpans];
+          return [TASpans, DASpans, ShiftSpans];
       }
     },
     chartLayout() {
@@ -466,7 +494,14 @@ export default {
         let url = `${hostname}/api/excavator-cycles`;
         axios.get(url, { params }).then(resp => {
           this.excavatorCycleSpans.spans = resp.data.map(cTU =>
-            toTimeSpan(cTU.start_time + 'Z', cTU.end_time + 'Z', null, 'excavator-cycles', null, cTU),
+            toTimeSpan(
+              cTU.start_time + 'Z',
+              cTU.end_time + 'Z',
+              null,
+              'excavator-cycles',
+              null,
+              cTU,
+            ),
           );
           this.excavatorCycleSpans.isLoading = false;
         });
@@ -475,7 +510,14 @@ export default {
         url = `${hostname}/api/excavator-queue`;
         axios.get(url, { params }).then(resp => {
           this.queueSpans.spans = resp.data.map(qTU =>
-            toTimeSpan(qTU.start_time + 'Z', qTU.end_time + 'Z', null, 'excavator-queue', null, qTU),
+            toTimeSpan(
+              qTU.start_time + 'Z',
+              qTU.end_time + 'Z',
+              null,
+              'excavator-queue',
+              null,
+              qTU,
+            ),
           );
           this.queueSpans.isLoading = false;
         });

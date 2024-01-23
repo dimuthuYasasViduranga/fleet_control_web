@@ -17,9 +17,8 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
         conn,
         %{"asset_id" => asset_id, "start_time" => start_time, "end_time" => end_time}
       ) do
-    data =
-      query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
-      |> combine_overlapping()
+    data = query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
+    |> combine_overlapping()
 
     json(conn, data)
   end
@@ -67,25 +66,36 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
     %{prev | haul_truck: haul_trucks, location: locations}
   end
 
-  defp combine_overlapping(input, acc \\ [])
-  defp combine_overlapping([], []), do: []
-  defp combine_overlapping([next], acc), do: [format_output(next) | acc]
+  # defp inspect_times(l) do
+  #   Enum.map(l, fn i ->
+  #     IO.inspect([start: i.start_time, end: i.end_time])
+  #   end)
+  # end
 
-  defp combine_overlapping([prev, next | tail], acc) do
+  defp combine_overlapping(input, acc \\ [], overlap_count \\ 0)
+  defp combine_overlapping([], [], _), do: []
+  defp combine_overlapping([next], acc, _), do: [format_output(next) | acc]
+
+  defp combine_overlapping([prev, next | tail], acc, overlap_count) do
     prev_end = prev.end_time
     next_start = next.start_time
     latest = Enum.max([prev_end, next_start], NaiveDateTime)
     prev_duration = duration(prev)
 
     cond do
+      overlap_count >= 40 ->
+      # give up after too many overlaps
+        Logger.error("Too many overlaps, ending early to prevent applcation crash")
+        acc
+
       # skip zero duration
       prev_duration == 0 ->
-        combine_overlapping([next | tail], acc)
+        combine_overlapping([next | tail], acc, overlap_count)
 
       # skip invalid prev (negative duration)
       prev_duration < 0 ->
         Logger.error("Negative duration should not be possible: #{inspect(prev)}")
-        combine_overlapping([next | tail], acc)
+        combine_overlapping([next | tail], acc, overlap_count)
 
       # combine sequential time usage of the same cycle and type
       # uses next because it should be closer to the load
@@ -95,12 +105,12 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
         combined = Map.put(next, :start_time, prev.start_time)
 
         [combined | tail]
-        |> combine_overlapping(acc)
+        |> combine_overlapping(acc, overlap_count)
 
       # no overlap, emit prev and continue
       latest == next_start ->
         prev = format_output(prev)
-        combine_overlapping([next | tail], [prev | acc])
+        combine_overlapping([next | tail], [prev | acc], overlap_count)
 
       # handle overlap
       latest == prev_end ->
@@ -130,7 +140,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
 
         # needs to be sorted in case next's new start time is after the next next start time
         |> Enum.sort_by(& &1.start_time, NaiveDateTime)
-        |> combine_overlapping(acc)
+        |> combine_overlapping(acc, overlap_count + 1)
     end
   end
 
@@ -166,6 +176,12 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
   defmacrop coalesce_loader_id(distance_loader, manual_loader) do
     quote do
       coalesce(unquote(distance_loader).id, unquote(manual_loader).id)
+    end
+  end
+
+  defmacrop duration_seconds(start_time, end_time) do
+    quote do
+      fragment("COALESCE(EXTRACT(epoch FROM(? - ?)), 0)", unquote(end_time), unquote(start_time))
     end
   end
 
@@ -209,6 +225,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       left_join: lh in Dim.LocationHistory,
       on: [id: tu.location_history_id],
       where: tut.secondary in ^time_usage_types,
+      where: duration_seconds(c.start_time, c.end_time) < 1200,
 
       # aggregation
       order_by: [min(tu.start_time)],

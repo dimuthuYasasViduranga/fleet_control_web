@@ -245,7 +245,7 @@ function getChartLayoutGroups([TASpans, DUASpans, DASpans, TUSpans, cycleSpans, 
     {
       group: 'dig-unit-activity',
       label: 'Mt',
-      subgroups: [0],
+      canHide: true,
       subgroups: uniq(DUASpans.map(ts => ts.level || 0)),
     },
     {
