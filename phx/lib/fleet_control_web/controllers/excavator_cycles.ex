@@ -17,9 +17,8 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
         conn,
         %{"asset_id" => asset_id, "start_time" => start_time, "end_time" => end_time}
       ) do
-    data =
-      query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
-      |> combine_overlapping()
+    data = query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
+    # |> combine_overlapping()
 
     json(conn, data)
   end
