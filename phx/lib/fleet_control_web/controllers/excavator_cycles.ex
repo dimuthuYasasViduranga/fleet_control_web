@@ -17,8 +17,9 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
         conn,
         %{"asset_id" => asset_id, "start_time" => start_time, "end_time" => end_time}
       ) do
-    data = query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
-    |> combine_overlapping()
+    data =
+      query_excavator_events(asset_id, start_time, end_time, ["SpotAtLoad", "Loading"])
+      |> combine_overlapping()
 
     json(conn, data)
   end
@@ -84,7 +85,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
 
     cond do
       overlap_count >= 40 ->
-      # give up after too many overlaps
+        # give up after too many overlaps
         Logger.error("Too many overlaps, ending early to prevent applcation crash")
         acc
 
@@ -225,7 +226,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       left_join: lh in Dim.LocationHistory,
       on: [id: tu.location_history_id],
       where: tut.secondary in ^time_usage_types,
-      where: duration_seconds(c.start_time, c.end_time) < 1200,
+      where: duration_seconds(tu.start_time, tu.end_time) < 1200,
 
       # aggregation
       order_by: [min(tu.start_time)],
