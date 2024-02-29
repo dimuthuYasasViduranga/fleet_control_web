@@ -226,7 +226,7 @@ defmodule FleetControlWeb.ExcavatorCyclesController do
       left_join: lh in Dim.LocationHistory,
       on: [id: tu.location_history_id],
       where: tut.secondary in ^time_usage_types,
-      where: duration_seconds(c.start_time, c.end_time) < 1200,
+      where: duration_seconds(tu.start_time, tu.end_time) < 1200,
 
       # aggregation
       order_by: [min(tu.start_time)],
