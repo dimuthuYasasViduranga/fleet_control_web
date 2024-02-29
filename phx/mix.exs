@@ -66,7 +66,7 @@ defmodule FleetControlWeb.MixProject do
 
       # internal private
       {:hps_phx, git: "https://github.com/Haultrax/hps_phx.git", tag: "0.0.3"},
-      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.3.7", override: true},
+      {:hps_data, git: "https://github.com/Haultrax/hps_data.git", tag: "3.3.6", override: true},
       {:gps_gate_rest, git: "https://github.com/Haultrax/gps_gate_rest.git", tag: "0.5.0"},
 
       # test
