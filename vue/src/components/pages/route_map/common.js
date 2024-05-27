@@ -102,7 +102,8 @@ export function getNodeGroups(graph, segments) {
     });
 
   directionalSegments.forEach(s => {
-    adjacency[s.endId] = adjacency[s.endId].filter(e => e.endVertexId !== s.startId);
+    adjacency[s.endId] =
+      adjacency[s.endId] && adjacency[s.endId].filter(e => e.endVertexId !== s.startId);
   });
 
   const sccVertices = stronglyConnectedComponents(graph.vertices, adjacency);
