@@ -85,7 +85,7 @@ export function stronglyConnectedComponents(vertices, adjacency) {
   const adjArr = [];
   for (let i = 0; i < nodeCount; i++) {
     const oldId = oldVIds[i];
-    const adj = adjacency[oldId].map(v => newVIds[v.endVertexId]);
+    const adj = adjacency[oldId] && adjacency[oldId].map(v => newVIds[v.endVertexId]);
     adjArr.push(adj);
   }
 
@@ -120,14 +120,15 @@ function sccDFS(at, props) {
   props.ids[at] = props.low[at] = props.nextId++;
 
   // visit all neighbours & min low-link on callback
-  props.adjacency[at].forEach(to => {
-    if (props.ids[to] === UNVISITED) {
-      sccDFS(to, props);
-    }
-    if (props.onStack[to]) {
-      props.low[at] = Math.min(props.low[at], props.low[to]);
-    }
-  });
+  props.adjacency[at] &&
+    props.adjacency[at].forEach(to => {
+      if (props.ids[to] === UNVISITED) {
+        sccDFS(to, props);
+      }
+      if (props.onStack[to]) {
+        props.low[at] = Math.min(props.low[at], props.low[to]);
+      }
+    });
 
   // Check if we are at the beginning of a SCC
   // ie node ID === low link value

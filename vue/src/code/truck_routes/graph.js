@@ -32,19 +32,21 @@ export function fromRoute(route) {
     const edge = route.edgeMap[edgeId];
     const { vertexStartId, vertexEndId } = edge;
 
-    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
+    if (route.vertexMap[vertexStartId] && route.vertexMap[vertexEndId]) {
+      const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
 
-    vertices.forEach(v => {
-      if (graphVId[v.id] == null) {
-        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
-        graphVId[v.id] = insertedV.id;
-      }
-    });
+      vertices.forEach(v => {
+        if (graphVId[v.id] == null) {
+          const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+          graphVId[v.id] = insertedV.id;
+        }
+      });
 
-    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
-      edgeId,
-      distance: edge.distance,
-    });
+      graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+        edgeId,
+        distance: edge.distance,
+      });
+    }
   });
 
   return graph;
@@ -69,19 +71,21 @@ export function fromRestrictedRoute(route, assetTypeId) {
     const edge = route.edgeMap[edgeId];
     const { vertexStartId, vertexEndId } = edge;
 
-    const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
+    if (route.vertexMap[vertexStartId] && route.vertexMap[vertexEndId]) {
+      const vertices = [route.vertexMap[vertexStartId], route.vertexMap[vertexEndId]];
 
-    vertices.forEach(v => {
-      if (graphVId[v.id] == null) {
-        const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
-        graphVId[v.id] = insertedV.id;
-      }
-    });
+      vertices.forEach(v => {
+        if (graphVId[v.id] == null) {
+          const insertedV = graph.addVertex({ vertexId: v.id, lat: v.lat, lng: v.lng });
+          graphVId[v.id] = insertedV.id;
+        }
+      });
 
-    graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
-      edgeId,
-      distance: edge.distance,
-    });
+      graph.addEdge(graphVId[vertexStartId], graphVId[vertexEndId], {
+        edgeId,
+        distance: edge.distance,
+      });
+    }
   });
 
   return graph;
