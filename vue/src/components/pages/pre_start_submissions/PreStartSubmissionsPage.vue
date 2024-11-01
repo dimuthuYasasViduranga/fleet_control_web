@@ -42,6 +42,7 @@
         :icons="icons"
         :shift="shift"
         :useFullTimestamp="selectedTimeModeId === 'latest'"
+        :selectedTimeModeId="selectedTimeModeId"
         @refresh="onRefresh()"
       />
       <PreStartConcerns

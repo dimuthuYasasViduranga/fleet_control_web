@@ -2,16 +2,25 @@
   <div class="pre-start-reports">
     <div v-if="reports.length === 0" class="no-reports">No reports to show</div>
     <div class="reports">
-      <PreStartReport
-        v-for="(report, index) in reports"
-        :key="index"
-        :asset="report.asset"
-        :submissions="report.submissions"
+      <PreStartTableReport
+        v-if="selectedTimeModeId === 'latest'"
+        :reports="reports"
         :icons="icons"
-        :shift="shift"
         :useFullTimestamp="useFullTimestamp"
         @refresh="$emit('refresh', $event)"
       />
+      <div v-if="selectedTimeModeId === 'shift'">
+        <PreStartReport
+          v-for="(report, index) in reports"
+          :key="index"
+          :asset="report.asset"
+          :submissions="report.submissions"
+          :icons="icons"
+          :shift="shift"
+          :useFullTimestamp="useFullTimestamp"
+          @refresh="$emit('refresh', $event)"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -19,16 +28,19 @@
 <script>
 import { attributeFromList, groupBy } from '@/code/helpers';
 import PreStartReport from './PreStartReport.vue';
+import PreStartTableReport from './PreStartTableReport.vue';
 export default {
   name: 'PreStartReports',
   components: {
     PreStartReport,
+    PreStartTableReport,
   },
   props: {
     submissions: { type: Array, default: () => [] },
     assets: { type: Array, default: () => [] },
     icons: { type: Object, default: () => ({}) },
     shift: { type: Object },
+    selectedTimeModeId: { type: String, default: 'latest' },
     useFullTimestamp: { type: Boolean, default: false },
   },
   computed: {
