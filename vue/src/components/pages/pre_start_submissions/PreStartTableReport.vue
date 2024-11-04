@@ -36,6 +36,7 @@
         class="submission-time"
         label="Timestamp"
         show="latestSubmission.timestamp"
+        data-type="date"
         :formatter="formatHeadingTime"
       />
 
